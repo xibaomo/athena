@@ -1,0 +1,35 @@
+'''
+Created on Sep 4, 2018
+
+@author: fxua
+'''
+from modules.mlengine_cores.mlengine_core import MLEngineCore
+from modules.basics.common.logger import *
+from modules.mlengine_cores.classifier_cores.svm.svmconf import SVMConfig
+from modules.basics.conf.mlengineconf import gMLEngineConfig
+from sklearn import svm
+from setuptools.dist import Feature
+
+class SupportVectorMachine(MLEngineCore):
+    def __init__(self,est=None):
+        super(SupportVectorMachine,self).__init__(est)
+        if est is None:
+            self.svmConfig = SVMConfig()
+            self.svmConfig.loadYamlDict(gMLEngineConfig.getYamlDict()['SVM'])
+            self.estimator = svm.SVC(kernel=self.svmConfig.getKernel(),
+                                     C = self.svmConfig.getRegularParam(),
+                                     gamma =  self.svmConfig.getGamma(),
+                                     degree = self.svmConfig.getDegree(),
+                                     coef0 = self.svmConfig.getCoef0())
+        else:
+            self.estimator = est
+            
+        return
+    
+    def train(self,feature_matrix,labels):
+        self.estimator.fit(feature_matrix,labels)
+        return
+    
+    def predict(self,feature_matrix):
+        self.predicted_labels = self.estimator.predict(feature_matrix)
+        return

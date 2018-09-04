@@ -28,4 +28,9 @@ class MLEngineCore(object):
     
     def getPredictedValues(self):
         Log(LOG_FATAL) << "Should be implemented in concrete class"
+        return
+    
+    def getPredictedLabels(self):
+        Log(LOG_FATAL) << "Should be implemented in concrete class"
+        return
     

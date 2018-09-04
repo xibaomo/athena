@@ -35,4 +35,6 @@ class MLEngine(object):
     
     def estimateAccuracy(self,labels):
         acc = accuracy_score(labels, self.predicted_labels)
+        Log(LOG_INFO) << "Model accuracy: %.3f " % acc 
+        return
         
