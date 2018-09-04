@@ -48,7 +48,7 @@ class SVMModelAssessor(object):
         params = self.prepareParams(kernel)
         grid_search = GridSearchCV(clf,param_grid=params,n_jobs=gModelSelectorConfig.getNJobs(),
                                    cv = gModelSelectorConfig.getCVFold())
-        grid_searech.fit(self.feature_matrix,self.labels)
+        grid_search.fit(self.feature_matrix,self.labels)
         
         engCore = SupportVectorMachine(grid_search.best_estimator_)
         
