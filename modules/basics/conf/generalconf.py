@@ -1,24 +1,28 @@
-from modules.basics.common.logger import*
-from modules .basi cs.conf.topconf importTopConf
-class GeneralConfig(TopConf):
+from modules.basics.common.logger import *
+from modules.basics.conf.topconf import TopConf
 
-def _init_(self):
-super(GeneralConfig,self)._init_()
-return
-def getloglevel(self):
-return self.yamlDict['LOG_LEVEL']
-def getAppType(self):
-return self.yamlDict['APPLICATION']
-def is Es ti mateAccuracy(self):
-return self.yamlDict['ESTIMATE_ACCURACY'] --
-def getGaugeFileFormat(self):
-return self.ya ml Di ct['GAUGE_FI LE_FORMAT']
-def isEnableModelSelector(self):
-return
-self.ya ml Di ct['ENABLE_MODEL_SELECTOR']
-def getMaxNumModels(self):
-return self.ya ml Dict['MAX_NUM_MODELS']
-def getMinNumModels(self):
-return self.yamlDict['MIN_NUM_MODELS']
+class GeneralConfig(TopConf):
+    def __init__(self):
+        super(GeneralConfig,self).__init__()
+        return
+    
+    def getLogLevel(self):
+        return self.yamlDict['LOG_LEVEL']
+    
+    def getAppType(self):
+        return self.yamlDict['APPLICATION']
+    
+    def getGaugeFileFormat(self):
+        return self.yamlDict['GAUGE_FILE_FORMAT']
+    
+    def isEnableModelSelector(self):
+        return self.yamlDict['ENABLE_MODEL_SELECTOR']
+    
+    def getMaxNumModels(self):
+        return self.yamlDict['MAX_NUM_MODELS']
+    
+    def getMinNumModels(self):
+        return self.yamlDict['MIN_NUM_MODELS']
+    
 global gGeneralConfig
 gGeneralConfig = GeneralConfig()
