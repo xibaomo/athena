@@ -33,3 +33,6 @@ class SupportVectorMachine(MLEngineCore):
     def predict(self,feature_matrix):
         self.predicted_labels = self.estimator.predict(feature_matrix)
         return
+    
+    def getPredictedLabels(self):
+        return self.predicted_labels

@@ -9,6 +9,16 @@ import cPickle
 
 from modules.basics.common.logger import *
 import numpy as np
+from modules.feature_extractor.wordcount.wordcounter import WordCounter
+
+ExtractorSwitcher = {
+    99: WordCounter.getInstance
+    }
+
+def createFeatureExtractor(extractorType):
+    func = ExtractorSwitcher[extractorType]
+    return func()
+
 
 class FeatureExtractor(object):
     def __init__(self):
