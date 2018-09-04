@@ -5,6 +5,9 @@ Created on Sep 3, 2018
 '''
 
 from timeit import default_timer as timer
+import csv
+import sys
+from modules.basics.common.logger import LOG_FATAL, LOG_INFO
 
 def tic():
     return timer()
@@ -64,3 +67,40 @@ def cross_valid_split(fm,labels,test_ratio):
     test_fm = fm[ts+1:,:]
     test_labels = labels[ts+1:]
     return train_fm,train_labels,test_fm,test_labels
+
+class CSVParser(object):
+    def __init__(self):
+        return
+    
+    def load(self,filename,domKey):
+        gaugeTable = {}
+        f = open(filename,'rb')
+        reader = csv.reader(f)
+        headers = []
+        k = 0
+        for row in reader:
+            if domKey in row:
+                headers = row 
+                continue
+            
+            if len(headers) != len(row):
+                Log(LOG_FATAL) << "No. of fields inconsistent with headers"
+                
+            gauge = {}
+            k+=1
+            for m in range(len(headers)):
+                gauge[headers[m]] = row[m]
+                
+            domvalue = gauge[domKey]
+            if not gaugeTable.has_key(domvalue):
+                gaugeTable[domvalue] = []
+            
+            gaugeTable[domvalue].append(gauge)
+        
+        Log(LOG_INFO) <<"%d gauges are loaded, %d unique gauges" % (k,len(gaugeTable))
+        
+        return gaugeTable
+        
+                
+            
+            
