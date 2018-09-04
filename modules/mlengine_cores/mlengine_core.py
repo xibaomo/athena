@@ -10,7 +10,7 @@ from modules.mlengine_cores.classifier_cores.randomforest.randomforest import Ra
 
 EngineCoreSwitcher = {
     0: SupportVectorMachine,
-    1: DecisionTree
+    1: DecisionTree,
     2: RandomForest
     }
 
