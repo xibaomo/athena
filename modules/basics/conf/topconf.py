@@ -12,7 +12,7 @@ class TopConf(object):
         self.yamlDict={}
         return
     
-    def loadYamlDict(selfself,yamlDict):
+    def loadYamlDict(self,yamlDict):
         self.yamlDict.update(yamlDict)
         return
     
