@@ -60,7 +60,7 @@ MODEL_SELECTOR:
 	# number of groups in which the train data is divided for cross-validation
 	CV_FOLD: 5
 	# number of threads running in parallel
-	N_JOBS: 32
+	N_JOBS: 8
 ########################### Classifiers ###########################
 	MODEL_1:
 		ENABLED: false
@@ -83,3 +83,14 @@ MODEL_SELECTOR:
 		LAYER_NODES: [10,20,10]
 		N_ESTIMATORS: 3
 		N_CLASSES: 2
+
+########################### App config starts here ###########################
+SPM:
+    # Type of input data
+    # 0 - raw data
+    INPUT_TYPE: 0
+
+    # Used if INPUT_TYPE == 0
+    TRAIN_DATA_DIR: ./
+    TEST_DATA_DIR: ./
+    VERIFY_DATA_DIR: ./
