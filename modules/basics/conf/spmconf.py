@@ -26,9 +26,6 @@ class SPMConfig(TopConf):
     def getTestFeatureFile(self):
         return self.yamlDict.get('TEST_FEATURE_FILE')
     
-    def getVerifyFeatureFile(self):
-        return self.yamlDict.get('VERIFY_FEATURE_FILE')
-    
     def getInputType(self):
         return self.yamlDict.get('INPUT_TYPE')
     
