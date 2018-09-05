@@ -17,9 +17,6 @@ class SPMConfig(TopConf):
     def getTestDataDir(self):
         return self.yamlDict.get('TEST_DATA_DIR')
     
-    def getVerifyDataDir(self):
-        return self.yamlDict.get('VERIFY_DATA_DIR')
-    
     def getTrainFeatureFile(self):
         return self.yamlDict.get('TRAIN_FEATURE_FILE')
     
