@@ -52,5 +52,5 @@ class SVMModelAssessor(object):
         
         engCore = SupportVectorMachine(grid_search.best_estimator_)
         
-        return engCore,grid_search.best_score_)
+        return (engCore,grid_search.best_score_)
         
