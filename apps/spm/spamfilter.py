@@ -5,11 +5,16 @@ Created on Sep 4, 2018
 '''
 from apps.app import App
 from modules.basics.common.logger import *
+from modules.feature_extractor.wordcount.wordcounter import WordCounter
+from modules.mlengines.classifier.classifier import Classifier
+from modules.mlengine_cores.mlengine_core import createMLEngineCore
 from modules.basics.conf.spmconf import gSPMConfig
 
 class SpamFilter(App):
     def __init__(self):
         super(SpamFilter,self).__init__()
+        self.featureExtractor = WordCounter.getInstance()
+        self.mlEngine = 
         Log(LOG_INFO) << "App: spam filter is created"
         return
     

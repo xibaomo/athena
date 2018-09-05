@@ -15,7 +15,8 @@ import modules.basics.common.utils as utils
 
 class MasterConfig(object):
     def __init__(self):
-        self.load
+        self.loadGlobalConfig()
+        return
         
         
     def loadGlobalConfig(self):

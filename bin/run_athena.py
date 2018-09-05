@@ -16,18 +16,18 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         Log(LOG_FATAL) << "No Yaml file is provided"
         sys.exit()
-        
-        gMasterConfig.loadLocalConfig(sys.argv[1])
-        gMasterConfig.prepare()
-        Log.setlogLevel(gGeneralConfig.getLogLevel())
-        Log(LOG_INFO) << "Program starts ..."
-        
-        app = createApp(gGeneralConfig.getAppType())
-        
-        app.prepare()
-        
-        app.execute()
-        
-        app.finish()
-        
-        Log(LOG_INFO) << "Program exits normally."
+    
+    gMasterConfig.loadLocalConfig(sys.argv[1])
+    gMasterConfig.prepare()
+    Log.setlogLevel(gGeneralConfig.getLogLevel())
+    Log(LOG_INFO) << "Program starts ..."
+    
+    app = createApp(gGeneralConfig.getAppType())
+    
+    app.prepare()
+    
+    app.execute()
+    
+    app.finish()
+    
+    Log(LOG_INFO) << "Program exits normally."

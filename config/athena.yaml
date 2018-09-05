@@ -1,88 +1,94 @@
-Project: Metis
-Version: "0. 0 .1"
+Project: athena
+Version: "0.0.1"
 
 GENERAL:
-# Applications: 0 - Hot spot detector
-# 99 - Spam mail filter
-	APPLICATION: 0
-	# Log levels: 0 - LOG_FATAL
-	#             1 - LOG_ERROR
-	#			  2 - LOG_INFO
-	#			  3 - LOG_DEBUG
-	LOG_LEVEL: 2
-	# Format of gauge file
-	GAUGE_FILE_FORMAT: csv
-	# 1/0: turn on/off
-	ESTIMATE_ACCURACV: 1
-	# Model selector, crossval idation is default
-	ENABLE_MODEL_SELECTOR: true
-	# Maximum allowed number of to-be-trained models
-	MAX_NUM_MODELS: 3
-	# Minimum number of product models
-	MIN_NUM_MODELS: 2
+    # Applications:
+    #               99 - Spam mail filter
+    APPLICATION: 0
+
+    # Log levels: 0 - LOG_FATAL
+    #             1 - LOG_ERROR
+    #              2 - LOG_INFO
+    #              3 - LOG_DEBUG
+    LOG_LEVEL: 2
+
+    # Format of gauge file
+    GAUGE_FILE_FORMAT: csv
+
+    # 1/0: turn on/off
+    ESTIMATE_ACCURACV: 1
+
+    # Model selector, crossval idation is default
+    ENABLE_MODEL_SELECTOR: true
+
+    # Maximum allowed number of to-be-trained models
+    MAX_NUM_MODELS: 3
+
+    # Minimum number of product models
+    MIN_NUM_MODELS: 2
 
 # Machine-learning engine
-ML_ENGINE:
-	# Machine-learning engine type:
-	# 0 - support vector machine (SVM)
-	# 1 - decision tree (DCT)
-	ENGINE_ TYPE: 0
-	SVM:
-		# rbf, linear, poly, sigmoid, precomputed
-		KERNEL: 1 i near
-		C: 1.
-		GAMMA: auto
-		# used by poly & sigmoid
-		COEFO: 0.
-		# only used by poly
-		DEGREE: 3
-	DCT:
-		MIN_SAMPLE_SPLIT: 10
-		# gini or entropy
-		CRITERION: entropy
-	RMF: # Random Forest
-		MIN_SAMPLES_SPLIT: 2
-		N_ESTIMATORS: 10
-		CRITERION: entropy
-	DNN:
-		TRAIN_STEPS: 5000
-		LAVER_NODES: [10,20,10]
-		N_CLASSES: 2
-		N_ESTIMATORS: 3
+
+ML_ENGINE_CORE:
+    # Machine-learning engine type:
+    # 0 - support vector machine (SVM)
+    # 1 - decision tree (DCT)
+    ENGINE_CORE_TYPE: 0
+    SVM:
+        # rbf, linear, poly, sigmoid, precomputed
+        KERNEL: 1 i near
+        C: 1.
+        GAMMA: auto
+        # used by poly & sigmoid
+        COEFO: 0.
+        # only used by poly
+        DEGREE: 3
+    DCT:
+        MIN_SAMPLE_SPLIT: 10
+        # gini or entropy
+        CRITERION: entropy
+    RMF: # Random Forest
+        MIN_SAMPLES_SPLIT: 2
+        N_ESTIMATORS: 10
+        CRITERION: entropy
+    DNN:
+        TRAIN_STEPS: 5000
+        LAVER_NODES: [10,20,10]
+        N_CLASSES: 2
+        N_ESTIMATORS: 3
 
 FEATURE_EXTRACTOR:
-	# Type of feature extractor:
-	# 0 - Hot spot feature
-	# 99 - word count
-	EXTRACTOR_TVPE: 0
+    # Type of feature extractor:
+    # 99 - word count
+    EXTRACTOR_TVPE: 0
 
 MODEL_SELECTOR:
-	# number of groups in which the train data is divided for cross-validation
-	CV_FOLD: 5
-	# number of threads running in parallel
-	N_JOBS: 8
+    # number of groups in which the train data is divided for cross-validation
+    CV_FOLD: 5
+    # number of threads running in parallel
+    N_JOBS: 8
 ########################### Classifiers ###########################
-	MODEL_1:
-		ENABLED: false
-		MODEL_NAME: SVM
-		KERNEL_LIST: [rbf,sigmoid]
-	MODEL_2:
-		ENABLED: false
-		MODEL_NAME: DCT # Decision tree
-		SAMPLE_SPLIT: 4,200,100 # min,max,num
-	MODEL_3:
-		ENABLED: false
-		MODEL_NAME: RMF # Random forest
-		N_ESTIMATORS: 10,200,10 # min,max,num
-		CRITERION: [gini,entropy]
-		MIN_SAMPLES_SPLIT: 2,40,10
-	MODEL_4:
-		ENABLED: false
-		MODEL_NAME: DNN
-		TRAIN_STEPS: 5000
-		LAYER_NODES: [10,20,10]
-		N_ESTIMATORS: 3
-		N_CLASSES: 2
+    MODEL_1:
+        ENABLED: false
+        MODEL_NAME: SVM
+        KERNEL_LIST: [rbf,sigmoid]
+    MODEL_2:
+        ENABLED: false
+        MODEL_NAME: DCT # Decision tree
+        SAMPLE_SPLIT: 4,200,100 # min,max,num
+    MODEL_3:
+        ENABLED: false
+        MODEL_NAME: RMF # Random forest
+        N_ESTIMATORS: 10,200,10 # min,max,num
+        CRITERION: [gini,entropy]
+        MIN_SAMPLES_SPLIT: 2,40,10
+    MODEL_4:
+        ENABLED: false
+        MODEL_NAME: DNN
+        TRAIN_STEPS: 5000
+        LAYER_NODES: [10,20,10]
+        N_ESTIMATORS: 3
+        N_CLASSES: 2
 
 ########################### App config starts here ###########################
 SPM:
@@ -93,4 +99,3 @@ SPM:
     # Used if INPUT_TYPE == 0
     TRAIN_DATA_DIR: ./
     TEST_DATA_DIR: ./
-    VERIFY_DATA_DIR: ./
