@@ -36,11 +36,11 @@ ML_ENGINE_CORE:
     ENGINE_CORE_TYPE: 0
     SVM:
         # rbf, linear, poly, sigmoid, precomputed
-        KERNEL: 1 i near
+        KERNEL: linear
         C: 1.
         GAMMA: auto
         # used by poly & sigmoid
-        COEFO: 0.
+        COEF0: 0.
         # only used by poly
         DEGREE: 3
     DCT:

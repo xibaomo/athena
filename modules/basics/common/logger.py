@@ -40,14 +40,15 @@ class Logger(object):
             frame = caller[0]
             info = inspect.getframeinfo(frame)
             file_lineno= "["+info.filename+":"+ str(info.lineno)+"]"
-            self.func(file_lineno + msg)
+        
+        self.func(file_lineno + msg)
         if self.requestLevel == LOG_FATAL:
             sys.exit()
         return
 
     def setlogLevel(self, loglevel):
-        self.loglevel = loglevel
-        logging.basicConfig(format='%(asctime)s,%(msecs)d %(level name)-8s %(message)s', datefmt='%m-%d-%Y:%H :%M:%S', level = loglevel)
+        self.logLevel = loglevel
+        logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s %(message)s',datefmt='%m-%d-%Y:%H:%M:%S',level=loglevel)
         return
     
 global Log

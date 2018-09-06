@@ -8,7 +8,6 @@ from modules.basics.common.logger import *
 from modules.mlengine_cores.classifier_cores.svm.svmconf import SVMConfig
 from modules.basics.conf.mlengineconf import gMLEngineConfig
 from sklearn import svm
-from setuptools.dist import Feature
 
 class SupportVectorMachine(MLEngineCore):
     def __init__(self,est=None):

@@ -10,12 +10,8 @@ class MLEngineConfig(TopConf):
         super(MLEngineConfig,self).__init__()
         return
     
-    def getEngineType(self):
-        return self.yamlDict['ENGINE_TYPE']
-    
-    def getTrainSteps(self):
-        return self.yamlDict['TRAIN_STEPS']
-    
-    
+    def getEngineCoreType(self):
+        return self.yamlDict['ENGINE_CORE_TYPE']
+       
 global gMLEngineConfig
 gMLEngineConfig = MLEngineConfig()

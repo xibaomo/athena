@@ -45,7 +45,7 @@ class MasterConfig(object):
     
     def __divideYamlDict(self):
         gGeneralConfig.loadYamlDict(self.yamlDict['GENERAL'])
-        gMLEngineConfig.loadYamlDict(self.yamlDict['ML_ENGINE'])
+        gMLEngineConfig.loadYamlDict(self.yamlDict['ML_ENGINE_CORE'])
         gSPMConfig.loadYamlDict(self.yamlDict['SPM'])
         gFexConfig.loadYamlDict(self.yamlDict['FEATURE_EXTRACTOR'])
         gModelSelectorConfig.loadYamlDict(self.yamlDict['MODEL_SELECTOR'])

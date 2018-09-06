@@ -20,7 +20,7 @@ class MLEngine(object):
         return
     
     def train(self,featureMatrix,labels):
-        log(LOG_INFO) << "Start training model ..."
+        Log(LOG_INFO) << "Start training model ..."
         self.engineCore.train(featureMatrix,labels)
         Log(LOG_INFO) << "Training is finished"
         

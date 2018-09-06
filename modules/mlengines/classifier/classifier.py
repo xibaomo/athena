@@ -12,10 +12,10 @@ class Classifier(MLEngine):
         super(Classifier,self).__init__(engineCore)
         return
     
-    def predict(selfself,feature_matrix,labels=None):
+    def predict(self,feature_matrix,labels=None):
         Log(LOG_INFO) << "Start predicting ..."
         self.engineCore.predict(feature_matrix)
-        self.predicted_labels = self.engineCore.getPredictLabels()
+        self.predicted_labels = self.engineCore.getPredictedLabels()
         
         Log(LOG_INFO) << "Prediction done"
         
