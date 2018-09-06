@@ -10,12 +10,17 @@ from modules.mlengines.classifier.classifier import Classifier
 from modules.mlengine_cores.mlengine_core_creator import createMLEngineCore 
 from modules.basics.conf.spmconf import gSPMConfig
 from modules.basics.conf.mlengineconf import gMLEngineConfig
+from modules.basics.conf.modelselectorconf import gModelSelectorConfig
+from modules.basics.conf.generalconf import gGeneralConfig
 
 class SpamFilter(App):
     def __init__(self):
         super(SpamFilter,self).__init__()
         self.featureExtractor = WordCounter.getInstance()
-        engCore = createMLEngineCore(gMLEngineConfig.getEngineCoreType())
+        if gGeneralConfig.isEnableModelSelector():
+            engCore = None
+        else:
+            engCore = createMLEngineCore(gMLEngineConfig.getEngineCoreType())
         self.mlEngine = Classifier(engCore)
         Log(LOG_INFO) << "App: spam filter is created"
         return
