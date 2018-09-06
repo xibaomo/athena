@@ -20,7 +20,7 @@ class RandomForest(MLEngineCore):
             self.estimator = RandomForestClassifier(n_estimators=self.rmfConfig.getNEstimator(),
                                                     min_samples_split=self.rmfConfig.getMinSampleSplit(),
                                                     criterion=self.rmfConfig.getCriterion())
-            Log(LOG_INFO) << "Classifier: random forest is created"
+            Log(LOG_INFO) << "Classifier: random forest is created: {}".format(self.estimator)
         else:
             self.estimator = est
                 
