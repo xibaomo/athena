@@ -20,6 +20,8 @@ class SupportVectorMachine(MLEngineCore):
                                      gamma =  self.svmConfig.getGamma(),
                                      degree = self.svmConfig.getDegree(),
                                      coef0 = self.svmConfig.getCoef0())
+            
+            Log(LOG_INFO) << "SVM is created: {}".format(self.estimator)
         else:
             self.estimator = est
             
