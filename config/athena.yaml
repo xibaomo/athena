@@ -52,10 +52,14 @@ ML_ENGINE_CORE:
         N_ESTIMATORS: 10
         CRITERION: entropy
     DNN:
-        TRAIN_STEPS: 5000
-        LAVER_NODES: [10,20,10]
-        N_CLASSES: 2
-        N_ESTIMATORS: 3
+        EPOCHS: 1000
+        NEURONS: :[10,20,10]
+        ACTIVATION: ['relu','relu','relu']
+        DROPOUT_RATE: [0.2,0.2,0.2]
+        BATCH_SIZE: 100
+        ALGORITHM: SGD
+        LEARN_RATE: 0.01
+        MOMENTUM: 0.1 #ONLY USED WHEN ALGORITHM == SGD
 
 FEATURE_EXTRACTOR:
     # Type of feature extractor:
@@ -85,11 +89,18 @@ MODEL_SELECTOR:
     MODEL_4:
         ENABLED: false
         MODEL_NAME: DNN
-        TRAIN_STEPS: 5000
-        LAYER_NODES: [10,20,10]
-        N_ESTIMATORS: 3
-        N_CLASSES: 2
-
+        
+        RANDOM_SEED: -1 # -1 means no seed
+        NEURONS: [10,20,10]
+        ACTIVATION: ['softmax','softplus','softsign','relu','tanh','sigmoid','hard_sigmoid','linear']
+        EPOCHS: 100,1000,10 # START,STOP,NUM
+        BATCH_SIZE: 10,200,10
+        DROPOUT_RATE: 0.0,0.9,10
+        ALGORITHM: ['SGD','RMSprop','Adagrad','Adadelta','Adam','Adamax','Nadam']
+        WEIGHT_INIT: ['uniform','lecun_uniform','normal','zero','glorot_normal','glorot_uniform','he_normal','he_uniform']
+        LEARN_RATE: 0.001,0.3,10
+        MOMENTUM: 0.,0.9,10 #ONLY USED WHEN ALGORITHM == SGD
+        
 ########################### App config starts here ###########################
 SPM:
     # Type of input data
