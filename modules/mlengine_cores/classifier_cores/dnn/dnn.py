@@ -6,46 +6,45 @@ from keras.layers import Dense
 import numpy as np
 from modules.basics.conf.mlengineconf import gMLEngineConfig
 from keras.wrappers.scikit_learn import KerasClassifier
-
+from modules.mlengine_cores.comm.dnncreator import createDNNModel
 class DNNClassifier(MLEngineCore):
     '''
     classdocs
     '''
     def __init__(self, fextor, est = None):
         super(DNNClassifier, self).__init__(fextor,est)
-        self.input_dim = input_dim
+        fm = self.featureExtractor.getTrainFeatureMatrix()
+        self.input_dim = fm.shape[1]
         if not est is None:
             self.estimator = est
         else:
             self.config =DNNConfig()
             self.config.loadYamlDict(gMLEngineConfig.getYamlDict()['DNN'])
-            self.estimator = self.createEstimator()
+            self.createEstimator()
+            
+            Log(LOG_INFO) <<"DNN classifier is created"
         return
 
     def _createModel(self):
         model = Sequential()
         neurons =self.config.getNeurons()
-        init_wt =self.config.getWeightlnit()
+        init_wt =self.config.getWeightInit()
         act =self.config.getActivation()
         optm =self.config.getAlgorithm()
         model = createDNNModel(self.input_dim, neurons, init_wt, act, "sigmoid", "binary_crossentropy",optm)
         return model
 
     def createEstimator(self):
-        self.estimator =KerasClassifier(build_fn = self._createModel,
+        self.estimator = KerasClassifier(build_fn = self._createModel,
                                          epochs = self.config.getEpochs(),
                                          batch_size = self.config.getBatchSize(),
                                          verbose = 0)
         return
 
-    def train(self, feature_matrix, targets):
-        self.estimator.fit(feature_matrix, targets)
+
+    def predict(self):
+        super(DNNClassifier,self).predict()
+        
+        self.predictedTargets = [round(x) for x in self.predictedTargets]
         return
 
-    def predict(self, feature_matrix):
-        y = self.estimator.predict(feature_matrix)
-        self.predicted_labels =[round(x) for x in y]
-        return
-
-    def getPredictedLabels(self):
-        return se1f.predicted_labels

@@ -11,7 +11,7 @@ from modules.basics.common.logger import *
 from modules.basics.conf.spmconf import gSPMConfig
 from mhlib import Folder
 
-NUM_WORDS = 3000
+NUM_WORDS = 30
 
 class WordCounter(FeatureExtractor):
     def __init__(self):
@@ -102,6 +102,10 @@ class WordCounter(FeatureExtractor):
         return features_matrix, train_labels
 
     def extractTrainFeatures(self):
+        
+        if not self.trainFeatureMatrix is None:
+            return
+        
         if self.trainDir == "":
             feature_matrix = self.load(gSPMConfig.getTrainFeatureFile())
             labels = self.load(gSPMConfig.getTrainLabelFile())

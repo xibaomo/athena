@@ -22,7 +22,7 @@ class DNNConfig(TopConf):
     def getAlgorithm(self): 
         return self.yamlDict['ALGORITHM'] 
     
-    def getWeightinit(self): 
+    def getWeightInit(self): 
         return self.yamlDict['WEIGHT_INIT'] 
     
     def getlearnRate(self): 

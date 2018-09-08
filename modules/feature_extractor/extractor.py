@@ -31,6 +31,9 @@ class FeatureExtractor(object):
         return model
     
     def getTrainFeatureMatrix(self):
+        if self.trainFeatureMatrix is None:
+            self.extractTrainFeatures()
+            
         return self.trainFeatureMatrix
     
     def getTrainTargets(self):

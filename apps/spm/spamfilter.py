@@ -17,12 +17,7 @@ class SpamFilter(App):
     def __init__(self):
         super(SpamFilter,self).__init__()
         self.featureExtractor = WordCounter.getInstance()
-        if gGeneralConfig.isEnableModelSelector():
-            engCore = None
-        else:
-            engCore = createMLEngineCore(gMLEngineConfig.getEngineCoreType(),self.featureExtractor)
-        self.mlEngine = Classifier(engCore)
-        Log(LOG_INFO) << "App: spam filter is created"
+
         return
     
     @classmethod
@@ -41,6 +36,14 @@ class SpamFilter(App):
             pass
         
         self.featureExtractor.prepare()
+        
+        if gGeneralConfig.isEnableModelSelector():
+            engCore = None
+        else:
+            engCore = createMLEngineCore(gMLEngineConfig.getEngineCoreType(),self.featureExtractor)
+            
+        self.mlEngine = Classifier(engCore)
+        Log(LOG_INFO) << "App: spam filter is created"
         
         return
     

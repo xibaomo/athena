@@ -60,6 +60,7 @@ ML_ENGINE_CORE:
         DROPOUT_RATE: [0.2,0.2,0.2]
         BATCH_SIZE: 100
         ALGORITHM: SGD
+        WEIGHT_INIT: uniform
         LEARN_RATE: 0.01
         MOMENTUM: 0.1 #ONLY USED WHEN ALGORITHM == SGD
 
