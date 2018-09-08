@@ -7,7 +7,8 @@ from modules.basics.common.logger import *
 
 class MLEngineCore(object):
     
-    def __init__(self,est=None):
+    def __init__(self, fextor, est=None):
+        self.featureExtractor = fextor
         self.estimator = est 
         return
     
@@ -18,19 +19,23 @@ class MLEngineCore(object):
     def getEstimator(self):
         return self.estimator
     
-    def train(self,feature_matrix,targets):
-        Log(LOG_FATAL) << "Should be implemented in concrete class"
+    def getFeatureExtractor(self):
+        return self.featureExtractor
+    
+    def train(self):
+                
+        fm = self.featureExtractor.getTrainFeatureMatrix()
+        targets = self.featureExtractor.getTrainTargets()
+        
+        self.estimator.fit(fm,targets)
         return
     
-    def predict(self,feature_matrix):
-        Log(LOG_FATAL) << "Should be implemented in concrete class"
+    def predict(self):
+        fm = self.featureExtractor.getTestFeatureMatrix()
+        
+        self.predictedTargets = self.estimator.predict(fm)
         return
     
-    def getPredictedValues(self):
-        Log(LOG_FATAL) << "Should be implemented in concrete class"
-        return
-    
-    def getPredictedLabels(self):
-        Log(LOG_FATAL) << "Should be implemented in concrete class"
-        return
+    def getPredictedTargets(self):
+        return self.predictedTargets
     

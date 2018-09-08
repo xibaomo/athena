@@ -20,6 +20,7 @@ class WordCounter(FeatureExtractor):
         self.testDir = ""
         self.trainFeatureFile = ""
         self.trainLabelFile = ""
+        
         Log(LOG_INFO) << "Feature_extractor: word counter is created"
 
         return
@@ -110,20 +111,15 @@ class WordCounter(FeatureExtractor):
         foldername = self.trainDir
         Log(LOG_INFO) << "Extracting features from " + foldername
 
-        feature_matrix, labels = self.extractFeatureLabel(foldername)
-# 
-#         self.save(foldername+"_features.dat", feature_matrix)
-#         self.save(foldername+"_labels.dat", labels)
-# 
-#         Log(LOG_INFO) << "Dumped feature and label data files of training set"
+        self.trainFeatureMatrix, self.trainTargets = self.extractFeatureLabel(foldername)
 
-        return feature_matrix, labels
+        return 
 
     def extractTestFeatures(self):
         foldername = self.testDir
         Log(LOG_INFO) << "Extracting features from " + foldername
-        fm, la = self.extractFeatureLabel(foldername)
-        return fm, la
+        self.testFeatureMatrix, self.testTargets = self.extractFeatureLabel(foldername)
+        return 
 
 
 

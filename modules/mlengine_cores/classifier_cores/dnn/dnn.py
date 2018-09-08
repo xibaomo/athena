@@ -5,15 +5,14 @@ from keras.models import Sequential
 from keras.layers import Dense
 import numpy as np
 from modules.basics.conf.mlengineconf import gMLEngineConfig
-from modules.mlengine_cores.common.dnn_creator import createDNNModel
 from keras.wrappers.scikit_learn import KerasClassifier
 
 class DNNClassifier(MLEngineCore):
     '''
     classdocs
     '''
-    def __init__(self, est = None, input_dim):
-        super(DNNClassifier, self).__init__(est)
+    def __init__(self, fextor, est = None):
+        super(DNNClassifier, self).__init__(fextor,est)
         self.input_dim = input_dim
         if not est is None:
             self.estimator = est

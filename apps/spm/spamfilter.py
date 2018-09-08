@@ -20,7 +20,7 @@ class SpamFilter(App):
         if gGeneralConfig.isEnableModelSelector():
             engCore = None
         else:
-            engCore = createMLEngineCore(gMLEngineConfig.getEngineCoreType())
+            engCore = createMLEngineCore(gMLEngineConfig.getEngineCoreType(),self.featureExtractor)
         self.mlEngine = Classifier(engCore)
         Log(LOG_INFO) << "App: spam filter is created"
         return
@@ -46,18 +46,21 @@ class SpamFilter(App):
     
     def execute(self):
         Log(LOG_INFO) << "Extracting features from train set ..."
-        x_train,y_train = self.featureExtractor.extractTrainFeatures()
+        self.featureExtractor.extractTrainFeatures()
         Log(LOG_INFO) << "done"
         
         Log(LOG_INFO) << "Extracting features from test set ..."
-        x_test,y_test = self.featureExtractor.extractTestFeatures()
+        self.featureExtractor.extractTestFeatures()
         Log(LOG_INFO) << "done"
         
         Log(LOG_INFO) << "Training ..."        
-        self.mlEngine.train(x_train,y_train)
+        self.mlEngine.train()
         
         Log(LOG_INFO) << "Predicting ..."
-        self.mlEngine.predict(x_test,y_test)
+        self.mlEngine.predict()
+        
+        self.mlEngine.evaluatePrediction()
+        
         return
     
     def finish(self):

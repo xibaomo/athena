@@ -33,11 +33,13 @@ ML_ENGINE_CORE:
     # Machine-learning engine type:
     # 0 - support vector machine (SVM)
     # 1 - decision tree (DCT)
+    # 2 - random forest
+    # 3 - DNN
     ENGINE_CORE_TYPE: 0
     SVM:
         # rbf, linear, poly, sigmoid, precomputed
-        KERNEL: linear
-        C: 1.
+        KERNEL: rbf
+        C: 100.
         GAMMA: auto
         # used by poly & sigmoid
         COEF0: 0.

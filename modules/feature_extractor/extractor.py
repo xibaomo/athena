@@ -12,6 +12,10 @@ import numpy as np
 
 class FeatureExtractor(object):
     def __init__(self):
+        self.trainFeatureMatrix = None
+        self.trainTargets = None
+        self.testFeatureMatrix = None
+        self.testTargets = None
         return
     
     def save(self,filename,model):
@@ -27,10 +31,16 @@ class FeatureExtractor(object):
         return model
     
     def getTrainFeatureMatrix(self):
-        return self.feature_matrix
+        return self.trainFeatureMatrix
     
-    def getTrainLabels(self):
-        return self.labels
+    def getTrainTargets(self):
+        return self.trainTargets
+    
+    def getTestFeatureMatrix(self):
+        return self.testFeatureMatrix 
+    
+    def getTestTargets(self):
+        return self.testTargets
     
     def prepare(self,args=None):
         return

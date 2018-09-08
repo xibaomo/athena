@@ -11,8 +11,8 @@ from modules.basics.conf.mlengineconf import gMLEngineConfig
 
 class RandomForest(MLEngineCore):
     
-    def __init__(self,est=None):
-        super(RandomForest,self).__init__(est)
+    def __init__(self,fextor,est=None):
+        super(RandomForest,self).__init__(fextor,est)
         
         if est is None:
             self.rmfConfig = RMFConfig()
@@ -26,14 +26,4 @@ class RandomForest(MLEngineCore):
                 
         return
     
-    def train(self,feature_matrix,labels):
-        self.estimator.fit(feature_matrix,labels)
-        return
-    
-    def predict(self,feature_matrix):
-        self.predicted_labels = self.estimator.predict(feature_matrix)
-        return
-    
-    def getPredictedLabels(self):
-        return self.predicted_labels
         

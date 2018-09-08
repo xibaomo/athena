@@ -10,8 +10,8 @@ from modules.basics.conf.mlengineconf import gMLEngineConfig
 from modules.basics.common.logger import *
 
 class DecisionTree(MLEngineCore):
-    def __init__(self,est=None):
-        super(DecisionTree,self).__init__(est)
+    def __init__(self,fextor,est=None):
+        super(DecisionTree,self).__init__(fextor,est)
         if est is None:
             self.dctConfig = DCTConfig()
             self.dctConfig.loadYamlDict(gMLEngineConfig.getYamlDict()['DCT'])
@@ -25,14 +25,3 @@ class DecisionTree(MLEngineCore):
             
         return
     
-    def train(self, feature_matrix, targets):
-        self.estimator.fit(feature_matrix,targets)
-        return
-    
-    def predict(self, feature_matrix):
-        self.predicted_labels = self.estimator.predict(feature_matrix)
-        return
-    
-    def getPredictedLabels(self):
-        return self.predicted_labels
-                             
