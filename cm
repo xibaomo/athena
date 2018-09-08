@@ -1,0 +1,26 @@
+#!/bin/bash
+
+export PYTHONPATH=$(pwd)
+RELEASE_DIR=release
+
+if [[ -d release ]]
+then
+    lsof | grep release/dist/run_athena/.nfs | awk '{print$2}'| xargs kill -9
+    rm -rf release
+fi
+
+mkdir -vp $RELEASE_DIR
+
+cd $RELEASE_DIR
+
+pyinstaller ../bin/run_athena.py --hidden-import sklearn.neighbors.typedefs \
+                --hidden-import sklearn.neighbors.quad_tree \
+                --hidden-import sklearn.tree._utils \
+                --hidden-import scipy._lib.messagestream \
+                --hidden-import packaging \
+                --hidden-import six.moves.html_parser \
+                --hidden-import packaging.specifiers
+
+
+cp -rfv ../config .
+
