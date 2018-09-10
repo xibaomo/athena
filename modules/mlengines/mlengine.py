@@ -29,6 +29,8 @@ class MLEngine(object):
         Log(LOG_FATAL) << "This function should be implemented in concrete class"
         return
     
+    def getPredictedTargets(self):
+        return self.engineCore.getPredictedTargets()
 
     
 

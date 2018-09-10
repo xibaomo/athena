@@ -36,14 +36,34 @@ class FeatureExtractor(object):
             
         return self.trainFeatureMatrix
     
+    def setTrainFeatureMatrix(self,fm):
+        self.trainFeatureMatrix = fm
+        return
+    
     def getTrainTargets(self):
         return self.trainTargets
     
+    def setTrainTargets(self,targets):
+        self.trainTargets = targets
+        return
+    
     def getTestFeatureMatrix(self):
+        if self.testFeatureMatrix is None:
+            self.extractTestFeatures()
+            
         return self.testFeatureMatrix 
+    
+    def setTestFeatureMatrix(self,fm):
+        self.testFeatureMatrix = fm
+        return
     
     def getTestTargets(self):
         return self.testTargets
+    
+    def setTestTargets(self,targets):
+        self.testTargets = targets
+        return
+        
     
     def prepare(self,args=None):
         return
