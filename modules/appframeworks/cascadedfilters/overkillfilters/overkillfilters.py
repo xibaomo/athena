@@ -118,4 +118,41 @@ class OverkillFilters(object):
         Log(LOG_INFO) << "Removed true alarms: %d" % k
         
         return np.vstack(resFM),np.array(resLabels)
+    
+    def filterBadPoints(self,isKnowAnswer = True):
+        '''
+        This function applies the obtained classifiers to filter out
+        bad points in the test data.
+        It may have false alarms
+        '''
+        self.featureExtractor.extractTestFeatures(isKnowAnswer)
+        fm    = self.featureExtractor.getTestFeatureMatrix()
+        labels = self.featureExtractor.getTestTargets()
+        for eng in self.productEngines:
+            eng.predict()
+            predictLabels = eng.getPredictedTargets()
+            
+            tmp_fm = []
+            tmp_label = []
+            miss = 0
+            falseAlarm = 0
+            
+            Log(LOG_INFO) << "Extracting good points for next filtering ..."
+            for n in range(len(labels)):
+                if predictLabels[n] == 0:
+                    tmp_fm.append(fm[n,:])
+                    tmp_label.append(labels[n])
+                    if labels[n] == 1:
+                        miss+=1
+                else:
+                    if labels[n] == 0:
+                        falseAlarm+=1
+            Log(LOG_INFO) << "Missed bad points: %d, false alarms: %d" % (miss,falseAlarm)
+            
+            if len(tmp_label) == 0:
+                return
+            fm = np.vstack(tmp_fm)
+            labels = np.array(tmp_label)
+            
+        return
         

@@ -119,10 +119,13 @@ class WordCounter(FeatureExtractor):
 
         return 
 
-    def extractTestFeatures(self):
+    def extractTestFeatures(self,isknowAnswer=True):
         foldername = self.testDir
         Log(LOG_INFO) << "Extracting features from " + foldername
         self.testFeatureMatrix, self.testTargets = self.extractFeatureLabel(foldername)
+        if not isknowAnswer:
+            self.testTargets = None
+            
         return 
 
 
