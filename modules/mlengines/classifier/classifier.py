@@ -13,23 +13,24 @@ class Classifier(MLEngine):
         super(Classifier,self).__init__(engineCore)
         return
     
-    def predict(self):
+    def predict(self,fm):
         Log(LOG_INFO) << "Start predicting ..."
-        self.engineCore.predict()
+        self.testFeatureMatrix = fm
+        self.engineCore.predict(fm)
         self.predicted_labels = self.engineCore.getPredictedTargets()
         
         Log(LOG_INFO) << "Prediction done"
 
         return
     
-    def evaluatePrediction(self):
-        labels = self.engineCore.getFeatureExtractor().getTestTargets()
+    def evaluatePrediction(self,trueAns):
+        labels = trueAns
         
         if labels is None:
             Log(LOG_INFO) << "No true labels found for test set, cannot evaluate prediction"
             return None,None
         
-        feature_matrix = self.engineCore.getFeatureExtractor().getTestFeatureMatrix()
+        feature_matrix = self.testFeatureMatrix
         if len(labels) > 0:
             self._estimateAccuracy(labels)
         else:

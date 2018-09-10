@@ -11,8 +11,8 @@ from modules.basics.conf.mlengineconf import gMLEngineConfig
 
 class RandomForest(MLEngineCore):
     
-    def __init__(self,fextor,est=None):
-        super(RandomForest,self).__init__(fextor,est)
+    def __init__(self,est=None):
+        super(RandomForest,self).__init__(est)
         
         if est is None:
             self.rmfConfig = RMFConfig()

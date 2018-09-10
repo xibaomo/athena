@@ -11,10 +11,13 @@ EngineCoreSwitcher = {
     3: DNNClassifier
     }
 
-def createMLEngineCore(coreType,feature_extractor):
-    func = EngineCoreSwitcher[coreType]
+def createMLEngineCore(coreType,input_dim):
+    func = EngineCoreSwitcher.get(coreType,"No such a core type")
     
     if func is None:
         Log(LOG_FATAL) << "Specified classifier core not found: " + str(coreType)
-        
-    return func(feature_extractor)
+    
+    if coreType == 3:
+        return func(input_dim)
+    
+    return func()

@@ -11,10 +11,9 @@ class DNNClassifier(MLEngineCore):
     '''
     classdocs
     '''
-    def __init__(self, fextor, est = None):
-        super(DNNClassifier, self).__init__(fextor,est)
-        fm = self.featureExtractor.getTrainFeatureMatrix()
-        self.input_dim = fm.shape[1]
+    def __init__(self, input_dim,est = None):
+        super(DNNClassifier, self).__init__(est)
+        self.input_dim = input_dim
         if not est is None:
             self.estimator = est
         else:
@@ -42,8 +41,8 @@ class DNNClassifier(MLEngineCore):
         return
 
 
-    def predict(self):
-        super(DNNClassifier,self).predict()
+    def predict(self,fm):
+        super(DNNClassifier,self).predict(fm)
         
         self.predictedTargets = [round(x) for x in self.predictedTargets]
         return

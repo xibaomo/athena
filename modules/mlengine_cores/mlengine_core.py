@@ -7,8 +7,7 @@ from modules.basics.common.logger import *
 
 class MLEngineCore(object):
     
-    def __init__(self, fextor, est=None):
-        self.featureExtractor = fextor
+    def __init__(self, est=None):
         self.estimator = est 
         return
     
@@ -19,20 +18,11 @@ class MLEngineCore(object):
     def getEstimator(self):
         return self.estimator
     
-    def getFeatureExtractor(self):
-        return self.featureExtractor
-    
-    def train(self):
-                
-        fm = self.featureExtractor.getTrainFeatureMatrix()
-        targets = self.featureExtractor.getTrainTargets()
-        
+    def train(self,fm,targets):        
         self.estimator.fit(fm,targets)
         return
     
-    def predict(self):
-        fm = self.featureExtractor.getTestFeatureMatrix()
-        
+    def predict(self,fm):       
         self.predictedTargets = self.estimator.predict(fm)
         return
     

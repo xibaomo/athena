@@ -18,9 +18,9 @@ class MLEngine(object):
         self.engineCore = engine_core
         return
     
-    def train(self):
+    def train(self,fm,targets):
         Log(LOG_INFO) << "Start training model ..."
-        self.engineCore.train()
+        self.engineCore.train(fm,targets)
         Log(LOG_INFO) << "Training is finished"
         
         return

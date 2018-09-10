@@ -10,8 +10,8 @@ from modules.basics.conf.mlengineconf import gMLEngineConfig
 from sklearn import svm
 
 class SupportVectorMachine(MLEngineCore):
-    def __init__(self,fextor,est=None):
-        super(SupportVectorMachine,self).__init__(fextor,est)
+    def __init__(self,est=None):
+        super(SupportVectorMachine,self).__init__(est)
         if est is None:
             self.svmConfig = SVMConfig()
             self.svmConfig.loadYamlDict(gMLEngineConfig.getYamlDict()['SVM'])

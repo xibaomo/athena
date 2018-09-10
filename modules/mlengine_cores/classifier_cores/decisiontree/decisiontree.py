@@ -10,8 +10,8 @@ from modules.basics.conf.mlengineconf import gMLEngineConfig
 from modules.basics.common.logger import *
 
 class DecisionTree(MLEngineCore):
-    def __init__(self,fextor,est=None):
-        super(DecisionTree,self).__init__(fextor,est)
+    def __init__(self,est=None):
+        super(DecisionTree,self).__init__(est)
         if est is None:
             self.dctConfig = DCTConfig()
             self.dctConfig.loadYamlDict(gMLEngineConfig.getYamlDict()['DCT'])
