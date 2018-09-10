@@ -33,10 +33,6 @@ class OverkillFilters(object):
     
     def train(self):
         
-        Log(LOG_INFO) << "Extracting train features ..."
-        self.featureExtractor.extractTrainFeatures()
-        Log(LOG_INFO) << "Train features are extracted"
-        
         while(len(self.productEngines) < gGeneralConfig.getMinNumModels()):
             Log(LOG_INFO) << "Product engines are less than %d, start building ..." \
                             % gGeneralConfig.getMinNumModels()
@@ -61,24 +57,21 @@ class OverkillFilters(object):
         labels = self.featureExtractor.getTrainTargets()
         
         for it in range(gGeneralConfig.getMaxNumModels()):
-            self.featureExtractor.setTrainFeatureMatrix(fm)
-            self.featureExtractor.setTrainTargets(labels)
+
             mlEngine = Classifier()
             modelSelector = ModelSelector(fm,labels)
             engCore = modelSelector.selectBestModel()
             mlEngine.loadEngineCore(engCore)
             
-            mlEngine.train()
+            mlEngine.train(fm,labels)
             
             self.productEngines.append(mlEngine)
             Log(LOG_INFO) << "Model %d out of %d is cached" % (it+1,gGeneralConfig.getMaxNumModels())
             
             #back test with train data
-            
-            self.featureExtractor.setTestFeatureMatrix(fm)
-            self.featureExtractor.setTestTargets(labels)
-            mlEngine.predict()
-            _,failed_labels = mlEngine.evaluatePrediction()
+
+            mlEngine.predict(fm)
+            _,failed_labels = mlEngine.evaluatePrediction(labels)
             Log(LOG_INFO) << "Failed samples: %d " % len(failed_labels)
             
             predictedLabels = mlEngine.getPredictedTargets()
@@ -129,7 +122,7 @@ class OverkillFilters(object):
         fm    = self.featureExtractor.getTestFeatureMatrix()
         labels = self.featureExtractor.getTestTargets()
         for eng in self.productEngines:
-            eng.predict()
+            eng.predict(fm)
             predictLabels = eng.getPredictedTargets()
             
             tmp_fm = []

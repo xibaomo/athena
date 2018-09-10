@@ -36,6 +36,7 @@ class SpamMultiFilters(App):
             pass
         
         self.featureExtractor.prepare()
+        self.featureExtractor.extractTrainFeatures()
         
         self.workForce = OverkillFilters(self.featureExtractor)
         
