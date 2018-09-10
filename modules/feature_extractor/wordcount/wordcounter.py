@@ -9,9 +9,8 @@ from collections import Counter
 from modules.feature_extractor.extractor import FeatureExtractor
 from modules.basics.common.logger import *
 from modules.basics.conf.spmconf import gSPMConfig
-from mhlib import Folder
 
-NUM_WORDS = 30
+NUM_WORDS = 100
 
 class WordCounter(FeatureExtractor):
     def __init__(self):

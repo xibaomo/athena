@@ -122,6 +122,7 @@ class OverkillFilters(object):
         fm    = self.featureExtractor.getTestFeatureMatrix()
         labels = self.featureExtractor.getTestTargets()
         for eng in self.productEngines:
+            Log(LOG_INFO) << "Predicting on %d samples" % fm.shape[0]
             eng.predict(fm)
             predictLabels = eng.getPredictedTargets()
             
