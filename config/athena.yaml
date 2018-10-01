@@ -105,6 +105,15 @@ MODEL_SELECTOR:
         MOMENTUM: 0.,0.9,10 #ONLY USED WHEN ALGORITHM == SGD
         
 ########################### App config starts here ###########################
+FOX:
+   FEATURE_EXTRACTOR:
+       TICK_FILE: A.CSV
+       TRAIN_SIZE: 10000
+       TEST_SIZE: 1000
+
+       FAST_PERIOD: 21
+       SLOW_PERIOD: 8
+
 SPM:
     # Type of input data
     # 0 - raw data
