@@ -111,6 +111,8 @@ FOX:
        TRAIN_SIZE: 10000
        TEST_SIZE: 1000
 
+       POSITION_TYPE: BUY # or SELL
+       FEATURE_LIST: []
        FAST_PERIOD: 21
        SLOW_PERIOD: 8
 

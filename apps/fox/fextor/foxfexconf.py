@@ -34,4 +34,10 @@ class FoxFexConfig(TopConf):
     
     def getTestSize(self):
         return self.yamlDict['TEST_SIZE']
+    
+    def getFeatureList(self):
+        return self.yamlDict['FEATURE_LIST']
+    
+    def getPositionType(self):
+        return self.yamlDict['POSITION_TYPE']
         
