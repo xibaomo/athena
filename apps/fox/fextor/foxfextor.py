@@ -57,4 +57,5 @@ class FoxFextor(FeatureExtractor):
                 self.allTicks.append(sample)
         return
     
+    
             

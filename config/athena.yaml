@@ -105,6 +105,13 @@ MODEL_SELECTOR:
         MOMENTUM: 0.,0.9,10 #ONLY USED WHEN ALGORITHM == SGD
         
 ########################### App config starts here ###########################
+FFX: # Forex Feature Extractor
+    TICK_FILE: A.CSV
+    FEATURE_LIST: []
+    FAST_PERIOD: 8
+    SLOW_PERIOD: 21
+    TEST_PEROID: 7 #DAYS
+
 FOX:
    FEATURE_EXTRACTOR:
        TICK_FILE: A.CSV
