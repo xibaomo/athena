@@ -61,5 +61,8 @@ class FFXConfig(TopConf):
     def getPointValue(self):
         return FX_PointValue[self.getFXSymbol()]
     
+    def getPositionLife(self):
+        return self.yamlDict['POSITION_LIFE']
+    
     
     
