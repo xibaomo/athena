@@ -4,6 +4,7 @@ Created on Oct 2, 2018
 @author: fxua
 '''
 import numpy as np
+import pandas as pd
 from apps.app import App
 from apps.ffx.ffxconf import FFXConfig
 import csv
@@ -18,6 +19,12 @@ ONEDAY = 24*ONEHOUR
 ONEWEEK = 7*ONEDAY
 isLoss = 1
 isProfit = 0
+askHeader = '<ASK>'
+bidHeader = '<BID>'
+dateHeader = '<DATE>'
+timeHeader = '<TIME>'
+fulltimeHeader = '<FULLTIME>'
+
 class ForexFex(App):
     '''
     classdocs
@@ -30,7 +37,7 @@ class ForexFex(App):
         '''
         super(ForexFex,self).__init__()
         self.config = FFXConfig()
-        self.allTicks = []
+        self.allTicks = None
         self.buyTicks = []
         self.buyLabels = []
         self.sellTicks = []
@@ -43,7 +50,7 @@ class ForexFex(App):
     def getInstance(cls):
         return cls()
     
-    def loadTickFile(self):
+    def __loadTickFile(self):
         Log(LOG_INFO) << "Loading tick file ..."
         k = 0
         with open(self.config.getTickFile(),'r') as f:
@@ -76,6 +83,21 @@ class ForexFex(App):
         Log(LOG_INFO) << "Tick file loaded: %d" % len(self.allTicks)
         return
         
+    def loadTickFile(self):
+        Log(LOG_INFO) << "Loadingn tick file ..."
+        self.allTicks = pd.read_csv(self.config.getTickFile(),sep='\t')
+        d = self.allTicks.loc[:,[dateHeader]].values
+        t = self.allTicks.loc[:,[timeHeader]].values
+        s = d + " " +t 
+        fulltime = []
+        for ss in s:
+            fulltime.append(parser.parse(ss[0]))
+            
+        self.allTicks[fulltimeHeader] = fulltime
+        
+        Log(LOG_INFO) << "Tick file loaded: %d" % self.allTicks.shape[0]
+        return
+    
     def _extractValidTicks(self,opt='ask'):
         ticks=[]
         prev = None
