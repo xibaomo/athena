@@ -79,17 +79,22 @@ class ForexFex(App):
     def _extractValidTicks(self,opt='ask'):
         ticks=[]
         prev = None
+        curInd = -1
         for sample in self.allTicks:
+            curInd+=1
             t = sample['time']
             if prev is None and sample[opt] is not None:
                 prev = t
+                sample['index'] = curInd
                 ticks.append(sample)
 
             dt = t - prev
             if dt.total_seconds() < HALFMIN or sample[opt] is None:
                 continue
+            sample['index'] = curInd
             ticks.append(sample)
             prev = t
+            
         return ticks
     
     def makeBuyLabels(self):
