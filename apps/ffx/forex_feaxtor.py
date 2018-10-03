@@ -93,17 +93,18 @@ class ForexFex(App):
         return ticks
     
     def makeBuyLabels(self):
+        Log(LOG_INFO) << "Labeling buy ticks ..."
         tp = self.config.getTakeProfitPoint()*self.config.getPointValue()
         sl = self.config.getStopLossPoint()*self.config.getPointValue()
         buyLabels = []
-        buyticks = []
+
         asks = []
         time_buy = []
         for bt in self.buyTicks:
             pos = bt['ask']
             label = None
             for tk in self.allTicks:
-                dt = tk['time'] - pos['time']
+                dt = tk['time'] - bt['time']
                 if dt.total_seconds() <= 0:
                     continue
                 if tk['bid'] is None:
@@ -126,20 +127,23 @@ class ForexFex(App):
         self.df_buy['time'] = time_buy
         self.df_buy['ask'] = asks
         self.df_buy['label'] = buyLabels
+        
+        Log(LOG_INFO) << "Buy ticks are labeled."
         return 
         
     def makeSellLabels(self):
+        Log(LOG_INFO) << "Labeling sell ticks ..."
         tp = self.config.getTakeProfitPoint()*self.config.getPointValue()
         sl = self.config.getStopLossPoint()*self.config.getPointValue()
         sellLabels = []
-        sellticks = []
+
         time_sell = []
         bids = []
         for bt in self.sellTicks:
             pos = bt['bid']
             label = None
             for tk in self.allTicks:
-                dt = tk['time'] - pos['time']
+                dt = tk['time'] - bt['time']
                 if dt.total_seconds() <= 0:
                     continue
                 if tk['ask'] is None:
@@ -162,12 +166,19 @@ class ForexFex(App):
         self.df_sell['time'] = time_sell
         self.df_sell['bid'] = bids
         self.df_sell['label'] = sellLabels
+        
+        Log(LOG_INFO) << "Sell ticks are labeled."
         return 
                     
     def prepare(self):
         self.loadTickFile()
+        Log(LOG_INFO) << "Sampling buy ticks ..."
         self.buyTicks = self._extractValidTicks('ask')
+        Log(LOG_INFO) << "Done"
+        
+        Log(LOG_INFO) << "Sampling sell ticks ..."
         self.sellTicks = self._extractValidTicks('bid')
+        Log(LOG_INFO) << "Done"
         self.makeBuyLabels()
         self.makeSellLabels()
         return
