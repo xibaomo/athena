@@ -116,6 +116,9 @@ FFX: # Forex Feature Extractor
     STOP_LOSS_POINT: 100
     FOREX_SYMBOL: EURUSD
     POSITION_LIFE: 7 #days
+
+    EXPORT_FEATURE_TAG: eurusd
+
 FOX:
    FEATURE_EXTRACTOR:
        TICK_FILE: A.CSV

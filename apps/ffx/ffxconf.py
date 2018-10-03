@@ -31,6 +31,7 @@ class FFXConfig(TopConf):
         '''
         Constructor
         '''
+        super(FFXConfig,self).__init__()
         self.loadYamlDict(gMasterConfig.getTotalYamlTree()['FFX'])
         return
     
@@ -63,6 +64,9 @@ class FFXConfig(TopConf):
     
     def getPositionLife(self):
         return self.yamlDict['POSITION_LIFE']
+    
+    def getFeatureTag(self):
+        return self.yamlDict['EXPORT_FEATURE_TAG']
     
     
     
