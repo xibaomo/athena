@@ -11,7 +11,7 @@ import copy
 from dateutil import parser 
 import pandas as pd
 from modules.basics.common.logger import *
-from ccy.tradingcentres.centres import oneday
+
 
 ONEMIN = 60
 HALFMIN = 30
@@ -53,7 +53,7 @@ class ForexFex(App):
         Log(LOG_INFO) << "Loading tick file ..."
         self.allTicks = pd.read_csv(self.config.getTickFile(),sep='\t',
                                     parse_dates=[[dateHeader,timeHeader]],
-                                    nrows=10000)
+                                    nrows=1000)
                 
         self.allTicks = self.allTicks.drop(columns=['<LAST>','<VOLUME>'])
         
@@ -94,7 +94,7 @@ class ForexFex(App):
                 nl.append(m)
                 
         df=df.drop(nl)
-        df=df.reset_index()
+        df = df.reset_index(drop=True)
         return df
     
     def makeBuyLabels(self):
@@ -141,7 +141,9 @@ class ForexFex(App):
         for m in range(self.sellTicks.shape[0]):
             tick = self.sellTicks.loc[m,:]
             pos = tick[bidHeader]
-            sid = tick['oid']
+            sid = tick['oid']+1
+            
+            Log(LOG_INFO) << "sell pos: %.5f" % pos
             for n in range(sid,eid):
                 tk = self.allTicks.loc[n,:]
                 dt = tk[fulltimeHeader] - tick[fulltimeHeader]
@@ -171,12 +173,12 @@ class ForexFex(App):
         self.loadTickFile()
         Log(LOG_INFO) << "Sampling buy ticks ..."
         self.buyTicks = self._extractValidTicks(askHeader)
-        self.buyTicks = self.buyTicks.reset_index()
+        self.buyTicks = self.buyTicks.reset_index(drop=True)
         Log(LOG_INFO) << "Done. Buy ticks: %d" % self.buyTicks.shape[0]
         
         Log(LOG_INFO) << "Sampling sell ticks ..."
         self.sellTicks = self._extractValidTicks(bidHeader)
-        self.sellTicks = self.sellTicks.reset_index()
+        self.sellTicks = self.sellTicks.reset_index(drop=True)
         Log(LOG_INFO) << "Done. Sell ticks: %d" % self.sellTicks.shape[0]
         
         self.makeBuyLabels()
@@ -188,9 +190,9 @@ class ForexFex(App):
     
     def finish(self):
         buyfile = self.config.getFeatureTag() + "_buy.csv"
-        self.buyTicks.to_csv(buyfile)
+        self.buyTicks.to_csv(buyfile,index=False,index_label=False)
         sellfile = self.config.getFeatureTag() + "_sell.csv"
-        self.sellTicks.to_csv(sellfile)
+        self.sellTicks.to_csv(sellfile,index=False,index_label=False)
         return
     
     
