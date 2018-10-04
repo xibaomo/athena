@@ -95,6 +95,7 @@ class ForexFex(App):
             ticks.append(sample)
             prev = t
             
+        Log(LOG_INFO) << "Sampled ticks: %d" % len(ticks)
         return ticks
     
     def makeBuyLabels(self):
@@ -108,6 +109,8 @@ class ForexFex(App):
         for bt in self.buyTicks:
             pos = bt['ask']
             label = None
+            
+            Log(LOG_INFO) <<"Buy pos: %.5f" % pos
             for tk in self.allTicks:
                 dt = tk['time'] - bt['time']
                 if dt.total_seconds() <= 0:
@@ -116,11 +119,13 @@ class ForexFex(App):
                     continue
                 if tk['bid'] - pos >= tp:
                     label = isProfit
+                    Log(LOG_INFO) << "Profit: %.5f after %d sec" % (tk['bid'],dt.total_seconds())
                     break
                 if pos - tk['bid'] >= sl:
                     label = isLoss
+                    Log(LOG_INFO) << "Loss: %.5f after %d sec" % (tk['bid'],dt.total_seconds())
                     break
-                if dt.total_seconds() > ONEWEEK:
+                if dt.total_seconds() > 3*ONEDAY:
                     label = isLoss 
                     break
             
