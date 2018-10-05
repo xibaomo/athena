@@ -53,7 +53,7 @@ class ForexFex(App):
         Log(LOG_INFO) << "Loading tick file ..."
         self.allTicks = pd.read_csv(self.config.getTickFile(),sep='\t',
                                     parse_dates=[[dateHeader,timeHeader]],
-                                    nrows=1000)
+                                    nrows=None)
                 
         self.allTicks = self.allTicks.drop(columns=['<LAST>','<VOLUME>'])
         
