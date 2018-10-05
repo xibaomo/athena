@@ -4,30 +4,26 @@ Created on Oct 2, 2018
 @author: fxua
 '''
 import numpy as np
-import pandas as pd
 from apps.app import App
 from apps.ffx.ffxconf import FFXConfig
-import copy
+import csv
 from dateutil import parser 
 import pandas as pd
 from modules.basics.common.logger import *
+import pandas as pd
 
-
+dateHeader = '<DATE>'
+timeHeader = '<TIME>'
+askHeader = '<ASK>'
+bidHeader = '<BID>'
+fulltimeHeader = dateHeader+"_" + timeHeader
 ONEMIN = 60
 HALFMIN = 30
 ONEHOUR = 60*ONEMIN
 ONEDAY = 24*ONEHOUR
 ONEWEEK = 7*ONEDAY
-EXPIRE_PERIOD = ONEDAY
 isLoss = 1
 isProfit = 0
-askHeader = '<ASK>'
-bidHeader = '<BID>'
-dateHeader = '<DATE>'
-timeHeader = '<TIME>'
-fulltimeHeader = dateHeader+'_'+timeHeader
-labelHeader = 'LABEL'
-
 class ForexFex(App):
     '''
     classdocs
@@ -40,131 +36,137 @@ class ForexFex(App):
         '''
         super(ForexFex,self).__init__()
         self.config = FFXConfig()
-        self.allTicks = None
-        self.buyTicks = None
-        self.sellTicks = None
+        self.allTicks = []
+        self.buyTicks = []
+        self.buyLabels = []
+        self.sellTicks = []
+        self.sellLabels= []
+        self.df_sell = pd.DataFrame()
+        self.df_buy = pd.DataFrame()
         return
     
     @classmethod
     def getInstance(cls):
         return cls()
-        
+    
     def loadTickFile(self):
         Log(LOG_INFO) << "Loading tick file ..."
-        self.allTicks = pd.read_csv(self.config.getTickFile(),sep='\t',
-                                    parse_dates=[[dateHeader,timeHeader]],
-                                    nrows=None)
-                
-        self.allTicks = self.allTicks.drop(columns=['<LAST>','<VOLUME>'])
+        df = pd.read_csv(self.config.getTickFile(),sep='\t',
+                         parse_dates=[[dateHeader,timeHeader]])
         
-        Log(LOG_INFO) << "Tick file loaded: %d" % self.allTicks.shape[0]
+        for _,sample in df.iterrows():
+            item = {}
+            item['time'] = sample[fulltimeHeader]
+            item['ask'] = sample[askHeader]
+            item['bid'] = sample[bidHeader]
+            self.allTicks.append(item)
+            
+        Log(LOG_INFO) << "All ticks loaded: %d" % len(self.allTicks)
         return
-    
-    def _extractValidTicks(self,opt=askHeader):
+        
+    def _extractValidTicks(self,opt='ask'):
         ticks=[]
         prev = None
-
-        for m in range(self.allTicks.shape[0]):
-            sample = self.allTicks.loc[m,:]
-            t = sample[fulltimeHeader]
+        curInd = -1
+        for sample in self.allTicks:
+            curInd+=1
+            t = sample['time']
             if prev is None and not np.isnan(sample[opt]):
                 prev = t
-                sm = copy.deepcopy(sample)
-                sm['oid'] = m
-                sm[labelHeader] = -1
-                ticks.append(sm)
+                sample['index'] = curInd
+                ticks.append(sample)
 
             dt = t - prev
-            if dt.total_seconds() < HALFMIN or np.isnan(sample[opt]):
+            if dt.total_seconds() < self.config.getSampleRate() or np.isnan(sample[opt]):
                 continue
-            sm = copy.deepcopy(sample)
-            sm['oid'] = m
-            sm[labelHeader] = -1
-            ticks.append(sm)
+            sample['index'] = curInd
+            ticks.append(sample)
             prev = t
             
-        df = pd.DataFrame(ticks)
-        return df
-    
-    def cleanNullLabels(self,df):
-        nl = []
-        for m in range(df.shape[0]):
-            f = df.loc[m,:]
-            if f[labelHeader] == -1:
-                nl.append(m)
-                
-        df=df.drop(nl)
-        df = df.reset_index(drop=True)
-        return df
+        Log(LOG_INFO) << "Sampled ticks: %d" % len(ticks)
+        return ticks
     
     def makeBuyLabels(self):
         Log(LOG_INFO) << "Labeling buy ticks ..."
         tp = self.config.getTakeProfitPoint()*self.config.getPointValue()
         sl = self.config.getStopLossPoint()*self.config.getPointValue()
-        eid = self.allTicks.shape[0]
-        
-        for m in range(self.buyTicks.shape[0]):
-            tick = self.buyTicks.loc[m,:]
-            pos = tick[askHeader]
-            sid = tick['oid']+1
+        buyLabels = []
+
+        asks = []
+        time_buy = []
+        k=0
+        for bt in self.buyTicks:
+            pos = bt['ask']
+            label = None
             
-            Log(LOG_INFO) << "buy pos: %.5f" % pos
-            for n in range(sid,eid):
-                tk = self.allTicks.loc[n,:]
-                dt = tk[fulltimeHeader] - tick[fulltimeHeader]
-                bid = tk[bidHeader]
-                if np.isnan(bid):
+            Log(LOG_DEBUG) <<"Buy pos: %.5f" % pos
+            for tk in self.allTicks:
+                dt = tk['time'] - bt['time']
+                if dt.total_seconds() <= 0:
                     continue
-                if pos - bid >= sl:
-                    self.buyTicks.loc[m,labelHeader] = isLoss
-                    Log(LOG_INFO) <<"loss: %.5f after %d sec" % (bid-pos,dt.total_seconds())
+                if tk['bid'] is None:
+                    continue
+                if tk['bid'] - pos >= tp:
+                    label = isProfit
+                    Log(LOG_DEBUG) << "Profit: %.5f after %d sec" % (tk['bid'],dt.total_seconds())
                     break
-                if bid - pos >= tp:
-                    self.buyTicks.loc[m,labelHeader] = isProfit
-                    Log(LOG_INFO) <<"profit: %.5f after %d sec" % (bid-pos,dt.total_seconds())
-                    break;
-                if dt.total_seconds() >= EXPIRE_PERIOD:
-                    self.buyTicks.loc[m,labelHeader] = isLoss
-                    Log(LOG_INFO) <<"label expire after %d sec" % (dt.total_seconds())
+                if pos - tk['bid'] >= sl:
+                    label = isLoss
+                    Log(LOG_DEBUG) << "Loss: %.5f after %d sec" % (tk['bid'],dt.total_seconds())
                     break
-            Log(LOG_INFO) <<"Tick %d labeled as %d" % (m,self.buyTicks.loc[m,labelHeader])
-        self.buyTicks = self.cleanNullLabels(self.buyTicks)
-        Log(LOG_INFO) << "Buy ticks are labeled"
+                if dt.total_seconds() > self.config.getExpiryPeriod()*ONEDAY:
+                    label = isLoss 
+                    break
+            
+            if label is not None:
+                time_buy.append(str(bt['time']))
+                asks.append(pos)
+                buyLabels.append(label)
+                k+=1
+                Log(LOG_INFO) <<"Tick %d labeled %d" % (k,label)
+        
+        self.df_buy['time'] = time_buy
+        self.df_buy['ask'] = asks
+        self.df_buy['label'] = buyLabels
+        
+        Log(LOG_INFO) << "Buy ticks are labeled."
         return 
         
     def makeSellLabels(self):
         Log(LOG_INFO) << "Labeling sell ticks ..."
         tp = self.config.getTakeProfitPoint()*self.config.getPointValue()
         sl = self.config.getStopLossPoint()*self.config.getPointValue()
-        eid = self.allTicks.shape[0]
-        
-        for m in range(self.sellTicks.shape[0]):
-            tick = self.sellTicks.loc[m,:]
-            pos = tick[bidHeader]
-            sid = tick['oid']+1
-            
-            Log(LOG_INFO) << "sell pos: %.5f" % pos
-            for n in range(sid,eid):
-                tk = self.allTicks.loc[n,:]
-                dt = tk[fulltimeHeader] - tick[fulltimeHeader]
-                ask = tk[askHeader]
-                if np.isnan(ask):
+        sellLabels = []
+
+        time_sell = []
+        bids = []
+        for bt in self.sellTicks:
+            pos = bt['bid']
+            label = None
+            for tk in self.allTicks:
+                dt = tk['time'] - bt['time']
+                if dt.total_seconds() <= 0:
                     continue
-                if ask - pos >= sl:
-                    Log(LOG_INFO) <<"loss: %.5f after %d sec" % (pos-ask,dt.total_seconds())
-                    self.sellTicks.loc[m,labelHeader] = isLoss
+                if tk['ask'] is None:
+                    continue
+                if pos - tk['ask'] >= tp:
+                    label = isProfit
                     break
-                if pos - ask >= tp:
-                    Log(LOG_INFO) <<"profit: %.5f after %d sec" % (pos-ask,dt.total_seconds())
-                    self.sellTicks.loc[m,labelHeader] = isProfit
+                if tk['ask'] - pos >= sl:
+                    label = isLoss
                     break
-                if dt.total_seconds() >= EXPIRE_PERIOD:
-                    Log(LOG_INFO) <<"label expire after %d sec" % (dt.total_seconds())
-                    self.sellTicks.loc[m,labelHeader] =  isLoss
+                if dt.total_seconds() > self.config.getExpiryPeriod()*ONEDAY:
+                    label = isLoss 
                     break
-            
-            Log(LOG_INFO) <<"Tick %d labeled as %d" % (m,self.sellTicks.loc[m,labelHeader])    
-        self.sellTicks = self.cleanNullLabels(self.sellTicks)
+                
+            if label is not None:
+                time_sell.append(str(bt['time']))
+                bids.append(pos)
+                sellLabels.append(label)
+        
+        self.df_sell['time'] = time_sell
+        self.df_sell['bid'] = bids
+        self.df_sell['label'] = sellLabels
         
         Log(LOG_INFO) << "Sell ticks are labeled."
         return 
@@ -172,15 +174,12 @@ class ForexFex(App):
     def prepare(self):
         self.loadTickFile()
         Log(LOG_INFO) << "Sampling buy ticks ..."
-        self.buyTicks = self._extractValidTicks(askHeader)
-        self.buyTicks = self.buyTicks.reset_index(drop=True)
-        Log(LOG_INFO) << "Done. Buy ticks: %d" % self.buyTicks.shape[0]
+        self.buyTicks = self._extractValidTicks('ask')
+        Log(LOG_INFO) << "Done"
         
         Log(LOG_INFO) << "Sampling sell ticks ..."
-        self.sellTicks = self._extractValidTicks(bidHeader)
-        self.sellTicks = self.sellTicks.reset_index(drop=True)
-        Log(LOG_INFO) << "Done. Sell ticks: %d" % self.sellTicks.shape[0]
-        
+        self.sellTicks = self._extractValidTicks('bid')
+        Log(LOG_INFO) << "Done"
         self.makeBuyLabels()
         self.makeSellLabels()
         return
@@ -190,9 +189,9 @@ class ForexFex(App):
     
     def finish(self):
         buyfile = self.config.getFeatureTag() + "_buy.csv"
-        self.buyTicks.to_csv(buyfile,index=False,index_label=False)
+        self.df_buy.to_csv(buyfile)
         sellfile = self.config.getFeatureTag() + "_sell.csv"
-        self.sellTicks.to_csv(sellfile,index=False,index_label=False)
+        self.df_sell.to_csv(sellfile)
         return
     
     

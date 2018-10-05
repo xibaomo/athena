@@ -111,6 +111,8 @@ FFX: # Forex Feature Extractor
     FAST_PERIOD: 8
     SLOW_PERIOD: 21
     TEST_PEROID: 7 #DAYS
+    SAMPLE_RATE: 30 # sec
+    EXPIRY_PERIOD: 3 # days
 
     TAKE_PROFIT_POINT: 100 
     STOP_LOSS_POINT: 100

@@ -68,5 +68,10 @@ class FFXConfig(TopConf):
     def getFeatureTag(self):
         return self.yamlDict['EXPORT_FEATURE_TAG']
     
+    def getSampleRate(self):
+        return self.yamlDict['SAMPLE_RATE']
+    
+    def getExpiryPeriod(self):
+        return self.yamlDict['EXPIRY_PERIOD']
     
     
