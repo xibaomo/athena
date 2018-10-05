@@ -11,11 +11,13 @@ from dateutil import parser
 import pandas as pd
 from modules.basics.common.logger import *
 import pandas as pd
+from dateparser.date_parser import date_parser
 
 dateHeader = '<DATE>'
 timeHeader = '<TIME>'
 askHeader = '<ASK>'
 bidHeader = '<BID>'
+idHeader = 'OID'
 fulltimeHeader = dateHeader+"_" + timeHeader
 ONEMIN = 60
 HALFMIN = 30
@@ -56,7 +58,7 @@ class ForexFex(App):
         
         for _,sample in df.iterrows():
             item = {}
-            item['time'] = sample[fulltimeHeader]
+            item['time'] = sample[fulltimeHeader].to_pydatetime()
             item['ask'] = sample[askHeader]
             item['bid'] = sample[bidHeader]
             self.allTicks.append(item)
@@ -73,13 +75,13 @@ class ForexFex(App):
             t = sample['time']
             if prev is None and not np.isnan(sample[opt]):
                 prev = t
-                sample['index'] = curInd
+                sample[idHeader] = curInd
                 ticks.append(sample)
 
             dt = t - prev
             if dt.total_seconds() < self.config.getSampleRate() or np.isnan(sample[opt]):
                 continue
-            sample['index'] = curInd
+            sample[idHeader] = curInd
             ticks.append(sample)
             prev = t
             
@@ -91,6 +93,7 @@ class ForexFex(App):
         tp = self.config.getTakeProfitPoint()*self.config.getPointValue()
         sl = self.config.getStopLossPoint()*self.config.getPointValue()
         buyLabels = []
+        eid = len(self.allTicks)
 
         asks = []
         time_buy = []
@@ -98,13 +101,16 @@ class ForexFex(App):
         for bt in self.buyTicks:
             pos = bt['ask']
             label = None
-            
+            k+=1
+            sid = bt[idHeader]+1
             Log(LOG_DEBUG) <<"Buy pos: %.5f" % pos
-            for tk in self.allTicks:
+            
+            for nk in range(sid,eid):
+                tk = self.allTicks[nk]
                 dt = tk['time'] - bt['time']
                 if dt.total_seconds() <= 0:
                     continue
-                if tk['bid'] is None:
+                if np.isnan(tk['bid']):
                     continue
                 if tk['bid'] - pos >= tp:
                     label = isProfit
@@ -114,16 +120,20 @@ class ForexFex(App):
                     label = isLoss
                     Log(LOG_DEBUG) << "Loss: %.5f after %d sec" % (tk['bid'],dt.total_seconds())
                     break
+                
+                
                 if dt.total_seconds() > self.config.getExpiryPeriod()*ONEDAY:
                     label = isLoss 
                     break
             
             if label is not None:
-                time_buy.append(str(bt['time']))
+                time_buy.append((bt['time']))
                 asks.append(pos)
                 buyLabels.append(label)
-                k+=1
-                Log(LOG_INFO) <<"Tick %d labeled %d" % (k,label)
+                if k%500 == 0:
+                    Log(LOG_INFO) <<"%d ticks labeled" % k
+                
+                Log(LOG_DEBUG) <<"Tick %d labeled %d" % (k,label)
         
         self.df_buy['time'] = time_buy
         self.df_buy['ask'] = asks
@@ -137,17 +147,21 @@ class ForexFex(App):
         tp = self.config.getTakeProfitPoint()*self.config.getPointValue()
         sl = self.config.getStopLossPoint()*self.config.getPointValue()
         sellLabels = []
+        eid = len(self.allTicks)
 
         time_sell = []
         bids = []
         for bt in self.sellTicks:
             pos = bt['bid']
             label = None
-            for tk in self.allTicks:
+            sid = bt[idHeader]+1
+            
+            for nk in range(sid,eid):
+                tk = self.allTicks[nk]
                 dt = tk['time'] - bt['time']
                 if dt.total_seconds() <= 0:
                     continue
-                if tk['ask'] is None:
+                if np.isnan(tk['ask']):
                     continue
                 if pos - tk['ask'] >= tp:
                     label = isProfit
