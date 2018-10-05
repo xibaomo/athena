@@ -151,10 +151,12 @@ class ForexFex(App):
 
         time_sell = []
         bids = []
+        k=0
         for bt in self.sellTicks:
             pos = bt['bid']
             label = None
             sid = bt[idHeader]+1
+            k+=1
             
             for nk in range(sid,eid):
                 tk = self.allTicks[nk]
@@ -177,6 +179,8 @@ class ForexFex(App):
                 time_sell.append(str(bt['time']))
                 bids.append(pos)
                 sellLabels.append(label)
+                if k%500 == 0:
+                    Log(LOG_INFO) <<"%d ticks labeled" % k
         
         self.df_sell['time'] = time_sell
         self.df_sell['bid'] = bids
@@ -203,9 +207,9 @@ class ForexFex(App):
     
     def finish(self):
         buyfile = self.config.getFeatureTag() + "_buy.csv"
-        self.df_buy.to_csv(buyfile)
+        self.df_buy.to_csv(buyfile,index=False)
         sellfile = self.config.getFeatureTag() + "_sell.csv"
-        self.df_sell.to_csv(sellfile)
+        self.df_sell.to_csv(sellfile,index=False)
         return
     
     
