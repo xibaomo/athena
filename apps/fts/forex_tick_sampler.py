@@ -5,13 +5,12 @@ Created on Oct 2, 2018
 '''
 import numpy as np
 from apps.app import App
-from apps.ffx.ffxconf import FFXConfig
+from apps.fts.ftsconf import FFXConfig
 import csv
 from dateutil import parser 
 import pandas as pd
 from modules.basics.common.logger import *
 import pandas as pd
-from dateparser.date_parser import date_parser
 
 dateHeader = '<DATE>'
 timeHeader = '<TIME>'
@@ -26,7 +25,7 @@ ONEDAY = 24*ONEHOUR
 ONEWEEK = 7*ONEDAY
 isLoss = 1
 isProfit = 0
-class ForexFex(App):
+class ForexTickSampler(App):
     '''
     classdocs
     '''
@@ -36,7 +35,7 @@ class ForexFex(App):
         '''
         Constructor
         '''
-        super(ForexFex,self).__init__()
+        super(ForexTickSampler,self).__init__()
         self.config = FFXConfig()
         self.allTicks = []
         self.buyTicks = []
