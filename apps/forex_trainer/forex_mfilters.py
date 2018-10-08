@@ -6,7 +6,8 @@ Created on Oct 1, 2018
 from apps.app import App
 from apps.forex_trainer.fxtconf import FoxConfig
 from apps.forex_trainer.fextor.forexfextor import ForexFextor
-class ForexMultiFilter(App):
+from modules.basics.conf.masterconf import gMasterConfig
+class ForexMultiFilters(App):
     '''
     classdocs
     '''
@@ -16,7 +17,8 @@ class ForexMultiFilter(App):
         '''
         Constructor
         '''
-        super(ForexMultiFilter,self).__init__()
+        super(ForexMultiFilters,self).__init__()
         self.config = FoxConfig()
+        self.config.loadYamlDict(gMasterConfig.getTotalYamlTree()['FXT'])
         self.fextor = ForexFextor(self.config)
         return

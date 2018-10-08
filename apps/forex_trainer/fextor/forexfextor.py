@@ -27,6 +27,7 @@ class ForexFextor(FeatureExtractor):
         self.allTicks = pd.read_csv(self.config.getTickFile())
         self.prices = self.allTicks['price']
         self.labels = self.allTicks['label']
+        return
         
     
     
