@@ -21,7 +21,7 @@ FX_PointValue = {
     'AUDJPY': 0.001
     }
 
-class FFXConfig(TopConf):
+class FTSConfig(TopConf):
     '''
     classdocs
     '''
@@ -31,7 +31,7 @@ class FFXConfig(TopConf):
         '''
         Constructor
         '''
-        super(FFXConfig,self).__init__()
+        super(FTSConfig,self).__init__()
         self.loadYamlDict(gMasterConfig.getTotalYamlTree()['FFX'])
         return
     
@@ -40,15 +40,6 @@ class FFXConfig(TopConf):
     
     def getFeatureList(self):
         return self.yamlDict['FEATURE_LIST']
-    
-    def getFastPeriod(self):
-        return self.yamlDict['FAST_PERIOD']
-    
-    def getSlowPeriod(self):
-        return self.yamlDict['SLOW_PERIOD']
-    
-    def getTestPeriod(self):
-        return self.yamlDict['TEST_PERIOD']
     
     def getFXSymbol(self):
         return self.yamlDict['FOREX_SYMBOL']
@@ -61,12 +52,6 @@ class FFXConfig(TopConf):
     
     def getPointValue(self):
         return FX_PointValue[self.getFXSymbol()]
-    
-    def getPositionLife(self):
-        return self.yamlDict['POSITION_LIFE']
-    
-    def getFeatureTag(self):
-        return self.yamlDict['EXPORT_FEATURE_TAG']
     
     def getSampleRate(self):
         return self.yamlDict['SAMPLE_RATE']

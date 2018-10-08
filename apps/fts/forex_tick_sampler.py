@@ -5,7 +5,7 @@ Created on Oct 2, 2018
 '''
 import numpy as np
 from apps.app import App
-from apps.fts.ftsconf import FFXConfig
+from apps.fts.ftsconf import FTSConfig
 import csv
 from dateutil import parser 
 import pandas as pd
@@ -36,7 +36,7 @@ class ForexTickSampler(App):
         Constructor
         '''
         super(ForexTickSampler,self).__init__()
-        self.config = FFXConfig()
+        self.config = FTSConfig()
         self.allTicks = []
         self.buyTicks = []
         self.buyLabels = []
@@ -205,9 +205,9 @@ class ForexTickSampler(App):
         return
     
     def finish(self):
-        buyfile = self.config.getFeatureTag() + "_buy.csv"
+        buyfile = self.config.getFXSymbol() + "_buy.csv"
         self.df_buy.to_csv(buyfile,index=False)
-        sellfile = self.config.getFeatureTag() + "_sell.csv"
+        sellfile = self.config.getFXSymbol() + "_sell.csv"
         self.df_sell.to_csv(sellfile,index=False)
         return
     

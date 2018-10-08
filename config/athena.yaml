@@ -107,25 +107,16 @@ MODEL_SELECTOR:
 ########################### App config starts here ###########################
 FFX: # Forex Feature Extractor
     TICK_FILE: A.CSV
-    FEATURE_LIST: []
-    FAST_PERIOD: 8
-    SLOW_PERIOD: 21
-    TEST_PEROID: 7 #DAYS
     SAMPLE_RATE: 30 # sec
     EXPIRY_PERIOD: 1 # days
-
     TAKE_PROFIT_POINT: 100 
     STOP_LOSS_POINT: 100
     FOREX_SYMBOL: EURUSD
-    POSITION_LIFE: 7 #days
-
-    EXPORT_FEATURE_TAG: eurusd
 
 FOX:
    FEATURE_EXTRACTOR:
        TICK_FILE: A.CSV
-       TRAIN_SIZE: 10000
-       TEST_SIZE: 1000
+       TEST_PEROID: 7 #DAYS
 
        POSITION_TYPE: BUY # or SELL
        FEATURE_LIST: []
