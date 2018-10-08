@@ -113,15 +113,16 @@ FTS: # Forex Tick Sampler
     STOP_LOSS_POINT: 100
     FOREX_SYMBOL: EURUSD
 
-FOX:
+FXT: # Forex trainer
    FEATURE_EXTRACTOR:
        TICK_FILE: A.CSV
        TEST_PEROID: 7 #DAYS
 
-       POSITION_TYPE: BUY # or SELL
        FEATURE_LIST: []
        FAST_PERIOD: 21
        SLOW_PERIOD: 8
+       SIGNAL_PERIOD: 9
+
 
 SPM:
     # Type of input data

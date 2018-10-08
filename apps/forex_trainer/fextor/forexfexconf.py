@@ -3,20 +3,19 @@ Created on Oct 1, 2018
 
 @author: fxua
 '''
-from modules.feature_extractor.extractor import FeatureExtractor
 from modules.basics.conf.topconf import TopConf
-class FoxFexConfig(TopConf):
+class ForexFexConfig(TopConf):
     '''
     classdocs
     '''
 
 
-    def __init__(self,foxconfig):
+    def __init__(self,fxtconfig):
         '''
         Constructor
         '''
-        super(FoxFexConfig,self).__init__()
-        self.loadYamlDict(foxconfig.getYamlDict()['FEATURE_EXTRACTOR'])
+        super(ForexFexConfig,self).__init__()
+        self.loadYamlDict(fxtconfig.getYamlDict()['FEATURE_EXTRACTOR'])
         return
 
     
@@ -29,15 +28,14 @@ class FoxFexConfig(TopConf):
     def getTickFile(self):
         return self.yamlDict['TICK_FILE']
     
-    def getTrainSize(self):
-        return self.yamlDict['TRAIN_SIZE']
-    
-    def getTestSize(self):
-        return self.yamlDict['TEST_SIZE']
+    def getTestPeriod(self):
+        return self.yamlDict['TEST_PERIOD']
     
     def getFeatureList(self):
         return self.yamlDict['FEATURE_LIST']
     
-    def getPositionType(self):
-        return self.yamlDict['POSITION_TYPE']
+    def getSignalPeriod(self):
+        return self.yamlDict['SIGNAL_PERIOD']
+    
+ 
         

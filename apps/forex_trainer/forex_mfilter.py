@@ -4,8 +4,8 @@ Created on Oct 1, 2018
 @author: fxua
 '''
 from apps.app import App
-from apps.fox.foxconf import FoxConfig
-from apps.fox.fextor.foxfextor import FoxFextor
+from apps.forex_trainer.fxtconf import FoxConfig
+from apps.forex_trainer.fextor.forexfextor import ForexFextor
 class ForexMultiFilter(App):
     '''
     classdocs
@@ -18,5 +18,5 @@ class ForexMultiFilter(App):
         '''
         super(ForexMultiFilter,self).__init__()
         self.config = FoxConfig()
-        self.fextor = FoxFextor(self.config)
+        self.fextor = ForexFextor(self.config)
         return

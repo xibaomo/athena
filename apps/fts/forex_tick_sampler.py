@@ -135,7 +135,7 @@ class ForexTickSampler(App):
                 Log(LOG_DEBUG) <<"Tick %d labeled %d" % (k,label)
         
         self.df_buy['time'] = time_buy
-        self.df_buy['ask'] = asks
+        self.df_buy['price'] = asks
         self.df_buy['label'] = buyLabels
         
         Log(LOG_INFO) << "Buy ticks are labeled."
@@ -182,7 +182,7 @@ class ForexTickSampler(App):
                     Log(LOG_INFO) <<"%d ticks labeled" % k
         
         self.df_sell['time'] = time_sell
-        self.df_sell['bid'] = bids
+        self.df_sell['price'] = bids
         self.df_sell['label'] = sellLabels
         
         Log(LOG_INFO) << "Sell ticks are labeled."
