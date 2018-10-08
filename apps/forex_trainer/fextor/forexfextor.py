@@ -27,6 +27,7 @@ class ForexFextor(FeatureExtractor):
         self.labels = None
         self.testSize = self.config.getTestPeriod()*ONEDAY/self.config.getSampleRate()
         Log(LOG_INFO) << "Test size: %d" % (self.testSize)
+        
         return
     
     def loadTickFile(self):
@@ -34,6 +35,10 @@ class ForexFextor(FeatureExtractor):
         self.prices = self.allTicks['price']
         self.labels = self.allTicks['label']
         
+        Log(LOG_INFO) << "Loaded ticks: %d" % self.allTicks.shape[0]
+        if self.testSize > self.allTicks.shape[0]:
+            Log(LOG_FATAL) << "Test size larger than all ticks."
+            
         self.featureCalculator.loadPriceLabel(self.prices,self.labels)
         return
     
