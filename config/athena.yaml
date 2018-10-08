@@ -105,7 +105,7 @@ MODEL_SELECTOR:
         MOMENTUM: 0.,0.9,10 #ONLY USED WHEN ALGORITHM == SGD
         
 ########################### App config starts here ###########################
-FFX: # Forex Feature Extractor
+FTS: # Forex Tick Sampler
     TICK_FILE: A.CSV
     SAMPLE_RATE: 30 # sec
     EXPIRY_PERIOD: 1 # days

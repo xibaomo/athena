@@ -32,14 +32,11 @@ class FTSConfig(TopConf):
         Constructor
         '''
         super(FTSConfig,self).__init__()
-        self.loadYamlDict(gMasterConfig.getTotalYamlTree()['FFX'])
+        self.loadYamlDict(gMasterConfig.getTotalYamlTree()['FTS'])
         return
     
     def getTickFile(self):
         return self.yamlDict['TICK_FILE']
-    
-    def getFeatureList(self):
-        return self.yamlDict['FEATURE_LIST']
     
     def getFXSymbol(self):
         return self.yamlDict['FOREX_SYMBOL']
