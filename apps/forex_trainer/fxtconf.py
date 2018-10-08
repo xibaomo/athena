@@ -5,7 +5,7 @@ Created on Oct 1, 2018
 '''
 from modules.basics.conf.masterconf import gMasterConfig
 from modules.basics.conf.topconf import TopConf
-class FoxConfig(TopConf):
+class FxtConfig(TopConf):
     '''
     classdocs
     '''
@@ -15,8 +15,8 @@ class FoxConfig(TopConf):
         '''
         Constructor
         '''
-        super(FoxConfig,self).__init__()
-        self.loadYamlDict(gMasterConfig.getTotalYamlTree()['FOX'])
+        super(FxtConfig,self).__init__()
+        self.loadYamlDict(gMasterConfig.getTotalYamlTree()['FXT'])
         return 
         
 

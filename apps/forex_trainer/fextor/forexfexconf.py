@@ -37,5 +37,11 @@ class ForexFexConfig(TopConf):
     def getSignalPeriod(self):
         return self.yamlDict['SIGNAL_PERIOD']
     
+    def getSampleRate(self):
+        return self.yamlDict['SAMPLE_RATE']
+    
+    def getRSIPeriod(self):
+        return self.yamlDict['RSI_PERIOD']
+    
  
         

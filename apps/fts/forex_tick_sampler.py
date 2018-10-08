@@ -11,6 +11,7 @@ from dateutil import parser
 import pandas as pd
 from modules.basics.common.logger import *
 import pandas as pd
+from modules.forex_utils.common import *
 
 dateHeader = '<DATE>'
 timeHeader = '<TIME>'
@@ -18,13 +19,7 @@ askHeader = '<ASK>'
 bidHeader = '<BID>'
 idHeader = 'OID'
 fulltimeHeader = dateHeader+"_" + timeHeader
-ONEMIN = 60
-HALFMIN = 30
-ONEHOUR = 60*ONEMIN
-ONEDAY = 24*ONEHOUR
-ONEWEEK = 7*ONEDAY
-isLoss = 1
-isProfit = 0
+
 class ForexTickSampler(App):
     '''
     classdocs
