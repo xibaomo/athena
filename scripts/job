@@ -29,3 +29,5 @@ do
     toc=$(date +%s)
 done
 date
+
+echo "Elapsed time = "$((toc-tic))'s'
