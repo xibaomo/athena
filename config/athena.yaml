@@ -127,6 +127,20 @@ FXT: # Forex trainer
        RSI_PERIOD: 80
        SIGNAL_PERIOD: 9
 
+GENETIC_OPT:
+    OBJECTIVE_TYPE: 1 # 0 - minimization, 1 - maximization
+    NUM_PARAMS: 3
+    UPPER_BOUNDS: []
+    LOWER_BOUNDS: []
+    POPULATION_SIZE: 100
+    NUM_GENERATIONS: 100
+    YAML_MODIFIER: ABC.PY
+    YAML_TEMPLATE: A.YAML
+    SGE_JOB_FILE: JOB
+    CROSSOVER_PROB: 0.5
+    MUTATE_PROB: 0.2
+    INDEPENDENT_PROB: 0.05
+    TOURNAMENT_SIZE: 3
 
 SPM:
     # Type of input data
