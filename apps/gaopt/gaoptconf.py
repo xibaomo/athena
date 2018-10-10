@@ -58,5 +58,8 @@ class GaOptConfig(TopConf):
     def getTournamentSize(self):
         return self.yamlDict['TOURNAMENT_SIZE']
     
+    def getDataFiles(self):
+        return self.yamlDict['DATA_FILES']
+    
     
         

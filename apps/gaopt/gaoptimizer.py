@@ -115,17 +115,69 @@ class GaOptimizer(App):
     def finish(self):
         return
     
-    def writeToYaml(self,individual):
+    def writeToYaml(self,individual,yaml_template):
+        '''
+        run user-defined script
+        '''
         ym = self.config.getYamlModifier()
         if not os.path.isfile(ym):
             Log(LOG_FATAL) << "File not found: " + ym
         ymer = os.path.splitext(ym)
         user_defined_module = __import__(ymer)
-        user_defined_module.writeToYaml(individual,self.config.getYamlTemplate())
+        user_defined_module.writeToYaml(individual,yaml_template)
         return
     
     def evaluatePopulation(self,pop):
-        fitnesses = np.random.uniform(size=len(pop))
+        workFolder = "workground_" + str(os.getpid())
+        if not os.path.isdir(workFolder):
+            os.mkdir(workFolder)
+        self.createJobs(workFolder,pop)
+        self.runJobs(workFolder)
+        
+        fitnesses = []
         return fitnesses
     
+    def createJobs(self,workFolder,pop):
+        os.chdir(workFolder)
+        root = os.getcwd()
+        os.system("rm -rf *")
+        k=0
+        for ind in pop:
+            wf = "job_" + str(k)
+            k+=1
+            os.mkdir(wf)
+            os.chdir(wf)
+            for f in self.config.getDataFiles():
+                src = "../../" + f
+                if not os.path.isfile(src):
+                    Log(LOG_FATAL) << "File not found: " + f
+                os.symlink(src, '.')
+            yaml_template = "../../" + self.config.getYamlTemplate()
+            self.writeToYaml(ind, yaml_template)
+            
+            cmd = "cp ../../" + self.config.getSGEJobFile() + " ."
+            os.system(cmd)
+            
+            os.chdir(root)
+        os.chdir("../")    
+        return
+    
+    def runJobs(self,workFolder):
+        os.chdir(workFolder)
+        root = os.getcwd()
+        allfiles = os.listdir(".")
+        for fd in allfiles:
+            if not os.path.isdir(fd):
+                continue
+            cmd = "qsub " + self.config.getSGEJobFile()
+            os.system(cmd)
+            
+            os.chdir(root)
+        os.chdir("../")
+        
+        return
+    
+        
+        
+        
     

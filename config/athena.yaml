@@ -141,6 +141,7 @@ GENETIC_OPT:
     MUTATE_PROB: 0.2
     INDEPENDENT_PROB: 0.05
     TOURNAMENT_SIZE: 3
+    DATA_FILES: ['A','B']
 
 SPM:
     # Type of input data
