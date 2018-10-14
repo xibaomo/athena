@@ -1,0 +1,22 @@
+#$-N athena_job
+#$-pe make 1
+#$-cwd
+#$-j y
+#$-q common
+#$-S /bin/sh
+
+date 
+echo "SGE ID: $JOB_ID"
+echo "Master location: $HOSTNAME"
+echo "Allocated resource:"
+cat $PE_HOSTFILE
+
+tic=$(date +%s)
+
+sleep 30
+
+date
+
+toc=$(date +%s)
+
+echo "Elapsed time = "$((toc-tic))'s'

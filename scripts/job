@@ -1,10 +1,9 @@
-#!/bin/bash
-
 #$-N athena_job
 #$-pe make 1
 #$-cwd
 #$-j y
 #$-q common
+#$-S /bin/sh
 
 date 
 echo "SGE ID: $JOB_ID"
