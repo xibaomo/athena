@@ -1,9 +1,10 @@
+#!/usr/bin/env python
 '''
 Created on Sep 3, 2018
 
 @author: fxua
 '''
-#!/usr/bin/env python
+
 
 import sys
 import os 

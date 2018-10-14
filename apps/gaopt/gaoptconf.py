@@ -61,5 +61,16 @@ class GaOptConfig(TopConf):
     def getDataFiles(self):
         return self.yamlDict['DATA_FILES']
     
+    def getResultKeywords(self):
+        return self.yamlDict['RESULT_KEYWORDS']
+    
+    def NItersPerKid(self):
+        return self.yamlDict['NITERS_PER_KID']
+    
+    def getSumBound(self):
+        return self.yamlDict['SUM_BOUND']
+    
+    
+    
     
         
