@@ -37,7 +37,7 @@ ML_ENGINE_CORE:
     # 1 - decision tree (DCT)
     # 2 - random forest
     # 3 - DNN
-    ENGINE_CORE_TYPE: 0
+    ENGINE_CORE_TYPE: 3
     SVM:
         # rbf, linear, poly, sigmoid, precomputed
         KERNEL: rbf
@@ -92,7 +92,8 @@ MODEL_SELECTOR:
         N_ESTIMATORS: 10,200,10 # min,max,num
         CRITERION: [gini,entropy]
         MIN_SAMPLES_SPLIT: 2,40,10
-    MODEL_4:
+
+    MODEL_4: #  not enabled
         ENABLED: false
         MODEL_NAME: DNN
         
