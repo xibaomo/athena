@@ -18,6 +18,11 @@ class FxtConfig(TopConf):
         super(FxtConfig,self).__init__()
         self.loadYamlDict(gMasterConfig.getTotalYamlTree()['FXT'])
         return 
+    
+    def getPointValue(self):
+        return self.yamlDict['POINT_VALUE']
         
+    def getTrainerType(self):
+        return self.yamlDict['TRAINER_TYPE']
 
         

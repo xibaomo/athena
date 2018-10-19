@@ -5,13 +5,13 @@ GENERAL:
     # Applications:
     #               99 - Spam mail filter
     #               0  - Forex tick sampler
-    #               1  - Forex multifilters
+    #               1  - Forex trainer
     APPLICATION: 0
 
     # Log levels: 0 - LOG_FATAL
     #             1 - LOG_ERROR
-    #              2 - LOG_INFO
-    #              3 - LOG_DEBUG
+    #             2 - LOG_INFO
+    #             3 - LOG_DEBUG
     LOG_LEVEL: 2
 
     # Format of gauge file
@@ -117,16 +117,19 @@ FTS: # Forex Tick Sampler
     FOREX_SYMBOL: EURUSD
 
 FXT: # Forex trainer
-   FEATURE_EXTRACTOR:
-       TICK_FILE: A.CSV
-       TEST_PERIOD: 7 #DAYS
-       SAMPLE_RATE: 30 # sec
+    TRAINER_TYPE: 0  # 0 - multifilter (non-DNN) 
+                     # 1 - DNN
+    POINT_VALUE: 0.1 # in US dollar    
+    FEATURE_EXTRACTOR:
+        TICK_FILE: A.CSV
+        TEST_PERIOD: 7 #DAYS
+        SAMPLE_RATE: 30 # sec
 
-       FEATURE_LIST: ['DMA','RSI']
-       FAST_PERIOD: 200
-       SLOW_PERIOD: 80
-       RSI_PERIOD: 80
-       SIGNAL_PERIOD: 9
+        FEATURE_LIST: ['DMA','RSI']
+        FAST_PERIOD: 200
+        SLOW_PERIOD: 80
+        RSI_PERIOD: 80
+        SIGNAL_PERIOD: 9
 
 GENETIC_OPT:
     OBJECTIVE_TYPE: 1 # 0 - minimization, 1 - maximization
