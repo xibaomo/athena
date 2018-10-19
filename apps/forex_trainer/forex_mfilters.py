@@ -6,7 +6,7 @@ Created on Oct 1, 2018
 from apps.app import App
 from apps.forex_trainer.fxtconf import FxtConfig
 from apps.forex_trainer.fextor.forexfextor import ForexFextor
-from modules.basics.conf.masterconf import gMasterConfig
+from modules.appframeworks.cascadedfilters.overkillfilters.overkillfilters import OverkillFilters
 class ForexMultiFilters(App):
     '''
     classdocs
@@ -19,8 +19,8 @@ class ForexMultiFilters(App):
         '''
         super(ForexMultiFilters,self).__init__()
         self.config = FxtConfig()
-        self.config.loadYamlDict(gMasterConfig.getTotalYamlTree()['FXT'])
         self.fextor = ForexFextor(self.config)
+        self.workForce = OverkillFilters(self.fextor)
         return
     
     @classmethod
@@ -33,6 +33,9 @@ class ForexMultiFilters(App):
         return
     
     def execute(self):
+        self.workForce.train()
+        
+        self.workForce.filterBadPoints()
         return
     
     def finish(self):
