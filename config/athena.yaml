@@ -60,6 +60,7 @@ ML_ENGINE_CORE:
         NEURONS: :[10,20,10]
         ACTIVATION: ['relu','relu','relu']
         DROPOUT_RATE: [0.2,0.2,0.2]
+        REGULARIZER: ['L2:0.01','L2:0.01','L2:0.01']
         BATCH_SIZE: 100
         ALGORITHM: SGD
         WEIGHT_INIT: uniform

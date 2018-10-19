@@ -1,5 +1,5 @@
 from modules.mlengine_cores.mlengine_core import MLEngineCore
-from modules.mlengine_cores.classifier_cores.dnn.dnnconf import DNNConfig
+from modules.mlengine_cores.comm.dnnconf import DNNConfig
 from modules.basics.common.logger import *
 from keras.models import Sequential
 from keras.layers import Dense
@@ -25,12 +25,16 @@ class DNNClassifier(MLEngineCore):
         return
 
     def _createModel(self):
-        model = Sequential()
         neurons =self.config.getNeurons()
         init_wt =self.config.getWeightInit()
-        act =self.config.getActivation()
-        optm =self.config.getAlgorithm()
-        model = createDNNModel(self.input_dim, neurons, init_wt, act, "sigmoid", "binary_crossentropy",optm)
+        act = self.config.getActivation()
+        optm = self.config.getAlgorithm()
+        regs = self.config.getRegularizer()
+        dropouts = self.config.getDropoutRate()
+        model = createDNNModel(self.input_dim, neurons, init_wt, 
+                               dropouts,regs,
+                               act, "sigmoid", "binary_crossentropy",
+                               optm)
         return model
 
     def createEstimator(self):

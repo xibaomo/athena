@@ -16,6 +16,9 @@ class DNNConfig(TopConf):
     def getDropoutRate(self): 
         return self.yamlDict['DROPOUT_RATE'] 
     
+    def getRegularizer(self):
+        return self.yamlDict['REGULARIZER']
+    
     def getBatchSize(self): 
         return self.yamlDict['BATCH_SIZE'] 
     
