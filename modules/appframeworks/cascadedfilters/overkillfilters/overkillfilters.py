@@ -121,6 +121,8 @@ class OverkillFilters(object):
         self.featureExtractor.extractTestFeatures(isKnowAnswer)
         fm    = self.featureExtractor.getTestFeatureMatrix()
         labels = self.featureExtractor.getTestTargets()
+        totalSize = len(labels)
+
         for eng in self.productEngines:
             Log(LOG_INFO) << "Predicting on %d samples" % fm.shape[0]
             eng.predict(fm)
@@ -134,6 +136,7 @@ class OverkillFilters(object):
             Log(LOG_INFO) << "Extracting good points for next filtering ..."
             for n in range(len(labels)):
                 if predictLabels[n] == 0:
+                    
                     tmp_fm.append(fm[n,:])
                     tmp_label.append(labels[n])
                     if labels[n] == 1:
@@ -148,5 +151,8 @@ class OverkillFilters(object):
             fm = np.vstack(tmp_fm)
             labels = np.array(tmp_label)
             
-        return
+        
+        num_good =   len(labels)  - miss
+        
+        return num_good,miss
         

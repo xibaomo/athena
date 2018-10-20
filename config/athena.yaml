@@ -121,6 +121,8 @@ FXT: # Forex trainer
     TRAINER_TYPE: 0  # 0 - multifilter (non-DNN) 
                      # 1 - DNN
     POINT_VALUE: 0.1 # in US dollar    
+    TAKE_PROFIT: 100
+    STOP_LOSS: 100
     FEATURE_EXTRACTOR:
         TICK_FILE: A.CSV
         TEST_PERIOD: 7 #DAYS
