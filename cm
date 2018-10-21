@@ -26,3 +26,5 @@ pyinstaller ../bin/run_athena.py --hidden-import sklearn.neighbors.typedefs \
 
 ln -sf ../config .
 
+cd dist/run_athena
+ln -sf ../../build/run_athena/TA_Lib-0.4.17-py2.7-linux-x86_64.egg/talib .

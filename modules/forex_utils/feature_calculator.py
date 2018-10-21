@@ -6,7 +6,6 @@ Created on Oct 7, 2018
 import talib
 import numpy as np
 import pandas as pd
-from tensorflow.core.example.feature_pb2 import FeatureList
 from modules.basics.common.logger import *
 
 
