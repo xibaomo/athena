@@ -38,7 +38,8 @@ class ForexMultiFilters(App):
     def execute(self):
         
         testSize = len(self.fextor.getTestTargets())
-        dream_profit = testSize * self.config.getPointValue() * self.config.getTakeProfit()
+        num_fail = sum(self.fextor.getTestTargets())
+        dream_profit = (testSize-num_fail) * self.config.getPointValue() * self.config.getTakeProfit()
         Log(LOG_INFO) << "%d transactions. Dream profit = $%.2f" % (testSize,dream_profit)
         
         self.workForce.train()

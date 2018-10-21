@@ -35,9 +35,6 @@ class ForexDNNTrainer(App):
     def prepare(self):
         self.fextor.loadTickFile()
         self.fextor.computeFeatures()
-        testSize = len(self.fextor.getTestTargets())
-        dream_profit = testSize * self.config.getPointValue() * self.config.getTakeProfit()
-        Log(LOG_INFO) << "%d transactions. Dream profit = $%.2f" % (testSize,dream_profit)
         
         # create classifier
         input_dim = self.fextor.getTrainFeatureMatrix().shape[1]
@@ -82,12 +79,14 @@ class ForexDNNTrainer(App):
         
         profitPerTran = self.config.getPointValue() * self.config.getTakeProfit()
         lossPerTran = self.config.getPointValue() * self.config.getStopLoss()
-        dream_profit = profitPerTran * len(self.fextor.getTestTargets())
+        num_fail = sum(true_tar)
+        dream_profit = profitPerTran * (len(true_tar) - num_fail)
         profit = num_good * profitPerTran -  num_miss * lossPerTran
         
         Log(LOG_INFO) << "Profit transactions: %d" % num_good
         Log(LOG_INFO) << "Loss transactions: %d" % num_miss
         Log(LOG_INFO) << "Total profit: $%.2f" % profit
+        Log(LOG_INFO) << "Dream profit: $%.2f" % dream_profit
         Log(LOG_INFO) << "%.2f%% of dream profit taken" % (100*profit/dream_profit)
         
         return profit

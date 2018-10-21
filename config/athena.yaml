@@ -17,9 +17,6 @@ GENERAL:
     # Format of gauge file
     GAUGE_FILE_FORMAT: csv
 
-    # 1/0: turn on/off
-    ESTIMATE_ACCURACV: 1
-
     # Model selector, crossval idation is default
     ENABLE_MODEL_SELECTOR: true
 
