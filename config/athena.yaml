@@ -29,6 +29,9 @@ GENERAL:
     # Minimum number of product models
     MIN_NUM_MODELS: 2
 
+    SAVE_MODEL_FILE: ""
+    LOAD_MODEL_FILE: ""
+
 # Machine-learning engine
 
 ML_ENGINE_CORE:

@@ -24,5 +24,11 @@ class GeneralConfig(TopConf):
     def getMinNumModels(self):
         return self.yamlDict['MIN_NUM_MODELS']
     
+    def getSaveModelFile(self):
+        return self.yamlDict['SAVE_MDOEL_FILE']
+    
+    def getLoadModelFile(self):
+        return self.yamlDict['LOAD_MODEL_FILE'] 
+    
 global gGeneralConfig
 gGeneralConfig = GeneralConfig()

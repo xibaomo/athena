@@ -143,7 +143,7 @@ class OverkillFilters(object):
                 else:
                     if labels[n] == 0:
                         falseAlarm+=1
-            Log(LOG_INFO) << "Missed bad points: %d, false alarms: %d" % (miss,falseAlarm)
+            Log(LOG_INFO) << "Missed alarms: %d, false alarms: %d" % (miss,falseAlarm)
             
             if len(tmp_label) == 0:
                 return
