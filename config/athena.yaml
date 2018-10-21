@@ -113,16 +113,16 @@ FTS: # Forex Tick Sampler
     TICK_FILE: A.CSV
     SAMPLE_RATE: 30 # sec
     EXPIRY_PERIOD: 1 # days
-    TAKE_PROFIT_POINT: 100 
-    STOP_LOSS_POINT: 100
+    TAKE_PROFIT_POINTS: 100 
+    STOP_LOSS_POINTS: 100
     FOREX_SYMBOL: EURUSD
 
 FXT: # Forex trainer
     TRAINER_TYPE: 0  # 0 - multifilter (non-DNN) 
                      # 1 - DNN
     POINT_VALUE: 0.1 # in US dollar    
-    TAKE_PROFIT: 100
-    STOP_LOSS: 100
+    TAKE_PROFIT_POINTS: 100
+    STOP_LOSS_POINTS: 100
     FEATURE_EXTRACTOR:
         TICK_FILE: A.CSV
         TEST_SIZE: 500
@@ -139,7 +139,7 @@ GENETIC_OPT:
     NUM_PARAMS: 3
     UPPER_BOUNDS: []
     LOWER_BOUNDS: []
-    SUM_BOUNDS: -1
+    SUM_BOUNDS: 99999
     POPULATION_SIZE: 100
     NUM_GENERATIONS: 100
     YAML_MODIFIER: ABC.PY # define writeToYaml(individual,yaml_template)

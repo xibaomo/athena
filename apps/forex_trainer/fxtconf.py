@@ -26,9 +26,9 @@ class FxtConfig(TopConf):
         return self.yamlDict['TRAINER_TYPE']
     
     def getTakeProfit(self):
-        return self.yamlDict['TAKE_PROFIT']
+        return self.yamlDict['TAKE_PROFIT_POINTS']
     
     def getStopLoss(self):
-        return self.yamlDict['STOP_LOSS']
+        return self.yamlDict['STOP_LOSS_POINTS']
 
         

@@ -28,10 +28,10 @@ class FTSConfig(TopConf):
         return self.yamlDict['FOREX_SYMBOL']
     
     def getTakeProfitPoint(self):
-        return self.yamlDict['TAKE_PROFIT_POINT']
+        return self.yamlDict['TAKE_PROFIT_POINTS']
     
     def getStopLossPoint(self):
-        return self.yamlDict['STOP_LOSS_POINT']
+        return self.yamlDict['STOP_LOSS_POINTS']
     
     def getPointValue(self):
         return FX_PointValue[self.getFXSymbol()]
