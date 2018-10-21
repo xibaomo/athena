@@ -33,3 +33,6 @@ class DNNConfig(TopConf):
     
     def getMomentum(self): 
         return self.yamlDict['MOMENTUM'] 
+    
+    def getVerbose(self):
+        return self.yamlDict['VERBOSE']

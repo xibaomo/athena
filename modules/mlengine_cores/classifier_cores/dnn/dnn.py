@@ -41,7 +41,7 @@ class DNNClassifier(MLEngineCore):
         self.estimator = KerasClassifier(build_fn = self._createModel,
                                          epochs = self.config.getEpochs(),
                                          batch_size = self.config.getBatchSize(),
-                                         verbose = 0)
+                                         verbose = self.config.getVerbose())
         return
 
 

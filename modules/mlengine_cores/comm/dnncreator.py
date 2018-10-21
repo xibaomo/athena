@@ -61,7 +61,7 @@ def loadDNNModel(modelfile):
         with open(modelfile,'r') as f:
             loaded_model = model_from_yaml(f.read())
             loaded_model.load_weights(mf+".h5")
-            Log(LOG_INFO) << "DNN model loaded from %s.yaml & .5" % mf
+            Log(LOG_INFO) << "DNN model loaded from %s.yaml & .h5" % mf
             return loaded_model
     else:
         Log(LOG_FATAL) << "%s not supported" % ext    
