@@ -28,8 +28,11 @@ class ForexFexConfig(TopConf):
     def getTickFile(self):
         return self.yamlDict['TICK_FILE']
     
-    def getTestPeriod(self):
-        return self.yamlDict['TEST_PERIOD']
+#     def getTestPeriod(self):
+#         return self.yamlDict['TEST_PERIOD']
+    
+    def getTestSize(self):
+        return self.yamlDict['TEST_SIZE']
     
     def getFeatureList(self):
         return self.yamlDict['FEATURE_LIST']

@@ -125,7 +125,7 @@ FXT: # Forex trainer
     STOP_LOSS: 100
     FEATURE_EXTRACTOR:
         TICK_FILE: A.CSV
-        TEST_PERIOD: 7 #DAYS
+        TEST_SIZE: 500
         SAMPLE_RATE: 30 # sec
 
         FEATURE_LIST: ['DMA','RSI']

@@ -7,6 +7,7 @@ import talib
 import numpy as np
 import pandas as pd
 from tensorflow.core.example.feature_pb2 import FeatureList
+from modules.basics.common.logger import *
 
 
 
@@ -21,7 +22,7 @@ class FeatureCalculator(object):
         Constructor
         '''
         self.config = forexfexconfig
-        self.rawFeatures = {}
+        self.rawFeatures = pd.DataFrame()
         self.nullID = np.array([])
         
         return
@@ -57,6 +58,14 @@ class FeatureCalculator(object):
         }
         for f in featureNames:
             FeatureCalculatorSwitcher[f]()
+    
+    def getTotalFeatureMatrix(self):
+        data = self.rawFeatures.values[len(self.nullID)+1:,:]
+        labels = self.labels[len(self.nullID)+1:]
+        
+        if data.shape[0] != len(labels):
+            Log(LOG_FATAL) << "Samples inconsistent with labels"
+        return data,labels
         
         
         

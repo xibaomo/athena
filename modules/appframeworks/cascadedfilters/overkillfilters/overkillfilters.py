@@ -71,7 +71,7 @@ class OverkillFilters(object):
             #back test with train data
 
             mlEngine.predict(fm)
-            _,failed_labels = mlEngine.evaluatePrediction(labels)
+            _,failed_labels = mlEngine.evaluatePrediction(fm,labels)
             Log(LOG_INFO) << "Failed samples: %d " % len(failed_labels)
             
             predictedLabels = mlEngine.getPredictedTargets()
@@ -112,16 +112,15 @@ class OverkillFilters(object):
         
         return np.vstack(resFM),np.array(resLabels)
     
-    def filterBadPoints(self,isKnowAnswer = True):
+    def filterBadPoints(self):
         '''
         This function applies the obtained classifiers to filter out
         bad points in the test data.
         It may have false alarms
         '''
-        self.featureExtractor.extractTestFeatures(isKnowAnswer)
+#         self.featureExtractor.extractTestFeatures(isKnowAnswer)
         fm    = self.featureExtractor.getTestFeatureMatrix()
         labels = self.featureExtractor.getTestTargets()
-        totalSize = len(labels)
 
         for eng in self.productEngines:
             Log(LOG_INFO) << "Predicting on %d samples" % fm.shape[0]

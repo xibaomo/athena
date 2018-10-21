@@ -23,14 +23,14 @@ class Classifier(MLEngine):
 
         return
     
-    def evaluatePrediction(self,trueAns):
+    def evaluatePrediction(self,fm,trueAns):
         labels = trueAns
         
         if labels is None:
             Log(LOG_INFO) << "No true labels found for test set, cannot evaluate prediction"
             return None,None
         
-        feature_matrix = self.testFeatureMatrix
+        feature_matrix = fm
         if len(labels) > 0:
             self._estimateAccuracy(labels)
         else:

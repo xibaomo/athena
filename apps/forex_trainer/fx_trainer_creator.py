@@ -9,4 +9,4 @@ def createForexTrainer():
     config = FxtConfig()
     func = FxtCreator_switcher[config.getTrainerType()]
     
-    return func
+    return func()

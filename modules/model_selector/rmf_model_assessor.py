@@ -9,6 +9,7 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from modules.basics.conf.modelselectorconf import gModelSelectorConfig
 from modules.mlengine_cores.classifier_cores.randomforest.randomforest import RandomForest
+from modules.basics.common.logger import *
 
 class RMFModelAssessor(object):
     '''
@@ -43,6 +44,7 @@ class RMFModelAssessor(object):
         grid_search = GridSearchCV(clf,param_grid=params,
                                    n_jobs=gModelSelectorConfig.getNJobs(),
                                    cv = gModelSelectorConfig.getCVFold())
+        Log(LOG_INFO) << "Grid searching for rmf ..."
         grid_search.fit(self.feature_matrix,self.labels)
         
         engCore = RandomForest(grid_search.best_estimator_)

@@ -25,7 +25,7 @@ class SVMModelAssessor(object):
     
     def prepareParams(self,kernel):
         g0 = 1./self.feature_matrix.shape[1]
-        glist = np.linspace(0.01*g0,10*g0,100)
+        glist = np.linspace(0.01*g0,10*g0,10)
         clist = np.linspace(1,2000,30)
         basicParams = {
             "kernel": [kernel],

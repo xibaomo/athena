@@ -22,6 +22,8 @@ class ForexMultiFilters(App):
         self.config = FxtConfig()
         self.fextor = ForexFextor(self.config)
         self.workForce = OverkillFilters(self.fextor)
+        
+        Log(LOG_INFO) << "Forex multifilters created"
         return
     
     @classmethod
@@ -37,7 +39,7 @@ class ForexMultiFilters(App):
         
         testSize = len(self.fextor.getTestTargets())
         dream_profit = testSize * self.config.getPointValue() * self.config.getTakeProfit()
-        Log(LOG_INFO) << "%d transactions. Dream profit = $%.2f" % dream_profit
+        Log(LOG_INFO) << "%d transactions. Dream profit = $%.2f" % (testSize,dream_profit)
         
         self.workForce.train()
         
@@ -48,7 +50,7 @@ class ForexMultiFilters(App):
         Log(LOG_INFO) << "Profit transactions: %d" % num_good
         Log(LOG_INFO) << "Loss transactions: %d" % num_miss
         Log(LOG_INFO) << "Total profit: %.2f" % profit
-        Log(LOG_INFO) << "%.2f%% of dream profit taken" % profit/dream_profit
+        Log(LOG_INFO) << "%.2f%% of dream profit taken" % (profit/dream_profit)
         
         return
     

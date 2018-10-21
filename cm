@@ -22,5 +22,6 @@ pyinstaller ../bin/run_athena.py --hidden-import sklearn.neighbors.typedefs \
                 --hidden-import packaging.specifiers
 
 
-cp -rfv ../config .
+#cp -rfv ../config .
+ln -sf ../config .
 
