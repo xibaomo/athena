@@ -20,6 +20,7 @@ class ForexFextor(FeatureExtractor):
         '''
         Constructor
         '''
+        super(ForexFextor,self).__init__()
         self.config = ForexFexConfig(foxconfig)
         self.featureCalculator = FeatureCalculator(self.config)
         self.allTicks = None
@@ -47,8 +48,9 @@ class ForexFextor(FeatureExtractor):
     def computeFeatures(self):
         self.featureCalculator.computeFeatures(self.config.getFeatureList())
         
-        self.totalFeatureMatrix,self.labels = self.featureCalculator.getTotalFeatureMatrix()
+        fm,self.labels = self.featureCalculator.getTotalFeatureMatrix()
         
+        self.totalFeatureMatrix = self.scaler.fit_transform(fm)
         Log(LOG_INFO) << "Valid total ticks: %d" % len(self.labels)
         testSize = self.config.getTestSize()
         trainSize = len(self.labels) - testSize

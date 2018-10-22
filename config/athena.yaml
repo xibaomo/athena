@@ -129,11 +129,9 @@ FXT: # Forex trainer
         TEST_SIZE: 500
         SAMPLE_RATE: 30 # sec
 
-        FEATURE_LIST: ['DMA','RSI']
+        FEATURE_LIST: ['DMA','RSI','ROC','EMA','KAMA']
         FAST_PERIOD: 200
         SLOW_PERIOD: 80
-        RSI_PERIOD: 80
-        SIGNAL_PERIOD: 9
 
 GENETIC_OPT:
     OBJECTIVE_TYPE: 1 # 0 - minimization, 1 - maximization

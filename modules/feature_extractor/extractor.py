@@ -9,6 +9,7 @@ import cPickle
 
 from modules.basics.common.logger import *
 import numpy as np
+from sklearn.preprocessing.data import StandardScaler
 
 class FeatureExtractor(object):
     def __init__(self):
@@ -16,6 +17,7 @@ class FeatureExtractor(object):
         self.trainTargets = None
         self.testFeatureMatrix = None
         self.testTargets = None
+        self.scaler = StandardScaler()
         return
     
     def save(self,filename,model):
