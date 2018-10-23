@@ -156,9 +156,9 @@ GENERIC_APP:
     ENGINE_TYPE: 0  # 0 - Classifier. 1 - Regressor (not supported)
     DATA_FILE: A.CSV
     TEST_SIZE: 0
-    TARGET_HEADER: "ABC"
-    FEATURE_HEADERS: ['A','B']
-
+    TARGET_HEADER: ""
+    TARGET_COL_NO: -1
+    FEATURE_HEADERS: []
 
 SPM:
     # Type of input data
