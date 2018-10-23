@@ -1,5 +1,8 @@
 *.pyc
 *.swp
 *.csv
+*.nfs*
+log*
+output*
 release
 debug
