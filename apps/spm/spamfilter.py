@@ -68,7 +68,7 @@ class SpamFilter(App):
         self.mlEngine.predict(fm)
         
         trueLabels = self.featureExtractor.getTestTargets()
-        self.mlEngine.evaluatePrediction(trueLabels)
+        self.mlEngine.evaluatePrediction(fm,trueLabels)
         
         return
     

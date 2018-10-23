@@ -35,6 +35,8 @@ class DNNClassifier(MLEngineCore):
                                dropouts,regs,
                                act, "sigmoid", "binary_crossentropy",
                                optm)
+        
+        model.summary()
         return model
 
     def createEstimator(self):

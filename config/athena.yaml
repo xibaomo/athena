@@ -152,6 +152,14 @@ GENETIC_OPT:
     NITERS_PER_KID: 5
     DATA_FILES: ['A','B']
 
+GENERIC_APP:
+    ENGINE_TYPE: 0  # 0 - Classifier. 1 - Regressor (not supported)
+    DATA_FILE: A.CSV
+    TEST_SIZE: 0
+    TARGET_HEADER: "ABC"
+    FEATURE_HEADERS: ['A','B']
+
+
 SPM:
     # Type of input data
     # 0 - raw data
