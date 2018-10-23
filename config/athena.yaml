@@ -154,11 +154,11 @@ GENETIC_OPT:
 
 GENERIC_APP:
     ENGINE_TYPE: 0  # 0 - Classifier. 1 - Regressor (not supported)
+    EVALUATE_MODEL: false
     DATA_FILE: A.CSV
     TEST_SIZE: 0
-    TARGET_HEADER: ""
-    TARGET_COL_NO: -1
-    FEATURE_HEADERS: []
+    TARGET_HEADER: ""  # if empty, use the last column
+    FEATURE_HEADERS: []  # if empty, use all the columns except the last
 
 SPM:
     # Type of input data

@@ -5,6 +5,7 @@ Created on Oct 22, 2018
 '''
 
 from modules.basics.conf.topconf import TopConf
+from modules.basics.conf.masterconf import gMasterConfig
 
 class GaConfig(TopConf):
     '''
@@ -17,6 +18,7 @@ class GaConfig(TopConf):
         Constructor
         '''
         super(GaConfig,self).__init__()
+        self.loadYamlDict(gMasterConfig.getTotalYamlTree()['GENERIC_APP'])
         return
     
     def getEngineType(self):
@@ -36,5 +38,11 @@ class GaConfig(TopConf):
     
     def getFeatureHeaders(self):
         return self.yamlDict['FEATURE_HEADERS']
+    
+    def getTargetColNo(self):
+        return self.yamlDict['TARGET_COL_NO']
+    
+    def isEvaluateModel(self):
+        return self.yamlDict['EVALUATE_MODEL']
     
     

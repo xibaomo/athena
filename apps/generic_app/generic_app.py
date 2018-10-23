@@ -9,6 +9,10 @@ from apps.generic_app.gafextor import GaFextor
 from modules.mlengine_cores.classifier_cores.dnn.dnn import DNNClassifier
 from modules.mlengines.classifier.classifier import Classifier
 from modules.basics.common.logger import *
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import cross_val_score
+from sklearn.pipeline import Pipeline
+import numpy as np
 class GenericApp(App):
     '''
     classdocs
@@ -35,9 +39,13 @@ class GenericApp(App):
         
         engCore = DNNClassifier(input_dim)
         self.engine = Classifier(engCore)
+        self.core = engCore
         return
     
     def execute(self):
+        if self.config.isEvaluateModel():
+            self.evaluteModel()
+            return
         Log(LOG_INFO) << "Training ..."
         fm = self.fextor.getTrainFeatureMatrix()
         labels = self.fextor.getTrainTargets()
@@ -53,3 +61,21 @@ class GenericApp(App):
     def finish(self):
         return
     
+    def evaluteModel(self):
+        x = self.fextor.getTotalFeatureMatrix()
+        y = self.fextor.getTotalTargets()
+        
+        estimators = []
+        est = self.core.getEstimator()
+        estimators.append(("mlp",est))
+        pipeline = Pipeline(estimators)
+        seed = 7
+        np.random.seed(seed)
+        kfold = StratifiedKFold(n_splits=10,shuffle=True,random_state=seed)
+        results=cross_val_score(pipeline,x,y,cv=kfold)
+          
+        Log(LOG_INFO) <<"Model eval: %.2f%% (%.2f%%)" % (results.mean()*100.,results.std()*100.)
+
+        
+        
+        
