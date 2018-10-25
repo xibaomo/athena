@@ -49,6 +49,18 @@ class GaOptimizer(App):
     def prepare(self):
         return
     
+    def initHyperParams(self,pcls,lb,ub):
+        prop = []
+        for i in range(len(lb)):
+            if type(lb[i]) is int:
+                p = np.random.randint(lb[i],ub[i])
+            if type(lb[i]) is float:
+                p = np.random.uniform(lb[i],ub[i])
+            prop.append(p)
+            
+        part = pcls(prop)
+        return part
+    
     def execute(self):
         npm = self.config.getNumParams()
         ub = self.config.getUpperBounds()
@@ -70,8 +82,10 @@ class GaOptimizer(App):
         self.toolbox = base.Toolbox()
         
         self.toolbox.register("params", random.randint,min(lb),max(ub))
-        self.toolbox.register("individual",tools.initRepeat,creator.Individual,
-                              self.toolbox.params,npm)
+#         self.toolbox.register("individual",tools.initRepeat,creator.Individual,
+#                               self.toolbox.params,npm)
+        self.toolbox.register("individual",self.initHyperParams, 
+                              lb=lb, ub=ub)
         self.toolbox.register("population",tools.initRepeat,list,self.toolbox.individual)
         
         # Operators
