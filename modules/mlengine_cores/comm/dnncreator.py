@@ -38,7 +38,7 @@ def createDNNModel(input_dim, end_act, loss, outnodes=1):
     regs = config.getRegularizer()
     act = config.getActivation()
     optm_algo = config.getAlgorithm()
-    lr = config.getlearnRate()
+    lr = config.getLearnRate()
     mom = config.getMomentum()
     
     model = Sequential()

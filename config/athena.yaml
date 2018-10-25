@@ -60,12 +60,14 @@ ML_ENGINE_CORE:
         BATCH_SIZE: 500
         NEURONS: [10,20,10]
         ACTIVATION: ['relu','relu','relu']
-        DROPOUT_RATE: [0.2,0.2,0.2]
-        REGULARIZER: ['L2:0.01','L2:0.01','L2:0.01']
+        OUTPUT_ACT: sigmoid
+        DROPOUT_RATE: [0.0,0.0,0.0]
+        REGULARIZER: ['L2:0.00','L2:0.00','L2:0.00']
         ALGORITHM: SGD
-        WEIGHT_INIT: uniform
-        LEARN_RATE: 0.01
         MOMENTUM: 0.1 #ONLY USED WHEN ALGORITHM == SGD
+        WEIGHT_INIT: uniform
+        LEARN_RATE: -1
+        LOSS_FUNC: binary_crossentropy # mean_squared_error
         VERBOSE: 2
 
 FEATURE_EXTRACTOR:

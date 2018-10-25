@@ -15,6 +15,9 @@ class DNNConfig(TopConf):
     def getActivation(self): 
         return self.yamlDict['ACTIVATION'] 
     
+    def getOutputAct(self):
+        return self.yamlDict['OUTPUT_ACT']
+    
     def getDropoutRate(self): 
         return self.yamlDict['DROPOUT_RATE'] 
     
@@ -30,8 +33,11 @@ class DNNConfig(TopConf):
     def getWeightInit(self): 
         return self.yamlDict['WEIGHT_INIT'] 
     
-    def getlearnRate(self): 
+    def getLearnRate(self): 
         return self.yamlDict['LEARN_RATE'] 
+    
+    def getLossFunc(self):
+        return self.yamlDict['LOSS_FUNC']
     
     def getMomentum(self): 
         return self.yamlDict['MOMENTUM'] 
