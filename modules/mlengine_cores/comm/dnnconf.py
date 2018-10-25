@@ -1,8 +1,10 @@
 from modules.basics.conf.topconf import TopConf 
+from modules.basics.conf.masterconf import gMasterConfig
 import numpy as np 
 class DNNConfig(TopConf): 
     def __init__(self): 
         super(DNNConfig,self).__init__() 
+        self.loadYamlDict(gMasterConfig.getTotalYamlTree()['ML_ENGINE_CORE']['DNN'])
         return 
     def getEpochs(self): 
         return self.yamlDict['EPOCHS'] 

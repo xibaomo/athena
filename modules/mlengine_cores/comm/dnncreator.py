@@ -9,6 +9,8 @@ from keras.layers import Dropout
 from keras import regularizers
 from keras.models import model_from_yaml
 from modules.basics.conf.generalconf import gGeneralConfig
+from modules.mlengine_cores.comm.dnnconf import DNNConfig
+from keras import optimizers
 import os
 from modules.basics.common.logger import *
 
@@ -18,8 +20,27 @@ Regularizer_switcher = {
     'L1L2': regularizers.l1_l2
     }
 
-def createDNNModel(input_dim, neurons, init_wt, dropouts,regs, 
-                   act, end_act, loss, optm_algo,outnodes=1):
+Optimizer_switcher = {
+    "SGD": optimizers.SGD,
+    "RMSprop": optimizers.RMSprop,
+    "Adagrad": optimizers.Adagrad,
+    "Adadelta": optimizers.Adadelta,
+    "Adam": optimizers.Adam,
+    "Adamax": optimizers.Adamax,
+    "Nadam": optimizers.Nadam
+    }
+
+def createDNNModel(input_dim, end_act, loss, outnodes=1):
+    config =  DNNConfig()
+    neurons = config.getNeurons()
+    init_wt = config.getWeightInit()
+    dropouts = config.getDropoutRate()
+    regs = config.getRegularizer()
+    act = config.getActivation()
+    optm_algo = config.getAlgorithm()
+    lr = config.getlearnRate()
+    mom = config.getMomentum()
+    
     model = Sequential()
     for n in range(len(neurons)):
         reg,rv=regs[n].split(":")
@@ -34,9 +55,18 @@ def createDNNModel(input_dim, neurons, init_wt, dropouts,regs,
                             kernel_regularizer=regler(float(rv)), 
                             activation = act[n]))
         
-        model.add(Dropout(dropouts[n]))
+        if dropouts[n] > 0.0:
+            model.add(Dropout(dropouts[n]))
+    if lr < 0:
+        optm = Optimizer_switcher[optm_algo]()
+    else:
+        if optm_algo == "SGD":
+            optm = Optimizer_switcher[optm_algo](lr=lr,momentum=mom)
+        else:
+            optm = Optimizer_switcher[optm_algo](lr=lr)
+            
     model.add(Dense(outnodes, kernel_initializer=init_wt, activation = end_act))
-    model.compile(loss = loss, optimizer = optm_algo, metrics=['accuracy'])
+    model.compile(loss = loss, optimizer = optm, metrics=['accuracy'])
 
     return model
 

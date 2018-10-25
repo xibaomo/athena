@@ -18,23 +18,15 @@ class DNNClassifier(MLEngineCore):
             self.estimator = est
         else:
             self.config =DNNConfig()
-            self.config.loadYamlDict(gMLEngineConfig.getYamlDict()['DNN'])
             self.createEstimator()
             
             Log(LOG_INFO) <<"DNN classifier is created"
         return
 
     def _createModel(self):
-        neurons =self.config.getNeurons()
-        init_wt =self.config.getWeightInit()
-        act = self.config.getActivation()
-        optm = self.config.getAlgorithm()
-        regs = self.config.getRegularizer()
-        dropouts = self.config.getDropoutRate()
-        model = createDNNModel(self.input_dim, neurons, init_wt, 
-                               dropouts,regs,
-                               act, "sigmoid", "binary_crossentropy",
-                               optm)
+
+        model = createDNNModel(self.input_dim, 
+                               "sigmoid", "binary_crossentropy")
         
         model.summary()
         return model
