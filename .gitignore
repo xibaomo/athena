@@ -2,6 +2,9 @@
 *.swp
 *.csv
 *.nfs*
+*.o
+*.depend
+*.obj
 log*
 output*
 release
