@@ -21,13 +21,12 @@
 #include <cstring>
 #include <malloc.h>
 #include <iostream>
-
-#define Log(LOG_FATAL) std::cout
+#include "basics/types.h"
+#include "basics/log.h"
 
 typedef unsigned int ActionType;
 typedef int TagType;
 typedef size_t SizeType;
-typedef unsigned char Uchar
 
 enum class MsgAction {
     NORMAL_EXIT = 0,
@@ -106,11 +105,11 @@ public:
 
     {
         if ( !other.m_own )
-            Log(LOG_FATAL) << "Cannot transfer ownership if not own it" << std::endl;
+            Log(LOG_FATAL) << "Cannot transfer ownership if not own it";
 
         if ( !other.m_entireMsg ) {
             m_entireMsg = nullptr;
-            Log(LOG_FATAL) << "Null msg cannot be moved" << std::endl;
+            Log(LOG_FATAL) << "Null msg cannot be moved";
         }
 
         else {
@@ -125,7 +124,7 @@ public:
     Message& operator=(Message&& other)
     {
         if ( !other.m_own )
-            Log(LOG_FATAL) << "Cannot transfer ownership if not own it" << std::endl;
+            Log(LOG_FATAL) << "Cannot transfer ownership if not own it";
 
         if ( m_own && m_entireMsg )
             free(m_entireMsg);
