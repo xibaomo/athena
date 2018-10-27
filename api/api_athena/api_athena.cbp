@@ -12,10 +12,18 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-std=c++11" />
 					<Add option="-g" />
 					<Add directory="/tools/include" />
 					<Add directory="src/common" />
 				</Compiler>
+				<Linker>
+					<Add option="-lpthread -pthread" />
+					<Add library="/tools/lib/libboost_log.a" />
+					<Add library="/tools/lib/libboost_log_setup.a" />
+					<Add library="/tools/lib/libboost_system.a" />
+					<Add library="/tools/lib/libboost_thread.a" />
+				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/api_athena" prefix_auto="1" extension_auto="1" />
@@ -37,7 +45,12 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="src/common/basics/log.cpp" />
 		<Unit filename="src/common/basics/log.h" />
+		<Unit filename="src/common/basics/types.h" />
+		<Unit filename="src/common/basics/utils.cpp" />
+		<Unit filename="src/common/basics/utils.h" />
 		<Unit filename="src/common/messenger/msg.h" />
+		<Unit filename="src/common/messenger/sockutils.cpp" />
+		<Unit filename="src/common/messenger/sockutils.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

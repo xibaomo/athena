@@ -20,5 +20,8 @@
 #define  _BASICS_TYPES_H_
 #include <string>
 
+#define ONE_MS 1
+#define ONE_HUNDRED_MS 100
+
 using String = std::string;
 #endif   /* ----- #ifndef _BASICS_TYPES_H_  ----- */

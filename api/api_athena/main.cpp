@@ -8,7 +8,7 @@ int main()
     Log.setLogLevel(LOG_INFO);
 
     Log(LOG_INFO) << "Program starts";
-    cout << "Hello world!" << endl;
+
 
     Log(LOG_INFO) << "Program ends normally";
     return 0;

@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1540675202 source:/home/fxua/dev/athena/api/api_athena/main.cpp
+1540675604 source:/home/fxua/dev/athena/api/api_athena/main.cpp
 	<iostream>
 	"basics/log.h"
 	"basics/types.h"
@@ -11224,9 +11224,30 @@
 	<boost/phoenix/core/meta_grammar.hpp>
 	<boost/proto/operators.hpp>
 
-1540670454 /home/fxua/dev/athena/api/api_athena/src/common/basics/types.h
+1540677146 /home/fxua/dev/athena/api/api_athena/src/common/basics/types.h
 	<string>
 
 1540675547 source:/home/fxua/dev/athena/api/api_athena/src/common/basics/log.cpp
 	"log.h"
+
+1540678205 source:/home/fxua/dev/athena/api/api_athena/src/common/basics/utils.cpp
+	"utils.h"
+	<memory>
+	<array>
+	<chrono>
+	<thread>
+	<unistd.h>
+
+1540677743 /home/fxua/dev/athena/api/api_athena/src/common/basics/utils.h
+	<sys/socket.h>
+	<netinet/ip.h>
+	"types.h"
+
+1540679201 source:/home/fxua/dev/athena/api/api_athena/src/common/messenger/sockutils.cpp
+	"basics/utils.h"
+	<poll.h>
+	<unistd.h>
+	<stdexcept>
+	<fcntl.h>
+	<arpa/inet.h>
 

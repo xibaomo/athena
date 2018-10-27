@@ -6,6 +6,10 @@
 *.depend
 *.obj
 log*
+bin
+obj
 output*
 release
 debug
+Release
+Debug
