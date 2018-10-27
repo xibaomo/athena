@@ -33,4 +33,6 @@ bool checkSockReadable(int sock, int timeout);
 bool switchBlockingMode(int sock, bool isBlocking);
 
 String getIPfromSockAddr(struct sockaddr_in* sockAddr);
+
+void createSockAddr(sockaddr_in* sockAddr_out, const String& hostname, int port);
 #endif   /* ----- #ifndef _MESSENGER_SOCK_UTILS_H_  ----- */

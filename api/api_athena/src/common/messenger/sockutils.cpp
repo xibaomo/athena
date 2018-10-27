@@ -21,6 +21,8 @@
 #include <stdexcept>
 #include <fcntl.h>
 #include <arpa/inet.h>
+#include <netdb.h>
+#include <string.h>
 using namespace std;
 
 void
@@ -109,4 +111,19 @@ getIPfromSockAddr(struct sockaddr_in* addr)
     return ipp;
 }
 
-
+void
+createSockAddr(sockaddr_in* outaddr, const String& hostname, int port)
+{
+    struct hostent* hp;
+    hp = gethostbyname(hostname.c_str());
+    if (!hp) {
+        String msg = "Cannot obtain address of " + hostname;
+        throw runtime_error(msg.c_str());
+    } else {
+        memset((char*)outaddr,0,sizeof(sockaddr_in));
+        outaddr->sin_family = AF_INET;
+        outaddr->sin_port = htons(port);
+        memcpy((void*)&outaddr->sin_addr,hp->h_addr_list[0],hp->h_length);
+    }
+    return;
+}
