@@ -4,6 +4,7 @@
 *.nfs*
 *.o
 *.depend
+*.layout
 *.obj
 log*
 bin
