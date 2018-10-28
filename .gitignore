@@ -6,7 +6,7 @@
 *.depend
 *.layout
 *.obj
-log*
+log
 bin
 obj
 output*
