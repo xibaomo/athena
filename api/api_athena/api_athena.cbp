@@ -16,6 +16,7 @@
 					<Add option="-g" />
 					<Add directory="/tools/include" />
 					<Add directory="src/common" />
+					<Add directory="src/modules" />
 				</Compiler>
 				<Linker>
 					<Add option="-lpthread -pthread" />
@@ -45,6 +46,7 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="src/common/basics/log.cpp" />
 		<Unit filename="src/common/basics/log.h" />
+		<Unit filename="src/common/basics/mtqueue.h" />
 		<Unit filename="src/common/basics/types.h" />
 		<Unit filename="src/common/basics/utils.cpp" />
 		<Unit filename="src/common/basics/utils.h" />
@@ -53,6 +55,7 @@
 		<Unit filename="src/common/messenger/msg.h" />
 		<Unit filename="src/common/messenger/sockutils.cpp" />
 		<Unit filename="src/common/messenger/sockutils.h" />
+		<Unit filename="src/modules/predictor/prdmsg.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

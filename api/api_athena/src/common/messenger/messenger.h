@@ -59,7 +59,7 @@ public:
         return _instance;
     }
 
-    void prepare();
+    int getPort() const { return m_port; }
 
     /*
      * Send msg to sock address
@@ -120,5 +120,10 @@ public:
      * Listen once
      */
     int listenOnce(Message& msg);
+
+    /*
+     * wait until the other side sends confirmation
+     */
+    void waitConfirm(int sock);
 };
 #endif   /* ----- #ifndef _BASIC_MESSENGER_H_  ----- */

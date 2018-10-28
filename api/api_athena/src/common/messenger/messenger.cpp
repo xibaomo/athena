@@ -29,6 +29,8 @@ Messenger::Messenger() : m_hostSock(-1), m_port(-1),
     m_hostSock = createTCPSocket();
     bindSocketToPort();
     enableListenSocket(m_hostSock);
+    switchBlockingMode(m_hostSock, false);
+    m_bufferSize = getBufferSize();
 }
 
 int
@@ -210,6 +212,8 @@ Messenger::sockSend(Message& msg, int sock)
         remain-=(int)ms;
         pc+=ms;
     }
+
+    waitConfirm(sock);
 }
 
 void
@@ -218,6 +222,8 @@ Messenger::sendAMsgToAddr(Message& msg, SockAddr& addr)
     int sock = createTCPSocket();
     connectSockAddr(sock, &addr);
     sockSend(msg, sock);
+    close(sock);
+    Log(LOG_DEBUG) << "msg sent. socket closed";
 }
 
 void
@@ -252,4 +258,20 @@ Messenger::listenOnce(Message& msg)
         return 1;
     }
     return 0;
+}
+
+void
+Messenger::waitConfirm(int sock)
+{
+    const int LEN = HANGUP.size();
+    char buffer[LEN];
+    while ( 1 ) {
+        int valread = read(sock, buffer, LEN);
+        if ( valread>0 ) {
+            String msg(buffer);
+            if ( msg == HANGUP )
+                break;
+        }
+        sleepMilliSec(ONE_MS);
+    }
 }

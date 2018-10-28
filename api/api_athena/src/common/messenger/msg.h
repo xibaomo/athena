@@ -29,8 +29,10 @@ typedef int TagType;
 typedef size_t SizeType;
 
 enum class MsgAction {
-    NORMAL_EXIT = 0,
-    ERROR_EXIT
+    GET_READY = 0,
+    NORMAL_EXIT = 1,
+    ERROR_EXIT,
+    CHECK_IN
 };
 
 /*****************************************************************************************
@@ -72,6 +74,7 @@ public:
         m_entireMsg[msgSize-2]='N';
         m_entireMsg[msgSize-1]='D';
 
+        setAction(MsgAction::GET_READY);
         m_own = true;
     }
 
