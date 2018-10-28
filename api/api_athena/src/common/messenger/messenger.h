@@ -27,6 +27,7 @@
 #include <vector>
 #include "msg.h"
 #include "basics/types.h"
+#include "basics/mtqueue.h"
 const Uint MAXPORTNUM = 65536;
 const Uint MINPORTNUM = 1024;
 const String HANGUP = "hangup";
@@ -44,7 +45,7 @@ protected:
 
     bool m_isListening;
 
-    std::vector<Message> m_msgBox;
+    MtQueue<Message> m_msgBox;
 
     boost::mutex m_mutex;
 
@@ -75,7 +76,7 @@ public:
      */
     void sendToSelf(Message& msg)
     {
-        m_msgBox.push_back(std::move(msg));
+        m_msgBox.push(std::move(msg));
     }
 
     /*
@@ -114,5 +115,10 @@ public:
      * Tell the other side to hang up
      */
     void hangup(int sock);
+
+    /*
+     * Listen once
+     */
+    int listenOnce(Message& msg);
 };
 #endif   /* ----- #ifndef _BASIC_MESSENGER_H_  ----- */

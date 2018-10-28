@@ -228,3 +228,28 @@ Messenger::sendAMsgToHostPort(Message& msg, const String& hostPort)
     createSockAddr(&addr, s[0], stoi(s[1]));
     sendAMsgToAddr(msg, addr);
 }
+
+int
+Messenger::listenOnce(Message& msg)
+{
+    bool rt = checkSockReadable(m_hostSock, 1);
+    if ( rt ) {
+        int clntsock;
+        if ( (clntsock = accept(m_hostSock, NULL,
+                        NULL))<0) {
+            Log(LOG_FATAL) << "Failed to ccept connection";
+        }
+        drainSocket(clntsock);
+        hangup(clntsock);
+        close(clntsock);
+
+        msg = std::move(m_msgBox.front());
+        m_msgBox.pop();
+        MsgAction action = (MsgAction)msg.getAction();
+        if ( action == MsgAction::NORMAL_EXIT )
+            return -1;
+
+        return 1;
+    }
+    return 0;
+}
