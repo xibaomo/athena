@@ -10,7 +10,7 @@ int main()
 
     Log(LOG_INFO) << "Program starts";
 
-
+    Log(LOG_INFO) << "this line no: " << 13;
     Message msg;
     Log(LOG_INFO) << "Program ends normally";
     return 0;

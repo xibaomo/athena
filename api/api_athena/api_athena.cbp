@@ -48,6 +48,8 @@
 		<Unit filename="src/common/basics/types.h" />
 		<Unit filename="src/common/basics/utils.cpp" />
 		<Unit filename="src/common/basics/utils.h" />
+		<Unit filename="src/common/messenger/messenger.cpp" />
+		<Unit filename="src/common/messenger/messenger.h" />
 		<Unit filename="src/common/messenger/msg.h" />
 		<Unit filename="src/common/messenger/sockutils.cpp" />
 		<Unit filename="src/common/messenger/sockutils.h" />

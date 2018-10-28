@@ -22,6 +22,7 @@
 #include <chrono>
 #include <thread>
 #include <unistd.h>
+#include <boost/algorithm/string.hpp>
 using namespace std;
 
 String
@@ -52,10 +53,18 @@ String
 getHostName()
 {
     char hn[128];
-    int err = gethostname(hn,128);
+    int err = gethostname(hn, 128);
 
-    if (err<0)
+    if ( err<0 )
         throw runtime_error("cannot get host name");
 
     return String(hn);
+}
+
+vector<String>
+splitString(const String& str, char delimiter)
+{
+    vector<String> res;
+    boost::split(res, str, [delimiter](char c) { return c == delimiter; });
+    return res;
 }
