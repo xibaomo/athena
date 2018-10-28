@@ -22,12 +22,47 @@
 #include <sys/socket.h>
 #include <netinet/ip.h>
 #include <vector>
+#include <unistd.h>
+#include <fcntl.h>
+#include "basics/log.h"
 #include "types.h"
 
 /*-----------------------------------------------------------------------------
  *  Execute system call by popen and return result as a string
  *-----------------------------------------------------------------------------*/
-String execSysCall(const String& cmd);
+String execSysCall_block(const String& cmd);
+
+class NonBlockSysCall {
+private:
+    FILE* m_fh;
+    String m_cmd;
+    char m_buffer[1024];
+public:
+    NonBlockSysCall(const String& cmd) : m_cmd(cmd) {
+        m_fh = popen(cmd.c_str(),"r");
+        int d = fileno(m_fh);
+        fcntl(d, F_SETFL, O_NONBLOCK);
+    }
+    ~NonBlockSysCall() { pclose(m_fh); }
+    bool checkFinished() {
+        int d = fileno(m_fh);
+        ssize_t r = read(d,m_buffer,1024);
+        if (r == -1 && errno == EAGAIN) {
+            Log(LOG_VERBOSE) << m_cmd + " not finished";
+            return false;
+        } else if (r > 0) {
+            return true;
+        } else
+            Log(LOG_ERROR) << "Pipe closed";
+        return false;
+    }
+
+    String getResult() {
+        String res(m_buffer);
+        return res;
+    }
+};
+
 
 /*-----------------------------------------------------------------------------
  *  Sleep in units of ms

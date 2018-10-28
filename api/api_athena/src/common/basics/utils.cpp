@@ -26,7 +26,7 @@
 using namespace std;
 
 String
-execSysCall(const String& cmd)
+execSysCall_block(const String& cmd)
 {
     array<char, 128> buffer;
     String result;
