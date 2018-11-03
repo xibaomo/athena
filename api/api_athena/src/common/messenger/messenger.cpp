@@ -257,6 +257,8 @@ Messenger::listenOnce(Message& msg)
 
         return 1;
     }
+
+    Log(LOG_DEBUG) << "Listened once";
     return 0;
 }
 

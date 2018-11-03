@@ -35,20 +35,28 @@ String execSysCall_block(const String& cmd);
 class NonBlockSysCall {
 private:
     FILE* m_fh;
-    String m_cmd;
     char m_buffer[1024];
+    NonBlockSysCall(){;}
 public:
-    NonBlockSysCall(const String& cmd) : m_cmd(cmd) {
-        m_fh = popen(cmd.c_str(),"r");
-        int d = fileno(m_fh);
-        fcntl(d, F_SETFL, O_NONBLOCK);
+
+    static NonBlockSysCall& getIntance() {
+        static NonBlockSysCall _inst;
+        return _inst;
     }
-    ~NonBlockSysCall() { pclose(m_fh); }
+    void exec(const String& cmd) {
+        FILE* fh = popen(cmd.c_str(), "r");
+        int d = fileno(fh);
+        fcntl(d, F_SETFL, O_NONBLOCK);
+        m_fhs.push_bach(fh);
+    }
+   virtual ~NonBlockSysCall() {
+       for ( auto fh: m_fhs) pclose(fh);
+   }
     bool checkFinished() {
         int d = fileno(m_fh);
-        ssize_t r = read(d,m_buffer,1024);
-        if (r == -1 && errno == EAGAIN) {
-            Log(LOG_VERBOSE) << m_cmd + " not finished";
+        ssize_t r = read(d, m_buffer, 1024);
+        if ( r == -1 && errno == EAGAIN ) {
+            //Log(LOG_VERBOSE) << m_cmd + " not finished";
             return false;
         } else if (r > 0) {
             return true;
@@ -63,7 +71,7 @@ public:
     }
 };
 
-
+extern NonBlockSysCall* gNBSysCall;
 /*-----------------------------------------------------------------------------
  *  Sleep in units of ms
  *-----------------------------------------------------------------------------*/

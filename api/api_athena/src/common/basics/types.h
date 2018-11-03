@@ -27,5 +27,12 @@ typedef unsigned int Uint;
 typedef unsigned char Uchar;
 using String = std::string;
 
-
+#ifdef __USE_64_BIT
+typedef double Real;
+#define REALFORMAT "d"
+#else
+#define __USE_32_BIT
+typedef float Real;
+#define REALFORMAT "f"
+#endif
 #endif   /* ----- #ifndef _BASICS_TYPES_H_  ----- */

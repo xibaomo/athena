@@ -56,6 +56,7 @@ public:
         m_lvlDict[(int)Log_Level::LOG_INFO] = logging::trivial::info;
         m_lvlDict[(int)Log_Level::LOG_VERBOSE] = logging::trivial::debug;
         m_lvlDict[(int)Log_Level::LOG_DEBUG] = logging::trivial::trace;
+        setLogLevel(LOG_INFO);
     }
 
     static Logger& getInstance()

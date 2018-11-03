@@ -68,3 +68,5 @@ splitString(const String& str, char delimiter)
     boost::split(res, str, [delimiter](char c) { return c == delimiter; });
     return res;
 }
+
+NonBlockSysCall* gNBSysCall = &NonBlockSysCall::getInstance();
