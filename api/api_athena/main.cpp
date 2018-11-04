@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 
     Log(LOG_INFO) << "Program starts";
 
-    if (argc == 1) { // main process
+    if ( argc == 1) { // main process
         Log(LOG_INFO) << "This is master process";
 
         Messenger* msger = &Messenger::getInstance();
@@ -21,7 +21,7 @@ int main(int argc, char** argv)
         NonBlockSysCall nbcall(cmd);
         Log(LOG_INFO) << "another guy wakes up";
         Message msg;
-        while(msger->listenOnce(msg)>=0) {
+        while ( msger->listenOnce(msg)>=0 ) {
             switch((MsgAction)msg.getAction()) {
             case MsgAction::GET_READY:
                 break;
@@ -31,13 +31,10 @@ int main(int argc, char** argv)
                 break;
             default:
                 break;
-
             }
             msg.setAction(MsgAction::GET_READY);
             sleepMilliSec(ONE_MS);
         }
-
-
     } else {
         Log(LOG_INFO) << "This is second process";
         String hostPort(argv[1]);
@@ -46,11 +43,8 @@ int main(int argc, char** argv)
         Message msg;
         msg.setAction(MsgAction::CHECK_IN);
 
-        msger->sendAMsgToHostPort(msg,hostPort);
-
-
+        msger->sendAMsgToHostPort(msg, hostPort);
     }
-
 
     return 0;
 }

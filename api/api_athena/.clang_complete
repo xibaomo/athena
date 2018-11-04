@@ -1,5 +1,5 @@
--I/home/fxua/dev/athena/api/api_athena/src/common
--I/home/fxua/dev/athena/api/api_athena/src/apiserver
--I/home/fxua/dev/athena/api/api_athena/src/apiclient
--I/home/fxua/dev/athena/api/api_athena/src/modules
+-I./src/modules
+-I./src/common
+-I./src/apiserver
+-I./src/apiclient
 
