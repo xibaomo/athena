@@ -28,9 +28,9 @@ protected:
     CPyObject m_engine;
     CPyObject m_engineCore;
 
-    CPyObject = m_engCreatorMod; // module for engine creator
-    CPyObject = m_mlEngMod;     // module for mlengine base
-    CPyObject = m_engineCoreMod; // module for mlengine core
+    CPyObject m_engCreatorMod; // module for engine creator
+    CPyObject m_mlEngMod;     // module for mlengine base
+    CPyObject m_engineCoreMod; // module for mlengine core
     double *m_result_array;
 
     ServerPredictor(const String& clientHostPort): ServerBaseApp(clientHostPort),
@@ -68,7 +68,7 @@ public:
     /*
      * Process message. Override base class
      */
-    void ProcessMsg(Message& msg);
+    void processMsg(Message& msg);
 
     /*
      * Process message of action SETUP

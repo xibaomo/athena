@@ -6,7 +6,7 @@
 #include <iostream>
 using namespace std;
 
-String _getModelFile(String qmdFile)
+String _getModelFile(String qmdlFile)
 {
     String athena_install = String(getenv("ATHENA_INSTALL"));
     String modulePath = athena_install + "/api/release/scripts/";
@@ -29,7 +29,7 @@ String getModelFile(String qmdlFile)
     String parser = athena_install + "/api/release/scripts/qmdl_parser.py";
     String cmd = parser + " " + qmdlFile;
 
-    String modlefile = execSysCall_block(cmd);
+    String modelfile = execSysCall_block(cmd);
     return modelfile;
 }
 

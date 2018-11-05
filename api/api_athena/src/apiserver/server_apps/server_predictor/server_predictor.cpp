@@ -42,7 +42,7 @@ ServerPredictor::loadPythonModule()
     m_engineCoreMod = PyImport_ImportModule("mlengine_core");
 
     if ( !m_engineCoreMod ) {
-        Log(LOG_FATAL) = "Failed to import module of engine core";
+        Log(LOG_FATAL) << "Failed to import module of engine core";
     }
 }
 
