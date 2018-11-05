@@ -13,10 +13,10 @@
 //
 //
 //
-#ifndef _PREDICTOR_PREDICTOR_H_
-#define _PREDICTOR_PREDICTOR_H_
+#ifndef _PREDICTOR_PRDTYPES_H_
+#define _PREDICTOR_PRDTYPES_H_
 
-enum class PrdAction {
+enum class PrdAction : int {
     SETUP = 10,
     PREDICT = 11,
     RESULT
