@@ -2,7 +2,6 @@
 #include "basics/log.h"
 #include "basics/utils.h"
 #include "basics/types.h"
-#include "predictor/prdmsg.h"
 #include "messenger/messenger.h"
 using namespace std;
 

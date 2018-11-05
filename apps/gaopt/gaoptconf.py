@@ -17,6 +17,7 @@ class GaOptConfig(TopConf):
         '''
         super(GaOptConfig,self).__init__()
         self.loadYamlDict(gMasterConfig.getTotalYamlTree()['GENETIC_OPT'])
+
         return
     
     def getNumParams(self):

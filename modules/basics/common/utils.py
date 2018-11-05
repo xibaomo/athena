@@ -7,7 +7,12 @@ Created on Sep 3, 2018
 from timeit import default_timer as timer
 import csv
 import sys
-from modules.basics.common.logger import LOG_FATAL, LOG_INFO
+from modules.basics.common.logger import *
+import numpy as np
+import random
+import pandas as pd
+import operator
+from sklearn.preprocessing import StandardScaler
 
 def tic():
     return timer()
@@ -18,10 +23,12 @@ def toc(tic):
 def getAllYamlKeys(ymlTree,level_prefix,allKeys=[]):
     for k,v in ymlTree.items():
         key = level_prefix + "/" + k 
-        if not isinstance(v, dict):
+        if not isinstance(v, dict) and v is not None:
             allKeys.append(key)
-        else:
+        elif isinstance(v,dict):
             getAllYamlKeys(v, key, allKeys)
+        else:
+            pass
             
     return
 
@@ -102,5 +109,30 @@ class CSVParser(object):
         return gaugeTable
         
                 
-            
+
+def computeRMS(diff):
+
+    d2 = np.square(diff)
+    rms = np.sqrt(np.mean(d2))
+    return rms
+
+def computeRange(errs):
+    maxerr = 0.
+    minerr = 0.
+    for i in range(len(errs)):
+        err = errs[i]
+        if err > 0 and err > maxerr:
+            maxerr = err
+        if err < 0 and err < minerr:
+            minerr = err
+
+    return maxerr - minerr
+
+def shuffleTwoList(fm,tg,seed=None):
+    c = list(zip(fm,tg))
+    random.Random(seed).shuffle(c)
+    a,b = zip(*c)
+    return np.vstack(a),np.array(b)
+
+def dumpFeatureTargets(filename,fm,pe)
             

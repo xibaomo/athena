@@ -1,9 +1,4 @@
-'''
-Created on Oct 10, 2018
-
-@author: fxua
-'''
-from apps.app import App 
+from apps.app import App
 from modules.basics.common.logger import *
 from apps.gaopt.gaoptconf import GaOptConfig
 import modules.basics.common.utils as utils
@@ -17,18 +12,12 @@ from deap import creator
 from deap import tools
 from time import sleep
 from numpy import isfinite
-
 READ_INTERVAL = 5
+WINNER_FOLDER = "historical_winner_" + str(os.getpid())
+WKFOLDER = "workground_" + str(os.getpid())
+JOBFOLDER_PREFIX="job_"
 class GaOptimizer(App):
-    '''
-    classdocs
-    '''
-
-
     def __init__(self):
-        '''
-        Constructor
-        '''
         super(GaOptimizer,self).__init__()
         self.config = GaOptConfig()
         self.cxpb = self.config.getCrossProb()
@@ -39,7 +28,8 @@ class GaOptimizer(App):
             self.WORST = 1.e200
         if self.config.getObjectiveType() == 1:
             self.WORST = 0.
-            
+
+        os.mkdir(WINNER_FOLDER)
         return
     
     @classmethod
@@ -84,7 +74,7 @@ class GaOptimizer(App):
         self.toolbox.register("params", random.randint,min(lb),max(ub))
 #         self.toolbox.register("individual",tools.initRepeat,creator.Individual,
 #                               self.toolbox.params,npm)
-        self.toolbox.register("individual",self.initHyperParams, 
+        self.toolbox.register("individual",self.initHyperParams,creator.Individual,
                               lb=lb, ub=ub)
         self.toolbox.register("population",tools.initRepeat,list,self.toolbox.individual)
         
@@ -93,10 +83,10 @@ class GaOptimizer(App):
         self.toolbox.register("mate",tools.cxTwoPoint)
         self.toolbox.register("mutate",tools.mutUniformInt,low=min(lb),up=max(ub),
                               indpb=self.config.getIndProb())
+
         self.toolbox.register("select",tools.selTournament,
                               tools.selTournament,
                               tournsize=self.config.getTournamentSize())
-        
         ###########################################################
         pop = self.toolbox.population(n = self.config.getPopulationSize())
         
@@ -104,7 +94,6 @@ class GaOptimizer(App):
         
         for ind,fit in zip(pop,fitnesses):
             ind.fitness.values = fit,
-        
         fits = [ind.fitness.values[0] for ind in pop]
         bestFit,idx = self.getBest((val,idx) for (idx,val) in enumerate(fits))
         self.bestFitness = bestFit 
@@ -127,7 +116,7 @@ class GaOptimizer(App):
                     if child1 in pop:
                         i1 = pop.index(child1)
                         o1 = offspring.index(child1) 
-                        Log(LOG_DEBUG) << "Foundn child1 in parents: %s" % pop[i1]
+                        Log(LOG_DEBUG) << "Found child1 in parents: %s" % pop[i1]
                         offspring[o1] = pop[i1]
                     else:
                         Log(LOG_INFO) << "New species: %s" % str(child1)
@@ -153,31 +142,32 @@ class GaOptimizer(App):
                     else:
                         Log(LOG_INFO) << "New species: %s" % str(mutant)
                         del mutant.fitness.values
-            
             invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+
             fitnesses = self.evaluatePopulation(invalid_ind)
-            
             for ind,fit in zip(invalid_ind,fitnesses):
                 ind.fitness.values = fit,
             
             pop[:] = offspring
+            utils.tabulateList(pop)
             fits = [ind.fitness.values[0] for ind in pop]
-            
             bestFit,idx = self.getBest((val,idx) for (idx,val) in enumerate(fits))
             Log(LOG_INFO) << "Best fitness of generation: %s" % bestFit
             Log(LOG_INFO) << "Winner of generation: %s" % str(pop[idx])
-            
-            if self.config.getObjectiveType() == 0:
-                if bestFit < self.bestFitness:
-                    self.bestFitness = bestFit
-                    self.winner = pop[idx]
-            if self.config.getObjectiveType() == 1:
-                if bestFit > self.bestFitness:
-                    self.bestFitness = bestFit
-                    self.winner = pop[idx]
-                    
+
+            if (self.config.getObjectiveType() == 0 and bestFit < self.bestFitness) \
+                or (self.config.getObjectiveType() == 1 and bestFit > self.bestFitness):
+
+                self.bestFitness = bestFit
+                self.winner = pop[idx]
+                src = WKFOLDER+"/" + JOBFOLDER_PREFIX + "_".join(str(w) for w in self.winner)
+                dst = WINNER_FOLDER + "/"
+                cmd = "cp -rf " + src + "/* "  + dst
+                os.system(cmd)
+
             Log(LOG_INFO) << "Historical best fitness: %s " % self.bestFitness
             Log(LOG_INFO) << "Historical best kid: %s" % str(self.winner)
+
         return
     
     def finish(self):
@@ -200,28 +190,32 @@ class GaOptimizer(App):
         ub = self.config.getUpperBounds()
         lb = self.config.getLowerBounds()
         sb = self.config.getSumBound()
-        
+
+        numJobs=0
         for ind in pop:
+            job_index = "_".join(str(i) for i in ind)
             for i,u,l in zip(ind,ub,lb):
                 if i > u or i < l:
-                    self.allResults[str(ind)] = self.WORST
-                    break;
-            if sum(ind) > sb:
-                self.allResults[str(ind)] = self.WORST 
-                
-        return
-    
+                    self.allResults[job_index] = self.WORST
+                    numJobs+=1
+                    break
+            if sum(ind)  > sb:
+                self.allResults[job_index] = self.WORST
+                numJobs+=1
+        Log(LOG_INFO) << "Out-of-bound samples: %d" % numJobs
+        return  numJobs
+
     def evaluatePopulation(self,pop):
         self.allResults = {}
         self.checkBounds(pop)
-        workFolder = "workground_" + str(os.getpid())
+
+        workFolder = WKFOLDER
         
         if not os.path.isdir(workFolder):
             os.mkdir(workFolder)
             
         numJobs = self.createJobs(workFolder, pop)
         Log(LOG_INFO) << "CWD after creating jobs: " + os.getcwd()
-        
         self.runJobs(workFolder)
         Log(LOG_INFO) << "CWD after submitting jobs: " + os.getcwd()
         
@@ -230,23 +224,26 @@ class GaOptimizer(App):
             if isFinish:
                 break
             sleep(READ_INTERVAL)
-            
+
         fitnesses=[]
         for ind in pop:
-            fitnesses.append(self.allResults[str(ind)])
-            
-        return fitnesses 
+            job_index = "_".join(str(i) for i in ind)
+            fitnesses.append(self.allResults[job_index])
+
+        return fitnesses
     
     def createJobs(self,workFolder,pop):
         os.chdir(workFolder)
         root = os.getcwd()
         os.system("rm -rf *")
+
         numJobs=0
         for ind in pop:
-            if self.allResults.get(str(ind)) is not None:
+            job_index = "_".join(str(i) for i in ind)
+            if self.allResults.get(job_index) is not None:
                 continue # skip if already has result
             
-            wf = "job_" + str(ind)
+            wf = JOBFOLDER_PREFIX + job_index
             
             if os.path.isdir(wf):
                 continue # skip if folder exists
@@ -299,7 +296,7 @@ class GaOptimizer(App):
         
         allfolders = [ x for x in os.listdir(".") if os.path.isdir(x)]
         for fd in allfolders:
-            key = fd[4:]
+            key = fd[len(JOBFOLDER_PREFIX):]
             
             if self.allResults.get(key) is not None:
                 nFinish+=1

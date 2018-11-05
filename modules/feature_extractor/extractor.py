@@ -17,6 +17,8 @@ class FeatureExtractor(object):
         self.trainTargets = None
         self.testFeatureMatrix = None
         self.testTargets = None
+        self.verifyFeatureMatrix = None
+        self.verifyTargets = None
         self.scaler = StandardScaler()
         return
     

@@ -6,6 +6,7 @@ GENERAL:
     #               99 - Spam mail filter
     #               0  - Forex tick sampler
     #               1  - Forex trainer
+    #               2  - Generic app
     APPLICATION: 0
 
     # Log levels: 0 - LOG_FATAL
@@ -156,11 +157,15 @@ GENETIC_OPT:
 
 GENERIC_APP:
     ENGINE_TYPE: 0  # 0 - Classifier. 1 - Regressor (not supported)
+    TRAIN_DATA_FILES: ['TRAIN.CSV']
+    TEST_RATIO: 0.2
+    TEST_WHOLE_SET: false
+    SHUFFLE_RANDOM_SEED: 42
+    ENABLE_SPLIT_SHUFFLE: false # whether to shuffle when splitting data set
+    VERIFY_DATA_FILES: ['VERIFY.CSV']
+    TARGET_HEADER: ""
+    FEATURE_HEADERS: ""
     EVALUATE_MODEL: false
-    DATA_FILE: A.CSV
-    TEST_SIZE: 0
-    TARGET_HEADER: ""  # if empty, use the last column
-    FEATURE_HEADERS: []  # if empty, use all the columns except the last
 
 SPM:
     # Type of input data
