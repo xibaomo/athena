@@ -1,0 +1,42 @@
+#!/bin/bash
+
+export BUILDTYPE="release"
+
+while [[ $# > 0 ]]
+do
+    key=$1
+    case $key in
+        -g)
+            export BUILDTYPE="debug"
+            shift
+            ;;
+        *)
+            if [ -z $1 ]; then
+                echo "Invalid argument $1"
+                exit
+            fi
+            ;;
+    esac
+done
+
+# Generate Makefile
+./cbp2make -in api_athena.cbp -out Makefile
+
+#Modify Makefile to correct some file names
+sed -i 's/lib\/athena.so/lib\/libathena.so/g' Makefile
+sed -i 's/release\//\$\(BUILDTYPE\)\//g' Makefile
+if [[ $BUILDTYPE == 'release' ]]
+then
+    sed -i '/^CFLAGS =/ s/$/ -O2/' Makefile
+fi
+if [[ $BUILDTYPE == 'debug' ]]
+then
+    sed -i /^CC =/ s/$/ -g/' Makefile
+    sed -i /^CXX =/ s/$/ -g/' Makefile
+    sed -i /^LD =/ s/$/ -g/' Makefile
+    sed -i 's/-s$//g' Makefile
+fi    
+
+make -j 20
+
+cp -rf scripts ./$BUILDTYPE
