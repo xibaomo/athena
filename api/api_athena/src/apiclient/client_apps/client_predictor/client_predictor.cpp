@@ -89,7 +89,7 @@ void
 ClientPredictor::procResultMsg(Message& msg)
 {
     Real* pm = (Real*)msg.getData();
-    memmove(m_resultArray, pm, msg.getDataBytes);
+    memmove((void*)m_resultArray, pm, msg.getDataBytes());
 }
 
 void

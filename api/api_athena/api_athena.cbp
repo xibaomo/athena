@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Release">
-				<Option output="bin/Release/api_athena" prefix_auto="1" extension_auto="1" />
+				<Option output="release/bin/api_athena" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -63,7 +63,9 @@
 		<Unit filename="src/apiclient/client_apps/client_predictor/client_predictor.h">
 			<Option target="Release" />
 		</Unit>
-		<Unit filename="src/apiserver/main/main.cpp" />
+		<Unit filename="src/apiserver/main/main.cpp">
+			<Option target="api_server" />
+		</Unit>
 		<Unit filename="src/apiserver/server_apps/create_svr_app.cpp" />
 		<Unit filename="src/apiserver/server_apps/create_svr_app.h" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.cpp" />

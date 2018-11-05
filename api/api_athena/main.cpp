@@ -17,7 +17,7 @@ int main(int argc, char** argv)
         Messenger* msger = &Messenger::getInstance();
         String cmd = String(argv[0])+ " 127.0.0.1:" + to_string(msger->getPort());
 //        system((cmd + "&").c_str());
-        NonBlockSysCall nbcall(cmd);
+        system(cmd.c_str());
         Log(LOG_INFO) << "another guy wakes up";
         Message msg;
         while ( msger->listenOnce(msg)>=0 ) {
