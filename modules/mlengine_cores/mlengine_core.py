@@ -4,6 +4,8 @@ Created on Sep 3, 2018
 @author: fxua
 '''
 from modules.basics.common.logger import *
+from modules.mlengine_cores.dnncomm.dnncreator import *
+from modules.mlengine_cores.sklearn_comm.model_io import loadSklearnModel
 
 class MLEngineCore(object):
     
@@ -25,7 +27,30 @@ class MLEngineCore(object):
     def predict(self,fm):       
         self.predictedTargets = self.estimator.predict(fm)
         return
+
+    def showEstimator(self):
+        print self.estimator
     
     def getPredictedTargets(self):
         return self.predictedTargets
+
+    def saveModel(self,mfn):
+        Log(LOG_FATAL) << "Should be implemented in concrete class"
+        return
+
+    def loadModel(self,coreType,mfn):
+        if coreType <=2:
+            self.estimator = loadSklearnModel(mfn)
+        else:
+            self.estimator = loadDNNModel(mfn)
+
+        return
+
+    def saveDNNModel(self,mfn,model):
+        saveDNNModel(mfn,model)
+        return
+
+    def loadDNNModel(self,mfn):
+        self.estimator = loadDNNModel(mfn)
+        return
     

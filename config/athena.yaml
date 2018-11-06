@@ -30,6 +30,19 @@ GENERAL:
     SAVE_MODEL_FILE: ""
     LOAD_MODEL_FILE: ""
 
+    # skip training if true
+    ENABLE_VERFICATION: false
+
+    # feature extractor related
+    ENABLE_FEATURE_STANDARDIZATION: false
+    SAVE_SCALER_FILE: ""
+    LOAD_SCALER_FILE: ""
+
+    ENABLE_PCA: false
+    PCA_COMPONENTS: 8
+    SAVE_PCA_FILE: ""
+    LOAD_PCA_FILE: ""
+
 # Machine-learning engine
 
 ML_ENGINE_CORE:
@@ -37,7 +50,8 @@ ML_ENGINE_CORE:
     # 0 - support vector machine (SVM)
     # 1 - decision tree (DCT)
     # 2 - random forest
-    # 3 - DNN
+    # 3 - DNN classifier
+    # 4 - DNN regressor
     ENGINE_CORE_TYPE: 3
     SVM:
         # rbf, linear, poly, sigmoid, precomputed
@@ -64,12 +78,15 @@ ML_ENGINE_CORE:
         OUTPUT_ACT: sigmoid
         DROPOUT_RATE: [0.0,0.0,0.0]
         REGULARIZER: ['L2:0.00','L2:0.00','L2:0.00']
-        ALGORITHM: SGD
+        ALGORITHM: Adam
         MOMENTUM: 0.1 #ONLY USED WHEN ALGORITHM == SGD
         WEIGHT_INIT: uniform
         LEARN_RATE: -1
         LOSS_FUNC: binary_crossentropy # mean_squared_error
+        ENABLE_SHUFFLE: false
         VERBOSE: 2
+        CHECKPOINT_PERIOD: 0
+        CHECKPOINT_FOLDER: ckpts/
 
 FEATURE_EXTRACTOR:
     # Type of feature extractor:

@@ -38,9 +38,17 @@ class DNNConfig(TopConf):
     
     def getLossFunc(self):
         return self.yamlDict['LOSS_FUNC']
-    
+
+    def isShuffle(self):
+        return self.yamlDict['ENABLE_SHUFFLE']
     def getMomentum(self): 
         return self.yamlDict['MOMENTUM'] 
     
     def getVerbose(self):
         return self.yamlDict['VERBOSE']
+
+    def getCheckPointPeriod(self):
+        return self.yamlDict['CHECKPOINT_PERIOD']
+
+    def getCheckPointFolder(self):
+        return self.yamlDict['CHECKPOINT_FOLDER']

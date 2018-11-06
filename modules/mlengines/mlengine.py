@@ -28,9 +28,30 @@ class MLEngine(object):
     def predict(self):
         Log(LOG_FATAL) << "This function should be implemented in concrete class"
         return
-    
+
+    def predict_array(self,arr,nrows,ncols):
+        fm = np.array(arr)
+        fm = fm.reshape(nrows,ncols)
+        self.predict(fm)
+
+        return
+
     def getPredictedTargets(self):
-        return self.engineCore.getPredictedTargets()
+        pred = np.array(self.engineCore.getPredictedTargets())
+        return pred
+
+    def saveModel(self,mfn):
+        self.engineCore.saveModel(mfn)
+        return
+
+    def loadModel(self,mfn):
+        self.engineCore.loadModel(mfn)
+        return
+
+    def showEstimator(self):
+        self.engineCore.showEstimator
+        return
+
 
     
 

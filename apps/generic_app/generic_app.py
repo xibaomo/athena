@@ -8,7 +8,7 @@ from apps.generic_app.gaconf import GaConfig
 from apps.generic_app.gafextor import GaFextor
 from apps.generic_app.engine_creator import createEngine,loadEngine
 from modules.basics.conf.generalconf import gGeneralConfig
-from modules.mlengine_cores.classifier_cores.dnn.dnn import DNNClassifier
+from modules.mlengine_cores.classifier_cores.dnn.dnnclassifier import DNNClassifier
 from modules.mlengines.classifier.classifier import Classifier
 from modules.basics.common.logger import *
 from modules.basics.conf.mlengineconf import gMLEngineConfig

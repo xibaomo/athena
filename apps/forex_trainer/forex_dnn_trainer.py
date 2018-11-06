@@ -8,7 +8,7 @@ from apps.app import App
 from apps.forex_trainer.fextor.forexfextor import ForexFextor
 from apps.forex_trainer.fxtconf import FxtConfig
 from modules.basics.common.logger import *
-from modules.mlengine_cores.classifier_cores.dnn.dnn import DNNClassifier
+from modules.mlengine_cores.classifier_cores.dnn.dnnclassifier import DNNClassifier
 from modules.mlengines.classifier.classifier import Classifier
 
 class ForexDNNTrainer(App):

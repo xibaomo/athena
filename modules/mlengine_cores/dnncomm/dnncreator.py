@@ -3,13 +3,14 @@ Created on Sep 8, 2018
 
 @author: fxua
 '''
+import keras.initializers as initializers
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Dropout
 from keras import regularizers
 from keras.models import model_from_yaml
 from modules.basics.conf.generalconf import gGeneralConfig
-from modules.mlengine_cores.comm.dnnconf import DNNConfig
+from modules.mlengine_cores.dnncomm.dnnconf import DNNConfig
 from keras import optimizers
 import os
 from modules.basics.common.logger import *
@@ -42,6 +43,15 @@ def createDNNModel(input_dim, end_act, loss, outnodes=1):
     mom = config.getMomentum()
     
     model = Sequential()
+
+    # add two layers to standardize
+    model.add(Dense(input_dim,input_dim=input_dim,name='offset',
+                    trainable=False,
+                    kernel_initializer = initializers.Identity(gain=1.)))
+    model.add(Dense(input_dim,input_dim=input_dim,name='scaler',
+                    trainable=False,
+                    kernel_initializer = initializers.Identity(gain=1.)))
+
     for n in range(len(neurons)):
         reg,rv=regs[n].split(":")
         regler = Regularizer_switcher[reg]
@@ -65,9 +75,10 @@ def createDNNModel(input_dim, end_act, loss, outnodes=1):
         else:
             optm = Optimizer_switcher[optm_algo](lr=lr)
             
-    model.add(Dense(outnodes, kernel_initializer=init_wt, activation = end_act))
+    model.add(Dense(outnodes, kernel_initializer=init_wt, activation = end_act,name='output'))
     model.compile(loss = loss, optimizer = optm, metrics=['accuracy'])
 
+    model.summary()
     return model
 
 def saveDNNModel(model,modelfile):
@@ -79,7 +90,13 @@ def saveDNNModel(model,modelfile):
         model.save_weights(mf+".h5")
         
         Log(LOG_INFO) << "Model saved to %s.yaml & .h5" % mf
-        
+    elif ext == ".json":
+        model_json = model.to_json()
+        with open(mf+".json",'w') as json_file:
+            json_file.write(model_json)
+
+        model.save_weights(mf+".h5")
+
     else:
         Log(LOG_FATAL) << "%s not supported" % ext
         
@@ -93,6 +110,13 @@ def loadDNNModel(modelfile):
             loaded_model.load_weights(mf+".h5")
             Log(LOG_INFO) << "DNN model loaded from %s.yaml & .h5" % mf
             return loaded_model
+    elif ext == ".json":
+        json_file = open(mf+'.json','r')
+        loaded_model_json = json_file.read()
+        json_file.close()
+        loaded_model = model_from_json(loaded_model_json)
+        loaded_model.load_weights(mf+".h5")
+        return loaded_model
     else:
         Log(LOG_FATAL) << "%s not supported" % ext    
             

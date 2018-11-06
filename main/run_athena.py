@@ -12,6 +12,7 @@ from modules.basics.common.logger import *
 from modules.basics.conf.masterconf import gMasterConfig
 from modules.basics.conf.generalconf import gGeneralConfig
 from apps.appcreator import createApp
+from modules.cmdlineparser.cmdlineparser import CmdLineParser
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -21,6 +22,8 @@ if __name__ == "__main__":
     gMasterConfig.loadLocalConfig(sys.argv[1])
     gMasterConfig.prepare()
     Log.setlogLevel(gGeneralConfig.getLogLevel())
+    cmdParser = CmdLineParser()
+    gGeneralConfig.loadCmdLineOpts(cmdParser.getParsedArgs())
     Log(LOG_INFO) << "Program starts ..."
     
     app = createApp(gGeneralConfig.getAppType())
