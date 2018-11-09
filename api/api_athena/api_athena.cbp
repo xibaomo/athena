@@ -48,10 +48,11 @@
 		<Linker>
 			<Add option="-L/tools/lib" />
 			<Add option="-Wl,-Bstatic" />
-			<Add option="-lboost_log" />
 			<Add option="-lboost_log_setup" />
+			<Add option="-lboost_log" />
 			<Add option="-lboost_thread" />
 			<Add option="-lboost_system" />
+			<Add option="-lboost_filesystem" />
 			<Add option="-Wl,-Bdynamic" />
 			<Add option="-lpython2.7" />
 			<Add option="-lpthread" />
@@ -98,7 +99,9 @@
 			<Option target="Release" />
 			<Option target="api_server" />
 		</Unit>
-		<Unit filename="src/apiserver/test_server/main.cpp" />
+		<Unit filename="src/apiserver/test_server/main.cpp">
+			<Option target="test_server" />
+		</Unit>
 		<Unit filename="src/c_api/athena_c_api.cpp">
 			<Option target="Release" />
 		</Unit>

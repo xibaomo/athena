@@ -18,11 +18,11 @@
 
 #include "log.h"
 #define BOOST_LOG_DYN_LINK 1
-Logger Log = Logger::getInstance();
+//Logger Log = Logger::getInstance();
 
-Log_Level LOG_FATAL = Log_Level::LOG_INFO;
-Log_Level LOG_ERROR = Log_Level::LOG_ERROR;
-Log_Level LOG_WARNING = Log_Level::LOG_WARNING;
-Log_Level LOG_INFO = Log_Level::LOG_INFO;
-Log_Level LOG_DEBUG = Log_Level::LOG_DEBUG;
-Log_Level LOG_VERBOSE = Log_Level::LOG_VERBOSE;
+//LogLevel LOG_FATAL = LogLevel::LOG_INFO;
+//LogLevel LOG_ERROR = LogLevel::LOG_ERROR;
+//LogLevel LOG_WARNING = LogLevel::LOG_WARNING;
+//LogLevel LOG_INFO = LogLevel::LOG_INFO;
+//LogLevel LOG_DEBUG = LogLevel::LOG_DEBUG;
+//LogLevel LOG_VERBOSE = LogLevel::LOG_VERBOSE;

@@ -7,7 +7,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    Log.setLogLevel(LOG_INFO);
+    Log::setLogLevel(LOG_INFO);
 
     Log(LOG_INFO) << "Program starts";
 
@@ -35,14 +35,14 @@ int main(int argc, char** argv)
             sleepMilliSec(ONE_MS);
         }
     } else {
-        Log(LOG_INFO) << "This is second process";
-        String hostPort(argv[1]);
-        Messenger* msger =  &Messenger::getInstance();
-
-        Message msg;
-        msg.setAction(MsgAction::CHECK_IN);
-
-        msger->sendAMsgToHostPort(msg, hostPort);
+//        Log(LOG_INFO) << "This is second process";
+//        String hostPort(argv[1]);
+//        Messenger* msger =  &Messenger::getInstance();
+//
+//        Message msg;
+//        msg.setAction(MsgAction::CHECK_IN);
+//
+//        msger->sendAMsgToHostPort(msg, hostPort);
     }
 
     return 0;

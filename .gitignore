@@ -7,7 +7,7 @@
 *.layout
 *.obj
 .idea
-log
+*.log
 bin
 obj
 output*

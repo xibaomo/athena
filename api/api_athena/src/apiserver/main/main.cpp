@@ -18,7 +18,7 @@
 
 int main(int argc, char** argv)
 {
-    Log.setLogLevel(LOG_INFO);
+    Log::setLogLevel(LOG_INFO);
 
     // argv[0] is program name
     // argv[1] is client hostname:port
