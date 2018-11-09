@@ -27,6 +27,7 @@
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/sources/severity_logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
+#include <boost/log/support/date_time.hpp>
 #include <unordered_map>
 #include <typeinfo>
 #include "types.h"
@@ -35,6 +36,7 @@ namespace logging = boost::log;
 namespace src = boost::log::sources;
 namespace sinks = boost::log::sinks;
 namespace keywords = boost::log::keywords;
+namespace expr = boost::log::expressions;
 
 enum LogLevel {
     LOG_FATAL = 0,
@@ -64,7 +66,13 @@ private:
 
         logging::add_file_log(keywords::file_name = "athena.log",
                               keywords::auto_flush = true,
-                              keywords::format = "[%TimeStamp%]: %Message%");
+                              keywords::format =
+                              (
+                                expr::stream << expr::format_date_time<boost::posix_time::ptime>("TimeStamp","%m-%d-%Y %H:%M:%S")
+                                << "<" << logging::trivial::severity <<"> "
+                                << expr::smessage
+                               ));
+//                              keywords::format = "[%TimeStamp%]: %Message%");
 
     }
 public:
