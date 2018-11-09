@@ -49,6 +49,7 @@ class LogStream
 {
 private:
     LogLevel m_curLevel;
+    src::severity_logger < logging::trivial::severity_level > m_lg;
     std::unordered_map<int, decltype(logging::trivial::info)> m_lvlDict;
     LogStream()
     {
@@ -59,8 +60,12 @@ private:
         m_lvlDict[(int)LogLevel::LOG_VERBOSE] = logging::trivial::debug;
         m_lvlDict[(int)LogLevel::LOG_DEBUG] = logging::trivial::trace;
 
-//        logging::add_file_log(keywords::file_name = "athena.log",
-//                              keywords::format = "[%TimeStamp%]: %Message%");
+        logging::add_common_attributes();
+
+        logging::add_file_log(keywords::file_name = "athena.log",
+                              keywords::auto_flush = true,
+                              keywords::format = "[%TimeStamp%]: %Message%");
+
     }
 public:
     static LogStream& getInstance()
@@ -85,9 +90,9 @@ public:
     LogStream& operator << (const T& msg)
     {
         auto loglvl = m_lvlDict[(int)m_curLevel];
-        BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(), \
-                                     (::boost::log::keywords::severity = loglvl)) << msg;
-
+//        BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(), \
+//                                     (::boost::log::keywords::severity = loglvl)) << msg <<std::endl;
+        BOOST_LOG_SEV(m_lg,loglvl) << msg;
         return *this;
     }
 };
