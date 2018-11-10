@@ -64,7 +64,8 @@ private:
 
         logging::add_common_attributes();
 
-        logging::add_file_log(keywords::file_name = "athena.log",
+        String logName = "athena_" + std::to_string(getpid()) + ".log";
+        logging::add_file_log(keywords::file_name = logName.c_str(),
                               keywords::auto_flush = true,
                               keywords::format =
                               (
