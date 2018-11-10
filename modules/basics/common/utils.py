@@ -134,5 +134,5 @@ def shuffleTwoList(fm,tg,seed=None):
     a,b = zip(*c)
     return np.vstack(a),np.array(b)
 
-def dumpFeatureTargets(filename,fm,pe)
+
             
