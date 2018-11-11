@@ -1,5 +1,5 @@
 #$-N athena_job
-#$-pe make 1
+#$-pe make 5
 #$-cwd
 #$-j y
 #$-q common

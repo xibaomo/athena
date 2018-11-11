@@ -34,7 +34,7 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-std=c++1z" />
+			<Add option="-std=c++0x" />
 			<Add option="-fexceptions" />
 			<Add directory="src/apiclient" />
 			<Add directory="src/apiserver" />
@@ -46,6 +46,7 @@
 			<Add directory="/tools/include/python2.7" />
 		</Compiler>
 		<Linker>
+			<Add option="-O2" />
 			<Add option="-L/tools/lib" />
 			<Add option="-Wl,-Bstatic" />
 			<Add option="-lboost_log_setup" />

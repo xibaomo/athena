@@ -5,9 +5,9 @@ fxua
 '''
 from modules.mlengine_cores.mlengine_core import MLEngineCore
 from modules.mlengine_cores.dnncomm.dnnconf import DNNConfig
-from keras.models Sequential
+from keras.models import Sequential
 from keras.layers import Dense
-from keras.wrappers.scikit_learn KerasRegressor
+from keras.wrappers.scikit_learn import KerasRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from modules.basics.conf.mlengineconf import gMLEngineConfig
