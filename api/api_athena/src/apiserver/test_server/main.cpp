@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
-#define PORT 27015
+#define PORT 8800
 using namespace std;
 
 int main(int argc, char** argv)
@@ -47,6 +47,7 @@ int main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
     valread = read(new_socket,buffer,1024);
+    printf("Received bytes: %d\n",valread);
     printf("Received: %s\n",buffer);
     send(new_socket,hello,strlen(hello),0);
     printf("Hello message sent\n");
