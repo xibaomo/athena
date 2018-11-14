@@ -68,7 +68,7 @@ public:
     /*
      * Process message. Override base class
      */
-    void processMsg(Message& msg);
+    Message processMsg(Message& msg);
 
     /*
      * Process message of action SETUP

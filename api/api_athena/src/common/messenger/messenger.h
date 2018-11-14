@@ -59,7 +59,25 @@ public:
         return _instance;
     }
 
+    int getHostSocket() const { return m_hostSock; }
     int getPort() const { return m_port; }
+
+    Message popMsgBox() {
+        Message msg = std::move(m_msgBox.front());
+        m_msgBox.pop();
+        return msg;
+    }
+
+    void shutdownConnection(int sock) { shutdown(sock,SHUT_WR); }
+
+    void writeSocket(int sock, Message& msg)
+    {
+        int res = send(sock, (char*)msg.getHead(), (int)msg.getMsgSize(),0);
+        if (res < 0) {
+            Log(LOG_FATAL) << "Send failed.";
+            return;
+        }
+    }
 
     /*
      * Send msg to sock address

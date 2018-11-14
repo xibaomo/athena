@@ -123,7 +123,7 @@ ServerPredictor::predict(Real* featureMatrix, const Uint rows, const Uint cols)
     return;
 }
 
-void
+Message
 ServerPredictor::processMsg(Message& msg)
 {
     PrdAction action = (PrdAction)msg.getAction();
@@ -137,6 +137,8 @@ ServerPredictor::processMsg(Message& msg)
         default:
             break;
     }
+    Message msgnew;
+    return msgnew;
 }
 
 void

@@ -1,18 +1,21 @@
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
+/*
+ * =====================================================================================
+ *
+ *       Filename:  server_base_app.h
+ *
+ *    Description:
+ *
+ *        Version:  1.0
+ *        Created:  11/14/2018 01:36:19 AM
+ *       Revision:  none
+ *       Compiler:  gcc
+ *
+ *         Author:  YOUR NAME (),
+ *   Organization:
+ *
+ * =====================================================================================
+ */
+
 #ifndef _API_SERVER_BASE_APP_H_
 #define _API_SERVER_BASE_APP_H_
 
@@ -34,7 +37,7 @@ public:
 
     virtual void finish() {;}
 
-    virtual void processMsg(Message& msg) = 0;
+    virtual Message processMsg(Message& msg) = 0;
 
     template <typename T>
     void sendBackResult(MsgAction action, T* p, const int len);
