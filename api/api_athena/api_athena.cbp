@@ -67,7 +67,6 @@
 		<Unit filename="src/apiclient/client_apps/client_predictor/client_predictor.h" />
 		<Unit filename="src/apiserver/main/main.cpp">
 			<Option target="api_server" />
-			<Option target="test_server" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/create_svr_app.cpp" />
 		<Unit filename="src/apiserver/server_apps/create_svr_app.h" />
