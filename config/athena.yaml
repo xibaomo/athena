@@ -153,7 +153,7 @@ FXT: # Forex trainer
         TEST_SIZE: 500
         SAMPLE_RATE: 30 # sec
 
-        FEATURE_LIST: ['DMA','RSI','ROC','EMA','KAMA']
+        FEATURE_LIST: ['DMA','RSI','ROC','EMA','KAMA','LAG']
         FAST_PERIOD: 200
         SLOW_PERIOD: 80
 

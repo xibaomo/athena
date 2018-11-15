@@ -23,16 +23,31 @@ void
 ServerPredictor::prepare()
 {
     loadPythonModule();
-    loadModels();
+    loadAllFilters();
 }
 
 void
-ServerPredictor::loadModels()
+ServerPredictor::loadAllFilters()
 {
-    const String key = "PREDICTION/MODEL_LIST";
-    String cmd = String(getenv("ATHENA_INSTALL")) + "/api/release/scripts/yaml_parser.py " + key + " " + m_configFile;
-    String modelString = execSysCall_block(cmd);
-    m_modelFiles = splitString(modelString,"[,]'");
+    m_fxSymbol = getYamlValue("PREDICTION/SYMBOL");
+
+    loadFilterSet(m_fxSymbol,"buy");
+    loadFilterSet(m_fxSymbol,"sell");
+
+}
+
+void
+ServerPredictor::loadFilterSet(const String& symbol, const String& pos_type)
+{
+    int numFilters = stoi(getYamlValue("PREDICTION/NUM_FILTERS"));
+    for (int i = 0; i< numFilters; i++) {
+        String mf = symbol + "_" + pos_type + "_" + to_string(i+1) + ".flt";
+        loadEngine((EngineType)0, (EngineCoreType)2,mf);
+        if(pos_type == "buy")
+            m_buyEngines.push_back(m_engine);
+        if (pos_type == "sell")
+            m_sellEngines.push_back(m_engine);
+    }
 }
 
 void
@@ -64,12 +79,14 @@ ServerPredictor::loadEngine(EngineType et, EngineCoreType ect, const String& mf)
     CPyObject coreClass = PyObject_GetAttrString(m_engineCoreMod, "MLEngineCore");
     if ( !coreClass ) {
         Log(LOG_ERROR) << "Failed to get engine core class";
+        return;
     }
 
     // m_engineCore = PyInstance_New(coreClass.getObject(), NULL, NULL);
     m_engineCore = PyObject_CallObject(coreClass, NULL);
     if ( !m_engineCore ) {
         Log(LOG_ERROR) << "Failed to create engine core";
+        return;
     }
 
     CPyObject arg1 = Py_BuildValue("i",ect);
@@ -77,18 +94,20 @@ ServerPredictor::loadEngine(EngineType et, EngineCoreType ect, const String& mf)
     PyObject_CallMethod(m_engineCore, "loadModel","(OO)",arg1.getObject(),
             arg2.getObject());
 
-    Log(LOG_INFO) << "-------------- ML engine core created -------------";
+    Log(LOG_INFO) << "ML engine core created from " + mf;
     PyObject_CallMethod(m_engineCore, "showEstimator",NULL);
 
     // create engine
     CPyObject engClass = PyObject_GetAttrString(m_mlEngMod, "Regressor");
     if ( !engClass ) {
         Log(LOG_ERROR) << "Failed to get engine class";
+        return;
     }
 
     m_engine = PyObject_CallObject(engClass, NULL);
     if ( !m_engine ) {
         Log(LOG_ERROR) << "Failed to create ML engine";
+        return;
     }
 
     PyObject_CallMethod(m_engine, "loadEngineCore","(O)",m_engineCore.getObject());

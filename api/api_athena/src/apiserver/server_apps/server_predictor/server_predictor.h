@@ -18,7 +18,7 @@
 
 #include "server_apps/server_base_app/server_base_app.h"
 #include "pyhelper.hpp"
-#include "predictor/prdtypes.h"
+#include "basics/utils.h"
 #include <vector>
 class ServerPredictor : public ServerBaseApp
 {
@@ -27,16 +27,22 @@ protected:
     CPyInstance m_pyInst; // Initialize Python environment. must be the first. last destroyed
     CPyObject m_engine;
     CPyObject m_engineCore;
+    std::vector<CPyObject> m_buyEngines;
+    std::vector<CPyObject> m_sellEngines;
 
     CPyObject m_engCreatorMod; // module for engine creator
     CPyObject m_mlEngMod;     // module for mlengine base
     CPyObject m_engineCoreMod; // module for mlengine core
+    CPyObject m_overkillFilterMod;
     double *m_result_array;
 
-    std::vector<String> m_modelFiles;
+    String m_yamlParser;
+    String m_fxSymbol;
 
     ServerPredictor(const String& config): ServerBaseApp(config),
-    m_result_array(nullptr){;}
+    m_result_array(nullptr){
+        m_yamlParser = String(getenv("ATHENA_INSTALL")) + "/api/release/scripts/yaml_parser.py ";
+    }
 public:
     virtual ~ServerPredictor() {;}
 
@@ -46,11 +52,23 @@ public:
         return _instance;
     }
 
+    String getYamlValue(const String& key)
+    {
+        String cmd = m_yamlParser + key + " " + m_configFile;
+        String val = execSysCall_block(cmd);
+        return val;
+    }
 
     /**
      * Load  Models from config file
      */
-    void loadModels();
+    void loadAllFilters();
+
+    /**
+     * Load a filter set.
+     * pos_type: "buy" or "sell"
+     */
+    void loadFilterSet(const String& symbol, const String& pos_type);
 
     /**
      * Load python Module

@@ -28,6 +28,7 @@
 #include <boost/log/sources/severity_logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/log/support/date_time.hpp>
+#include <boost/log/utility/setup/console.hpp>
 #include <unordered_map>
 #include <typeinfo>
 #include "types.h"
@@ -74,6 +75,7 @@ private:
                                 << expr::smessage
                                ));
 //                              keywords::format = "[%TimeStamp%]: %Message%");
+        logging::add_console_log(std::cout, boost::log::keywords::format = "[%TimeStamp%]: %Message%");
 
     }
 public:

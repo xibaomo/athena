@@ -46,6 +46,9 @@ class ForexFextor(FeatureExtractor):
         return
     
     def computeFeatures(self):
+        fs = self.config.getFeatureList()
+        Log(LOG_INFO) << "Feature list: " + ",".join(fs)
+        
         self.featureCalculator.computeFeatures(self.config.getFeatureList())
         
         fm,self.labels = self.featureCalculator.getTotalFeatureMatrix()

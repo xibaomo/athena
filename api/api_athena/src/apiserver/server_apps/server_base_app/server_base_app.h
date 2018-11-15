@@ -22,7 +22,16 @@
 #include "app_base/app_base.h"
 #include "basics/types.h"
 #include "messenger/messenger.h"
+enum class EngineType {
+    CLASSIFIER = 0,
+    REGRESSOR
+};
 
+enum class EngineCoreType {
+    SVM = 0,
+    DCT,
+    RANDOMFOREST
+};
 class ServerBaseApp : public App {
 protected:
     String m_configFile;

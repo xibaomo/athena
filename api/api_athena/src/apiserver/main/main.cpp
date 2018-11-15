@@ -15,6 +15,8 @@
 //
 #include "server_apps/create_svr_app.h"
 #include "basics/log.h"
+#include <iostream>
+using namespace std;
 
 int main(int argc, char** argv)
 {
@@ -23,6 +25,11 @@ int main(int argc, char** argv)
     AppType atp = AppType::APP_PREDICTOR;
 
     Log(LOG_INFO) << "Athena api-server starts";
+
+    // argv[1] is config file
+    if (argc < 2)
+        Log(LOG_FATAL) << "Usage: api_server yaml_file";
+
     ServerBaseApp* app = create_server_app(atp, String(argv[1]));
 
     app->prepare();

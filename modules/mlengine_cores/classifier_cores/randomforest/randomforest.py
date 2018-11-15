@@ -8,7 +8,8 @@ from sklearn.ensemble import RandomForestClassifier
 from modules.mlengine_cores.classifier_cores.randomforest.rmfconf import RMFConfig
 from modules.basics.common.logger import *
 from modules.basics.conf.mlengineconf import gMLEngineConfig
-from modules.mlengine_cores.sklearn_comm.model_io import saveSklearnModel
+from modules.mlengine_cores.sklearn_comm.model_io import saveSklearnModel,\
+    loadSklearnModel
 
 class RandomForest(MLEngineCore):
     
@@ -29,4 +30,8 @@ class RandomForest(MLEngineCore):
     
     def saveModel(self, mfn):
         saveSklearnModel(mfn,self.estimator)
+        return
+    
+    def loadModel(self, mfn):
+        self.estimator = loadSklearnModel(mfn)
         return

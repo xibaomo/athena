@@ -1,0 +1,6 @@
+PREDICTION:
+    FAST_PERIOD: 150
+    SLOW_PERIOD: 500
+    # Model file [SYMBOL]_sell/buy_[num].* will be loaded
+    SYMBOL: eurusd
+    NUM_FILTERS: 2

@@ -96,6 +96,13 @@ class FeatureCalculator(object):
         self.removeNullID(dkama)
         self.rawFeatures['KAMA'] = dkama
         return
+    
+    def computeDLag(self):
+        flag = talib.LINEARREG(self.prices,timeperiod=self.config.getFastPeriod())
+        slag = talib.LINEARREG(self.prices,timeperiod=self.config.getSlowPeriod())
+        dlag = flag - slag
+        self.removeNullID(dlag)
+        self.rawFeatures['lag'] = dlag
         
     def computeFeatures(self,featureNames):
         FeatureCalculatorSwitcher = {
@@ -105,7 +112,8 @@ class FeatureCalculator(object):
         "CMO": self.computeCMO,
         "ROC": self.computeDROC,
         "EMA": self.computeDEMA,
-        "KAMA": self.computeDKAMA
+        "KAMA": self.computeDKAMA,
+        "LAG": self.computeDLag
         }
         for f in featureNames:
             FeatureCalculatorSwitcher[f]()
