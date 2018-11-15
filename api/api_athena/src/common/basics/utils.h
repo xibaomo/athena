@@ -86,6 +86,6 @@ String getHostName();
  *  Split a string
  *-----------------------------------------------------------------------------*/
 std::vector<String>
-splitString(const String& str, char delimiter=':');
+splitString(const String& str, const String delimiters=":");
 
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */

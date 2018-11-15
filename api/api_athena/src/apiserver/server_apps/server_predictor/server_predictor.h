@@ -19,7 +19,7 @@
 #include "server_apps/server_base_app/server_base_app.h"
 #include "pyhelper.hpp"
 #include "predictor/prdtypes.h"
-
+#include <vector>
 class ServerPredictor : public ServerBaseApp
 {
 protected:
@@ -33,55 +33,63 @@ protected:
     CPyObject m_engineCoreMod; // module for mlengine core
     double *m_result_array;
 
-    ServerPredictor(const String& clientHostPort): ServerBaseApp(clientHostPort),
+    std::vector<String> m_modelFiles;
+
+    ServerPredictor(const String& config): ServerBaseApp(config),
     m_result_array(nullptr){;}
 public:
     virtual ~ServerPredictor() {;}
 
-    static ServerPredictor& getInstance(const String& hostPort)
+    static ServerPredictor& getInstance(const String& config)
     {
-        static ServerPredictor _instance(hostPort);
+        static ServerPredictor _instance(config);
         return _instance;
     }
 
-    /*
+
+    /**
+     * Load  Models from config file
+     */
+    void loadModels();
+
+    /**
      * Load python Module
      */
     void loadPythonModule();
 
-    /*
+    /**
      * Load model file and create ML engine & core
      */
     void loadEngine(EngineType et, EngineCoreType ect, const String& modelfile);
 
-    /*
+    /**
      * Predict upon input feature matrix
      */
     void predict(Real* fm, const Uint n_samples, const Uint n_features);
 
-    /*
+    /**
      * Preparation:
      * 1. load python modules
      */
     void prepare();
 
-    /*
+    /**
      * Process message. Override base class
      */
     Message processMsg(Message& msg);
 
-    /*
+    /**
      * Process message of action SETUP
      * Build up ML engine
      */
-    void procMsg_SETUP(Message& msg);
+    void procMsg_HISTORY(Message& msg);
 
-    /*
+    /**
      * Process message of action PREDICT
      * Make prediction with ML engine
      * Return results to client
      */
-    void procMsg_PREDICT(Message& msg);
+    void procMsg_TICK(Message& msg);
 };
 
 #endif   /* ----- #ifndef _SERVER_PREDICTOR_H_  ----- */

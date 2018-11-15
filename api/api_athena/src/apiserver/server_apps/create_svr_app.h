@@ -21,5 +21,5 @@
 #include "server_apps/server_base_app/server_base_app.h"
 #include "basics/types.h"
 
-ServerBaseApp* create_server_app(AppType type, const String& hp);
+ServerBaseApp* create_server_app(AppType type, const String& configFile);
 #endif   /* ----- #ifndef _CREATE_SERVER_APP_H_  ----- */

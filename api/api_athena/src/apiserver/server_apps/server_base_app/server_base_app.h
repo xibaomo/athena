@@ -25,9 +25,9 @@
 
 class ServerBaseApp : public App {
 protected:
-    ServerBaseApp(const String& clientHostPort);
+    String m_configFile;
+    ServerBaseApp(const String& configFile) : m_configFile(configFile) {;}
 
-    String m_clientHostPort;
 public:
     virtual ~ServerBaseApp() {;}
 
@@ -39,23 +39,6 @@ public:
 
     virtual Message processMsg(Message& msg) = 0;
 
-    template <typename T>
-    void sendBackResult(MsgAction action, T* p, const int len);
 };
-
-template <typename T>
-void
-ServerBaseApp::sendBackResult(MsgAction action, T* p, const int len)
-{
-    int databytes = sizeof(Real)*len;
-    Message msg(databytes);
-    msg.setAction(action);
-    Real* pm = (Real*)msg.getData();
-    for ( int i = 0; i < len; i++ ) {
-        pm[i] = p[i];
-    }
-
-    m_msger->sendAMsgToHostPort(msg, m_clientHostPort);
-}
 
 #endif

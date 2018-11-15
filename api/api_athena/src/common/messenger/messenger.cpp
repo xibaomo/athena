@@ -230,7 +230,7 @@ void
 Messenger::sendAMsgToHostPort(Message& msg, const String& hostPort)
 {
     SockAddr addr;
-    vector<String> s = splitString(hostPort, ':');
+    vector<String> s = splitString(hostPort, ":");
     createSockAddr(&addr, s[0], stoi(s[1]));
     sendAMsgToAddr(msg, addr);
 }

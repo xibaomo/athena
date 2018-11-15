@@ -17,12 +17,12 @@
 #include "server_apps/server_predictor/server_predictor.h"
 
 ServerBaseApp*
-create_server_app(AppType type, const String& hp)
+create_server_app(AppType type, const String& configFile)
 {
     ServerBaseApp* app(nullptr);
     switch(type) {
         case AppType::APP_PREDICTOR:
-            app = &ServerPredictor::getInstance(hp);
+            app = &ServerPredictor::getInstance(configFile);
             break;
         default:
             break;

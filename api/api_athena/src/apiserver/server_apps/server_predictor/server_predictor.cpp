@@ -14,7 +14,8 @@
  * =====================================================================================
  */
 #include "server_predictor.h"
-#include "predictor/prdtypes.h"
+#include "fx_action.h"
+#include "basics/utils.h"
 #include <iostream>
 using namespace std;
 
@@ -22,6 +23,16 @@ void
 ServerPredictor::prepare()
 {
     loadPythonModule();
+    loadModels();
+}
+
+void
+ServerPredictor::loadModels()
+{
+    const String key = "PREDICTION/MODEL_LIST";
+    String cmd = String(getenv("ATHENA_INSTALL")) + "/api/release/scripts/yaml_parser.py " + key + " " + m_configFile;
+    String modelString = execSysCall_block(cmd);
+    m_modelFiles = splitString(modelString,"[,]'");
 }
 
 void
@@ -119,20 +130,20 @@ ServerPredictor::predict(Real* featureMatrix, const Uint rows, const Uint cols)
 
     m_result_array = reinterpret_cast<double*>(PyArray_DATA(np_res));
 
-    sendBackResult((MsgAction)PrdAction::RESULT, m_result_array, len);
+//    sendBackResult((MsgAction)PrdAction::RESULT, m_result_array, len);
     return;
 }
 
 Message
 ServerPredictor::processMsg(Message& msg)
 {
-    PrdAction action = (PrdAction)msg.getAction();
+    FXAction action = (FXAction)msg.getAction();
     switch(action) {
-        case PrdAction::SETUP:
-            procMsg_SETUP(msg);
+        case FXAction::HISTORY:
+            procMsg_HISTORY(msg);
             break;
-        case PrdAction::PREDICT:
-            procMsg_PREDICT(msg);
+        case FXAction::TICK:
+            procMsg_TICK(msg);
             break;
         default:
             break;
@@ -142,7 +153,7 @@ ServerPredictor::processMsg(Message& msg)
 }
 
 void
-ServerPredictor::procMsg_SETUP(Message& msg)
+ServerPredictor::procMsg_HISTORY(Message& msg)
 {
     Log(LOG_INFO) << "Msg of model file received";
     int *pm = (int*) msg.getData();
@@ -154,7 +165,7 @@ ServerPredictor::procMsg_SETUP(Message& msg)
 }
 
 void
-ServerPredictor::procMsg_PREDICT(Message& msg)
+ServerPredictor::procMsg_TICK(Message& msg)
 {
     Log(LOG_DEBUG) << "Features received";
     Real* pf = (Real*)msg.getData();

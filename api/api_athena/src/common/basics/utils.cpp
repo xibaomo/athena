@@ -62,10 +62,14 @@ getHostName()
 }
 
 vector<String>
-splitString(const String& str, char delimiter)
+splitString(const String& str, const String delimiters)
 {
     vector<String> res;
-    boost::split(res, str, [delimiter](char c) { return c == delimiter; });
+    boost::split(res, str, [delimiters](char c) {
+                 for (auto a : delimiters) {
+                    if (c == a) return true;
+                 }
+                 return false;});
     return res;
 }
 
