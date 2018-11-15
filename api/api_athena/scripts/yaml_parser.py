@@ -14,6 +14,6 @@ def getValueByKey(key, yamlFile):
             return dt
 
 if __name__ == "__main__":
-    val = getValueByKey('EXTERNAL_MODEL/MODEL_PATH',sys.argv[1])
+    val = getValueByKey(sys.argv[1], sys.argv[2])
     print val
 

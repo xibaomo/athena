@@ -44,7 +44,9 @@ class ForexMultiFilters(App):
         
         self.workForce.train()
         
-        num_good,num_miss = self.workForce.filterBadPoints()
+        fm = self.fextor.getTestFeatureMatrix();
+        tar = self.fextor.getTestTargets()
+        num_good,num_miss = self.workForce.filterBadPoints(fm,tar)
         
         profit = self.computeProfit(num_good, num_miss)
         
@@ -56,9 +58,6 @@ class ForexMultiFilters(App):
         
         return
     
-    def finish(self):
-        return
-    
     def computeProfit(self,num_good,num_miss):
         profitPerTran = self.config.getPointValue() * self.config.getTakeProfit()
         lossPerTran = self.config.getPointValue() * self.config.getStopLoss()
@@ -66,4 +65,8 @@ class ForexMultiFilters(App):
         profit = num_good * profitPerTran -  num_miss * lossPerTran
         
         return profit
+    
+    def finish(self):
+        self.workForce.saveFilters()
+        return
         

@@ -4,11 +4,16 @@ Created on Sep 9, 2018
 @author: fxua
 '''
 import numpy as np
+import os
 from modules.basics.common.logger import *
 from modules.basics.conf.generalconf import gGeneralConfig
 from modules.mlengines.classifier.classifier import Classifier
 from modules.model_selector.modelselector import ModelSelector
 from modules.basics.conf.modelselectorconf import gModelSelectorConfig
+from modules.mlengine_cores.sklearn_comm.model_io import *
+from modules.basics.conf.mlengineconf import MLEngineConfig
+from modules.mlengine_cores.mlengine_core import MLEngineCore
+from modules.mlengines.mlengine import MLEngine
 
 class OverkillFilters(object):
     '''
@@ -112,16 +117,16 @@ class OverkillFilters(object):
         
         return np.vstack(resFM),np.array(resLabels)
     
-    def filterBadPoints(self):
+    def filterBadPoints(self,fm,labels=None):
         '''
         This function applies the obtained classifiers to filter out
         bad points in the test data.
         It may have false alarms
         '''
 #         self.featureExtractor.extractTestFeatures(isKnowAnswer)
-        fm    = self.featureExtractor.getTestFeatureMatrix()
-        labels = self.featureExtractor.getTestTargets()
-
+#         fm    = self.featureExtractor.getTestFeatureMatrix()
+#         labels = self.featureExtractor.getTestTargets()
+        predictLabels = None
         for eng in self.productEngines:
             Log(LOG_INFO) << "Predicting on %d samples" % fm.shape[0]
             eng.predict(fm)
@@ -131,27 +136,65 @@ class OverkillFilters(object):
             tmp_label = []
             miss = 0
             falseAlarm = 0
+            num_good= 0
             
             Log(LOG_INFO) << "Extracting good points for next filtering ..."
-            for n in range(len(labels)):
+            for n in range(fm.shape[0]):
                 if predictLabels[n] == 0:
                     
                     tmp_fm.append(fm[n,:])
-                    tmp_label.append(labels[n])
-                    if labels[n] == 1:
-                        miss+=1
+                    if labels is not None:
+                        tmp_label.append(labels[n])
+                        if labels[n] == 1:
+                            miss+=1
+                        if labels[n] == 0:
+                            num_good += 1
                 else:
-                    if labels[n] == 0:
+                    if labels is not None and labels[n] == 0:
                         falseAlarm+=1
             Log(LOG_INFO) << "Missed alarms: %d, false alarms: %d" % (miss,falseAlarm)
             
-            if len(tmp_label) == 0:
-                return
             fm = np.vstack(tmp_fm)
-            labels = np.array(tmp_label)
+            if labels is not None:
+                labels = np.array(tmp_label)
             
         
-        num_good =   len(labels)  - miss
+        if labels is not None:
+            return num_good,miss
+        else:
+            return predictLabels
         
-        return num_good,miss
+    def saveFilters(self):
+        mfprefix = gModelSelectorConfig.getSaveModelPrefix();
+        if mfprefix == "":
+            return
+        
+        k=0
+        for eng in self.productEngines:
+            k+=1
+            mf = mfprefix + str(k) + ".flt"
+            eng.saveModel(mf)
+            Log(LOG_INFO) << "Model saved in " + mf
+            
+        return
+    
+    def loadFilters(self): 
+        mfprefix = gModelSelectorConfig.getLoadModelPrefix()
+        if mfprefix == "":
+            return
+        mfs = [f for f in os.listdir(".") if f.startswith(mfprefix)]
+        Log(LOG_INFO) << "Loading model files: " + ",".join(mfs)
+        for mf in mfs:
+            est = loadSklearnModel(mf)
+            engCore = MLEngineCore(est)
+            engine  = MLEngine(engCore)
+            self.productEngines.append(engine)
+            Log(LOG_INFO) << "Model loaded: " + mf
+            
+        return
+            
+        
+        
+        
+        
         

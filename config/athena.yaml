@@ -98,6 +98,10 @@ MODEL_SELECTOR:
     CV_FOLD: 5
     # number of threads running in parallel
     N_JOBS: 8
+
+    SAVE_MODEL_PREFIX: ""
+    LOAD_MODEL_PREFIX: ""
+
 ########################### Classifiers ###########################
     MODEL_1:
         ENABLED: false

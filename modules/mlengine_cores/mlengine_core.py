@@ -38,12 +38,8 @@ class MLEngineCore(object):
         Log(LOG_FATAL) << "Should be implemented in concrete class"
         return
 
-    def loadModel(self,coreType,mfn):
-        if coreType <=2:
-            self.estimator = loadSklearnModel(mfn)
-        else:
-            self.estimator = loadDNNModel(mfn)
-
+    def loadModel(self,mfn):
+        Log(LOG_FATAL) << "Should be implemented in concrete class"
         return
 
     def saveDNNModel(self,mfn,model):

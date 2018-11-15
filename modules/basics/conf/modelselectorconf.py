@@ -55,5 +55,11 @@ class ModelSelectorConf(TopConf):
     def getDNNConfig(self):
         return self.dnnConfig
     
+    def getSaveModelPrefix(self):
+        return self.yamlDict['SAVE_MODEL_PREFIX']
+    
+    def getLoadModelPrefix(self):
+        return self.yamlDict['LOAD_MODEL_PREFIX']
+    
 global gModelSelectorConfig
 gModelSelectorConfig = ModelSelectorConf()
