@@ -30,6 +30,8 @@ protected:
     std::vector<CPyObject> m_buyEngines;
     std::vector<CPyObject> m_sellEngines;
 
+    std::vector<Real> m_buyTicks;
+    std::vector<Real> m_sellTicks;
     CPyObject m_engCreatorMod; // module for engine creator
     CPyObject m_mlEngMod;     // module for mlengine base
     CPyObject m_engineCoreMod; // module for mlengine core
