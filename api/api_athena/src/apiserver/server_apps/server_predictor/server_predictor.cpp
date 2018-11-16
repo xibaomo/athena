@@ -156,41 +156,60 @@ ServerPredictor::predict(Real* featureMatrix, const Uint rows, const Uint cols)
 Message
 ServerPredictor::processMsg(Message& msg)
 {
+    Message msgnew;
     FXAction action = (FXAction)msg.getAction();
     switch(action) {
         case FXAction::HISTORY:
-            procMsg_HISTORY(msg);
+            msgnew = std::move(procMsg_HISTORY(msg));
             break;
         case FXAction::TICK:
-            procMsg_TICK(msg);
+            msgnew = std::move(procMsg_TICK(msg));
             break;
+        case FXAction::CHECKIN:
+            msgnew = std::move(procMsg_CHECKIN(msg));
         default:
             break;
     }
+
+    return msgnew;
+}
+
+Message
+ServerPredictor::procMsg_CHECKIN(Message& msg)
+{
+    Log(LOG_INFO) << "Client checks in";
+    if (!compareStringNoCase(m_fxSymbol,msg.getComment()))
+        Log(LOG_FATAL) << "Received symbol is inconsistent with model files";
+
     Message msgnew;
     return msgnew;
 }
 
-void
+Message
 ServerPredictor::procMsg_HISTORY(Message& msg)
 {
-    Log(LOG_INFO) << "Msg of model file received";
-    int *pm = (int*) msg.getData();
-    EngineType engtype = (EngineType)pm[0];
-    EngineCoreType coretype = (EngineCoreType)pm[1];
-    String mf = msg.getComment();
+    Log(LOG_INFO) << "Msg of history data received";
+    int len = msg.getDataBytes() / sizeof(Real);
+    if (msg.getComment() == "buy") {
+        m_buyTicks.resize(len);
+        memcpy(&m_buyTicks[0],msg.getData(),msg.getDataBytes());
+    } else if (msg.getComment() == "sell") {
+        m_sellTicks.resize(len);
+        memcpy(&m_sellTicks[0],msg.getData(),msg.getDataBytes());
+    } else {
+        Log(LOG_FATAL) << "Unknown position type: " + msg.getComment();
+    }
 
-    loadEngine(engtype, coretype, mf);
+    Message msgnew;
+    return msgnew;
 }
 
-void
+Message
 ServerPredictor::procMsg_TICK(Message& msg)
 {
-    Log(LOG_DEBUG) << "Features received";
-    Real* pf = (Real*)msg.getData();
-    Uint* pc = (Uint*)msg.getChar();
-    Uint n1 = pc[0];
-    Uint n2 = pc[1];
+    Log(LOG_INFO) << "New tick arrives";
+    Message msgnew;
 
-    predict(pf, n1, n2);
+
+    return msgnew;
 }

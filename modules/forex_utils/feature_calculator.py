@@ -7,8 +7,7 @@ import talib
 import numpy as np
 import pandas as pd
 from modules.basics.common.logger import *
-
-
+from numpy.testing._private.decorators import slow
 
 class FeatureCalculator(object):
     '''
@@ -16,7 +15,7 @@ class FeatureCalculator(object):
     '''
 
 
-    def __init__(self,forexfexconfig):
+    def __init__(self,forexfexconfig=None):
         '''
         Constructor
         '''
@@ -24,16 +23,41 @@ class FeatureCalculator(object):
         self.rawFeatures = pd.DataFrame()
         self.nullID = np.array([])
         
+        self.fastPeriod = None
+        self.slowPeriod = None
+        if self.config is not None:
+            self.fastPeriod = self.getFastPeriod()
+            self.slowPeriod = self.getSlowPeriod()
+        
+        return
+    
+    def setPeriods(self,fast,slow):
+        self.slowPeriod = slow
+        self.fastPeriod = fast
+        if slow < fast:
+            Log(LOG_FATAL) << "fast period is longer than slow period: %d vs %d" % (fast,slow)
         return
         
+    def loadPrice(self,price):
+        self.prices = price 
+        return
+    
+    def appendPrice(self,p):
+        self.prices = np.append(self.prices, p)
+        return
+    
+    def getLatestfeatures(self):
+        f = self.rawFeatures.iloc[-1,:].values
+        return f
+    
     def loadPriceLabel(self,price,label):
         self.prices = price 
         self.labels = label
         return
     
     def computeDMA(self):
-        slowma = talib.MA(self.prices,timeperiod=self.config.getSlowPeriod())
-        fastma = talib.MA(self.prices,timeperiod=self.config.getFastPeriod()) 
+        slowma = talib.MA(self.prices,timeperiod=self.slowPeriod)
+        fastma = talib.MA(self.prices,timeperiod=self.fastPeriod) 
         dma = fastma - slowma
         nullID = np.where(np.isnan(dma))[0]
         if len(nullID) > len(self.nullID):
@@ -43,8 +67,8 @@ class FeatureCalculator(object):
     
     def computeMACD(self):
         macd,macdsignal,macdhist = talib.MACD(self.prices,
-                                              fastperiod=self.config.getFastPeriod(),
-                                              slowperiod=self.config.getSlowPeriod(),
+                                              fastperiod=self.fastPeriod,
+                                              slowperiod=self.slowPeriod,
                                               signalperiod=self.config.getSignalPeriod())
         nullID = np.where(np.isnan(macd))[0]
         if len(nullID) > len(self.nullID):
@@ -55,8 +79,8 @@ class FeatureCalculator(object):
         return
     
     def computeRSI(self):
-        srsi = talib.RSI(self.prices,timeperiod=self.config.getSlowPeriod())
-        frsi = talib.RSI(self.prices,timeperiod=self.config.getFastPeriod())
+        srsi = talib.RSI(self.prices,timeperiod=self.slowPeriod)
+        frsi = talib.RSI(self.prices,timeperiod=self.fastPeriod)
         
         rsi = frsi-srsi
         nullID = np.where(np.isnan(rsi))[0]
@@ -66,40 +90,40 @@ class FeatureCalculator(object):
         return
         
     def computeCMO(self):
-        scmo = talib.CMO(self.prices,timeperiod=self.config.getSlowPeriod())
-        fcmo = talib.CMO(self.prices,timeperiod=self.config.getFastPeriod())
+        scmo = talib.CMO(self.prices,timeperiod=self.slowPeriod)
+        fcmo = talib.CMO(self.prices,timeperiod=self.fastPeriod)
         cmo = fcmo - scmo
         self.removeNullID(cmo)
         self.rawFeatures['CMO']=cmo
         return
     
     def computeDROC(self):
-        sroc = talib.ROC(self.prices,timeperiod=self.config.getSlowPeriod())
-        froc = talib.ROC(self.prices,timeperiod=self.config.getFastPeriod())
+        sroc = talib.ROC(self.prices,timeperiod=self.slowPeriod)
+        froc = talib.ROC(self.prices,timeperiod=self.fastPeriod)
         droc = froc - sroc 
         self.removeNullID(droc)
         self.rawFeatures['ROC']=droc
         return
     
     def computeDEMA(self):
-        sema = talib.EMA(self.prices,timeperiod=self.config.getSlowPeriod())
-        fema = talib.EMA(self.prices,timeperiod=self.config.getFastPeriod())
+        sema = talib.EMA(self.prices,timeperiod=self.slowPeriod)
+        fema = talib.EMA(self.prices,timeperiod=self.fastPeriod)
         dema = fema - sema 
         self.removeNullID(dema)
         self.rawFeatures['EMA'] = dema
         return
     
     def computeDKAMA(self):
-        skama = talib.KAMA(self.prices,timeperiod=self.config.getSlowPeriod())
-        fkama = talib.KAMA(self.prices,timeperiod=self.config.getFastPeriod())
+        skama = talib.KAMA(self.prices,timeperiod=self.slowPeriod)
+        fkama = talib.KAMA(self.prices,timeperiod=self.fastPeriod)
         dkama = fkama - skama 
         self.removeNullID(dkama)
         self.rawFeatures['KAMA'] = dkama
         return
     
     def computeDLag(self):
-        flag = talib.LINEARREG(self.prices,timeperiod=self.config.getFastPeriod())
-        slag = talib.LINEARREG(self.prices,timeperiod=self.config.getSlowPeriod())
+        flag = talib.LINEARREG(self.prices,timeperiod=self.fastPeriod)
+        slag = talib.LINEARREG(self.prices,timeperiod=self.slowPeriod)
         dlag = flag - slag
         self.removeNullID(dlag)
         self.rawFeatures['lag'] = dlag

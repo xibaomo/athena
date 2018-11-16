@@ -88,4 +88,7 @@ String getHostName();
 std::vector<String>
 splitString(const String& str, const String delimiters=":");
 
+bool
+compareStringNoCase(const String& str1, const String& str2);
+
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */

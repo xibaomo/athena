@@ -60,7 +60,7 @@ public:
     }
 
     /**
-     * Load  Models from config file
+     * Load models from config file
      */
     void loadAllFilters();
 
@@ -97,17 +97,22 @@ public:
     Message processMsg(Message& msg);
 
     /**
+     * Process message of action CHECKIN
+     */
+    Message procMsg_CHECKIN(Message& msg);
+
+    /**
      * Process message of action SETUP
      * Build up ML engine
      */
-    void procMsg_HISTORY(Message& msg);
+    Message procMsg_HISTORY(Message& msg);
 
     /**
      * Process message of action PREDICT
      * Make prediction with ML engine
      * Return results to client
      */
-    void procMsg_TICK(Message& msg);
+    Message procMsg_TICK(Message& msg);
 };
 
 #endif   /* ----- #ifndef _SERVER_PREDICTOR_H_  ----- */

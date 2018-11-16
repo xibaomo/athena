@@ -73,4 +73,10 @@ splitString(const String& str, const String delimiters)
     return res;
 }
 
+bool
+compareStringNoCase(const String& str1, const String& str2)
+{
+    return boost::iequals(str1,str2);
+}
+
 NonBlockSysCall* gNBSysCall = &NonBlockSysCall::getInstance();
