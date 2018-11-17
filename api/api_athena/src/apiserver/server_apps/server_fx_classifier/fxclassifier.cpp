@@ -139,6 +139,7 @@ ForexClassifier::procMsg_HISTORY(Message& msg)
         Log(LOG_ERROR) << "Unexpected position type: " + msg.getComment();
     }
 
+    Log(LOG_INFO) << "History data loaded";
     Message msgnew;
     return msgnew;
 }

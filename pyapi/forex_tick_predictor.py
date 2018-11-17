@@ -36,6 +36,7 @@ class ForexTickPredictor(object):
     
     def setFeatureNames(self,nameStr):
         self.featureNames = str(nameStr).split(',')
+        print self.featureNames
         return
     
     def classifyATick(self,tick):
@@ -44,12 +45,15 @@ class ForexTickPredictor(object):
         features = self.featureCalculator.getLatestfeatures()
         
         nanList = np.where(np.isnan(features))[0]
+        features = features.reshape(1,-1)
         if len(nanList) > 0:
             print "Nan found in features, skip ..."
             return 1
         
+        print "predicting feature: " + str(features)
         for m in self.prodcutModels:
-            pred = m.predict(features)
+            pred = m.predict(features)[0]
+            
             if pred == 1:
                 return 1;
         

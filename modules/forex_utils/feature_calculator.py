@@ -49,6 +49,7 @@ class FeatureCalculator(object):
     
     def appendPrice(self,p):
         self.prices = np.append(self.prices, p)
+        print "Total ticks: " + str(len(self.prices))
         return
     
     def getLatestfeatures(self):
