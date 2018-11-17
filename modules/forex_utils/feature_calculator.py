@@ -6,6 +6,7 @@ Created on Oct 7, 2018
 import talib
 import numpy as np
 import pandas as pd
+import copy
 from modules.basics.common.logger import *
 from numpy.testing._private.decorators import slow
 
@@ -31,6 +32,9 @@ class FeatureCalculator(object):
         
         return
     
+    def __str__(self):
+        return "Feature calculator " + str(self.fastPeriod) + " " + str(self.slowPeriod)
+    
     def setPeriods(self,fast,slow):
         self.slowPeriod = slow
         self.fastPeriod = fast
@@ -40,6 +44,7 @@ class FeatureCalculator(object):
         
     def loadPrice(self,price):
         self.prices = price 
+        print "Total ticks: " + str(len(self.prices))
         return
     
     def appendPrice(self,p):

@@ -41,6 +41,9 @@ void
 ServerBaseApp::execute()
 {
     char buf[16];
+    Timer timer;
+    int prev_time_point=0;
+    Log(LOG_INFO) << "Listening to port: " + to_string(m_msger->getPort());
     while(1) {
         int sock = m_msger->getHostSocket();
         bool rt = checkSockReadable(sock,1);
@@ -72,5 +75,12 @@ ServerBaseApp::execute()
             }
         }
         sleepMilliSec(ONE_MS);
+
+        int elapsed = timer.getElapsedTime();
+
+        if (elapsed > prev_time_point && elapsed % 60 == 0) {
+            prev_time_point = elapsed;
+            Log(LOG_INFO) << "Listening to port: " + to_string(m_msger->getPort());
+        }
     }
 }

@@ -24,6 +24,7 @@
 #include <vector>
 #include <unistd.h>
 #include <fcntl.h>
+#include <chrono>
 #include "basics/log.h"
 #include "types.h"
 
@@ -88,7 +89,23 @@ String getHostName();
 std::vector<String>
 splitString(const String& str, const String delimiters=":");
 
+/**
+ * Case-insensitive string comparison
+ */
+
 bool
 compareStringNoCase(const String& str1, const String& str2);
 
+class Timer {
+protected:
+    std::chrono::time_point<std::chrono::system_clock> m_start;
+public:
+    Timer() { m_start = std::chrono::system_clock::now();}
+    double getElapsedTime() {
+        auto now = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed = now - m_start;
+        return elapsed.count();
+    }
+
+};
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */

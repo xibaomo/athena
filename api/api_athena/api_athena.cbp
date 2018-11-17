@@ -75,6 +75,7 @@
 		<Unit filename="src/apiserver/server_apps/create_svr_app.h" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.cpp" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.h" />
+		<Unit filename="src/apiserver/server_apps/server_fx_classifier/fx_action.h" />
 		<Unit filename="src/apiserver/server_apps/server_fx_classifier/fxclassifier.cpp" />
 		<Unit filename="src/apiserver/server_apps/server_fx_classifier/fxclassifier.h" />
 		<Unit filename="src/apiserver/server_apps/server_predictor/fx_action.h" />

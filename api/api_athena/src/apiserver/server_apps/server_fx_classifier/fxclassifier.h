@@ -53,7 +53,7 @@ public:
     /**
      * Config predictor
      */
-    void configPredictor(CPyObject pred);
+    void configPredictor(CPyObject& pred);
 
     /**
      * Process incoming msg, return response msg

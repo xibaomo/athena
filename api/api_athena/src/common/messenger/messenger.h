@@ -28,8 +28,8 @@
 #include "msg.h"
 #include "basics/types.h"
 #include "basics/mtqueue.h"
-const Uint MAXPORTNUM = 65536;
-const Uint MINPORTNUM = 1024;
+const Uint MAXPORTNUM = 8899; //65536;
+const Uint MINPORTNUM = 8800; //1024;
 const String HANGUP = "hangup";
 typedef struct sockaddr_in SockAddr;
 

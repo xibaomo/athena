@@ -70,7 +70,7 @@ ForexClassifier::loadFilterSet(const String& symbol, const String& pos_type)
 }
 
 void
-ForexClassifier::configPredictor(CPyObject predictor)
+ForexClassifier::configPredictor(CPyObject& predictor)
 {
     // set fast & slow periods
     int fastPeriod = stoi(getYamlValue("PREDICTION/FAST_PERIOD"));
@@ -84,6 +84,8 @@ ForexClassifier::configPredictor(CPyObject predictor)
     String featureNames = getYamlValue("PREDICTION/FEATURE_LIST");
     CPyObject arg = Py_BuildValue("s",featureNames.c_str());
     PyObject_CallMethod(predictor,"setFeatureNames","(O)",arg.getObject());
+
+    PyObject_CallMethod(predictor,"showFeatureCalculator",NULL);
 }
 
 Message
@@ -122,16 +124,17 @@ Message
 ForexClassifier::procMsg_HISTORY(Message& msg)
 {
     Log(LOG_INFO) << "Msg of history data received";
+
     int len = msg.getDataBytes()/sizeof(Real);
     CPyObject lst = PyList_New(len);
     Real* pm = (Real*)msg.getData();
-    for (int i =0; i < len; i++) {
+    for (int i = 0; i < len; i++) {
         PyList_SetItem(lst,i,Py_BuildValue(REALFORMAT,pm[i]));
     }
     if (msg.getComment() == "buy") {
-        PyObject_CallMethod(m_buyPredictor,"loadTicks","(O)",lst);
+        PyObject_CallMethod(m_buyPredictor,(char*)"loadTicks","(O)",lst.getObject());
     } else if (msg.getComment() == "sell") {
-        PyObject_CallMethod(m_sellPredictor,"loadTicks","(O)",lst);
+        PyObject_CallMethod(m_sellPredictor,(char*)"loadTicks","(O)",lst.getObject());
     } else {
         Log(LOG_ERROR) << "Unexpected position type: " + msg.getComment();
     }
@@ -151,10 +154,10 @@ ForexClassifier::procMsg_TICK(Message& msg)
     CPyObject pypred;
     CPyObject pytick = Py_BuildValue(REALFORMAT,tick);
     if (msg.getComment() == "buy") {
-        pypred = PyObject_CallMethod(m_buyPredictor,"classifyATick","(O)",pytick);
+        pypred = PyObject_CallMethod(m_buyPredictor,"classifyATick","(O)",pytick.getObject());
         action = (ActionType)FXAction::PLACE_BUY;
     } else if (msg.getComment() == "sell") {
-        pypred = PyObject_CallMethod(m_sellPredictor,"classifyATick","(O)",pytick);
+        pypred = PyObject_CallMethod(m_sellPredictor,"classifyATick","(O)",pytick.getObject());
         action = (ActionType)FXAction::PLACE_SELL;
     } else {
         Log(LOG_ERROR) << "Unexpected position type: " + msg.getComment();

@@ -68,7 +68,8 @@ Messenger::bindSocketToPort(bool isGenPort)
 
     m_port = getpid();
     while ( 1 ) {
-        m_port = m_port%(MAXPORTNUM-MINPORTNUM) + MINPORTNUM;
+            m_port = 8888;
+        //m_port = m_port%(MAXPORTNUM-MINPORTNUM) + MINPORTNUM;
         memset((char*)&m_addr, 0, sizeof(m_addr));
         m_addr.sin_family = AF_INET;
         m_addr.sin_addr.s_addr = htonl(INADDR_ANY);

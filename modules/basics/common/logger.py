@@ -48,6 +48,7 @@ class Logger(object):
 
     def setlogLevel(self, loglevel):
         self.logLevel = loglevel
+        logging.StreamHandler(sys.stdout)
         logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s %(message)s',datefmt='%m-%d-%Y:%H:%M:%S',level=loglevel)
         return
     

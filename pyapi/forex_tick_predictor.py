@@ -55,4 +55,6 @@ class ForexTickPredictor(object):
         
         return pred
         
+    def showFeatureCalculator(self):
+        print self.featureCalculator
         
