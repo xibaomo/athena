@@ -48,13 +48,13 @@ class ForexMultiFilters(App):
         tar = self.fextor.getTestTargets()
         num_good,num_miss = self.workForce.filterBadPoints(fm,tar)
         
-        profit = self.computeProfit(num_good, num_miss)
+        self.profit = self.computeProfit(num_good, num_miss)
         
         Log(LOG_INFO) << "Profit transactions: %d" % num_good
         Log(LOG_INFO) << "Loss transactions: %d" % num_miss
-        Log(LOG_INFO) << "Total profit: $%.2f" % profit
+        Log(LOG_INFO) << "Total profit: $%.2f" % self.profit
         Log(LOG_INFO) << "Dream profit: $%.2f" % dream_profit
-        Log(LOG_INFO) << "%.2f%% of dream profit taken" % (100*profit/dream_profit)
+        Log(LOG_INFO) << "%.2f%% of dream profit taken" % (100*self.profit/dream_profit)
         
         return
     
@@ -67,6 +67,6 @@ class ForexMultiFilters(App):
         return profit
     
     def finish(self):
-        self.workForce.saveFilters()
+        self.workForce.saveFilters(self.config.getModelPrefix(),self.profit)
         return
         

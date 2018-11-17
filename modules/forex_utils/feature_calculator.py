@@ -26,8 +26,8 @@ class FeatureCalculator(object):
         self.fastPeriod = None
         self.slowPeriod = None
         if self.config is not None:
-            self.fastPeriod = self.getFastPeriod()
-            self.slowPeriod = self.getSlowPeriod()
+            self.fastPeriod = self.config.getFastPeriod()
+            self.slowPeriod = self.config.getSlowPeriod()
         
         return
     

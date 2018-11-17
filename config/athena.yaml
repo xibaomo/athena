@@ -114,7 +114,7 @@ MODEL_SELECTOR:
     MODEL_3:
         ENABLED: false
         MODEL_NAME: RMF # Random forest
-        N_ESTIMATORS: 10,200,10 # min,max,num
+        N_ESTIMATORS: 3,100,10 # min,max,num
         CRITERION: [gini,entropy]
         MIN_SAMPLES_SPLIT: 2,40,10
 

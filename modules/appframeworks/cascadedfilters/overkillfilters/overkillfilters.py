@@ -14,6 +14,7 @@ from modules.mlengine_cores.sklearn_comm.model_io import *
 from modules.basics.conf.mlengineconf import MLEngineConfig
 from modules.mlengine_cores.mlengine_core import MLEngineCore
 from modules.mlengines.mlengine import MLEngine
+from posix import getpid
 
 class OverkillFilters(object):
     '''
@@ -164,15 +165,20 @@ class OverkillFilters(object):
         else:
             return predictLabels
         
-    def saveFilters(self):
+    def saveFilters(self,modelPrefix="",profit=None):
         mfprefix = gModelSelectorConfig.getSaveModelPrefix();
-        if mfprefix == "":
+        if mfprefix == "" and modelPrefix=="":
             return
+        
+        mfprefix = modelPrefix
         
         k=0
         for eng in self.productEngines:
             k+=1
-            mf = mfprefix + str(k) + ".flt"
+            if profit is None:
+                mf = mfprefix + '_' + str(k) + ".flt.pid_" + str(os.getpid())
+            else:
+                mf = mfprefix + '_' + str(k) + ".flt.profit_" + str(profit)
             eng.saveModel(mf)
             Log(LOG_INFO) << "Model saved in " + mf
             
