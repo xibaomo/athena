@@ -38,12 +38,10 @@ protected:
     CPyObject m_overkillFilterMod;
     double *m_result_array;
 
-    String m_yamlParser;
     String m_fxSymbol;
 
     ServerPredictor(const String& config): ServerBaseApp(config),
     m_result_array(nullptr){
-        m_yamlParser = String(getenv("ATHENA_INSTALL")) + "/api/release/scripts/yaml_parser.py ";
     }
 public:
     virtual ~ServerPredictor() {;}
@@ -52,13 +50,6 @@ public:
     {
         static ServerPredictor _instance(config);
         return _instance;
-    }
-
-    String getYamlValue(const String& key)
-    {
-        String cmd = m_yamlParser + key + " " + m_configFile;
-        String val = execSysCall_block(cmd);
-        return val;
     }
 
     /**

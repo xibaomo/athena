@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 {
     Log::setLogLevel(LOG_INFO);
 
-    AppType atp = AppType::APP_PREDICTOR;
+    AppType atp = AppType::APP_FXCLASSIFIER;
 
     Log(LOG_INFO) << "Athena api-server starts";
 

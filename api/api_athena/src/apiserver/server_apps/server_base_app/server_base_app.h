@@ -22,6 +22,7 @@
 #include "app_base/app_base.h"
 #include "basics/types.h"
 #include "messenger/messenger.h"
+#include "basics/utils.h"
 enum class EngineType {
     CLASSIFIER = 0,
     REGRESSOR
@@ -35,7 +36,10 @@ enum class EngineCoreType {
 class ServerBaseApp : public App {
 protected:
     String m_configFile;
-    ServerBaseApp(const String& configFile) : m_configFile(configFile) {;}
+    String m_yamlParser;
+    ServerBaseApp(const String& configFile) : m_configFile(configFile) {
+        m_yamlParser = String(getenv("ATHENA_INSTALL")) + "/api/release/scripts/yaml_parser.py ";
+    }
 
 public:
     virtual ~ServerBaseApp() {;}
@@ -47,6 +51,12 @@ public:
     virtual void finish() {;}
 
     virtual Message processMsg(Message& msg) = 0;
+
+    String getYamlValue(const String& key) {
+        String cmd = m_yamlParser + key + " " + m_configFile;
+        String val = execSysCall_block(cmd);
+        return val;
+    }
 
 };
 

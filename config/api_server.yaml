@@ -4,3 +4,4 @@ PREDICTION:
     # Model file [SYMBOL]_sell/buy_[num].* will be loaded
     SYMBOL: eurusd
     NUM_FILTERS: 2
+    FEATURE_LIST: DMA,RSI,ROC,EMA,KAMA,LAG

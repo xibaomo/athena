@@ -15,6 +15,7 @@
  */
 #include "create_svr_app.h"
 #include "server_apps/server_predictor/server_predictor.h"
+#include "server_apps/server_fx_classifier/fxclassifier.h"
 
 ServerBaseApp*
 create_server_app(AppType type, const String& configFile)
@@ -23,6 +24,9 @@ create_server_app(AppType type, const String& configFile)
     switch(type) {
         case AppType::APP_PREDICTOR:
             app = &ServerPredictor::getInstance(configFile);
+            break;
+        case AppType::APP_FXCLASSIFIER:
+            app = &ForexClassifier::getInstance(configFile);
             break;
         default:
             break;

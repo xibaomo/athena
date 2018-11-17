@@ -22,6 +22,9 @@
 				<Option output="release/bin/api_server" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
 				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
 			</Target>
 			<Target title="test_server">
 				<Option output="release/bin/test_server" prefix_auto="1" extension_auto="1" />
@@ -72,6 +75,8 @@
 		<Unit filename="src/apiserver/server_apps/create_svr_app.h" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.cpp" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.h" />
+		<Unit filename="src/apiserver/server_apps/server_fx_classifier/fxclassifier.cpp" />
+		<Unit filename="src/apiserver/server_apps/server_fx_classifier/fxclassifier.h" />
 		<Unit filename="src/apiserver/server_apps/server_predictor/fx_action.h" />
 		<Unit filename="src/apiserver/server_apps/server_predictor/server_predictor.cpp" />
 		<Unit filename="src/apiserver/server_apps/server_predictor/server_predictor.h" />
