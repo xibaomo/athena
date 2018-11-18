@@ -40,6 +40,7 @@ class ForexTickPredictor(object):
         return
     
     def classifyATick(self,tick):
+        self.featureCalculator.resetFeatureTable()
         self.featureCalculator.appendPrice(tick)
         self.featureCalculator.computeFeatures(self.featureNames)
         features = self.featureCalculator.getLatestfeatures()
@@ -53,6 +54,7 @@ class ForexTickPredictor(object):
         print "predicting feature: " + str(features)
         for m in self.prodcutModels:
             pred = m.predict(features)[0]
+            print "prediction: %d" % pred
             
             if pred == 1:
                 return 1;

@@ -3,6 +3,7 @@ Created on Oct 7, 2018
 
 @author: fxua
 '''
+import pdb
 import talib
 import numpy as np
 import pandas as pd
@@ -24,6 +25,7 @@ class FeatureCalculator(object):
         self.rawFeatures = pd.DataFrame()
         self.nullID = np.array([])
         
+        self.prices=np.array([])
         self.fastPeriod = None
         self.slowPeriod = None
         if self.config is not None:
@@ -34,6 +36,10 @@ class FeatureCalculator(object):
     
     def __str__(self):
         return "Feature calculator " + str(self.fastPeriod) + " " + str(self.slowPeriod)
+    
+    def resetFeatureTable(self):
+        self.rawFeatures = pd.DataFrame()
+        return
     
     def setPeriods(self,fast,slow):
         self.slowPeriod = slow
