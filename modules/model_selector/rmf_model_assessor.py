@@ -37,7 +37,7 @@ class RMFModelAssessor(object):
         return params
 
     def assess(self):
-        clf = RandomForestClassifier(min_samples_leaf=100)
+        clf = RandomForestClassifier(min_samples_leaf=100,class_weight="balanced")
         params = self.prepareParams()
         grid_search = GridSearchCV(clf, param_grid = params,
                                    n_jobs = gModelSelectorConfig.getNJobs(),
