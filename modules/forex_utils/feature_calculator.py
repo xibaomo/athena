@@ -138,7 +138,7 @@ class FeatureCalculator(object):
         slag = talib.LINEARREG(self.prices,timeperiod=self.slowPeriod)
         dlag = flag - slag
         self.removeNullID(dlag)
-        self.rawFeatures['lag'] = dlag
+        self.rawFeatures['LAG'] = dlag
         
     def computeFeatures(self,featureNames):
         FeatureCalculatorSwitcher = {
@@ -166,7 +166,7 @@ class FeatureCalculator(object):
         df = pd.DataFrame(data,columns=self.rawFeatures.keys())
         df['label']=labels
         
-        df.to_csv("features.csv")
+        df.to_csv("features.csv",index=False)
         if data.shape[0] != len(labels):
             Log(LOG_FATAL) << "Samples inconsistent with labels"
         return data,labels
