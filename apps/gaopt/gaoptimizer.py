@@ -81,7 +81,7 @@ class GaOptimizer(App):
         # Operators
         #self.toolbox.register("evaluate",function)
         self.toolbox.register("mate",tools.cxTwoPoint)
-        self.toolbox.register("mutate",tools.mutUniformInt,low=min(lb),up=max(ub),
+        self.toolbox.register("mutate",tools.mutUniformInt,low=lb,up=ub,
                               indpb=self.config.getIndProb())
 
         self.toolbox.register("select",tools.selTournament,
