@@ -59,8 +59,8 @@ class ForexMultiFilters(App):
         Log(LOG_INFO) << "Actual transactions: %d" % (num_good + num_miss)
         Log(LOG_INFO) << "Profit transactions: %d" % (num_good)
         Log(LOG_INFO) << "Loss transactions: %d" % (num_miss)
-        Log(LOG_INFO) << "Total profit: $%.2f" % self.profit
-        Log(LOG_INFO) << "Dream profit: $%.2f" % dream_profit
+        Log(LOG_INFO) << "Total profit: %.2f" % self.profit
+        Log(LOG_INFO) << "Dream profit: %.2f" % dream_profit
         Log(LOG_INFO) << "%.2f%% of dream profit taken" % (100*self.profit/dream_profit)
         
         return

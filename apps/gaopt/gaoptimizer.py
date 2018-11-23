@@ -12,7 +12,7 @@ from deap import creator
 from deap import tools
 from time import sleep
 from numpy import isfinite
-READ_INTERVAL = 5
+READ_INTERVAL = 5 # 5 sec
 WINNER_FOLDER = "historical_winner_" + str(os.getpid())
 WKFOLDER = "workground_" + str(os.getpid())
 JOBFOLDER_PREFIX="job_"
@@ -85,7 +85,6 @@ class GaOptimizer(App):
                               indpb=self.config.getIndProb())
 
         self.toolbox.register("select",tools.selTournament,
-                              tools.selTournament,
                               tournsize=self.config.getTournamentSize())
         ###########################################################
         pop = self.toolbox.population(n = self.config.getPopulationSize())
@@ -149,7 +148,7 @@ class GaOptimizer(App):
                 ind.fitness.values = fit,
             
             pop[:] = offspring
-            utils.tabulateList(pop)
+#             utils.tabulateList(pop)
             fits = [ind.fitness.values[0] for ind in pop]
             bestFit,idx = self.getBest((val,idx) for (idx,val) in enumerate(fits))
             Log(LOG_INFO) << "Best fitness of generation: %s" % bestFit

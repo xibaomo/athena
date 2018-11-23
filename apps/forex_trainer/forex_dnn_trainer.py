@@ -85,8 +85,8 @@ class ForexDNNTrainer(App):
         
         Log(LOG_INFO) << "Profit transactions: %d" % num_good
         Log(LOG_INFO) << "Loss transactions: %d" % num_miss
-        Log(LOG_INFO) << "Total profit: $%.2f" % profit
-        Log(LOG_INFO) << "Dream profit: $%.2f" % dream_profit
+        Log(LOG_INFO) << "Total profit: %.2f" % profit
+        Log(LOG_INFO) << "Dream profit: %.2f" % dream_profit
         Log(LOG_INFO) << "%.2f%% of dream profit taken" % (100*profit/dream_profit)
         
         return profit

@@ -7,6 +7,7 @@ GENERAL:
     #               0  - Forex tick sampler
     #               1  - Forex trainer
     #               2  - Generic app
+    #               3  - Genetic optimization
     APPLICATION: 0
 
     # Log levels: 0 - LOG_FATAL
@@ -164,12 +165,12 @@ GENETIC_OPT:
     NUM_PARAMS: 3
     UPPER_BOUNDS: []
     LOWER_BOUNDS: []
-    SUM_BOUNDS: 99999
+    SUM_BOUND: 99999
     POPULATION_SIZE: 100
     NUM_GENERATIONS: 100
     YAML_MODIFIER: ABC.PY # define writeToYaml(individual,yaml_template)
     YAML_TEMPLATE: A.YAML
-    SGE_JOB_FILE: JOB
+    SGE_JOB_FILE: job
     CROSSOVER_PROB: 0.5
     MUTATE_PROB: 0.2
     INDEPENDENT_PROB: 0.05
