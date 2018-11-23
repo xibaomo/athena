@@ -8,30 +8,34 @@ from sklearn.ensemble import RandomForestClassifier
 from modules.mlengine_cores.classifier_cores.randomforest.rmfconf import RMFConfig
 from modules.basics.common.logger import *
 from modules.basics.conf.mlengineconf import gMLEngineConfig
-from modules.mlengine_cores.sklearn_comm.model_io import saveSklearnModel,\
+from modules.mlengine_cores.sklearn_comm.model_io import saveSklearnModel, \
     loadSklearnModel
+from sklearn.utils import class_weight
 
 class RandomForest(MLEngineCore):
-    
-    def __init__(self,est=None):
-        super(RandomForest,self).__init__(est)
-        
+
+    def __init__(self, est = None):
+        super(RandomForest, self).__init__(est)
+
         if est is None:
-            self.rmfConfig = RMFConfig()
-            self.rmfConfig.loadYamlDict(gMLEngineConfig.getYamlDict()['RMF'])
-            self.estimator = RandomForestClassifier(n_estimators=self.rmfConfig.getNEstimator(),
-                                                    min_samples_split=self.rmfConfig.getMinSampleSplit(),
-                                                    criterion=self.rmfConfig.getCriterion())
+            self.config = RMFConfig()
+            self.config.loadYamlDict(gMLEngineConfig.getYamlDict()['RMF'])
+            self.estimator = RandomForestClassifier(n_estimators = self.config.getNEstimator(),
+                                                    min_samples_split = self.config.getMinSampleSplit(),
+                                                    criterion = self.config.getCriterion(),
+                                                    min_samples_leaf = self.config.getMinSamplesLeaf(),
+                                                    class_weight=self.config.getClassWeight())
+
             Log(LOG_INFO) << "Classifier: random forest is created: {}".format(self.estimator)
         else:
             self.estimator = est
-                
+
         return
-    
+
     def saveModel(self, mfn):
-        saveSklearnModel(mfn,self.estimator)
+        saveSklearnModel(mfn, self.estimator)
         return
-    
+
     def loadModel(self, mfn):
         self.estimator = loadSklearnModel(mfn)
         return

@@ -67,9 +67,11 @@ ML_ENGINE_CORE:
         # gini or entropy
         CRITERION: entropy
     RMF: # Random Forest
-        MIN_SAMPLES_SPLIT: 2
+        MIN_SAMPLES_SPLIT: 5
         N_ESTIMATORS: 10
         CRITERION: entropy
+        MIN_SAMPLES_LEAF: 30
+        CLASS_WEIGHT: '{0:1,1:1}'  # or "balanced", or "balanced_subsample"
     DNN:
         EPOCHS: 1000
         BATCH_SIZE: 500

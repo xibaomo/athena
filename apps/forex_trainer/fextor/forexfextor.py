@@ -53,7 +53,10 @@ class ForexFextor(FeatureExtractor):
         
         fm,self.labels = self.featureCalculator.getTotalFeatureMatrix()
         
-        self.totalFeatureMatrix = self.scaler.fit_transform(fm)
+        if self.scaler is not None:
+            self.totalFeatureMatrix = self.scaler.fit_transform(fm)
+        else:
+            self.totalFeatureMatrix = fm
 #         self.totalFeatureMatrix=fm
         Log(LOG_INFO) << "Valid total ticks: %d" % len(self.labels)
         testSize = self.config.getTestSize()
