@@ -145,7 +145,7 @@ ForexClassifier::procMsg_HISTORY(Message& msg)
 Message
 ForexClassifier::procMsg_TICK(Message& msg)
 {
-    Log(LOG_INFO) << "New tick arrives";
+    Log(LOG_DEBUG) << "New tick arrives";
     Real *pm = (Real*)msg.getData();
     Real tick = pm[0];
 
@@ -155,9 +155,11 @@ ForexClassifier::procMsg_TICK(Message& msg)
     if (msg.getComment() == "buy") {
         pypred = PyObject_CallMethod(m_buyPredictor,"classifyATick","(O)",pytick.getObject());
         action = (ActionType)FXAction::PLACE_BUY;
+        Log(LOG_INFO) << "Buy tick arrives";
     } else if (msg.getComment() == "sell") {
         pypred = PyObject_CallMethod(m_sellPredictor,"classifyATick","(O)",pytick.getObject());
         action = (ActionType)FXAction::PLACE_SELL;
+        Log(LOG_INFO) << "Sell tick arrives";
     } else {
         Log(LOG_ERROR) << "Unexpected position type: " + msg.getComment();
         pypred = Py_BuildValue("i",1);

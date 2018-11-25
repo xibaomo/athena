@@ -63,7 +63,7 @@ private:
         m_lvlDict[(int)LogLevel::LOG_VERBOSE] = logging::trivial::debug;
         m_lvlDict[(int)LogLevel::LOG_DEBUG] = logging::trivial::trace;
 
-        logging::add_common_attributes();
+
 
         String logName = "athena_" + std::to_string(getpid()) + ".log";
         logging::add_file_log(keywords::file_name = logName.c_str(),
@@ -75,8 +75,9 @@ private:
                                 << expr::smessage
                                ));
 //                              keywords::format = "[%TimeStamp%]: %Message%");
-        logging::add_console_log(std::cout, boost::log::keywords::format = "[%TimeStamp%]: %Message%");
+        logging::add_console_log(std::cout, boost::log::keywords::format = "[%TimeStamp%][%Severity%]: %Message%");
 
+        logging::add_common_attributes();
     }
 public:
     static LogStream& getInstance()
@@ -104,6 +105,8 @@ public:
 //        BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(), \
 //                                     (::boost::log::keywords::severity = loglvl)) << msg <<std::endl;
         BOOST_LOG_SEV(m_lg,loglvl) << msg;
+        if (m_curLevel == LogLevel::LOG_FATAL )
+            exit(1);
         return *this;
     }
 };
