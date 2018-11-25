@@ -48,12 +48,12 @@ public:
     void finish() {;}
 
     void loadPythonModules();
-    void loadFilterSet(const String& symbol, const String& pos_type);
+    void loadFilter(CPyObject& pred, const String& modelFile);
 
     /**
      * Config predictor
      */
-    void configPredictor(CPyObject& pred);
+    void configPredictor(CPyObject& pred,int fastperiod, int slowperiod);
 
     /**
      * Process incoming msg, return response msg

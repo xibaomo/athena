@@ -23,10 +23,20 @@ void
 ForexClassifier::prepare()
 {
     loadPythonModules();
-    loadFilterSet(m_fxSymbol,"buy");
-    loadFilterSet(m_fxSymbol,"sell");
-    configPredictor(m_buyPredictor);
-    configPredictor(m_sellPredictor);
+
+    String mf = getYamlValue("PREDICTION/BUY_MODEL");
+    loadFilter(m_buyPredictor,mf);
+
+    mf = getYamlValue("PREDICTION/SELL_MODEL");
+    loadFilter(m_sellPredictor,mf);
+
+    int fp = stoi(getYamlValue("PREDICTION/BUY_FAST_PERIOD"));
+    int sp = stoi(getYamlValue("PREDICTION/BUY_SLOW_PERIOD"));
+    configPredictor(m_buyPredictor,fp,sp);
+
+    fp = stoi(getYamlValue("PREDICTION/SELL_FAST_PERIOD"));
+    sp = stoi(getYamlValue("PREDICTION/SELL_SLOW_PERIOD"));
+    configPredictor(m_sellPredictor,fp,sp);
 }
 
 void
@@ -53,28 +63,16 @@ ForexClassifier::loadPythonModules()
 }
 
 void
-ForexClassifier::loadFilterSet(const String& symbol, const String& pos_type)
+ForexClassifier::loadFilter(CPyObject& predictor, const String& modelFile)
 {
-    int numFilters = stoi(getYamlValue("PREDICTION/NUM_FILTERS"));
-    for (int i = 0; i < numFilters; i++) {
-        String mf = symbol + "_" + pos_type + "_" + to_string(i+1) + ".flt";
-        CPyObject arg = Py_BuildValue("s",mf.c_str());
-        if (pos_type == "buy") {
-            PyObject_CallMethod(m_buyPredictor,"loadAModel","(O)",arg.getObject());
-        } else if (pos_type == "sell") {
-            PyObject_CallMethod(m_sellPredictor,"loadAModel","(O)",arg.getObject());
-        } else {
-            Log(LOG_FATAL) << "Unexpected position type: " + pos_type;
-        }
-    }
+    CPyObject arg = Py_BuildValue("s",modelFile.c_str());
+    PyObject_CallMethod(predictor,"loadAModel","(O)",arg.getObject());
 }
 
 void
-ForexClassifier::configPredictor(CPyObject& predictor)
+ForexClassifier::configPredictor(CPyObject& predictor, int fastPeriod, int slowPeriod)
 {
     // set fast & slow periods
-    int fastPeriod = stoi(getYamlValue("PREDICTION/FAST_PERIOD"));
-    int slowPeriod = stoi(getYamlValue("PREDICTION/SLOW_PERIOD"));
     CPyObject arg1 = Py_BuildValue("i",fastPeriod);
     CPyObject arg2 = Py_BuildValue("i",slowPeriod);
 
