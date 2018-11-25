@@ -35,7 +35,7 @@ class FeatureCalculator(object):
         return
     
     def __str__(self):
-        return "Feature calculator " + str(self.fastPeriod) + " " + str(self.slowPeriod)
+        return "Feature calculator:  " + str(self.fastPeriod) + " " + str(self.slowPeriod)
     
     def resetFeatureTable(self):
         self.rawFeatures = pd.DataFrame()

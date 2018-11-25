@@ -35,6 +35,7 @@ class RandomForest(MLEngineCore):
     def saveModel(self, mfn):
         mfn = mfn + ".pkl"
         saveSklearnModel(mfn, self.estimator)
+        Log(LOG_INFO) << "Model dumped: " + mfn
         return
 
     def loadModel(self, mfn):

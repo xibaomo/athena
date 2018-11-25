@@ -10,6 +10,7 @@ from apps.forex_trainer.fxtconf import FxtConfig
 from modules.mlengine_cores.mlengine_core_creator import createMLEngineCore
 from modules.basics.conf.mlengineconf import gMLEngineConfig
 from modules.mlengines.classifier.classifier import Classifier
+from modules.basics.conf.generalconf import gGeneralConfig
 class ForexFilter(App):
     '''
     classdocs
@@ -99,8 +100,9 @@ class ForexFilter(App):
         return 
         
     def finish(self):
+        od = gGeneralConfig.getOutputDir()
         modelFile = self.config.getModelPrefix() + "_profit_" + str(int(self.profit))
-        self.mlEngine.saveModel(modelFile)
+        self.mlEngine.saveModel(od+"/"+modelFile) 
         return   
         
         

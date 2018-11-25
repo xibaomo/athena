@@ -1,5 +1,6 @@
 from modules.basics.common.logger import *
 from modules.basics.conf.topconf import TopConf
+import os
 
 class GeneralConfig(TopConf):
     def __init__(self):
@@ -73,6 +74,13 @@ class GeneralConfig(TopConf):
 
     def isEnableFeatureStandardization(self):
         return self.yamlDict['ENABLE_FEATURE_STANDARDIZATION']
+    
+    def getOutputDir(self):
+        fd = self.yamlDict['OUTPUT_DIR']
+        if not os.path.isdir(fd):
+            os.mkdir(fd)
+            
+        return fd           
 
     def integrityCheck(self):
         if self.isVerification() and self.getLoadModelFile() == "":
