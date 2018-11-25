@@ -296,6 +296,7 @@ class GaOptimizer(App):
         allfolders = [ x for x in os.listdir(".") if os.path.isdir(x)]
         for fd in allfolders:
             key = fd[len(JOBFOLDER_PREFIX):]
+            Log(LOG_DEBUG) << "Checking %s" % key
             
             if self.allResults.get(key) is not None:
                 nFinish+=1
@@ -303,17 +304,22 @@ class GaOptimizer(App):
             
             os.chdir(fd)
             logs = [ x for x in os.listdir(".") if x.startswith("log_")]
+            
             res,n = self.parseLogs(logs)
+            Log(LOG_DEBUG) << "Finished logs: %d" % n
             
             if n == self.config.getNItersPerKid():
                 self.allResults[key] = res
                 nFinish+=1
+            else:
+                Log(LOG_INFO) << "Not finished: %s" % key
                 
             os.chdir(root)
             
         os.chdir("../")
         
         Log(LOG_INFO) << "CWD after reading jobs: %s" % os.getcwd()
+        
         Log(LOG_INFO) << "%d out of %d finished" % (nFinish,numJobs)
         
         return nFinish == numJobs
@@ -338,7 +344,7 @@ class GaOptimizer(App):
         avg = np.mean([x[0] for x in allres])
         
         return avg,len(allres)
-        return
+        
     
         
         

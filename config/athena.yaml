@@ -16,6 +16,8 @@ GENERAL:
     #             3 - LOG_DEBUG
     LOG_LEVEL: 2
 
+    OUTPUT_DIR: output
+
     # Format of gauge file
     GAUGE_FILE_FORMAT: csv
 

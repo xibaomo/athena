@@ -99,6 +99,8 @@ class ForexFilter(App):
         return 
         
     def finish(self):
+        modelFile = self.config.getModelPrefix() + "_profit_" + str(int(self.profit))
+        self.mlEngine.saveModel(modelFile)
         return   
         
         

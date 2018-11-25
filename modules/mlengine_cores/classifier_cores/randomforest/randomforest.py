@@ -33,6 +33,7 @@ class RandomForest(MLEngineCore):
         return
 
     def saveModel(self, mfn):
+        mfn = mfn + ".pkl"
         saveSklearnModel(mfn, self.estimator)
         return
 
