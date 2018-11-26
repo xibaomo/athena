@@ -37,7 +37,6 @@ namespace logging = boost::log;
 namespace src = boost::log::sources;
 namespace sinks = boost::log::sinks;
 namespace keywords = boost::log::keywords;
-namespace expr = boost::log::expressions;
 
 enum LogLevel {
     LOG_FATAL = 0,
@@ -51,9 +50,10 @@ enum LogLevel {
 class LogStream
 {
 private:
+    LogLevel m_setLevel;
     LogLevel m_curLevel;
     src::severity_logger < logging::trivial::severity_level > m_lg;
-    std::unordered_map<int, decltype(logging::trivial::info)> m_lvlDict;
+    std::unordered_map<int, ::boost::log::trivial::severity_level> m_lvlDict;
     LogStream()
     {
         m_lvlDict[(int)LogLevel::LOG_FATAL] = logging::trivial::fatal;
@@ -63,18 +63,13 @@ private:
         m_lvlDict[(int)LogLevel::LOG_VERBOSE] = logging::trivial::debug;
         m_lvlDict[(int)LogLevel::LOG_DEBUG] = logging::trivial::trace;
 
-
-
-        String logName = "athena_" + std::to_string(getpid()) + ".log";
+        Logging::register_simple_formatter_factory<logging::trivial::severity_level, char>("Severity");
+        String logName = "athena_pid" + std::to_string(getpid()) + ".log";
         logging::add_file_log(keywords::file_name = logName.c_str(),
                               keywords::auto_flush = true,
-                              keywords::format =
-                              (
-                                expr::stream << expr::format_date_time<boost::posix_time::ptime>("TimeStamp","%m-%d-%Y %H:%M:%S")
-                                << "<" << logging::trivial::severity <<"> "
-                                << expr::smessage
-                               ));
-//                              keywords::format = "[%TimeStamp%]: %Message%");
+                              keywords::format = "[%TimeStamp%][%ProcessID%][%Severity%]: %Message%"
+                              );
+
         logging::add_console_log(std::cout, boost::log::keywords::format = "[%TimeStamp%][%Severity%]: %Message%");
 
         logging::add_common_attributes();
@@ -88,10 +83,13 @@ public:
 
     void setLogLevel(LogLevel lvl)
     {
+        m_setLevel = lvl;
         auto loglvl = m_lvlDict[(int)lvl];
 
         logging::core::get()->set_filter(logging::trivial::severity >= loglvl);
     }
+
+    LogLevel getLogLevel() { return m_setLevel; }
 
     void setCurLogLevel(LogLevel lvl)
     {
@@ -103,9 +101,11 @@ public:
     {
         auto loglvl = m_lvlDict[(int)m_curLevel];
 //        BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(), \
-//                                     (::boost::log::keywords::severity = loglvl)) << msg <<std::endl;
-        BOOST_LOG_SEV(m_lg,loglvl) << msg;
-        if (m_curLevel == LogLevel::LOG_FATAL )
+//                                     (::boost::log::keywords::severity = loglvl)) << msg << std::endl;
+//        BOOST_LOG_SEV(m_lg, loglvl) << msg;
+        BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(), \
+                (::boost::log::keywords::severity = loglvl)) << msg;
+        if ( m_curLevel == LogLevel::LOG_FATAL )
             exit(1);
         return *this;
     }
@@ -125,6 +125,11 @@ public:
     {
         auto& logger = LogStream::getInstance();
         logger.setLogLevel(lvl);
+    }
+
+    static int getLogLevel() {
+        auto& logger = LogStream::getInstance();
+        return (int)logger.getLogLevel();
     }
 
     template <typename T>
