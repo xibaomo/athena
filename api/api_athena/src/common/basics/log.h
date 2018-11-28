@@ -63,7 +63,7 @@ private:
         m_lvlDict[(int)LogLevel::LOG_VERBOSE] = logging::trivial::debug;
         m_lvlDict[(int)LogLevel::LOG_DEBUG] = logging::trivial::trace;
 
-        Logging::register_simple_formatter_factory<logging::trivial::severity_level, char>("Severity");
+        logging::register_simple_formatter_factory<logging::trivial::severity_level, char>("Severity");
         String logName = "athena_pid" + std::to_string(getpid()) + ".log";
         logging::add_file_log(keywords::file_name = logName.c_str(),
                               keywords::auto_flush = true,

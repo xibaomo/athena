@@ -51,7 +51,7 @@ ServerBaseApp::execute()
             int clntsock;
             if ((clntsock = accept(sock,NULL,NULL)) <0)
                 Log(LOG_FATAL) << "Failed to accept connection";
-            Log(LOG_INFO) << "New connection comes in";
+            Log(LOG_DEBUG) << "New connection comes in";
             m_msger->drainSocket(clntsock);
             Message msg = m_msger->popMsgBox();
             if (msg.getMsgSize() == 0)
