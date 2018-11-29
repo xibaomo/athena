@@ -140,6 +140,13 @@ class FeatureCalculator(object):
         self.removeNullID(dlag)
         self.rawFeatures['LAG'] = dlag
         
+    def computeDStdv(self):
+        fstd = talib.STDDEV(self.prices,self.fastPeriod)
+        sstd = talib.STDDEV(self.prices,self.slowPeriod)
+        stdv = fstd-sstd
+        self.removeNullID(stdv)
+        self.rawFeatures['STDV'] = stdv
+        
     def computeFeatures(self,featureNames):
         FeatureCalculatorSwitcher = {
         "DMA": self.computeDMA,
@@ -149,7 +156,8 @@ class FeatureCalculator(object):
         "ROC": self.computeDROC,
         "EMA": self.computeDEMA,
         "KAMA": self.computeDKAMA,
-        "LAG": self.computeDLag
+        "LAG": self.computeDLag,
+        "STDV": self.computeDStdv
         }
         for f in featureNames:
             FeatureCalculatorSwitcher[f]()

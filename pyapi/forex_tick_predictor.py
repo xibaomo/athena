@@ -6,6 +6,7 @@ Created on Nov 16, 2018
 from modules.forex_utils.feature_calculator import FeatureCalculator
 from modules.mlengine_cores.sklearn_comm.model_io import loadSklearnModel
 import numpy as np
+import pdb
 class ForexTickPredictor(object):
     '''
     classdocs
@@ -52,13 +53,15 @@ class ForexTickPredictor(object):
             return 1
         
         print "predicting feature: " + str(features)
+
         for m in self.prodcutModels:
             pred = m.predict(features)[0]
+
             print "prediction: %d" % pred
             
             if pred == 1:
                 return 1;
-        
+        print "Prediction from python: " + str(pred)
         return pred
         
     def showFeatureCalculator(self):

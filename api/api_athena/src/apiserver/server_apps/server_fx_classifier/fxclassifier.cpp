@@ -155,22 +155,32 @@ ForexClassifier::procMsg_TICK(Message& msg)
     if (msg.getComment() == "buy") {
         pypred = PyObject_CallMethod(m_buyPredictor,"classifyATick","(O)",pytick.getObject());
         action = (ActionType)FXAction::PLACE_BUY;
-        Log(LOG_INFO) << "Buy tick arrives";
+        Log(LOG_DEBUG) << "Buy tick arrives";
     } else if (msg.getComment() == "sell") {
         pypred = PyObject_CallMethod(m_sellPredictor,"classifyATick","(O)",pytick.getObject());
         action = (ActionType)FXAction::PLACE_SELL;
-        Log(LOG_INFO) << "Sell tick arrives";
+        Log(LOG_DEBUG) << "Sell tick arrives";
     } else {
         Log(LOG_ERROR) << "Unexpected position type: " + msg.getComment();
         pypred = Py_BuildValue("i",1);
     }
 
     PyObject* objrepr = PyObject_Repr(pypred.getObject());
+    if (!objrepr)
+        Log(LOG_ERROR) << "Failed to get prediction from python";
+
     const char* cp = PyString_AsString(objrepr);
+
+    Log(LOG_INFO) << "Prediction: " + String(cp);
     int pred = stoi(String(cp));
     Py_XDECREF(objrepr);
     if (pred == 1)
         action = (ActionType)FXAction::NOACTION;
+    else if(pred == 0)
+        Log(LOG_INFO) << "Good to open position";
+        else
+            Log(LOG_FATAL) << "Unrecognized prediction";
+
 
     Message msgnew;
     msgnew.setAction(action);

@@ -150,6 +150,7 @@ FTS: # Forex Tick Sampler
 FXT: # Forex trainer
     TRAINER_TYPE: 0  # 0 - multifilter (non-DNN) 
                      # 1 - DNN
+                     # 2 - RANDOM FOREST
     POINT_VALUE: 0.1 # in US dollar    
     TAKE_PROFIT_POINTS: 100
     STOP_LOSS_POINTS: 100
