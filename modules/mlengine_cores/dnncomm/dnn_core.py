@@ -16,6 +16,7 @@ from modules.mlengine_cores.dnncomm.dnncreator import createDNNModel
 import tensorflow as tf
 import os
 import numpy as np
+from sklearn.utils import class_weight
 
 class DNNCore(MLEngineCore):
     def __init__(self,input_dim,est=None):
@@ -35,7 +36,7 @@ class DNNCore(MLEngineCore):
         Log(LOG_FATAL) << "Should be implemented in concrete class"
         return
 
-    def createEsimator(self):
+    def createEstimator(self):
         self.estimator = self._createModel()
         return
 
@@ -67,7 +68,8 @@ class DNNCore(MLEngineCore):
                                           epochs=self.config.getEpochs(),
                                           shuffle=self.config.isShuffle(),
                                           verbose=self.config.getVerbose(),
-                                          callbacks=[cp_callback])
+                                          class_weight={0:1,1:1}
+                                          )
 
         Log(LOG_INFO) << "Final loss: %f" % self.getFinalLoss()
         return

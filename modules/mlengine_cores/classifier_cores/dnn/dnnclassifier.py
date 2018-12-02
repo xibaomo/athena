@@ -21,7 +21,8 @@ class DNNClassifier(DNNCore):
         else:
             if input_dim <= 0:
                 return
-            self.createEstimator()
+            super(DNNClassifier,self).createEstimator()
+            
             
             Log(LOG_INFO) <<"DNN classifier is created"
         return

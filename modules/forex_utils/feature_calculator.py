@@ -71,6 +71,7 @@ class FeatureCalculator(object):
         slowma = talib.MA(self.prices,timeperiod=self.slowPeriod)
         fastma = talib.MA(self.prices,timeperiod=self.fastPeriod) 
         dma = fastma - slowma
+        dma = slowma
         nullID = np.where(np.isnan(dma))[0]
         if len(nullID) > len(self.nullID):
             self.nullID = nullID
@@ -95,6 +96,7 @@ class FeatureCalculator(object):
         frsi = talib.RSI(self.prices,timeperiod=self.fastPeriod)
         
         rsi = frsi-srsi
+        rsi = srsi
         nullID = np.where(np.isnan(rsi))[0]
         if len(nullID) > len(self.nullID):
             self.nullID = nullID
@@ -105,6 +107,7 @@ class FeatureCalculator(object):
         scmo = talib.CMO(self.prices,timeperiod=self.slowPeriod)
         fcmo = talib.CMO(self.prices,timeperiod=self.fastPeriod)
         cmo = fcmo - scmo
+        cmo = scmo
         self.removeNullID(cmo)
         self.rawFeatures['CMO']=cmo
         return
@@ -113,6 +116,8 @@ class FeatureCalculator(object):
         sroc = talib.ROC(self.prices,timeperiod=self.slowPeriod)
         froc = talib.ROC(self.prices,timeperiod=self.fastPeriod)
         droc = froc - sroc 
+        
+        droc = sroc
         self.removeNullID(droc)
         self.rawFeatures['ROC']=droc
         return
@@ -144,6 +149,8 @@ class FeatureCalculator(object):
         fstd = talib.STDDEV(self.prices,self.fastPeriod)
         sstd = talib.STDDEV(self.prices,self.slowPeriod)
         stdv = fstd-sstd
+        
+        stdv = fstd
         self.removeNullID(stdv)
         self.rawFeatures['STDV'] = stdv
         
