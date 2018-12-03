@@ -27,6 +27,7 @@
 typedef boost::posix_time::ptime TimePoint;
 struct MinBar {
     TimePoint time;
+    TimePoint close_time;
     float open;
     float high;
     float low;

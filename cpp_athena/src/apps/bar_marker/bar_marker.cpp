@@ -24,6 +24,7 @@ using namespace aria::csv;
 
 BarMarker::BarMarker(const String& cfg) : App(cfg)
 {
+    Log(LOG_INFO) << "Yaml parser: " + m_yamlParser;
     m_pointValue["EURUSD"] = 1.E-5;
     m_pointValue["GBPUSD"] = 1.E-5;
     m_pointValue["USDCHF"] = 1.E-5;
@@ -79,9 +80,11 @@ BarMarker::markMinBar()
 
             if (high >= ub && low > lb ) {
                 m_allMinBars[i].label = 0;
+                m_allMinBars[i].close_time = m_allMinBars[j].time;
                 break;
             } else if (low <= lb && ub > high) {
                 m_allMinBars[i].label = 1;
+                m_allMinBars[i].close_time = m_allMinBars[j].time;
                 break;
             } else if (low <= lb && high >= ub) {
                 m_allMinBars[i].label = 2;
@@ -107,10 +110,14 @@ BarMarker::dumpCSV()
             << bar.high << ","
             << bar.low  << ","
             << bar.close << ","
+            << bar.tickvol<<","
+            << boost::posix_time::to_simple_string(bar.close_time) << ","
             << bar.label << "\n";
     }
 
     ofs.close();
+
+    Log(LOG_INFO) << "Labeled min bars dumped to " + csvfile;
 }
 void
 BarMarker::prepare()
@@ -118,15 +125,21 @@ BarMarker::prepare()
     const String key = "BAR_MARKER/BAR_FILE";
     String barFile = getYamlValue(key);
     parseBarFile(barFile);
+
+    Log(LOG_INFO) << "Min bar file loaded";
 }
 
 void
 BarMarker::execute()
 {
+    Log(LOG_INFO) << "Labeling min bars ...";
     markMinBar();
+
+    Log(LOG_INFO) << "Min bars labeled";
 }
 
 void
 BarMarker::finish()
 {
+    dumpCSV();
 }

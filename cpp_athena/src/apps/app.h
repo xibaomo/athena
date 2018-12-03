@@ -28,8 +28,8 @@ protected:
     String m_yamlParser;
     String m_configFile;
 public:
-    App(const String& config) : m_configFile(config) {;}
-    virtual ~App() { m_yamlParser = String(getenv("ATHENA_INSTALL")) + "/api/release/scripts/yaml_parser.py ";}
+    App(const String& config) : m_configFile(config) { m_yamlParser = String(getenv("ATHENA_INSTALL")) + "/api/release/scripts/yaml_parser.py ";}
+    virtual ~App() {;}
 
     virtual void prepare() = 0;
 
