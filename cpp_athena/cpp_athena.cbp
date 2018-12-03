@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="cpp_athena" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="debug/bin/cpp_athena" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="release/bin/cpp_athena" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<VirtualTargets>
+			<Add alias="all" targets="Debug;Release;" />
+		</VirtualTargets>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-std=c++0x" />
+			<Add option="-fexceptions" />
+			<Add directory="src/common" />
+			<Add directory="src/apps" />
+			<Add directory="/tools/include" />
+		</Compiler>
+		<Linker>
+			<Add option="-L/tools/lib" />
+			<Add option="-Wl,-Bstatic" />
+			<Add option="-lboost_log_setup" />
+			<Add option="-lboost_log" />
+			<Add option="-lboost_thread" />
+			<Add option="-lboost_system" />
+			<Add option="-lboost_filesystem" />
+			<Add option="-lboost_date_time" />
+			<Add option="-Wl,-Bdynamic" />
+			<Add option="-lpython2.7" />
+			<Add option="-lpthread" />
+		</Linker>
+		<Unit filename="src/apps/app.cpp" />
+		<Unit filename="src/apps/app.h" />
+		<Unit filename="src/apps/bar_marker/bar_marker.cpp" />
+		<Unit filename="src/apps/bar_marker/bar_marker.h" />
+		<Unit filename="src/apps/bar_marker/parser.hpp" />
+		<Unit filename="src/common/basics/log.cpp" />
+		<Unit filename="src/common/basics/log.h" />
+		<Unit filename="src/common/basics/mtqueue.h" />
+		<Unit filename="src/common/basics/types.h" />
+		<Unit filename="src/common/basics/utils.cpp" />
+		<Unit filename="src/common/basics/utils.h" />
+		<Unit filename="src/common/messenger/messenger.cpp" />
+		<Unit filename="src/common/messenger/messenger.h" />
+		<Unit filename="src/common/messenger/msg.h" />
+		<Unit filename="src/common/messenger/sockutils.cpp" />
+		<Unit filename="src/common/messenger/sockutils.h" />
+		<Unit filename="src/common/pyhelper.hpp" />
+		<Unit filename="src/main/main.cpp" />
+		<Extensions>
+			<envvars />
+			<code_completion />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

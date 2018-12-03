@@ -147,6 +147,11 @@ FTS: # Forex Tick Sampler
     STOP_LOSS_POINTS: 100
     FOREX_SYMBOL: EURUSD
 
+BAR_MARKER:
+    BAR_FILE: A.CSV
+    OFFSET: 100
+    FOREX_SYMBOL: EURUSD
+
 FXT: # Forex trainer
     TRAINER_TYPE: 0  # 0 - multifilter (non-DNN) 
                      # 1 - DNN
