@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 import copy
 from modules.basics.common.logger import *
-from numpy.testing._private.decorators import slow
 
 class FeatureCalculator(object):
     '''

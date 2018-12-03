@@ -8,6 +8,7 @@ GENERAL:
     #               1  - Forex trainer
     #               2  - Generic app
     #               3  - Genetic optimization
+    #               4  - Forex bar trainer
     APPLICATION: 0
 
     # Log levels: 0 - LOG_FATAL
@@ -151,6 +152,13 @@ BAR_MARKER:
     BAR_FILE: A.CSV
     OFFSET: 100
     FOREX_SYMBOL: EURUSD
+FOREX_BAR_FILTER:
+    BAR_FILE: EURUSD_labeled.csv
+    LOOK_BACK: 200
+    FEATURE_LIST: ['WILLR','RSI']
+    TEST_SIZE: 7000
+    PROFIT_LOSS: 10.0
+    POS_TYPE: buy # sell
 
 FXT: # Forex trainer
     TRAINER_TYPE: 0  # 0 - multifilter (non-DNN) 

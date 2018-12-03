@@ -88,6 +88,8 @@ BarMarker::markMinBar()
                 break;
             } else if (low <= lb && high >= ub) {
                 m_allMinBars[i].label = 2;
+                m_allMinBars[i].close_time = m_allMinBars[j].time;
+
                 Log(LOG_WARNING) << "Rush minute: high = " + to_string(high) + ", low = " + to_string(low);
                 break;
             } else {
@@ -102,16 +104,19 @@ BarMarker::dumpCSV()
 {
     const String csvfile = m_symbol + "_labeled.csv";
     ofstream ofs(csvfile);
-    ofs << "TIME,OPEN,HIGH,LOW,CLOSE,TICKVOL,LABEL\n";
+    ofs << "TIME,OPEN,HIGH,LOW,CLOSE,TICKVOL,DURATION,LABEL\n";
 
     for (auto& bar : m_allMinBars) {
+        long duration = (bar.close_time-bar.time).total_seconds()/60;
+
         ofs << boost::posix_time::to_simple_string(bar.time) << ","
             << bar.open << ","
             << bar.high << ","
             << bar.low  << ","
             << bar.close << ","
             << bar.tickvol<<","
-            << boost::posix_time::to_simple_string(bar.close_time) << ","
+            << to_string(duration) << ","
+//            << boost::posix_time::to_simple_string(bar.close_time) << ","
             << bar.label << "\n";
     }
 
