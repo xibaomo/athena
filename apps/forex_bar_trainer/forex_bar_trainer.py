@@ -31,6 +31,7 @@ class ForexBarTrainer(App):
         return cls()
         
     def prepare(self):
+        self.fextor.loadMinBars()
         self.fextor.computeFeatures(self.config.getFeatureList())
         self.totalFeatureMatrix,self.totalLabels = self.fextor.getTotalFeatureMatrix()
        

@@ -22,7 +22,13 @@ class BarFeatureCalculator(object):
         self.config = config
         self.rawFeatures = pd.DataFrame()
         self.nullID = np.array([])
+        self.close = np.array([])
+        self.open  = np.array([])
+        self.high  = np.array([])
+        self.low   = np.array([])
+        return
         
+    def loadMinBars(self):
         self.lookback = self.config.getLookBack()
         self.allMinBars = pd.read_csv(self.config.getBarFile())
         self.open = self.allMinBars['OPEN']
@@ -34,6 +40,22 @@ class BarFeatureCalculator(object):
     
     def resetFeatureTable(self):
         self.rawFeatures = pd.DataFrame()
+        return
+    
+    def appendNewBar(self,open,high,low,close):
+        self.open = np.append(self.open, open)
+        self.high = np.append(self.high,high)
+        self.low  = np.append(self.low,low)
+        self.close= np.append(self.close,close)
+        print "Total bars: %d" % len(self.close)
+        return
+    
+    def getLatestFeatures(self):
+        f = self.rawFeatures.iloc[-1,:].values
+        return f
+    
+    def setLookback(self,lookback):
+        self.lookback = lookback
         return
     
     def computeFeatures(self,featureNames):

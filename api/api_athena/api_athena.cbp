@@ -73,11 +73,13 @@
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/create_svr_app.cpp" />
 		<Unit filename="src/apiserver/server_apps/create_svr_app.h" />
+		<Unit filename="src/apiserver/server_apps/fx_minbar_classifier/fx_minbar_classifier.cpp" />
+		<Unit filename="src/apiserver/server_apps/fx_minbar_classifier/fx_minbar_classifier.h" />
+		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_action.h" />
+		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.cpp" />
+		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.h" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.cpp" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.h" />
-		<Unit filename="src/apiserver/server_apps/server_fx_classifier/fx_action.h" />
-		<Unit filename="src/apiserver/server_apps/server_fx_classifier/fxclassifier.cpp" />
-		<Unit filename="src/apiserver/server_apps/server_fx_classifier/fxclassifier.h" />
 		<Unit filename="src/apiserver/server_apps/server_predictor/fx_action.h" />
 		<Unit filename="src/apiserver/server_apps/server_predictor/server_predictor.cpp" />
 		<Unit filename="src/apiserver/server_apps/server_predictor/server_predictor.h" />
@@ -99,10 +101,6 @@
 		<Unit filename="src/common/messenger/sockutils.cpp" />
 		<Unit filename="src/common/messenger/sockutils.h" />
 		<Unit filename="src/common/pyhelper.hpp" />
-		<Unit filename="src/modules/predictor/prdmsg.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-		</Unit>
 		<Unit filename="src/modules/predictor/prdtypes.h" />
 		<Extensions>
 			<envvars />
