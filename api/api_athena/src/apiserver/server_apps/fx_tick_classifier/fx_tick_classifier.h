@@ -16,14 +16,14 @@
  * =====================================================================================
  */
 
-#ifndef  _FOREX_CLASSIFIER_H_
-#define  _FOREX_CLASSIFIER_H_
+#ifndef  _FOREX_TICK_CLASSIFIER_H_
+#define  _FOREX_TICK_CLASSIFIER_H_
 
 #include "server_apps/server_base_app/server_base_app.h"
 #include "pyhelper.hpp"
 #include "basics/utils.h"
 #include "fx_action.h"
-class ForexClassifier : public ServerBaseApp {
+class ForexTickClassifier : public ServerBaseApp {
 protected:
     CPyInstance m_pyInst; // Initialize python environment. must be the first. last destroyed
     CPyObject   m_buyPredictor;
@@ -33,14 +33,14 @@ protected:
 
     String      m_fxSymbol;
 
-    ForexClassifier(const String& configFile) : ServerBaseApp(configFile) {
+    ForexTickClassifier(const String& configFile) : ServerBaseApp(configFile) {
         m_fxSymbol = getYamlValue("PREDICTION/SYMBOL");
         Log(LOG_INFO) << "Forex classifier created. Symbol: " + m_fxSymbol;
     }
 public:
-    virtual ~ForexClassifier() {;}
-    static ForexClassifier& getInstance(const String& cf) {
-        static ForexClassifier _inst(cf);
+    virtual ~ForexTickClassifier() {;}
+    static ForexTickClassifier& getInstance(const String& cf) {
+        static ForexTickClassifier _inst(cf);
         return _inst;
     }
 
@@ -53,7 +53,7 @@ public:
     /**
      * Config predictor
      */
-    void configPredictor(CPyObject& pred,int fastperiod, int slowperiod);
+    void configPredictor(CPyObject& pred, int fastperiod, int slowperiod);
 
     /**
      * Process incoming msg, return response msg
@@ -66,7 +66,5 @@ public:
     Message procMsg_CHECKIN(Message& msg);
     Message procMsg_HISTORY(Message& msg);
     Message procMsg_TICK(Message& msg);
-
-
 };
-#endif   /* ----- #ifndef _FOREX_CLASSIFIER_H_  ----- */
+#endif   /* ----- #ifndef _FOREX_TICK_CLASSIFIER_H_  ----- */

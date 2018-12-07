@@ -22,21 +22,6 @@
 
 using namespace std;
 
-//void
-//ServerBaseApp::_execute()
-//{
-//    Message msg;
-//    while ( m_msger->listenOnce(msg) >=0 ) {
-//        MsgAction action = (MsgAction) msg.getAction();
-//        if ( action == MsgAction::GET_READY ) {
-//            sleepMilliSec(ONE_MS);
-//            continue;
-//        }
-//        processMsg(msg); // Implemented by concrete class
-//        msg.setAction(MsgAction::GET_READY);
-//    }
-//}
-
 void
 ServerBaseApp::execute()
 {

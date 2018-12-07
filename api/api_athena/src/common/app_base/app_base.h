@@ -3,7 +3,7 @@
 #include "messenger/messenger.h"
 enum AppType {
     APP_PREDICTOR = 0,
-    APP_FXCLASSIFIER
+    APP_TICKCLASSIFIER
 };
 
 class App{
