@@ -117,6 +117,47 @@ ForexMinBarClassifier::procMsg_CHECKIN(Message& msg)
 Message
 ForexMinBarClassifier::procMsg_MINBAR(Message& msg)
 {
+    Log(LOG_INFO) << "New min bar arrives";
+    Real* pm = (Real*)msg.getData();
+
+    ActionType action;
+    CPyObject pypred;
+    CPyObject pyopen = Py_BuildValue(REALFORMAT,pm[0]);
+    CPyObject pyhigh = Py_BuildValue(REALFORMAT,pm[1]);
+    CPyObject pylow  = Py_BuildValue(REALFORMAT,pm[2]);
+    CPyObject pyclose= Py_BuildValue(REALFORMAT,pm[3]);
+
+    pypred = PyObject_CallMethod(m_buyPredictor,"classifyMinBar","(OOOO)",pyopen.getObject(),
+                                 pyhigh.getObject(),
+                                 pylow.getObject(),
+                                 pyclose.getObject());
+
+    int buy_pred = getIntFromPyobject(pypred);
+
+    pypred = PyObject_CallMethod(m_sellPredictor,"classifyMinBar","(OOOO)",pyopen.getObject(),
+                                 pyhigh.getObject(),
+                                 pylow.getObject(),
+                                 pyclose.getObject());
+
+    int sell_pred = getIntFromPyobject(pypred);
+
+    if (buy_pred == 0 && sell_pred == 0) {
+        Log(LOG_WARNING) << "Good to place both positions. Too risky, no action";
+        action = (ActionType)FXAction::NOACTION;
+    } else if (buy_pred == 0 && sell_pred == 1) {
+        action = (ActionType)FXAction::PLACE_BUY;
+        Log(LOG_INFO) << "Place buy position";
+    } else if (buy_pred == 1 && sell_pred == 0) {
+        action = (ActionType)FXAction::PLACE_SELL;
+        Log(LOG_INFO) << "Place sell position";
+    } else {
+        action = (ActionType)FXAction::NOACTION;
+        Log(LOG_INFO) << "Bad for either position. No action.";
+    }
     Message msgnew;
+    msgnew.setAction(action);
+
     return msgnew;
 }
+
+

@@ -9,6 +9,7 @@ from apps.forex_bar_trainer.fbtconf import FbtConfig
 from apps.forex_bar_trainer.bar_feature_calculator import BarFeatureCalculator
 from modules.mlengine_cores.mlengine_core_creator import createMLEngineCore
 from modules.basics.conf.mlengineconf import gMLEngineConfig
+from modules.basics.conf.generalconf import gGeneralConfig
 from modules.mlengines.classifier.classifier import Classifier
 import numpy as np
 class ForexBarTrainer(App):
@@ -62,9 +63,6 @@ class ForexBarTrainer(App):
         self.computeProfit()
         return
     
-    def finish(self):
-        return
-    
     def getLabel(self,pos_type):
         labels = []
         for t in self.totalLabels:
@@ -96,7 +94,7 @@ class ForexBarTrainer(App):
                 profit -= self.config.getProfitLoss()
                 num_miss+=1
                 
-       
+        self.profit = profit
         true_tar = self.testTargets
         dream_profit = (len(true_tar) - sum(true_tar))*self.config.getProfitLoss()
         Log(LOG_INFO) << "***************************";
@@ -108,9 +106,15 @@ class ForexBarTrainer(App):
         Log(LOG_INFO) << "Actual transactions: %d" % (num_good + num_miss)
         Log(LOG_INFO) << "Profit transactions: %d" % (num_good)
         Log(LOG_INFO) << "Loss transactions: %d" % (num_miss)
-        Log(LOG_INFO) << "Total profit: %.2f" % profit
+        Log(LOG_INFO) << "Total profit: %.2f" % self.profit
         Log(LOG_INFO) << "Dream profit: %.2f" % dream_profit
         Log(LOG_INFO) << "%.2f%% of dream profit taken" % (100*profit/dream_profit)
         
         return
-
+    
+    def finish(self):
+        od = gGeneralConfig.getOutputDir()
+        modelFile = self.config.getForexSymbol() + "_" + self.config.getPosType() +  \
+                    "_profit_" + str(int(self.profit))
+        self.mlEngine.saveModel(od+"/"+modelFile) 
+        return 

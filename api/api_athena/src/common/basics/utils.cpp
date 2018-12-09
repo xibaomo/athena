@@ -79,4 +79,18 @@ compareStringNoCase(const String& str1, const String& str2)
     return boost::iequals(str1,str2);
 }
 
+int
+getIntFromPyobject(CPyObject& pyobj)
+{
+    PyObject* objrepr = PyObject_Repr(pyobj.getObject());
+    if (!objrepr) {
+        throw runtime_error("Failed to get string from pyobject");
+    }
+
+    const char* cp = PyString_AsString(objrepr);
+
+    int p = stoi(String(cp));
+    Py_XDECREF(objrepr);
+    return p;
+}
 NonBlockSysCall* gNBSysCall = &NonBlockSysCall::getInstance();

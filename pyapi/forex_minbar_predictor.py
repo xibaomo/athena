@@ -12,7 +12,7 @@ class ForexMinBarPredictor(object):
     '''
 
 
-    def __init__(self, params):
+    def __init__(self):
         '''
         Constructor
         '''
@@ -22,6 +22,7 @@ class ForexMinBarPredictor(object):
     
     def loadAModel(self,modelFile):
         self.model = loadSklearnModel(modelFile)
+        print self.model
         return
     
     def setFeatureNames(self,nameStr):
@@ -31,6 +32,7 @@ class ForexMinBarPredictor(object):
     
     def setLookback(self,lookback):
         self.featureCalculator.setLookback(lookback)
+        print "Lookback: %d" % lookback
         return
     
     def classifyMinBar(self,open,high,low,close):

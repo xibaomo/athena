@@ -37,3 +37,9 @@ class FbtConfig(TopConf):
     
     def getPosType(self):
         return self.yamlDict['POS_TYPE']
+    
+    def getForexSymbol(self):
+        return self.yamlDict['FOREX_SYMBOL']
+    
+    
+    

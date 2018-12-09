@@ -27,7 +27,7 @@
 #include <chrono>
 #include "basics/log.h"
 #include "types.h"
-
+#include "pyhelper.hpp"
 /*-----------------------------------------------------------------------------
  *  Execute system call by popen and return result as a string
  *-----------------------------------------------------------------------------*/
@@ -108,4 +108,6 @@ public:
     }
 
 };
+
+int getIntFromPyobject(CPyObject& pyobj);
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */
