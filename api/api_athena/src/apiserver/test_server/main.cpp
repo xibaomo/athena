@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
-#define PORT 8800
+#define PORT 8888
 using namespace std;
 
 int main(int argc, char** argv)
