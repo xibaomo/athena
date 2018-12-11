@@ -1,6 +1,6 @@
 #$-N athena_job
 #$-pe make 1
-#$-cwd
+#$-cwd -V
 #$-j y
 #$-q common
 #$-S /bin/sh

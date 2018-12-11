@@ -46,6 +46,8 @@ class ForexBarTrainer(App):
         self.testFeatureMatrix = self.totalFeatureMatrix[trainSize:,:]
         self.testTargets = self.totalLabels[trainSize:]
         
+        Log(LOG_INFO) << "Train size: %d" % trainSize
+        Log(LOG_INFO) << "Test size:  %d" % testSize
         input_dim = self.trainFeatureMatrix.shape[1]
         engCore = createMLEngineCore(gMLEngineConfig.getEngineCoreType(),input_dim)
         self.mlEngine = Classifier(engCore)
@@ -55,7 +57,7 @@ class ForexBarTrainer(App):
         Log(LOG_INFO) << "Training ..."
         self.mlEngine.train(self.trainFeatureMatrix,self.trainTargets)
         Log(LOG_INFO) << "Training done"
-        
+
         Log(LOG_INFO) << "Predicting ..."
         self.mlEngine.predict(self.testFeatureMatrix)
         Log(LOG_INFO) << "Prediction done"

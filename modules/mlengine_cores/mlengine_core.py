@@ -6,6 +6,7 @@ Created on Sep 3, 2018
 from modules.basics.common.logger import *
 from modules.mlengine_cores.dnncomm.dnncreator import *
 from modules.mlengine_cores.sklearn_comm.model_io import loadSklearnModel
+from sklearn.metrics import accuracy_score
 
 class MLEngineCore(object):
     
@@ -52,4 +53,8 @@ class MLEngineCore(object):
     def loadDNNModel(self,mfn):
         self.estimator = loadDNNModel(mfn)
         return
+    
+    def getAccuracy(self,fm,tar):
+        acc = accuracy_score(tar,self.estimator.predict(fm))
+        return acc
     

@@ -53,7 +53,7 @@ class ForexMinBarPredictor(object):
         
         print "prediction: %d" % pred
         
-        return pred
+        return pred[0]
         
         
         

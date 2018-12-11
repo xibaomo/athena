@@ -27,7 +27,7 @@ BarMarker::BarMarker(const String& cfg) : App(cfg)
     Log(LOG_INFO) << "Yaml parser: " + m_yamlParser;
     m_pointValue["EURUSD"] = 1.E-5;
     m_pointValue["GBPUSD"] = 1.E-5;
-    m_pointValue["USDCHF"] = 1.E-5;
+    m_pointValue["USDCHF"] = 1.E-3;
     m_pointValue["USDJPY"] = 1.E-3;
     m_pointValue["USDCAD"] = 1.E-5;
     m_pointValue["AUDUSD"] = 1.E-5;

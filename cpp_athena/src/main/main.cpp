@@ -17,11 +17,14 @@
  */
 
 #include "app.h"
-
+#include "basics/log.h"
 int main(int argc, char* argv[])
 {
     // argv[1] - AppType
     // argv[2] - configFile
+    if (argc < 3) {
+        Log(LOG_FATAL) << "Usage: " + String(argv[0]) + " [AppType] [local.yaml]";
+    }
     AppType atp = (AppType)stoi(String(argv[1]));
     String cfg = String(argv[2]);
     App* app = createApp(atp,cfg);

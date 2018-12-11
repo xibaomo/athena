@@ -89,6 +89,7 @@ getIntFromPyobject(CPyObject& pyobj)
 
     const char* cp = PyString_AsString(objrepr);
 
+    if (!cp) throw runtime_error("Get Null from PyString_AsString");
     int p = stoi(String(cp));
     Py_XDECREF(objrepr);
     return p;
