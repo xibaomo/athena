@@ -47,7 +47,7 @@ class MLEngineCore(object):
         return
 
     def saveDNNModel(self,mfn,model):
-        saveDNNModel(mfn,model)
+        saveDNNModel(model,mfn)
         return
 
     def loadDNNModel(self,mfn):
@@ -55,6 +55,8 @@ class MLEngineCore(object):
         return
     
     def getAccuracy(self,fm,tar):
-        acc = accuracy_score(tar,self.estimator.predict(fm))
+        self.predict(fm)
+        pred = self.getPredictedTargets()
+        acc = accuracy_score(tar,pred)
         return acc
     

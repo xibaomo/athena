@@ -1,6 +1,7 @@
 from modules.basics.conf.topconf import TopConf 
 from modules.basics.conf.masterconf import gMasterConfig
 import numpy as np 
+import ast
 class DNNConfig(TopConf): 
     def __init__(self): 
         super(DNNConfig,self).__init__() 
@@ -52,3 +53,10 @@ class DNNConfig(TopConf):
 
     def getCheckPointFolder(self):
         return self.yamlDict['CHECKPOINT_FOLDER']
+    
+    def getClassWeight(self):
+        val= self.yamlDict['CLASS_WEIGHT']
+        if val[0] == '{':
+            val = ast.literal_eval(val)
+        
+        return val

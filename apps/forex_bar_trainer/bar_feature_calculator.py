@@ -26,6 +26,7 @@ class BarFeatureCalculator(object):
         self.open  = np.array([])
         self.high  = np.array([])
         self.low   = np.array([])
+        self.tickVol= np.array([])
         return
         
     def loadMinBars(self):
@@ -35,6 +36,7 @@ class BarFeatureCalculator(object):
         self.high = self.allMinBars['HIGH']
         self.low  = self.allMinBars['LOW']
         self.close = self.allMinBars['CLOSE']
+        self.tickVol = self.allMinBars['TICKVOL']
         self.labels = self.allMinBars['LABEL']
         return
     
@@ -42,11 +44,12 @@ class BarFeatureCalculator(object):
         self.rawFeatures = pd.DataFrame()
         return
     
-    def appendNewBar(self,open,high,low,close):
+    def appendNewBar(self,open,high,low,close,tickvol):
         self.open = np.append(self.open, open)
         self.high = np.append(self.high,high)
         self.low  = np.append(self.low,low)
         self.close= np.append(self.close,close)
+        self.tickVol = np.append(self.tickVol,tickvol)
         print "Total bars: %d" % len(self.close)
         return
     
@@ -71,7 +74,26 @@ class BarFeatureCalculator(object):
             "DX" : self.compDX,
             "CMO" : self.compCMO,
             "BETA" : self.compBETA,
-            "BBANDS" : self.compBBANDS
+            "BBANDS" : self.compBBANDS,
+            "ATR": self.compATR,
+            "CCI": self.compCCI,
+            "NATR" : self.compNATR,
+            "TSF" : self.compTSF,
+            "MFI" : self.compMFI,
+            "MINUS_DI": self.compMINUSDI,
+            "MINUS_DM" : self.compMINUSDM,
+            "MOM" : self.compMOM,
+            "PLUS_DI" : self.compPLUSDI,
+            "PLUS_DM" : self.compPLUSDM,
+            "AD" : self.compAD,
+            "OBV" : self.compOBV,
+            "WCLPRICE" : self.compWCLPRICE,
+            "MEDPRICE" : self.compMEDPRICE,
+            "MA" : self.compMA,
+            "TRIMA" : self.compTRIMA,
+            "WMA" : self.compWMA,
+            'TEMA' : self.compTEMA,
+            "EMA" : self.compEMA
         }
         
         for fn in featureNames:
@@ -81,6 +103,101 @@ class BarFeatureCalculator(object):
         nullID = np.where(np.isnan(ind))[0]
         if len(nullID) > len(self.nullID):
             self.nullID = nullID
+        return
+    
+    def compEMA(self):
+        ema = talib.EMA(self.close,timeperiod=self.lookback)
+        self.removeNullID(ema)
+        self.rawFeatures['EMA']=ema
+        return
+    
+    def compTEMA(self):
+        tema = talib.TEMA(self.close,timeperiod=self.lookback)
+        self.removeNullID(tema)
+        self.rawFeatures['TEMA'] = tema 
+        return
+    
+    def compWMA(self):
+        wma = talib.WMA(self.close,timeperiod=self.lookback)
+        self.removeNullID(wma)
+        self.rawFeatures['WMA'] = wma 
+        return
+    
+    def compTRIMA(self):
+        ta = talib.TRIMA(self.close,timeperiod=self.lookback)
+        self.removeNullID(ta)
+        self.rawFeatures['TRIMA'] = ta 
+        return
+    
+    def compMA(self):
+        ma = talib.MA(self.close,timeperiod=self.lookback)
+        self.removeNullID(ma)
+        self.rawFeatures['MA']=ma 
+        return
+    
+    def compMEDPRICE(self):
+        med = talib.MEDPRICE(self.high,self.low)
+        self.removeNullID(med)
+        self.rawFeatures['MEDPRICE'] = med 
+        return
+    
+    def compWCLPRICE(self):
+        wcl = talib.WCLPRICE(self.high,self.low,self.close)
+        self.removeNullID(wcl)
+        self.rawFeatures['WCLPRICE'] = wcl 
+        return
+        
+    def compOBV(self):
+        obv  = talib.OBV(self.close,self.tickVol)
+        self.removeNullID(obv)
+        self.rawFeatures['OBV'] = obv
+        return
+    
+    def compAD(self):
+        ad = talib.AD(self.high,self.low,self.close,self.tickVol)
+        self.removeNullID(ad)
+        self.rawFeatures['AD'] = ad 
+        return
+    
+    def compPLUSDI(self):
+        pdi = talib.PLUS_DI(self.high,self.low,self.close,timeperiod=self.lookback)
+        self.removeNullID(pdi)
+        self.rawFeatures['PLUS_DI']=pdi 
+        return
+    
+    def compPLUSDM(self):
+        pdm = talib.PLUS_DM(self.high,self.low,timeperiod=self.lookback)
+        self.removeNullID(pdm)
+        self.rawFeatures['PLUS_DM'] = pdm
+        return
+    def compMOM(self):
+        mom = talib.MOM(self.close,timeperiod=self.lookback)
+        self.removeNullID(mom)
+        self.rawFeatures['MOM'] = mom 
+        return
+    
+    def compMINUSDI(self):
+        mi = talib.MINUS_DI(self.high,self.low,self.close,timeperiod=self.lookback)
+        self.removeNullID(mi)
+        self.rawFeatures['MINUS_DI'] = mi 
+        return
+    
+    def compMINUSDM(self):
+        md = talib.MINUS_DM(self.high,self.low,timeperiod=self.lookback)
+        self.removeNullID(md)
+        self.rawFeatures['MINUS_DM'] = md 
+        return
+    
+    def compMFI(self):
+        mfi = talib.MFI(self.high,self.low,self.close,self.tickVol,timeperiod=self.lookback)
+        self.removeNullID(mfi)
+        self.rawFeatures['MFI'] = mfi
+        return
+    
+    def compNATR(self):
+        natr = talib.NATR(self.high,self.low,self.close,timeperiod=self.lookback)
+        self.removeNullID(natr)
+        self.rawFeatures['NATR'] = natr 
         return
     
     def compMidPrice(self):
@@ -169,6 +286,12 @@ class BarFeatureCalculator(object):
         self.rawFeatures['UPPERBAND'] = ub 
         self.rawFeatures['MIDDLEBAND'] = mb
         self.rawFeatures['LOWERBAND'] = lb
+        return
+    
+    def compCCI(self):
+        cci = talib.CCI(self.high,self.low,self.close,timeperiod=self.lookback)
+        self.removeNullID(cci)
+        self.rawFeatures['CCI']=cci 
         return
     
     def getTotalFeatureMatrix(self):

@@ -14,6 +14,7 @@ from modules.mlengine_cores.dnncomm.dnnconf import DNNConfig
 from keras import optimizers
 import os
 from modules.basics.common.logger import *
+import pdb
 
 Regularizer_switcher = {
     'L1': regularizers.l1,
@@ -82,6 +83,10 @@ def createDNNModel(input_dim, end_act, loss, outnodes=1):
     return model
 
 def saveDNNModel(model,modelfile):
+#     pdb.set_trace()
+    if modelfile.find('.yaml') < 0:
+        modelfile = modelfile+'.yaml'
+        
     mf,ext = os.path.splitext(modelfile)
     if ext == ".yaml" or ext == ".yml":
         model_yaml = model.to_yaml()

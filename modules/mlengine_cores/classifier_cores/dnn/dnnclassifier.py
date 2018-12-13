@@ -44,6 +44,6 @@ class DNNClassifier(DNNCore):
     def predict(self,fm):
         super(DNNClassifier,self).predict(fm)
         
-        self.predictedTargets = [round(x) for x in self.predictedTargets]
+        self.predictedTargets = [int(round(x)) for x in self.predictedTargets]
         return
 

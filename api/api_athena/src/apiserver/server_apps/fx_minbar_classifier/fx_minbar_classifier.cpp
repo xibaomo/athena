@@ -126,19 +126,28 @@ ForexMinBarClassifier::procMsg_MINBAR(Message& msg)
     CPyObject pyhigh = Py_BuildValue(REALFORMAT,pm[1]);
     CPyObject pylow  = Py_BuildValue(REALFORMAT,pm[2]);
     CPyObject pyclose= Py_BuildValue(REALFORMAT,pm[3]);
+    CPyObject pytickvol=Py_BuildValue(REALFORMAT,pm[4]);
 
-    pypred = PyObject_CallMethod(m_buyPredictor,"classifyMinBar","(OOOO)",pyopen.getObject(),
+    pypred = PyObject_CallMethod(m_buyPredictor,"classifyMinBar","(OOOOO)",pyopen.getObject(),
                                  pyhigh.getObject(),
                                  pylow.getObject(),
-                                 pyclose.getObject());
+                                 pyclose.getObject(),
+                                 pytickvol.getObject());
 
+    if (!pypred) {
+        Log(LOG_FATAL) << "Buy prediction failed";
+    }
     int buy_pred = getIntFromPyobject(pypred);
 
-    pypred = PyObject_CallMethod(m_sellPredictor,"classifyMinBar","(OOOO)",pyopen.getObject(),
+    pypred = PyObject_CallMethod(m_sellPredictor,"classifyMinBar","(OOOOO)",pyopen.getObject(),
                                  pyhigh.getObject(),
                                  pylow.getObject(),
-                                 pyclose.getObject());
+                                 pyclose.getObject(),
+                                 pytickvol.getObject());
 
+    if(!pypred) {
+        Log(LOG_FATAL) << "Sell prediction failed";
+    }
     int sell_pred = getIntFromPyobject(pypred);
 
     if (buy_pred == 0 && sell_pred == 0) {

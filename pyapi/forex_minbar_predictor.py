@@ -6,6 +6,7 @@ Created on Dec 6, 2018
 from apps.forex_bar_trainer.bar_feature_calculator import BarFeatureCalculator
 from modules.mlengine_cores.sklearn_comm.model_io import loadSklearnModel
 import numpy as np
+import re
 class ForexMinBarPredictor(object):
     '''
     classdocs
@@ -26,7 +27,7 @@ class ForexMinBarPredictor(object):
         return
     
     def setFeatureNames(self,nameStr):
-        self.featureNames = str(nameStr).split(',')
+        self.featureNames = re.split('\W+',str(nameStr))
         print self.featureNames
         return
     
@@ -35,12 +36,14 @@ class ForexMinBarPredictor(object):
         print "Lookback: %d" % lookback
         return
     
-    def classifyMinBar(self,open,high,low,close):
+    def classifyMinBar(self,open,high,low,close,tickvol):
+        print "Predicting features: " + str(self.featureNames)
         self.featureCalculator.resetFeatureTable()
-        self.featureCalculator.appendNewBar(open,high,low,close)
+        self.featureCalculator.appendNewBar(open,high,low,close,tickvol)
         self.featureCalculator.computeFeatures(self.featureNames)
         features = self.featureCalculator.getLatestFeatures()
         
+        print "Feature computed"
         nanList = np.where(np.isnan(features))[0]
         if len(nanList) >0:
             print "Nan found in features, skip ..."

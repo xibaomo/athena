@@ -41,3 +41,9 @@ class RandomForest(MLEngineCore):
     def loadModel(self, mfn):
         self.estimator = loadSklearnModel(mfn)
         return
+    
+    def train(self,fm,targets):
+        self.estimator.fit(fm,targets)
+        print fm.shape
+        print self.estimator.feature_importances_
+        return

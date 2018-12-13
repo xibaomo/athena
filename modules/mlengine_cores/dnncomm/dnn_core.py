@@ -68,7 +68,7 @@ class DNNCore(MLEngineCore):
                                           epochs=self.config.getEpochs(),
                                           shuffle=self.config.isShuffle(),
                                           verbose=self.config.getVerbose(),
-                                          class_weight={0:1,1:1}
+                                          class_weight=self.config.getClassWeight()
                                           )
 
         Log(LOG_INFO) << "Final loss: %f" % self.getFinalLoss()
