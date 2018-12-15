@@ -301,7 +301,7 @@ class BarFeatureCalculator(object):
         df = pd.DataFrame(data,columns=self.rawFeatures.keys())
         df['label']=labels
         
-        df.to_csv("features.csv",index=False)
+#         df.to_csv("features.csv",index=False)
         if data.shape[0] != len(labels):
             Log(LOG_FATAL) << "Samples inconsistent with labels"
         return data,labels

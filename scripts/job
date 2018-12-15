@@ -11,9 +11,7 @@ echo "Master location: $(hostname)"
 echo "Allocated resource:"
 cat $PE_HOSTFILE
 
-. $HOME/.bashrc
-
-RUN_ATHENA=run_athena
+RUN_ATHENA=run_athena.py
 
 for i in {1..5}
 do 
