@@ -23,8 +23,9 @@ class MLEngine(object):
         self.engineCore.train(fm,targets)
         Log(LOG_INFO) << "Training is finished"
         
-        acc = self.engineCore.getAccuracy(fm,targets)
+        acc,mr = self.engineCore.getAccuracy(fm,targets)
         Log(LOG_INFO) << "Accuracy on train set: " + str(acc)
+        Log(LOG_INFO) << "Miss ratio on train set: " + str(mr)
         
         return
     

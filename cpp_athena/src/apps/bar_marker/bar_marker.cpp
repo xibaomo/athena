@@ -90,7 +90,8 @@ BarMarker::markMinBar()
                 m_allMinBars[i].label = 2;
                 m_allMinBars[i].close_time = m_allMinBars[j].time;
 
-                Log(LOG_WARNING) << "Rush minute: high = " + to_string(high) + ", low = " + to_string(low);
+                Log(LOG_WARNING) << "Rush minute: high = " + to_string(high) + ", low = " + to_string(low) + ", at " +
+                boost::posix_time::to_simple_string(m_allMinBars[i].close_time);
                 break;
             } else {
                 ;

@@ -24,7 +24,8 @@ class RandomForest(MLEngineCore):
                                                     min_samples_split = self.config.getMinSampleSplit(),
                                                     criterion = self.config.getCriterion(),
                                                     min_samples_leaf = self.config.getMinSamplesLeaf(),
-                                                    class_weight=self.config.getClassWeight())
+                                                    class_weight=self.config.getClassWeight(),
+                                                    )
 
             Log(LOG_INFO) << "Classifier: random forest is created: {}".format(self.estimator)
         else:

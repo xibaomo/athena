@@ -58,5 +58,10 @@ class MLEngineCore(object):
         self.predict(fm)
         pred = self.getPredictedTargets()
         acc = accuracy_score(tar,pred)
-        return acc
+        miss=0
+        for t,p in zip(tar,pred):
+            if t==1 and p == 0:
+                miss+=1
+        miss_ratio = float(miss)/len(tar)
+        return acc,miss_ratio
     
