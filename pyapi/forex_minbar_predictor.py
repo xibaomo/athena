@@ -29,6 +29,7 @@ class ForexMinBarPredictor(object):
     def setFeatureNames(self,nameStr):
         self.featureNames = re.split('\W+',str(nameStr))
         print self.featureNames
+        print "Num of features: %d" % len(self.featureNames)
         return
     
     def setLookback(self,lookback):

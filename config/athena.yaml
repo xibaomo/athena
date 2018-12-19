@@ -76,6 +76,7 @@ ML_ENGINE_CORE:
         CRITERION: entropy
         MIN_SAMPLES_LEAF: 30
         CLASS_WEIGHT: '{0:1,1:1}'  # or "balanced", or "balanced_subsample"
+        N_JOBS: 1
     DNN:
         CLASS_WEIGHT: '{0:1,1:10}'
         EPOCHS: 1000

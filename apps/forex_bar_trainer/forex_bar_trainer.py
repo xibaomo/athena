@@ -12,6 +12,8 @@ from modules.basics.conf.mlengineconf import gMLEngineConfig
 from modules.basics.conf.generalconf import gGeneralConfig
 from modules.mlengines.classifier.classifier import Classifier
 import numpy as np
+import pandas as pd
+from sklearn.metrics import accuracy_score
 class ForexBarTrainer(App):
     '''
     classdocs
@@ -98,6 +100,7 @@ class ForexBarTrainer(App):
                 
         self.profit = profit
         true_tar = self.testTargets
+        acc = accuracy_score(true_tar,pred)
         dream_profit = (len(true_tar) - sum(true_tar))*self.config.getProfitLoss()
         Log(LOG_INFO) << "***************************";
         Log(LOG_INFO) << "********* Summary *********"
@@ -105,6 +108,7 @@ class ForexBarTrainer(App):
         Log(LOG_INFO) << "Total transactions (original): %d" % (len(true_tar))
         badfrac = sum(true_tar)/float(len(true_tar)) 
         Log(LOG_INFO) << "good: %.1f%%, bad: %.1f%%" % ((1-badfrac)*100,badfrac*100)
+        Log(LOG_INFO) << "Test set accuracy: %f" % acc
         Log(LOG_INFO) << "Actual transactions: %d" % (num_good + num_miss)
         Log(LOG_INFO) << "Profit transactions: %d" % (num_good)
         Log(LOG_INFO) << "Loss transactions: %d" % (num_miss)
@@ -119,4 +123,18 @@ class ForexBarTrainer(App):
         modelFile = self.config.getForexSymbol() + "_" + self.config.getPosType() +  \
                     "_profit_" + str(int(self.profit))
         self.mlEngine.saveModel(od+"/"+modelFile) 
+        
+        self.dumpPrediction()
         return 
+    
+    def dumpPrediction(self):
+        pf = gGeneralConfig.getOutputDir() + "/prediction.csv"
+        df = pd.DataFrame()
+        df['pred'] = self.mlEngine.getPredictedTargets()
+        df['true'] = self.testTargets
+        
+        df.to_csv(pf,index=False)
+        Log(LOG_INFO) << "Prediction dumped to %s" % pf
+        
+        
+        

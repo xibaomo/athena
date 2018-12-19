@@ -15,6 +15,8 @@ from keras import optimizers
 import os
 from modules.basics.common.logger import *
 import pdb
+from keras.layers.normalization import BatchNormalization
+from keras.layers.core import Activation
 
 Regularizer_switcher = {
     'L1': regularizers.l1,
@@ -59,13 +61,15 @@ def createDNNModel(input_dim, end_act, loss, outnodes=1):
         if n == 0:
             model.add(Dense(neurons[n], input_dim = input_dim, 
                             kernel_initializer=init_wt, 
-                            kernel_regularizer=regler(float(rv)),
-                            activation = act[n]))
+                            kernel_regularizer=regler(float(rv))
+                            ))
         else:
             model.add(Dense(neurons[n], kernel_initializer=init_wt,
-                            kernel_regularizer=regler(float(rv)), 
-                            activation = act[n]))
+                            kernel_regularizer=regler(float(rv)) 
+                            ))
         
+        model.add(BatchNormalization(axis=1))
+        model.add(Activation(act[n]))
         if dropouts[n] > 0.0:
             model.add(Dropout(dropouts[n]))
     if lr < 0:

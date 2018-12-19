@@ -6,6 +6,7 @@ Created on Dec 2, 2018
 import talib 
 import numpy as np
 import pandas as pd
+import pdb
 from modules.basics.common.logger import *
 
 
@@ -37,7 +38,7 @@ class BarFeatureCalculator(object):
         self.low  = self.allMinBars['LOW']
         self.close = self.allMinBars['CLOSE']
         self.tickVol = self.allMinBars['TICKVOL']
-        self.labels = self.allMinBars['LABEL']
+        self.labels = self.allMinBars['LABEL'].values
         return
     
     def resetFeatureTable(self):
@@ -286,6 +287,7 @@ class BarFeatureCalculator(object):
         self.rawFeatures['UPPERBAND'] = ub 
         self.rawFeatures['MIDDLEBAND'] = mb
         self.rawFeatures['LOWERBAND'] = lb
+
         return
     
     def compCCI(self):
@@ -300,8 +302,8 @@ class BarFeatureCalculator(object):
         
         df = pd.DataFrame(data,columns=self.rawFeatures.keys())
         df['label']=labels
-        
-#         df.to_csv("features.csv",index=False)
+                
+        df.to_csv("features.csv",index=False)
         if data.shape[0] != len(labels):
             Log(LOG_FATAL) << "Samples inconsistent with labels"
         return data,labels

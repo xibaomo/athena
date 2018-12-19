@@ -59,9 +59,12 @@ class MLEngineCore(object):
         pred = self.getPredictedTargets()
         acc = accuracy_score(tar,pred)
         miss=0
+        crt=0
         for t,p in zip(tar,pred):
             if t==1 and p == 0:
                 miss+=1
+            if t==p:
+                crt+=1
         miss_ratio = float(miss)/len(tar)
-        return acc,miss_ratio
+        return acc,miss_ratio,crt
     

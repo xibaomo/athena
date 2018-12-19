@@ -29,3 +29,5 @@ class RMFConfig(TopConf):
         
         return val
         
+    def getNJobs(self):
+        return self.yamlDict['N_JOBS']
