@@ -96,6 +96,10 @@ ForexMinBarClassifier::processMsg(Message& msg)
             break;
         case FXAction::CHECKIN:
             msgnew = std::move(procMsg_CHECKIN(msg));
+            break;
+        case FXAction::HISTORY_MINBAR:
+            msgnew = std::move(procMsg_HISTORY_MINBAR(msg));
+            break;
         default:
             break;
     }
@@ -163,10 +167,40 @@ ForexMinBarClassifier::procMsg_MINBAR(Message& msg)
         action = (ActionType)FXAction::NOACTION;
         Log(LOG_INFO) << "Bad for either position. No action.";
     }
+
+    if (action == (ActionType)FXAction::PLACE_SELL )
+        action =  (ActionType)FXAction::NOACTION;
     Message msgnew;
     msgnew.setAction(action);
 
     return msgnew;
 }
 
+Message
+ForexMinBarClassifier::procMsg_HISTORY_MINBAR(Message& msg)
+{
+    int *pc = (int*)msg.getChar();
+    int lookback = pc[0];
+    int minbar_size = pc[1];
+    Real* pm = (Real*)msg.getData();
+    CPyObject lst = PyList_New(lookback*minbar_size);
+    for (int i=0;i < lookback*minbar_size; i++) {
+        PyList_SetItem(lst,i,Py_BuildValue(REALFORMAT,pm[i]));
+    }
+    CPyObject pylookback = Py_BuildValue("i",lookback);
+    CPyObject pyminbarsize = Py_BuildValue("i",minbar_size);
+    PyObject_CallMethod(m_buyPredictor,"loadHistoryMinBars","(OOO)",
+                        lst.getObject(),
+                        pylookback.getObject(),
+                        pyminbarsize.getObject());
+    Log(LOG_INFO) << "Buy predictor loads history min bars. Lookback: " + to_string(lookback);
 
+    PyObject_CallMethod(m_sellPredictor,"loadHistoryMinBars","(OOO)",
+                        lst.getObject(),
+                        pylookback.getObject(),
+                        pyminbarsize.getObject());
+
+    Log(LOG_INFO) << "Sell predictor loads history min bars. Lookback: " + to_string(lookback);
+    Message msgnew;
+    return msgnew;
+}

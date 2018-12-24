@@ -54,23 +54,53 @@ class DNNCore(MLEngineCore):
                                               np.zeros([feature_matrix.shape[1],])])
 
         cp_callback=None
-        if self.config.getCheckPointPeriod() > 0:
-            if not os.path.isdir(self.config.getCheckPointFolder()):
-                os.mkdir(self.config.getCheckPointFolder())
+        
+        from keras import backend as K
+          
+        njobs=16
+        tfconfig = tf.ConfigProto(intra_op_parallelism_threads=njobs,
+                                  inter_op_parallelism_threads=njobs,
+                                  allow_soft_placement=True,
+                                  device_count={'CPU': njobs})
+        with tf.Session(config=tfconfig) as sess:
+            K.set_session(sess)
+            init_op = tf.global_variables_initializer()
+            sess.run(init_op)
+            os.environ['OMP_NUM_THREADS'] = "16"
+            os.environ['KMP_BLOCKTIME'] = "30"
+            os.environ['KMP_SETTINGS'] = "1"
+            os.environ['KMP_AFFINITY'] = "granularity=fine,verbose,compact,1,0"
+        
+            if self.config.getCheckPointPeriod() > 0:
+                if not os.path.isdir(self.config.getCheckPointFolder()):
+                    os.mkdir(self.config.getCheckPointFolder())
+     
+                ck_path = self.config.getCheckPointFolder() + "/cp-{epoch:04d}.ckpt"
+                cp_callback = tf.keras.callbacks.ModelCheckpoint(
+                    ck_path,verbose=1,save_weights_only=True,
+                    period=self.config.getCheckPointPeriod()
+                )
+            self.history = self.estimator.fit(feature_matrix,targets,
+                                              batch_size = self.config.getBatchSize(),
+                                              epochs=self.config.getEpochs(),
+                                              shuffle=self.config.isShuffle(),
+                                              verbose=self.config.getVerbose(),
+                                              class_weight=self.config.getClassWeight()
+                                              )
 
-            ck_path = self.config.getCheckPointFolder() + "/cp-{epoch:04d}.ckpt"
-            cp_callback = tf.keras.callbacks.ModelCheckpoint(
-                ck_path,verbose=1,save_weights_only=True,
-                period=self.config.getCheckPointPeriod()
-            )
-        self.history = self.estimator.fit(feature_matrix,targets,
-                                          batch_size = self.config.getBatchSize(),
-                                          epochs=self.config.getEpochs(),
-                                          shuffle=self.config.isShuffle(),
-                                          verbose=self.config.getVerbose(),
-                                          class_weight=self.config.getClassWeight()
-                                          )
-
+#         Log(LOG_INFO) << "Train with generator ..."
+#         fm=feature_matrix
+#         tar=targets
+#         bs = self.config.getBatchSize()
+#         steps = fm.shape[0]*1./bs
+#         steps = int(steps) + 1
+#         self.estimator.fit_generator(self.loadTrainData(fm, tar, bs),
+#                                      steps_per_epoch=steps,
+#                                      verbose=self.config.getVerbose(),
+#                                      epochs= self.config.getEpochs(),
+#                                      shuffle=self.config.isShuffle(),
+#                                      use_multiprocessing=True,
+#                                      workers=self.config.getNJobs())
         Log(LOG_INFO) << "Final loss: %f" % self.getFinalLoss()
         return
 
@@ -88,3 +118,18 @@ class DNNCore(MLEngineCore):
         super(DNNCore, self).saveDNNModel(mfn,self.estimator)
         return 
 
+    def loadTrainData(self,train_fm,train_tar,batch_size):
+        c1 = 0
+        c2 = 0
+        maxsize = train_fm.shape[0]
+        while 1:
+            c1 = c2 
+            c2 = c1 + batch_size
+            if c2 > maxsize:
+                c2 = maxsize
+            fm = train_fm[c1:c2,:]
+            tar= train_tar[c1:c2]
+            yield fm,tar
+            if c2 == maxsize:
+                break
+        

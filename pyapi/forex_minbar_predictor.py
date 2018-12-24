@@ -26,6 +26,14 @@ class ForexMinBarPredictor(object):
         print self.model
         return
     
+    def loadHistoryMinBars(self,data,lookback,minbar_size):
+        k=0
+        while k < lookback*minbar_size:
+            self.featureCalculator.appendNewBar(data[k], data[k+1], data[k+2], 
+                                                data[k+3], data[k+4])
+            k+=minbar_size
+        return
+    
     def setFeatureNames(self,nameStr):
         self.featureNames = re.split('\W+',str(nameStr))
         print self.featureNames

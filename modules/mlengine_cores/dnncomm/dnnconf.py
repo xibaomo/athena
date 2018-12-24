@@ -60,3 +60,6 @@ class DNNConfig(TopConf):
             val = ast.literal_eval(val)
         
         return val
+    
+    def getNJobs(self):
+        return self.yamlDict['N_JOBS']

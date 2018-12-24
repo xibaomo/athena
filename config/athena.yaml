@@ -95,6 +95,7 @@ ML_ENGINE_CORE:
         VERBOSE: 2
         CHECKPOINT_PERIOD: 0
         CHECKPOINT_FOLDER: ckpts/
+        N_JOBS: 16
 
 FEATURE_EXTRACTOR:
     # Type of feature extractor:

@@ -58,7 +58,8 @@ class MLEngine(object):
         self.engineCore.showEstimator
         return
 
-
+    def getEstimator(self):
+        return self.engineCore.getEstimator()
     
 
         

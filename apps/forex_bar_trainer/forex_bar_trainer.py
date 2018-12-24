@@ -14,6 +14,8 @@ from modules.mlengines.classifier.classifier import Classifier
 import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection._split import KFold
+from sklearn.model_selection._validation import cross_val_score
 class ForexBarTrainer(App):
     '''
     classdocs
@@ -60,6 +62,8 @@ class ForexBarTrainer(App):
         self.mlEngine.train(self.trainFeatureMatrix,self.trainTargets)
         Log(LOG_INFO) << "Training done"
 
+        self.evalModel()
+        
         Log(LOG_INFO) << "Predicting ..."
         self.mlEngine.predict(self.testFeatureMatrix)
         Log(LOG_INFO) << "Prediction done"
@@ -135,6 +139,15 @@ class ForexBarTrainer(App):
         
         df.to_csv(pf,index=False)
         Log(LOG_INFO) << "Prediction dumped to %s" % pf
+        
+    def evalModel(self):
+        Log(LOG_INFO) << "Evaluate CV score ..."
+        
+        kfold = KFold(n_splits=10,shuffle=True)
+        res = cross_val_score(self.mlEngine.getEstimator(),self.totalFeatureMatrix,
+                              self.totalLabels,cv=kfold,n_jobs=-1)
+        Log(LOG_INFO) << "CV accuracy: %f" % res.mean()
+        
         
         
         
