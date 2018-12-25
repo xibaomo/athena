@@ -31,21 +31,26 @@ ForexMinBarClassifier::prepare()
     loadFilter(m_sellPredictor,mf);
 
     int lookback = stoi(getYamlValue("PREDICTION/LOOKBACK"));
-    configPredictor(m_sellPredictor,lookback);
-    configPredictor(m_buyPredictor,lookback);
+    String histBarFile = getYamlValue("PREDICTION/HISTORY_BAR_FILE");
+    configPredictor(m_sellPredictor,lookback,histBarFile);
+    configPredictor(m_buyPredictor,lookback,histBarFile);
+
 }
 
 void
-ForexMinBarClassifier::configPredictor(CPyObject& predictor,int lookback)
+ForexMinBarClassifier::configPredictor(CPyObject& predictor,int lookback, const String& histBarFile)
 {
     CPyObject arg = Py_BuildValue("i",lookback);
     PyObject_CallMethod(predictor,"setLookback","(O)",arg.getObject());
-
 
     // set feature names
     String featureNames = getYamlValue("PREDICTION/FEATURE_LIST");
     CPyObject ag = Py_BuildValue("s",featureNames.c_str());
     PyObject_CallMethod(predictor,"setFeatureNames","(O)",ag.getObject());
+
+    // load history file
+    ag = Py_BuildValue("s",histBarFile.c_str());
+    PyObject_CallMethod(predictor,"loadHistoryBarFile","(O)",ag.getObject());
 }
 
 void
@@ -99,6 +104,9 @@ ForexMinBarClassifier::processMsg(Message& msg)
             break;
         case FXAction::HISTORY_MINBAR:
             msgnew = std::move(procMsg_HISTORY_MINBAR(msg));
+            break;
+        case FXAction::INIT_TIME:
+            msgnew = std::move(procMsg_INIT_TIME(msg));
             break;
         default:
             break;
@@ -201,6 +209,16 @@ ForexMinBarClassifier::procMsg_HISTORY_MINBAR(Message& msg)
                         pyminbarsize.getObject());
 
     Log(LOG_INFO) << "Sell predictor loads history min bars. Lookback: " + to_string(lookback);
+    Message msgnew;
+    return msgnew;
+}
+
+Message
+ForexMinBarClassifier::procMsg_INIT_TIME(Message& msg)
+{
+    String timeStr = msg.getComment();
+    Log(LOG_INFO) << "MT5 starting time: " + timeStr;
+
     Message msgnew;
     return msgnew;
 }

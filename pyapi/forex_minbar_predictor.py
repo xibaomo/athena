@@ -7,6 +7,8 @@ from apps.forex_bar_trainer.bar_feature_calculator import BarFeatureCalculator
 from modules.mlengine_cores.sklearn_comm.model_io import loadSklearnModel
 import numpy as np
 import re
+import pandas as pd
+
 class ForexMinBarPredictor(object):
     '''
     classdocs
@@ -26,14 +28,29 @@ class ForexMinBarPredictor(object):
         print self.model
         return
     
+    def loadHistoryBarFile(self,barFile):
+        self.featureCalculator.loadMinBars(barFile)
+        return
+    
     def loadHistoryMinBars(self,data,lookback,minbar_size):
-        k=0
-        while k < lookback*minbar_size:
-            self.featureCalculator.appendNewBar(data[k], data[k+1], data[k+2], 
-                                                data[k+3], data[k+4])
-            k+=minbar_size
-            
-        self.featureCalculator.showHistoryMinBars()
+#         data = np.array(data).reshape(lookback,minbar_size)
+#         tol = 1.e-4
+#         mb = self.featureCalculator.getLatestMinBar()
+#         for i in range(data.shape[0]):
+#             if (abs(data[i,0] - mb['OPEN'].values[0]) < tol and 
+#                 abs(data[i,1] - mb['HIGH'].values[0]) < tol and 
+#                 abs(data[i,2] - mb['LOW'].values[0]) < tol and 
+#                 abs(data[i,3] - mb['CLOSE'].values[0]) < tol and  
+#                 abs(data[i,4] - mb['TICKVOL'].values[0]) < tol):
+#                 print "Found bar file end in received bars"
+#                 k = i+1
+#                 break;
+#         
+#         while k < data.shape[0]:
+#             self.featureCalculator.appendNewBar(data[k,0],data[k,1],data[k,2],
+#                                                 data[k,3],data[k,4])
+#             k+=1
+#         
         return
     
     def setFeatureNames(self,nameStr):

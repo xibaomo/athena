@@ -30,9 +30,9 @@ class BarFeatureCalculator(object):
         self.tickVol= np.array([])
         return
         
-    def loadMinBars(self):
-        self.lookback = self.config.getLookBack()
-        self.allMinBars = pd.read_csv(self.config.getBarFile())
+    def loadMinBars(self,barFile):
+        
+        self.allMinBars = pd.read_csv(barFile)
         self.open = self.allMinBars['OPEN']
         self.high = self.allMinBars['HIGH']
         self.low  = self.allMinBars['LOW']
@@ -65,6 +65,10 @@ class BarFeatureCalculator(object):
     def getLatestFeatures(self):
         f = self.rawFeatures.iloc[-1,:].values
         return f
+    
+    def getLatestMinBar(self):
+        mb = self.allMinBars.iloc[-1,:]
+        return mb
     
     def setLookback(self,lookback):
         self.lookback = lookback

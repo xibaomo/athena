@@ -53,7 +53,7 @@ public:
     /**
      * Config predictor
      */
-    void configPredictor(CPyObject& predictor, int lookback);
+    void configPredictor(CPyObject& predictor, int lookback, const String& histBarFile);
 
     /**
      * Process incoming msg, return response msg
@@ -66,5 +66,6 @@ public:
     Message procMsg_CHECKIN(Message& msg);
     Message procMsg_MINBAR(Message& msg);
     Message procMsg_HISTORY_MINBAR(Message& msg);
+    Message procMsg_INIT_TIME(Message& msg);
 };
 #endif   /* ----- #ifndef _FX_MINBAR_CLASSIFIER_H_  ----- */
