@@ -39,10 +39,18 @@ class BarFeatureCalculator(object):
         self.close = self.allMinBars['CLOSE']
         self.tickVol = self.allMinBars['TICKVOL']
         self.labels = self.allMinBars['LABEL'].values
+        
+        self.time = self.allMinBars['TIME'].values
         return
     
     def resetFeatureTable(self):
         self.rawFeatures = pd.DataFrame()
+        return
+    
+    def showHistoryMinBars(self):
+#         for i in range(len(self.close)):
+#             print self.open[i],self.high[i],self.low[i],self.close[i],self.tickVol[i]
+        print "Total minbars: %d" % len(self.open) 
         return
     
     def appendNewBar(self,open,high,low,close,tickvol):
@@ -51,7 +59,7 @@ class BarFeatureCalculator(object):
         self.low  = np.append(self.low,low)
         self.close= np.append(self.close,close)
         self.tickVol = np.append(self.tickVol,tickvol)
-        print "Total bars: %d" % len(self.close)
+        
         return
     
     def getLatestFeatures(self):
@@ -299,13 +307,25 @@ class BarFeatureCalculator(object):
     def getTotalFeatureMatrix(self):
         data = self.rawFeatures.values[len(self.nullID)+1:,:]
         labels = self.labels[len(self.nullID)+1:]
+        self.time = self.time[len(self.nullID)+1:]
+        
         
         df = pd.DataFrame(data,columns=self.rawFeatures.keys())
-        df['label']=labels
+        
+        df.insert(0,'label',labels)
+        df.insert(0,'time',self.time)
+        
+        # remove label == -1
+        idx = np.where(labels==-1)[0][0]
+        df=df.iloc[:idx,:]
                 
         df.to_csv("features.csv",index=False)
         if data.shape[0] != len(labels):
             Log(LOG_FATAL) << "Samples inconsistent with labels"
+            
+        ks = list(self.rawFeatures.keys())
+        data = df[ks].values
+        labels = df['label'].values
         return data,labels
     
     

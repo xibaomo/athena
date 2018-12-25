@@ -32,6 +32,8 @@ class ForexMinBarPredictor(object):
             self.featureCalculator.appendNewBar(data[k], data[k+1], data[k+2], 
                                                 data[k+3], data[k+4])
             k+=minbar_size
+            
+        self.featureCalculator.showHistoryMinBars()
         return
     
     def setFeatureNames(self,nameStr):
