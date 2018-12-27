@@ -31,6 +31,7 @@ protected:
     CPyObject   m_predictorModule;
 
     String      m_fxSymbol;
+    String      m_barFileLatestTime;
 
     ForexMinBarClassifier(const String& configFile) : ServerBaseApp(configFile) {
         m_fxSymbol =  getYamlValue("PREDICTION/SYMBOL");

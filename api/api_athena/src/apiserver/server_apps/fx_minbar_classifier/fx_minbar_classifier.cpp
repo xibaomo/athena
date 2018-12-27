@@ -49,8 +49,15 @@ ForexMinBarClassifier::configPredictor(CPyObject& predictor,int lookback, const 
     PyObject_CallMethod(predictor,"setFeatureNames","(O)",ag.getObject());
 
     // load history file
+    CPyObject pyLatestTime;
     ag = Py_BuildValue("s",histBarFile.c_str());
-    PyObject_CallMethod(predictor,"loadHistoryBarFile","(O)",ag.getObject());
+    pyLatestTime = PyObject_CallMethod(predictor,"loadHistoryBarFile","(O)",ag.getObject());
+    if(!pyLatestTime) {
+        Log(LOG_FATAL) << "Failed to get latest time of bar file";
+    }
+
+    m_barFileLatestTime = getStringFromPyobject(pyLatestTime);
+
 }
 
 void
@@ -188,27 +195,27 @@ Message
 ForexMinBarClassifier::procMsg_HISTORY_MINBAR(Message& msg)
 {
     int *pc = (int*)msg.getChar();
-    int lookback = pc[0];
+    int histLen = pc[0];
     int minbar_size = pc[1];
     Real* pm = (Real*)msg.getData();
-    CPyObject lst = PyList_New(lookback*minbar_size);
-    for (int i=0;i < lookback*minbar_size; i++) {
+    CPyObject lst = PyList_New(histLen*minbar_size);
+    for (int i=0;i < histLen*minbar_size; i++) {
         PyList_SetItem(lst,i,Py_BuildValue(REALFORMAT,pm[i]));
     }
-    CPyObject pylookback = Py_BuildValue("i",lookback);
+    CPyObject pylookback = Py_BuildValue("i",histLen);
     CPyObject pyminbarsize = Py_BuildValue("i",minbar_size);
     PyObject_CallMethod(m_buyPredictor,"loadHistoryMinBars","(OOO)",
                         lst.getObject(),
                         pylookback.getObject(),
                         pyminbarsize.getObject());
-    Log(LOG_INFO) << "Buy predictor loads history min bars. Lookback: " + to_string(lookback);
+    Log(LOG_INFO) << "Buy predictor loads history min bars. History length: " + to_string(histLen);
 
     PyObject_CallMethod(m_sellPredictor,"loadHistoryMinBars","(OOO)",
                         lst.getObject(),
                         pylookback.getObject(),
                         pyminbarsize.getObject());
 
-    Log(LOG_INFO) << "Sell predictor loads history min bars. Lookback: " + to_string(lookback);
+    Log(LOG_INFO) << "Sell predictor loads history min bars. History length: " + to_string(histLen);
     Message msgnew;
     return msgnew;
 }
@@ -216,9 +223,23 @@ ForexMinBarClassifier::procMsg_HISTORY_MINBAR(Message& msg)
 Message
 ForexMinBarClassifier::procMsg_INIT_TIME(Message& msg)
 {
-    String timeStr = msg.getComment();
-    Log(LOG_INFO) << "MT5 starting time: " + timeStr;
-
     Message msgnew;
+    String initTime = msg.getComment();
+    Log(LOG_INFO) << "MT5 starting time: " + initTime;
+
+    auto diffTime = getTimeDiffInMin(initTime,m_barFileLatestTime);
+    int histLen;
+    if (diffTime>0) {
+        histLen = diffTime;
+    } else {
+        histLen = 0;
+    }
+    Message m(sizeof(int),0);
+    msgnew = std::move(m);
+    int* pm = (int*)msgnew.getData();
+    pm[0] = histLen;
+    msgnew.setAction((ActionType)FXAction::REQUEST_HISTORY_MINBAR);
+    Log(LOG_INFO) << "Request client to send history min bars: " + to_string(histLen);
+
     return msgnew;
 }

@@ -23,6 +23,8 @@
 #include <thread>
 #include <unistd.h>
 #include <boost/algorithm/string.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 using namespace std;
 
 String
@@ -79,6 +81,20 @@ compareStringNoCase(const String& str1, const String& str2)
     return boost::iequals(str1,str2);
 }
 
+String
+getStringFromPyobject(CPyObject& pyobj)
+{
+    PyObject* objrepr = PyObject_Repr(pyobj.getObject());
+    if (!objrepr) {
+        throw runtime_error("Failed to get string from pyobject");
+    }
+
+    const char* cp = PyString_AsString(objrepr);
+    Py_XDECREF(objrepr);
+
+    return String(cp);
+}
+
 int
 getIntFromPyobject(CPyObject& pyobj)
 {
@@ -95,3 +111,15 @@ getIntFromPyobject(CPyObject& pyobj)
     return p;
 }
 NonBlockSysCall* gNBSysCall = &NonBlockSysCall::getInstance();
+
+long
+getTimeDiffInMin(const String& st1, const String& st2)
+{
+    boost::posix_time::ptime t1(boost::posix_time::time_from_string(st1));
+    boost::posix_time::ptime t2(boost::posix_time::time_from_string(st2));
+
+    boost::posix_time::time_duration td = t1 - t2;
+    long diffmin = td.total_seconds()/60;
+
+    return diffmin;
+}

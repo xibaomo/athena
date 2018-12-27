@@ -41,7 +41,7 @@ class BarFeatureCalculator(object):
         self.labels = self.allMinBars['LABEL'].values
         
         self.time = self.allMinBars['TIME'].values
-        return
+        return self.time[-1]
     
     def resetFeatureTable(self):
         self.rawFeatures = pd.DataFrame()

@@ -96,6 +96,13 @@ splitString(const String& str, const String delimiters=":");
 bool
 compareStringNoCase(const String& str1, const String& str2);
 
+/**
+ * Get time difference t1 - t2 in minutes
+ */
+long
+getTimeDiffInMin(const String& t1, const String& t2);
+
+
 class Timer {
 protected:
     std::chrono::time_point<std::chrono::system_clock> m_start;
@@ -110,4 +117,5 @@ public:
 };
 
 int getIntFromPyobject(CPyObject& pyobj);
+String getStringFromPyobject(CPyObject& pyobj);
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */
