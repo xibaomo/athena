@@ -23,6 +23,10 @@ class ForexMinBarPredictor(object):
         self.model = None
         return
     
+    def setInitMin(self,minbar):
+        self.featureCalculator.setInitMin(minbar)
+        return
+    
     def loadAModel(self,modelFile):
         self.model = loadSklearnModel(modelFile)
         print self.model

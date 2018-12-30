@@ -92,7 +92,8 @@ getStringFromPyobject(CPyObject& pyobj)
     const char* cp = PyString_AsString(objrepr);
     Py_XDECREF(objrepr);
 
-    return String(cp);
+    String s = String(cp);
+    return s.substr(1,s.size()-2);
 }
 
 int

@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import pdb
 from modules.basics.common.logger import *
-
+from dateutil import parser
 
 class BarFeatureCalculator(object):
     '''
@@ -21,6 +21,7 @@ class BarFeatureCalculator(object):
         Constructor
         '''
         self.config = config
+        self.initMin = None
         self.rawFeatures = pd.DataFrame()
         self.nullID = np.array([])
         self.close = np.array([])
@@ -30,9 +31,28 @@ class BarFeatureCalculator(object):
         self.tickVol= np.array([])
         return
         
+    def setInitMin(self,minbar):
+        self.initMin = parser.parse(minbar) 
+        return 
+    
     def loadMinBars(self,barFile):
-        
         self.allMinBars = pd.read_csv(barFile)
+        N = self.allMinBars.shape[0]
+        print "Hisotry min bars loaded: " + str(N)
+        k = N-1
+        while k >= 0:
+            t = parser.parse(self.allMinBars.iloc[k,:]['TIME'])
+            dt = self.initMin - t
+            if dt.total_seconds() > 0:
+                print "searching init min bar done: " + str(k)
+                break
+            k-=1
+            
+        if k < N-1:
+            self.allMinBars = self.allMinBars.iloc[:k+2,:]
+            
+        print "Latest min bar in history: " + self.allMinBars.iloc[-1,:]['TIME']  
+          
         self.open = self.allMinBars['OPEN']
         self.high = self.allMinBars['HIGH']
         self.low  = self.allMinBars['LOW']
@@ -41,6 +61,7 @@ class BarFeatureCalculator(object):
         self.labels = self.allMinBars['LABEL'].values
         
         self.time = self.allMinBars['TIME'].values
+        print self.time[-1]
         return self.time[-1]
     
     def resetFeatureTable(self):

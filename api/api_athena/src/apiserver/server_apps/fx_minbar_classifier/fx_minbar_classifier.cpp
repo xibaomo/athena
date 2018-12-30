@@ -31,14 +31,13 @@ ForexMinBarClassifier::prepare()
     loadFilter(m_sellPredictor,mf);
 
     int lookback = stoi(getYamlValue("PREDICTION/LOOKBACK"));
-    String histBarFile = getYamlValue("PREDICTION/HISTORY_BAR_FILE");
-    configPredictor(m_sellPredictor,lookback,histBarFile);
-    configPredictor(m_buyPredictor,lookback,histBarFile);
+    configPredictor(m_sellPredictor,lookback);
+    configPredictor(m_buyPredictor,lookback);
 
 }
 
 void
-ForexMinBarClassifier::configPredictor(CPyObject& predictor,int lookback, const String& histBarFile)
+ForexMinBarClassifier::configPredictor(CPyObject& predictor,int lookback)
 {
     CPyObject arg = Py_BuildValue("i",lookback);
     PyObject_CallMethod(predictor,"setLookback","(O)",arg.getObject());
@@ -48,15 +47,15 @@ ForexMinBarClassifier::configPredictor(CPyObject& predictor,int lookback, const 
     CPyObject ag = Py_BuildValue("s",featureNames.c_str());
     PyObject_CallMethod(predictor,"setFeatureNames","(O)",ag.getObject());
 
-    // load history file
-    CPyObject pyLatestTime;
-    ag = Py_BuildValue("s",histBarFile.c_str());
-    pyLatestTime = PyObject_CallMethod(predictor,"loadHistoryBarFile","(O)",ag.getObject());
-    if(!pyLatestTime) {
-        Log(LOG_FATAL) << "Failed to get latest time of bar file";
-    }
-
-    m_barFileLatestTime = getStringFromPyobject(pyLatestTime);
+//    // load history file
+//    CPyObject pyLatestTime;
+//    ag = Py_BuildValue("s",histBarFile.c_str());
+//    pyLatestTime = PyObject_CallMethod(predictor,"loadHistoryBarFile","(O)",ag.getObject());
+//    if(!pyLatestTime) {
+//        Log(LOG_FATAL) << "Failed to get latest time of bar file";
+//    }
+//
+//    m_barFileLatestTime = getStringFromPyobject(pyLatestTime);
 
 }
 
@@ -158,33 +157,40 @@ ForexMinBarClassifier::procMsg_MINBAR(Message& msg)
     }
     int buy_pred = getIntFromPyobject(pypred);
 
-    pypred = PyObject_CallMethod(m_sellPredictor,"classifyMinBar","(OOOOO)",pyopen.getObject(),
-                                 pyhigh.getObject(),
-                                 pylow.getObject(),
-                                 pyclose.getObject(),
-                                 pytickvol.getObject());
+//    pypred = PyObject_CallMethod(m_sellPredictor,"classifyMinBar","(OOOOO)",pyopen.getObject(),
+//                                 pyhigh.getObject(),
+//                                 pylow.getObject(),
+//                                 pyclose.getObject(),
+//                                 pytickvol.getObject());
+//
+//    if(!pypred) {
+//        Log(LOG_FATAL) << "Sell prediction failed";
+//    }
+//    int sell_pred = getIntFromPyobject(pypred);
 
-    if(!pypred) {
-        Log(LOG_FATAL) << "Sell prediction failed";
-    }
-    int sell_pred = getIntFromPyobject(pypred);
+//    if (buy_pred == 0 && sell_pred == 0) {
+//        Log(LOG_WARNING) << "Good to place both positions. Too risky, no action";
+//        action = (ActionType)FXAction::NOACTION;
+//    } else if (buy_pred == 0 && sell_pred == 1) {
+//        action = (ActionType)FXAction::PLACE_BUY;
+//        Log(LOG_INFO) << "Place buy position";
+//    } else if (buy_pred == 1 && sell_pred == 0) {
+//        action = (ActionType)FXAction::PLACE_SELL;
+//        Log(LOG_INFO) << "Place sell position";
+//    } else {
+//        action = (ActionType)FXAction::NOACTION;
+//        Log(LOG_INFO) << "Bad for either position. No action.";
+//    }
 
-    if (buy_pred == 0 && sell_pred == 0) {
-        Log(LOG_WARNING) << "Good to place both positions. Too risky, no action";
-        action = (ActionType)FXAction::NOACTION;
-    } else if (buy_pred == 0 && sell_pred == 1) {
+//    if (action == (ActionType)FXAction::PLACE_SELL )
+//        action =  (ActionType)FXAction::NOACTION;
+    if (buy_pred == 0) {
         action = (ActionType)FXAction::PLACE_BUY;
         Log(LOG_INFO) << "Place buy position";
-    } else if (buy_pred == 1 && sell_pred == 0) {
-        action = (ActionType)FXAction::PLACE_SELL;
-        Log(LOG_INFO) << "Place sell position";
     } else {
         action = (ActionType)FXAction::NOACTION;
-        Log(LOG_INFO) << "Bad for either position. No action.";
+        Log(LOG_INFO) << "No action";
     }
-
-    if (action == (ActionType)FXAction::PLACE_SELL )
-        action =  (ActionType)FXAction::NOACTION;
     Message msgnew;
     msgnew.setAction(action);
 
@@ -227,7 +233,23 @@ ForexMinBarClassifier::procMsg_INIT_TIME(Message& msg)
     String initTime = msg.getComment();
     Log(LOG_INFO) << "MT5 starting time: " + initTime;
 
-    auto diffTime = getTimeDiffInMin(initTime,m_barFileLatestTime);
+    String latestMinBar;
+    CPyObject pyLatestMinbar;
+
+    String barFile = getYamlValue("PREDICTION/HISTORY_BAR_FILE");
+    CPyObject pyBarFile = Py_BuildValue("s",barFile.c_str());
+    CPyObject pyInitMin = Py_BuildValue("s",initTime.c_str());
+    PyObject_CallMethod(m_buyPredictor,"setInitMin","(O)",pyInitMin.getObject());
+    pyLatestMinbar = PyObject_CallMethod(m_buyPredictor,"loadHistoryBarFile","(O)",pyBarFile.getObject());
+
+    PyObject_CallMethod(m_sellPredictor,"setInitMin","(O)",pyInitMin.getObject());
+    pyLatestMinbar = PyObject_CallMethod(m_sellPredictor,"loadHistoryBarFile","(O)",pyBarFile.getObject());
+
+    latestMinBar = getStringFromPyobject(pyLatestMinbar);
+
+    Log(LOG_INFO) << "Latest min bar in history: " + latestMinBar;
+    auto diffTime = getTimeDiffInMin(initTime,latestMinBar);
+
     int histLen;
     if (diffTime>0) {
         histLen = diffTime;

@@ -31,7 +31,6 @@ protected:
     CPyObject   m_predictorModule;
 
     String      m_fxSymbol;
-    String      m_barFileLatestTime;
 
     ForexMinBarClassifier(const String& configFile) : ServerBaseApp(configFile) {
         m_fxSymbol =  getYamlValue("PREDICTION/SYMBOL");
@@ -54,7 +53,7 @@ public:
     /**
      * Config predictor
      */
-    void configPredictor(CPyObject& predictor, int lookback, const String& histBarFile);
+    void configPredictor(CPyObject& predictor, int lookback);
 
     /**
      * Process incoming msg, return response msg
