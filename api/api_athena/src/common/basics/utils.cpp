@@ -22,6 +22,9 @@
 #include <chrono>
 #include <thread>
 #include <unistd.h>
+#include <locale>
+#include <string>
+#include <iostream>
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -123,4 +126,19 @@ getTimeDiffInMin(const String& st1, const String& st2)
     long diffmin = td.total_seconds()/60;
 
     return diffmin;
+}
+
+String
+convertTimeString(const String& timeStr, const String& fmt)
+{
+    boost::posix_time::ptime t(boost::posix_time::time_from_string(timeStr));
+    std::stringstream stream;
+    boost::posix_time::time_facet* facet = new boost::posix_time::time_facet();
+    facet->format(fmt.c_str());
+    stream.imbue(std::locale(std::locale::classic(),facet));
+    stream << t;
+
+    String resStr = stream.str();
+//    delete facet;
+    return resStr;
 }

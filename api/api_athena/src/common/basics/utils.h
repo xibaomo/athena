@@ -102,6 +102,12 @@ compareStringNoCase(const String& str1, const String& str2);
 long
 getTimeDiffInMin(const String& t1, const String& t2);
 
+/**
+ * Convert time to string with given format
+ */
+String
+convertTimeString(const String& timeStr, const String& format="%Y.%m.%d %H:%M");
+
 
 class Timer {
 protected:

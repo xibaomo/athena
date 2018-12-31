@@ -138,7 +138,7 @@ ForexMinBarClassifier::procMsg_MINBAR(Message& msg)
     Log(LOG_INFO) << "New min bar arrives:";
     Real* pm = (Real*)msg.getData();
 
-    Log(LOG_INFO) << to_string(pm[0]) << " "
+    Log(LOG_DEBUG) << to_string(pm[0]) << " "
                   << to_string(pm[1]) << " "
                   << to_string(pm[2]) << " "
                   << to_string(pm[3]) << " "
@@ -222,12 +222,12 @@ ForexMinBarClassifier::procMsg_HISTORY_MINBAR(Message& msg)
                         pyminbarsize.getObject());
     Log(LOG_INFO) << "Buy predictor loads history min bars. History length: " + to_string(histLen);
 
-    PyObject_CallMethod(m_sellPredictor,"loadHistoryMinBars","(OOO)",
-                        lst.getObject(),
-                        pylookback.getObject(),
-                        pyminbarsize.getObject());
-
-    Log(LOG_INFO) << "Sell predictor loads history min bars. History length: " + to_string(histLen);
+//    PyObject_CallMethod(m_sellPredictor,"loadHistoryMinBars","(OOO)",
+//                        lst.getObject(),
+//                        pylookback.getObject(),
+//                        pyminbarsize.getObject());
+//
+//    Log(LOG_INFO) << "Sell predictor loads history min bars. History length: " + to_string(histLen);
     Message msgnew;
     return msgnew;
 }
@@ -235,7 +235,6 @@ ForexMinBarClassifier::procMsg_HISTORY_MINBAR(Message& msg)
 Message
 ForexMinBarClassifier::procMsg_INIT_TIME(Message& msg)
 {
-    Message msgnew;
     String initTime = msg.getComment();
     Log(LOG_INFO) << "MT5 starting time: " + initTime;
 
@@ -262,8 +261,12 @@ ForexMinBarClassifier::procMsg_INIT_TIME(Message& msg)
     } else {
         histLen = 0;
     }
-    Message m(sizeof(int),0);
-    msgnew = std::move(m);
+
+    latestMinBar = convertTimeString(latestMinBar,"%Y.%m.%d %H:%M");
+    Log(LOG_INFO) << "Converted latest min bar: " + latestMinBar;
+
+    Message msgnew(sizeof(int),latestMinBar.size());
+    msgnew.setComment(latestMinBar);
     int* pm = (int*)msgnew.getData();
     pm[0] = histLen;
     msgnew.setAction((ActionType)FXAction::REQUEST_HISTORY_MINBAR);
