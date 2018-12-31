@@ -39,17 +39,19 @@ class BarFeatureCalculator(object):
         self.allMinBars = pd.read_csv(barFile)
         N = self.allMinBars.shape[0]
         print "Hisotry min bars loaded: " + str(N)
-        k = N-1
-        while k >= 0:
-            t = parser.parse(self.allMinBars.iloc[k,:]['TIME'])
-            dt = self.initMin - t
-            if dt.total_seconds() > 0:
-                print "searching init min bar done: " + str(k)
-                break
-            k-=1
-            
-        if k < N-1:
-            self.allMinBars = self.allMinBars.iloc[:k+2,:]
+        
+        if self.initMin is not None:
+            k = N-1
+            while k >= 0:
+                t = parser.parse(self.allMinBars.iloc[k,:]['TIME'])
+                dt = self.initMin - t
+                if dt.total_seconds() > 0:
+                    print "searching init min bar done: " + str(k)
+                    break
+                k-=1
+                
+            if k < N-1:
+                self.allMinBars = self.allMinBars.iloc[:k+2,:]
             
         print "Latest min bar in history: " + self.allMinBars.iloc[-1,:]['TIME']  
           
@@ -75,6 +77,12 @@ class BarFeatureCalculator(object):
         return
     
     def appendNewBar(self,open,high,low,close,tickvol):
+        open=np.around(open,5)
+        high=np.around(high,5)
+        low = np.around(low,5)
+        close=np.around(close,5)
+        tickvol=np.around(tickvol,0)
+        
         self.open = np.append(self.open, open)
         self.high = np.append(self.high,high)
         self.low  = np.append(self.low,low)
@@ -85,6 +93,8 @@ class BarFeatureCalculator(object):
     
     def getLatestFeatures(self):
         f = self.rawFeatures.iloc[-1,:].values
+        f = np.around(f,6)
+#         print self.rawFeatures.values
         return f
     
     def getLatestMinBar(self):
@@ -331,6 +341,7 @@ class BarFeatureCalculator(object):
     
     def getTotalFeatureMatrix(self):
         data = self.rawFeatures.values[len(self.nullID)+1:,:]
+        data = np.around(data,6)
         labels = self.labels[len(self.nullID)+1:]
         self.time = self.time[len(self.nullID)+1:]
         
@@ -341,8 +352,9 @@ class BarFeatureCalculator(object):
         df.insert(0,'time',self.time)
         
         # remove label == -1
-        idx = np.where(labels==-1)[0][0]
-        df=df.iloc[:idx,:]
+        if len(np.where(labels==-1)[0])>0:
+            idx = np.where(labels==-1)[0][0]
+            df=df.iloc[:idx,:]
                 
         df.to_csv("features.csv",index=False)
         if data.shape[0] != len(labels):

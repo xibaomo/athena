@@ -135,8 +135,14 @@ ForexMinBarClassifier::procMsg_CHECKIN(Message& msg)
 Message
 ForexMinBarClassifier::procMsg_MINBAR(Message& msg)
 {
-    Log(LOG_INFO) << "New min bar arrives";
+    Log(LOG_INFO) << "New min bar arrives:";
     Real* pm = (Real*)msg.getData();
+
+    Log(LOG_INFO) << to_string(pm[0]) << " "
+                  << to_string(pm[1]) << " "
+                  << to_string(pm[2]) << " "
+                  << to_string(pm[3]) << " "
+                  << to_string(pm[4]) << " ";
 
     ActionType action;
     CPyObject pypred;
