@@ -63,7 +63,7 @@ class ForexBarTrainer(App):
         self.mlEngine.train(self.trainFeatureMatrix,self.trainTargets)
         Log(LOG_INFO) << "Training done"
 
-        self.evalModel()
+#         self.evalModel()
         
         Log(LOG_INFO) << "Predicting ..."
         self.mlEngine.predict(self.testFeatureMatrix)

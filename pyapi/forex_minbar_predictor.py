@@ -38,8 +38,12 @@ class ForexMinBarPredictor(object):
     
     def loadHistoryMinBars(self,data,histLen,minbar_size):
         data = np.array(data).reshape(histLen,minbar_size)
+        print "loading received minbars"
+        print "first: ", data[:5,:]
+        print "last: ", data[-5:,:]
+        
         k=0
-        while k < data.shape[0]:
+        while k < data.shape[0]-1:
             self.featureCalculator.appendNewBar(data[k,0],data[k,1],data[k,2],
                                                 data[k,3],data[k,4])
             k+=1

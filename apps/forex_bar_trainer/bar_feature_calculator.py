@@ -54,6 +54,9 @@ class BarFeatureCalculator(object):
                 self.allMinBars = self.allMinBars.iloc[:k+2,:]
             
         print "Latest min bar in history: " + self.allMinBars.iloc[-1,:]['TIME']  
+        
+        if self.initMin is not None:
+            self.allMinBars = self.allMinBars.iloc[-50000:,:]
           
         self.open = self.allMinBars['OPEN']
         self.high = self.allMinBars['HIGH']
@@ -95,6 +98,13 @@ class BarFeatureCalculator(object):
         f = self.rawFeatures.iloc[-1,:].values
         f = np.around(f,6)
 #         print self.rawFeatures.values
+
+#         allbars = np.vstack([self.open,self.high,self.low,self.close,self.tickVol])
+#         allbars= allbars.transpose()
+#         print allbars[-10:,:]  
+#         
+#         df = pd.DataFrame(data=allbars,index=False)
+#         df.to_csv('hist_bars.csv')                   
         return f
     
     def getLatestMinBar(self):
@@ -139,6 +149,12 @@ class BarFeatureCalculator(object):
             'TEMA' : self.compTEMA,
             "EMA" : self.compEMA
         }
+        
+        self.open = np.around(self.open,5)
+        self.high = np.around(self.high,5)
+        self.low  = np.around(self.low,5)
+        self.close= np.around(self.close,5)
+        self.tickVol = np.around(self.tickVol,0)
         
         for fn in featureNames:
             BarFeatureSwitcher[fn]()
