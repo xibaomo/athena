@@ -52,7 +52,7 @@ class BarFeatureCalculator(object):
                 
             if k < N-1:
                 self.allMinBars = self.allMinBars.iloc[:k+2,:]
-            
+
         print "Latest min bar in history: " + self.allMinBars.iloc[-1,:]['TIME']  
         
         if self.initMin is not None:

@@ -71,10 +71,10 @@ BarMarker::markMinBar()
     float offset = (float)offset_pts * pv;
 
     for (size_t i=0;i<m_allMinBars.size(); i++) {
-        float pos= m_allMinBars[i].close;
+        float pos= m_allMinBars[i].open;
         float ub = pos + offset;
         float lb = pos - offset;
-        for (size_t j = i+1; j < m_allMinBars.size(); j++) {
+        for (size_t j = i; j < m_allMinBars.size(); j++) {
             auto high = m_allMinBars[j].high;
             auto low  = m_allMinBars[j].low;
 
@@ -105,7 +105,7 @@ BarMarker::dumpCSV()
 {
     const String csvfile = m_symbol + "_labeled.csv";
     ofstream ofs(csvfile);
-    ofs << "TIME,OPEN,HIGH,LOW,CLOSE,TICKVOL,DURATION,LABEL\n";
+    ofs << "TIME,OPEN,HIGH,LOW,CLOSE,TICKVOL,DURATION,CLOSE_TIME,LABEL\n";
 
     for (auto& bar : m_allMinBars) {
         long duration = (bar.close_time-bar.time).total_seconds()/60;
@@ -117,7 +117,7 @@ BarMarker::dumpCSV()
             << bar.close << ","
             << bar.tickvol<<","
             << to_string(duration) << ","
-//            << boost::posix_time::to_simple_string(bar.close_time) << ","
+            << boost::posix_time::to_simple_string(bar.close_time) << ","
             << bar.label << "\n";
     }
 
