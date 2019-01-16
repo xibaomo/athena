@@ -47,6 +47,7 @@ class BarFeatureCalculator(object):
                 dt = self.initMin - t
                 if dt.total_seconds() > 0:
                     print "searching init min bar done: " + str(k)
+                    
                     break
                 k-=1
                 
@@ -55,8 +56,8 @@ class BarFeatureCalculator(object):
 
         print "Latest min bar in history: " + self.allMinBars.iloc[-1,:]['TIME']  
         
-        if self.initMin is not None:
-            self.allMinBars = self.allMinBars.iloc[-50000:,:]
+#         if self.initMin is not None:
+#             self.allMinBars = self.allMinBars.iloc[-500000:,:]
           
         self.open = self.allMinBars['OPEN']
         self.high = self.allMinBars['HIGH']
@@ -95,6 +96,8 @@ class BarFeatureCalculator(object):
         return
     
     def getLatestFeatures(self):
+#         print self.rawFeatures
+        
         f = self.rawFeatures.iloc[-1,:].values
         f = np.around(f,6)
 #         print self.rawFeatures.values
@@ -147,7 +150,9 @@ class BarFeatureCalculator(object):
             "TRIMA" : self.compTRIMA,
             "WMA" : self.compWMA,
             'TEMA' : self.compTEMA,
-            "EMA" : self.compEMA
+            "EMA" : self.compEMA,
+            'MACDFIX': self.compMACDFIX,
+            'ULTOSC': self.compULTOSC
         }
         
         self.open = np.around(self.open,5)
@@ -163,6 +168,18 @@ class BarFeatureCalculator(object):
         nullID = np.where(np.isnan(ind))[0]
         if len(nullID) > len(self.nullID):
             self.nullID = nullID
+        return
+    def compULTOSC(self):
+        uc = talib.ULTOSC(self.high,self.low,self.close,timeperiod1=self.lookback/3,
+                          timeperiod2=self.lookback/2, timeperiod3=self.lookback)
+        self.removeNullID(uc)
+        self.rawFeatures['ULTOSC'] = uc
+        return
+    
+    def compMACDFIX(self):
+        macd,ms,mc = talib.MACDFIX(self.close,signalperiod=self.lookback)
+        self.removeNullID(macd)
+        self.rawFeatures['MACD'] = macd
         return
     
     def compEMA(self):
@@ -345,7 +362,7 @@ class BarFeatureCalculator(object):
         self.removeNullID(ub)
         self.rawFeatures['UPPERBAND'] = ub 
         self.rawFeatures['MIDDLEBAND'] = mb
-        self.rawFeatures['LOWERBAND'] = lb
+        self.rawFeatures['LOWERBAND'] = lb 
 
         return
     
@@ -361,6 +378,7 @@ class BarFeatureCalculator(object):
         labels = self.labels[len(self.nullID)+1:]
         self.time = self.time[len(self.nullID)+1:]
         
+#         pdb.set_trace()
         
         df = pd.DataFrame(data,columns=self.rawFeatures.keys())
         
@@ -369,8 +387,9 @@ class BarFeatureCalculator(object):
         
         # remove label == -1
         if len(np.where(labels==-1)[0])>0:
-            idx = np.where(labels==-1)[0][0]
-            df=df.iloc[:idx,:]
+            ids = list(np.where(labels==-1)[0])
+#             df=df.iloc[:idx,:]
+            df = df.drop(df.index[ids])
                 
         df.to_csv("features.csv",index=False)
         if data.shape[0] != len(labels):

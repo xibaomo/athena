@@ -72,6 +72,7 @@ class ForexMinBarPredictor(object):
         nanList = np.where(np.isnan(features))[0]
         if len(nanList) >0:
             print "Nan found in features, skip ..."
+            print features
             return 1
         
         features = features.reshape(1,-1)

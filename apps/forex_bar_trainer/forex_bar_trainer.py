@@ -144,10 +144,16 @@ class ForexBarTrainer(App):
     def evalModel(self):
         Log(LOG_INFO) << "Evaluate CV score ..."
         
-        kfold = KFold(n_splits=10,shuffle=True)
+        kfold = KFold(n_splits=10,shuffle=False)
         res = cross_val_score(self.mlEngine.getEstimator(),self.totalFeatureMatrix,
                               self.totalLabels,cv=kfold,n_jobs=-1)
         Log(LOG_INFO) << "CV accuracy: %f" % res.mean()
+        
+        
+        
+        
+        
+        
         
         
         
