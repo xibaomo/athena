@@ -9,7 +9,7 @@ import pandas as pd
 import pdb
 from modules.basics.common.logger import *
 from dateutil import parser
-
+from modules.basics.common.utils import smooth1D
 class BarFeatureCalculator(object):
     '''
     classdocs
@@ -152,7 +152,8 @@ class BarFeatureCalculator(object):
             'TEMA' : self.compTEMA,
             "EMA" : self.compEMA,
             'MACDFIX': self.compMACDFIX,
-            'ULTOSC': self.compULTOSC
+            'ULTOSC': self.compULTOSC,
+            'ILS': self.compILS
         }
         
         self.open = np.around(self.open,5)
@@ -169,6 +170,53 @@ class BarFeatureCalculator(object):
         if len(nullID) > len(self.nullID):
             self.nullID = nullID
         return
+    
+    def compILS(self):
+        mp = talib.MEDPRICE(self.high,self.low)
+        mmp = talib.SMA(mp,timeperiod=10)
+        dmmp = np.diff(mmp)
+        dmmp = np.insert(dmmp,0,np.nan)
+        
+        ddmmp = np.diff(dmmp)
+        ddmmp = np.insert(ddmmp,0,np.nan)
+        
+        ils = dmmp/mmp*1e3
+        
+        ave = talib.SMA(ils,timeperiod=30)
+        
+        self.removeNullID(ils)
+        self.removeNullID(ave)
+#         self.removeNullID(ddmmp)
+   
+        self.rawFeatures['ILS'] = ils
+        self.rawFeatures['MA_ILS'] = ave
+            
+        ## find nearest turning 
+#         wl=11
+#         smp = smooth1D(mp, window_len=wl, window='hanning')
+#         smp = smp[wl-1:]
+# #         smp = talib.SMA(mp,timeperiod=60)
+#         dsmp = np.diff(smp)
+#         dsmp = np.insert(dsmp,0,np.nan)
+#         sg = np.sign(dsmp)
+#         
+#         tds =  np.zeros(len(dsmp))       
+#         for i in range(len(sg)):
+#             s = sg[i]
+#             for k in range(10000):
+#                 if i-k<=0:
+#                     tds[i] = np.nan
+#                     break
+#                 if sg[i-k] != s:
+#                     tds[i] = k
+#                     break
+#                 
+# #         pdb.set_trace()
+#         self.removeNullID(tds)
+#         self.rawFeatures['TURN_DIS']=tds
+#         
+        return
+        
     def compULTOSC(self):
         uc = talib.ULTOSC(self.high,self.low,self.close,timeperiod1=self.lookback/3,
                           timeperiod2=self.lookback/2, timeperiod3=self.lookback)
@@ -392,6 +440,8 @@ class BarFeatureCalculator(object):
             df = df.drop(df.index[ids])
                 
         df.to_csv("features.csv",index=False)
+        
+        Log(LOG_INFO) << "Feature file dumped: features.csv"
         if data.shape[0] != len(labels):
             Log(LOG_FATAL) << "Samples inconsistent with labels"
             

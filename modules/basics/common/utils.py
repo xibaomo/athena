@@ -134,5 +134,22 @@ def shuffleTwoList(fm,tg,seed=None):
     a,b = zip(*c)
     return np.vstack(a),np.array(b)
 
+def smooth1D(x,window_len=11,window='hanning'):
+    if x.ndim != 1:
+        Log(LOG_FATAL) << "Smooth only accepts 1d array"
+        return
+    if x.size < window_len:
+        Log(LOG_FATAL) << "Array size should larger than window length"
+        return
+    if not window in ['flat','hanning','hamming','bartlett','blackman']:
+        Log(LOG_FATAL) << "window type not supported"
+        
+    s = np.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
+    if window=='flat':
+        w = np.ones(window_len,'d')
+    else:
+        w = eval('np.'+window+'(window_len)')
 
-            
+    y = np.convolve(w/w.sum(), s, mode='valid')
+    
+    return y

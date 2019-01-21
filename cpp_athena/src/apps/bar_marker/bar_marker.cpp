@@ -69,11 +69,12 @@ BarMarker::markMinBar()
     String sym = getYamlValue("BAR_MARKER/FOREX_SYMBOL");
     float pv = m_pointValue[sym];
     float offset = (float)offset_pts * pv;
+    float slipage = 10.*pv;
 
     for (size_t i=0;i<m_allMinBars.size(); i++) {
         float pos= m_allMinBars[i].open;
-        float ub = pos + offset;
-        float lb = pos - offset;
+        float ub = pos + offset + slipage; // good or bad, always for buy position
+        float lb = pos - offset + slipage;
         for (size_t j = i; j < m_allMinBars.size(); j++) {
             auto high = m_allMinBars[j].high;
             auto low  = m_allMinBars[j].low;
