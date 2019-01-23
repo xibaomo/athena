@@ -166,6 +166,7 @@ class BarFeatureCalculator(object):
             BarFeatureSwitcher[fn]()
     
     def removeNullID(self,ind):
+        
         nullID = np.where(np.isnan(ind))[0]
         if len(nullID) > len(self.nullID):
             self.nullID = nullID
@@ -426,6 +427,9 @@ class BarFeatureCalculator(object):
         labels = self.labels[len(self.nullID)+1:]
         self.time = self.time[len(self.nullID)+1:]
         
+        data = data[:-1,:]
+        labels = labels[1:]
+        self.time = self.time[1:]
 #         pdb.set_trace()
         
         df = pd.DataFrame(data,columns=self.rawFeatures.keys())
@@ -450,6 +454,8 @@ class BarFeatureCalculator(object):
         labels = df['label'].values
         return data,labels
     
+    def getTime(self):
+        return self.time
     
     
     

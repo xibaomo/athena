@@ -50,6 +50,7 @@ class ForexBarTrainer(App):
         self.trainTargets = self.totalLabels[:trainSize]
         self.testFeatureMatrix = self.totalFeatureMatrix[trainSize:,:]
         self.testTargets = self.totalLabels[trainSize:]
+        self.testTime = self.fextor.getTime()[trainSize:]
         
         Log(LOG_INFO) << "Train size: %d" % trainSize
         Log(LOG_INFO) << "Test size:  %d" % testSize
@@ -135,6 +136,7 @@ class ForexBarTrainer(App):
     def dumpPrediction(self):
         pf = gGeneralConfig.getOutputDir() + "/prediction.csv"
         df = pd.DataFrame()
+        df['time'] = self.testTime
         df['pred'] = self.mlEngine.getPredictedTargets()
         df['true'] = self.testTargets
         
