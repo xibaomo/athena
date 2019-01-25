@@ -71,6 +71,7 @@ ML_ENGINE_CORE:
         # gini or entropy
         CRITERION: entropy
     RMF: # Random Forest
+        MAX_DEPTH: ""
         MIN_SAMPLES_SPLIT: 5
         N_ESTIMATORS: 10
         CRITERION: entropy

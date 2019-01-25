@@ -31,3 +31,10 @@ class RMFConfig(TopConf):
         
     def getNJobs(self):
         return self.yamlDict['N_JOBS']
+    
+    def getMaxDepth(self):
+        val = self.yamlDict['MAX_DEPTH']
+        if val == "":
+            return None
+        
+        return val

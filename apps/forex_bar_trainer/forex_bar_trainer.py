@@ -16,6 +16,7 @@ import pandas as pd
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection._split import KFold
 from sklearn.model_selection._validation import cross_val_score
+import pdb
 class ForexBarTrainer(App):
     '''
     classdocs
@@ -50,8 +51,9 @@ class ForexBarTrainer(App):
         self.trainTargets = self.totalLabels[:trainSize]
         self.testFeatureMatrix = self.totalFeatureMatrix[trainSize:,:]
         self.testTargets = self.totalLabels[trainSize:]
-        self.testTime = self.fextor.getTime()[trainSize:]
+#         self.testTime = self.fextor.getTime()[trainSize:]
         
+#         pdb.set_trace()
         Log(LOG_INFO) << "Train size: %d" % trainSize
         Log(LOG_INFO) << "Test size:  %d" % testSize
         input_dim = self.trainFeatureMatrix.shape[1]
@@ -136,6 +138,10 @@ class ForexBarTrainer(App):
     def dumpPrediction(self):
         pf = gGeneralConfig.getOutputDir() + "/prediction.csv"
         df = pd.DataFrame()
+        
+        testSize = self.config.getTestSize()
+        alltime = self.fextor.getTime()
+        self.testTime = alltime[-testSize:]
         df['time'] = self.testTime
         df['pred'] = self.mlEngine.getPredictedTargets()
         df['true'] = self.testTargets
