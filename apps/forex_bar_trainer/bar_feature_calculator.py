@@ -10,6 +10,7 @@ import pdb
 from modules.basics.common.logger import *
 from dateutil import parser
 from modules.basics.common.utils import smooth1D
+from scipy.stats import binom
 class BarFeatureCalculator(object):
     '''
     classdocs
@@ -56,9 +57,9 @@ class BarFeatureCalculator(object):
 
         print "Latest min bar in history: " + self.allMinBars.iloc[-1,:]['TIME']  
         
-#         if self.initMin is not None:
-#             self.allMinBars = self.allMinBars.iloc[-500000:,:]
-          
+        if self.initMin is not None:
+            self.allMinBars = self.allMinBars.iloc[-5000:,:]
+#           
         self.open = self.allMinBars['OPEN']
         self.high = self.allMinBars['HIGH']
         self.low  = self.allMinBars['LOW']
@@ -102,9 +103,9 @@ class BarFeatureCalculator(object):
         f = np.around(f,6)
 #         print self.rawFeatures.values
 
-#         allbars = np.vstack([self.open,self.high,self.low,self.close,self.tickVol])
-#         allbars= allbars.transpose()
-#         print allbars[-10:,:]  
+        allbars = np.vstack([self.open,self.high,self.low,self.close,self.tickVol])
+        allbars= allbars.transpose()
+        print allbars[-10:,:]  
 #         
 #         df = pd.DataFrame(data=allbars,index=False)
 #         df.to_csv('hist_bars.csv')                   
@@ -153,7 +154,8 @@ class BarFeatureCalculator(object):
             "EMA" : self.compEMA,
             'MACDFIX': self.compMACDFIX,
             'ULTOSC': self.compULTOSC,
-            'ILS': self.compILS
+            'ILS': self.compILS,
+            'BINOM': self.compBinomial
         }
         
         self.open = np.around(self.open,5)
@@ -171,7 +173,32 @@ class BarFeatureCalculator(object):
         if len(nullID) > len(self.nullID):
             self.nullID = nullID
         return
-    
+    def compBinomial(self):
+        Log(LOG_INFO) << "Computing binomial prob..."
+        label = self.labels
+        n_tbd = len(np.where(label==-1)[0])
+        n_sell = len(np.where(label==1)[0])
+        p = n_sell*1./(len(label)-n_tbd)
+        
+        Log(LOG_INFO) << "Sell prob: %f" % p
+        res=[]
+        for i in range(len(self.labels)):
+            s = i-self.lookback +1
+            if s < 0:
+                res.append(np.nan)
+                continue
+            arr = self.labels[s:i+1]
+            k = sum(arr) # incorrect if label == -1
+            pb = binom.pmf(k+1,self.lookback+1,p)
+            res.append(pb)
+           
+        res = np.array(res)
+        self.removeNullID(res) 
+        self.rawFeatures['BINOM'] = res
+        
+        Log(LOG_INFO) << "binom done"
+        return
+            
     def compILS(self):
         mp = talib.MEDPRICE(self.high,self.low)
         mmp = talib.SMA(mp,timeperiod=10)
@@ -389,7 +416,7 @@ class BarFeatureCalculator(object):
         return
     
     def compTSF(self):
-        tsf = talib.TSF(self.close,timeperiod=self.lookback)
+        tsf = talib.TSF(self.close,timeperiod=self.lookback) 
         self.removeNullID(tsf)
         self.rawFeatures['TSF'] = tsf
         return
