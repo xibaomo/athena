@@ -16,6 +16,8 @@ import pandas as pd
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection._split import KFold
 from sklearn.model_selection._validation import cross_val_score
+from scipy.stats import binom
+import owls
 import pdb
 class ForexBarTrainer(App):
     '''
@@ -66,15 +68,44 @@ class ForexBarTrainer(App):
         self.mlEngine.train(self.trainFeatureMatrix,self.trainTargets)
         Log(LOG_INFO) << "Training done"
 
+        pred = None
 #         self.evalModel()
         
         Log(LOG_INFO) << "Predicting ..."
-        self.mlEngine.predict(self.testFeatureMatrix)
+        
+        if "BINOM" in self.config.getFeatureList():
+            pred = self.predict_binom()
+        else:
+            self.mlEngine.predict(self.testFeatureMatrix)
+            
         Log(LOG_INFO) << "Prediction done"
         
-        self.computeProfit()
+        self.computeProfit(pred)
+        self.pred = pred
         return
     
+    def predict_binom(self):
+#         pdb.set_trace()
+        testSize =  self.testFeatureMatrix.shape[0]
+        labels = self.trainTargets
+        lookback = self.config.getLookBack()
+        p = self.fextor.getBinomProb()
+        pred = []
+        for i in range(testSize):
+            arr = labels[-lookback:]
+            k = sum(arr)
+#             pb= binom.pmf(k+1,lookback+1,p)
+            pb = owls.binom_pdf(k+1,lookback+1,p)
+            f = self.testFeatureMatrix[i,:]
+            f[-1] = pb
+            
+            self.mlEngine.predict(f.reshape(1,-1))
+            new_label = self.mlEngine.getPredictedTargets()[0]
+            labels = np.append(labels, new_label)
+            pred.append(new_label)
+            
+        
+        return np.array(pred)
     def getLabel(self,pos_type):
         labels = []
         for t in self.totalLabels:
@@ -93,8 +124,9 @@ class ForexBarTrainer(App):
             
         return np.array(labels)
             
-    def computeProfit(self):
-        pred = self.mlEngine.getPredictedTargets()
+    def computeProfit(self,pred=None):
+        if pred is None:
+            pred = self.mlEngine.getPredictedTargets()
         profit = 0.
         num_good=0
         num_miss=0
@@ -132,10 +164,10 @@ class ForexBarTrainer(App):
                     "_profit_" + str(int(self.profit))
         self.mlEngine.saveModel(od+"/"+modelFile) 
         
-        self.dumpPrediction()
+        self.dumpPrediction(self.pred)
         return 
     
-    def dumpPrediction(self):
+    def dumpPrediction(self,pred=None):
         pf = gGeneralConfig.getOutputDir() + "/prediction.csv"
         df = pd.DataFrame()
         
@@ -143,8 +175,13 @@ class ForexBarTrainer(App):
         alltime = self.fextor.getTime()
         self.testTime = alltime[-testSize:]
         df['time'] = self.testTime
-        df['pred'] = self.mlEngine.getPredictedTargets()
+        
         df['true'] = self.testTargets
+        
+        if pred is None:
+            df['pred'] = self.mlEngine.getPredictedTargets()
+        else:
+            df['pred'] = pred
         
         df.to_csv(pf,index=False)
         Log(LOG_INFO) << "Prediction dumped to %s" % pf

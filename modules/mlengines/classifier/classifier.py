@@ -14,12 +14,12 @@ class Classifier(MLEngine):
         return
     
     def predict(self,fm):
-        Log(LOG_INFO) << "Start predicting ..."
+        Log(LOG_DEBUG) << "Start predicting ..."
         self.testFeatureMatrix = fm
         self.engineCore.predict(fm)
         self.predicted_labels = self.engineCore.getPredictedTargets()
         
-        Log(LOG_INFO) << "Prediction done"
+        Log(LOG_DEBUG) << "Prediction done"
 
         return
     

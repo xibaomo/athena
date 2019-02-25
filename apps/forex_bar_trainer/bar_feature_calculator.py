@@ -11,6 +11,7 @@ from modules.basics.common.logger import *
 from dateutil import parser
 from modules.basics.common.utils import smooth1D
 from scipy.stats import binom
+import owls
 class BarFeatureCalculator(object):
     '''
     classdocs
@@ -30,6 +31,7 @@ class BarFeatureCalculator(object):
         self.high  = np.array([])
         self.low   = np.array([])
         self.tickVol= np.array([])
+        self.binomProb = None
         return
         
     def setInitMin(self,minbar):
@@ -173,6 +175,10 @@ class BarFeatureCalculator(object):
         if len(nullID) > len(self.nullID):
             self.nullID = nullID
         return
+    
+    def getBinomProb(self):
+        return self.binomProb
+    
     def compBinomial(self):
         Log(LOG_INFO) << "Computing binomial prob..."
         label = self.labels
@@ -180,16 +186,19 @@ class BarFeatureCalculator(object):
         n_sell = len(np.where(label==1)[0])
         p = n_sell*1./(len(label)-n_tbd)
         
+        self.binomProb = p
+        
         Log(LOG_INFO) << "Sell prob: %f" % p
         res=[]
         for i in range(len(self.labels)):
-            s = i-self.lookback +1
+            s = i-self.lookback 
             if s < 0:
                 res.append(np.nan)
                 continue
-            arr = self.labels[s:i+1]
+            arr = self.labels[s:i]
             k = sum(arr) # incorrect if label == -1
-            pb = binom.pmf(k+1,self.lookback+1,p)
+#             pb = binom.pmf(k+1,self.lookback+1,p)
+            pb = owls.binom_pdf(k+1,self.lookback+1,p)
             res.append(pb)
            
         res = np.array(res)
@@ -454,16 +463,18 @@ class BarFeatureCalculator(object):
         labels = self.labels[len(self.nullID)+1:]
         self.time = self.time[len(self.nullID)+1:]
         
+        binom = self.rawFeatures['BINOM'].values[len(self.nullID)+1:]
         data = data[:-1,:]
         labels = labels[1:]
+        binom = binom[1:]
         self.time = self.time[1:]
-#         pdb.set_trace()
         
         df = pd.DataFrame(data,columns=self.rawFeatures.keys())
         
         df.insert(0,'label',labels)
         df.insert(0,'time',self.time)
         
+        df['BINOM']=binom
         # remove label == -1
         if len(np.where(labels==-1)[0])>0:
             ids = list(np.where(labels==-1)[0])
