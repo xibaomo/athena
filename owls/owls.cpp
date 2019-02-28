@@ -44,9 +44,9 @@ static PyObject* binom_pdf(PyObject* self, PyObject* args)
 
 //    printf("%g\n",pb);
 
-    pb = pb==0?std::numeric_limits<double>::min():pb;
+//    pb = pb==0?std::numeric_limits<double>::min():pb;
 
-    pb = gsl_sf_log(pb);
+//    pb = gsl_sf_log(pb);
 
     return PyFloat_FromDouble(pb);
 }

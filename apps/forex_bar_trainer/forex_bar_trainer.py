@@ -17,6 +17,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection._split import KFold
 from sklearn.model_selection._validation import cross_val_score
 from scipy.stats import binom
+from sklearn.preprocessing import StandardScaler
 import owls
 import pdb
 class ForexBarTrainer(App):
@@ -44,6 +45,9 @@ class ForexBarTrainer(App):
         self.fextor.computeFeatures(self.config.getFeatureList())
         self.totalFeatureMatrix,self.totalLabels = self.fextor.getTotalFeatureMatrix()
        
+#         scaler = StandardScaler()
+#         self.totalFeatureMatrix = scaler.fit_transform(self.totalFeatureMatrix)
+        
         self.totalLabels = self.getLabel(self.config.getPosType())
         
         testSize = self.config.getTestSize()
