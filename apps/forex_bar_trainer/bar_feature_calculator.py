@@ -57,7 +57,7 @@ class BarFeatureCalculator(object):
             if k < N-1:
                 self.allMinBars = self.allMinBars.iloc[:k+2,:]
 
-        print "Latest min bar in history: " + self.allMinBars.iloc[-1,:]['TIME']  
+        Log(LOG_INFO) << "Latest min bar in history: " + self.allMinBars.iloc[-1,:]['TIME']  
         
         if self.initMin is not None:
             self.allMinBars = self.allMinBars.iloc[-5000:,:]
@@ -190,19 +190,25 @@ class BarFeatureCalculator(object):
         
         Log(LOG_INFO) << "Sell prob: %f" % p
         res=[]
+        sells = []
         for i in range(len(self.labels)):
             s = i-self.lookback 
             if s < 0:
                 res.append(np.nan)
+                sells.append(np.nan)
                 continue
             arr = self.labels[s:i]
             k = sum(arr) # incorrect if label == -1
 #             pb = binom.pmf(k+1,self.lookback+1,p)
             pb = owls.binom_pdf(k+1,self.lookback+1,p)
             res.append(pb)
+            sells.append(k*1./self.lookback)
            
         res = np.array(res)
+        sells = np.array(sells)
         self.removeNullID(res) 
+        self.removeNullID(sells)
+        self.rawFeatures['SELLS'] = sells
         self.rawFeatures['BINOM'] = res
         
         Log(LOG_INFO) << "binom done"
@@ -463,10 +469,12 @@ class BarFeatureCalculator(object):
         labels = self.labels[len(self.nullID)+1:]
         self.time = self.time[len(self.nullID)+1:]
         
+        sells = self.rawFeatures['SELLS'].values[len(self.nullID)+1:]
         binom = self.rawFeatures['BINOM'].values[len(self.nullID)+1:]
         data = data[:-1,:]
         labels = labels[1:]
         binom = binom[1:]
+        sells = sells[1:]
         self.time = self.time[1:]
         
         df = pd.DataFrame(data,columns=self.rawFeatures.keys())
@@ -474,6 +482,7 @@ class BarFeatureCalculator(object):
         df.insert(0,'label',labels)
         df.insert(0,'time',self.time)
         
+        df['SELLS']=sells
         df['BINOM']=binom
         # remove label == -1
         if len(np.where(labels==-1)[0])>0:

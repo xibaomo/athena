@@ -23,6 +23,8 @@
 #include <iterator>
 #include <vector>
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_sf_log.h>
+#include <limits>
 /*
  * double binom_pdf(unsigned int k, double p, unsigned int n)
  * {
@@ -39,6 +41,12 @@ static PyObject* binom_pdf(PyObject* self, PyObject* args)
     PyArg_ParseTuple(args, "IId",&k, &n, &p);
 
     double pb = gsl_ran_binomial_pdf(k, p, n);
+
+//    printf("%g\n",pb);
+
+    pb = pb==0?std::numeric_limits<double>::min():pb;
+
+    pb = gsl_sf_log(pb);
 
     return PyFloat_FromDouble(pb);
 }

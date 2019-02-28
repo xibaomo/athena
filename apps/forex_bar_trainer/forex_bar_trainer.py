@@ -87,8 +87,9 @@ class ForexBarTrainer(App):
     def predict_binom(self):
 #         pdb.set_trace()
         testSize =  self.testFeatureMatrix.shape[0]
-        labels = self.trainTargets
+
         lookback = self.config.getLookBack()
+        labels = self.trainTargets
         p = self.fextor.getBinomProb()
         pred = []
         for i in range(testSize):
@@ -97,6 +98,7 @@ class ForexBarTrainer(App):
 #             pb= binom.pmf(k+1,lookback+1,p)
             pb = owls.binom_pdf(k+1,lookback+1,p)
             f = self.testFeatureMatrix[i,:]
+            f[-2] = k*1./lookback
             f[-1] = pb
             
             self.mlEngine.predict(f.reshape(1,-1))

@@ -3,6 +3,7 @@
 *.csv
 *.nfs*
 *.o
+*.so
 *.depend
 *.layout
 *.obj
@@ -11,6 +12,7 @@
 bin
 obj
 output*
+build
 release
 debug
 Release
