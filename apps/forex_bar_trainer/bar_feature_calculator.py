@@ -200,7 +200,7 @@ class BarFeatureCalculator(object):
             arr = self.labels[s:i]
             k = sum(arr) # incorrect if label == -1
 #             pb = binom.pmf(k+1,self.lookback+1,p)
-            pb = owls.binom_pdf(k+1,self.lookback+1,p)
+            pb = owls.binom_entropy(k+1,self.lookback+1,p)
             res.append(pb)
             sells.append(k*1./self.lookback)
            

@@ -25,12 +25,22 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_sf_log.h>
 #include <limits>
-/*
- * double binom_pdf(unsigned int k, double p, unsigned int n)
- * {
- *     return gsl_ran_binomial_pdf(k, p, n);
- * }
- */
+static PyObject* binom_entropy(PyObject* self, PyObject* args)
+{
+    unsigned int k;
+    unsigned int n;
+    double p;
+
+    PyArg_ParseTuple(args, "IId",&k, &n, &p);
+
+    double pb = gsl_ran_binomial_pdf(k, p, n);
+
+    if ( pb == 0) return PyFloat_FromDouble(pb);
+
+    pb = -pb*gsl_sf_log(pb);
+
+    return PyFloat_FromDouble(pb);
+}
 
 static PyObject* binom_pdf(PyObject* self, PyObject* args)
 {
@@ -42,11 +52,22 @@ static PyObject* binom_pdf(PyObject* self, PyObject* args)
 
     double pb = gsl_ran_binomial_pdf(k, p, n);
 
-//    printf("%g\n",pb);
+    return PyFloat_FromDouble(pb);
+}
 
-//    pb = pb==0?std::numeric_limits<double>::min():pb;
+static PyObject* binom_logpdf(PyObject* self, PyObject* args)
+{
+    unsigned int k;
+    unsigned int n;
+    double p;
 
-//    pb = gsl_sf_log(pb);
+    PyArg_ParseTuple(args, "IId",&k, &n, &p);
+
+    double pb = gsl_ran_binomial_pdf(k, p, n);
+
+    pb = pb==0?std::numeric_limits<double>::min(): pb;
+
+    pb = gsl_sf_log(pb);
 
     return PyFloat_FromDouble(pb);
 }
@@ -135,10 +156,13 @@ static PyObject* _binom(PyObject* self, PyObject* args)
 
     return PyArray_Return(out);
 }
+
 static PyMethodDef myMethods[] = {
     {"std",_std, METH_VARARGS, "compute std of array"},
     {"addone",_add_one, METH_VARARGS, "all elements of array adds one"},
+    {"binom_entropy",binom_entropy, METH_VARARGS, "binomial entropy"},
     {"binom_pdf",binom_pdf, METH_VARARGS, "binomial pdf"},
+    {"binom_logpdf",binom_logpdf, METH_VARARGS, "binomial log pdf"},
     {NULL, NULL, 0, NULL}
 };
 

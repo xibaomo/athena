@@ -100,7 +100,7 @@ class ForexBarTrainer(App):
             arr = labels[-lookback:]
             k = sum(arr)
 #             pb= binom.pmf(k+1,lookback+1,p)
-            pb = owls.binom_pdf(k+1,lookback+1,p)
+            pb = owls.binom_entropy(k+1,lookback+1,p)
             f = self.testFeatureMatrix[i,:]
             f[-2] = k*1./lookback
             f[-1] = pb
