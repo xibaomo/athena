@@ -47,7 +47,8 @@ class ForexMinBarPredictor(object):
             self.featureCalculator.appendNewBar(data[k,0],data[k,1],data[k,2],
                                                 data[k,3],data[k,4])
             k+=1
-#         
+#       
+        self.labelHistoryMinBars()  
         return
     
     def setFeatureNames(self,nameStr):
@@ -58,15 +59,25 @@ class ForexMinBarPredictor(object):
     
     def setLookback(self,lookback):
         self.featureCalculator.setLookback(lookback)
+        self.lookback=lookback
         print "Lookback: %d" % lookback
         return
     
     def classifyMinBar(self,open,high,low,close,tickvol):
         print "Predicting features: " + str(self.featureNames)
         self.featureCalculator.resetFeatureTable()
+        
+        print "append new bar ..."
         self.featureCalculator.appendNewBar(open,high,low,close,tickvol)
+        
+        if 'BINOM' in self.featureNames:
+            self.featureNames.remove('BINOM')
+            
         self.featureCalculator.computeFeatures(self.featureNames)
         features = self.featureCalculator.getLatestFeatures()
+        
+        sells,pb = self.featureCalculator.compLatestBinom()
+        features = np.append(features, [sells,pb])
         
         print "Feature computed"
         nanList = np.where(np.isnan(features))[0]
@@ -80,11 +91,22 @@ class ForexMinBarPredictor(object):
         
         pred = self.model.predict(features)
         
+        self.featureCalculator.setLatestLabel(pred[0])
+        
         print "prediction: %d" % pred
         
         return pred[0]
         
+    def labelHistoryMinBars(self):
+        print "Labeling all history bars ..."
         
+        pb = self.featureCalculator.compBinomProb()
+        self.featureCalculator.setBinomProb(pb)
+        self.featureCalculator.computeFeatures(self.featureNames,self.lookback*20)
+        self.featureCalculator.labelUnlabeledBars(self.model,self.lookback)
+        
+        print "All history bars labeled"
+        return
         
         
         

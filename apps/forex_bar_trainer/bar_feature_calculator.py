@@ -59,8 +59,8 @@ class BarFeatureCalculator(object):
 
         Log(LOG_INFO) << "Latest min bar in history: " + self.allMinBars.iloc[-1,:]['TIME']  
         
-        if self.initMin is not None:
-            self.allMinBars = self.allMinBars.iloc[-5000:,:]
+#         if self.initMin is not None:
+#             self.allMinBars = self.allMinBars.iloc[-50000:,:]
 #           
         self.open = self.allMinBars['OPEN']
         self.high = self.allMinBars['HIGH']
@@ -96,6 +96,7 @@ class BarFeatureCalculator(object):
         self.close= np.append(self.close,close)
         self.tickVol = np.append(self.tickVol,tickvol)
         
+        self.labels = np.append(self.labels,-1)
         return
     
     def getLatestFeatures(self):
@@ -121,7 +122,7 @@ class BarFeatureCalculator(object):
         self.lookback = lookback
         return
     
-    def computeFeatures(self,featureNames):
+    def computeFeatures(self,featureNames,latestBars=None):
         BarFeatureSwitcher = {
             "MIDPRICE": self.compMidPrice,
             "KAMA" : self.compKAMA,
@@ -160,11 +161,17 @@ class BarFeatureCalculator(object):
             'BINOM': self.compBinomial
         }
         
-        self.open = np.around(self.open,5)
-        self.high = np.around(self.high,5)
-        self.low  = np.around(self.low,5)
-        self.close= np.around(self.close,5)
-        self.tickVol = np.around(self.tickVol,0)
+        if latestBars is None:
+            latestBars = len(self.open)
+            
+        self.open = np.around(self.open,5)[-latestBars:]
+        self.high = np.around(self.high,5)[-latestBars:]
+        self.low  = np.around(self.low,5)[-latestBars:]
+        self.close= np.around(self.close,5)[-latestBars:]
+        self.tickVol = np.around(self.tickVol,0)[-latestBars:]
+        
+        self.labels = self.labels[-latestBars:]
+        self.time = self.time[-latestBars:]
         
         for fn in featureNames:
             BarFeatureSwitcher[fn]()
@@ -179,14 +186,37 @@ class BarFeatureCalculator(object):
     def getBinomProb(self):
         return self.binomProb
     
-    def compBinomial(self):
-        Log(LOG_INFO) << "Computing binomial prob..."
+    def setBinomProb(self,pb):
+        self.binomProb = pb
+        return
+    
+    def compBinomProb(self):
         label = self.labels
         n_tbd = len(np.where(label==-1)[0])
         n_sell = len(np.where(label==1)[0])
         p = n_sell*1./(len(label)-n_tbd)
         
-        self.binomProb = p
+        return p
+    
+    def compLatestBinom(self):
+        arr = self.labels[-self.lookback-1:-1]
+        k = sum(arr)
+        pb = owls.binom_entropy(k+1,self.lookback+1,self.binomProb)
+        
+        return k*1./self.lookback,pb
+    
+    def compBinomial(self):
+        Log(LOG_INFO) << "Computing binomial prob..."
+#         label = self.labels
+#         n_tbd = len(np.where(label==-1)[0])
+#         n_sell = len(np.where(label==1)[0])
+#         p = n_sell*1./(len(label)-n_tbd)
+
+        
+        if self.binomProb is None:
+            self.binomProb = self.compBinomProb()
+            
+        p = self.binomProb
         
         Log(LOG_INFO) << "Sell prob: %f" % p
         res=[]
@@ -463,7 +493,7 @@ class BarFeatureCalculator(object):
         self.rawFeatures['CCI']=cci 
         return
     
-    def getTotalFeatureMatrix(self):
+    def getTotalFeatureMatrix(self,isDropN1=True):
         data = self.rawFeatures.values[len(self.nullID)+1:,:]
         data = np.around(data,6)
         labels = self.labels[len(self.nullID)+1:]
@@ -485,7 +515,7 @@ class BarFeatureCalculator(object):
         df['SELLS']=sells
         df['BINOM']=binom
         # remove label == -1
-        if len(np.where(labels==-1)[0])>0:
+        if len(np.where(labels==-1)[0])>0 and isDropN1:
             ids = list(np.where(labels==-1)[0])
 #             df=df.iloc[:idx,:]
             df = df.drop(df.index[ids])
@@ -504,5 +534,30 @@ class BarFeatureCalculator(object):
     def getTime(self):
         return self.time
     
+    def labelUnlabeledBars(self,model,lookback):
+        p = self.getBinomProb()
+        fm,labels = self.getTotalFeatureMatrix(isDropN1=False)
+        unlabeled = np.where(labels<0)[0]
+        
+        print "Unlabeled hist bars: %d" % len(unlabeled)
+        for id in unlabeled:
+            arr = labels[id - lookback:id]
+            k = sum(arr)
+            
+            pb = owls.binom_entropy(k+1,lookback+1,p)
+            
+            f = fm[id,:]
+            f[-2] = k*1./lookback
+            f[-1] = pb
+            labels[id] = model.predict(f.reshape(1,-1))[0]
+         
+        self.labels = labels   
+        return
+             
+    def setLatestLabel(self,pred):
+        self.labels[-1] = pred
+        return
+            
+        
     
     
