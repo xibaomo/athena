@@ -52,6 +52,7 @@
 			<Add option="-O2" />
 			<Add option="-L/tools/lib" />
 			<Add option="-Wl,-Bstatic" />
+			<Add option="-lboost_date_time" />
 			<Add option="-lboost_log_setup" />
 			<Add option="-lboost_log" />
 			<Add option="-lboost_thread" />

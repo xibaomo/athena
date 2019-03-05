@@ -34,6 +34,9 @@ class ForexMinBarPredictor(object):
     
     def loadHistoryBarFile(self,barFile):
         latest_time = self.featureCalculator.loadMinBars(barFile)
+        
+        self.labelHistoryMinBars(self.model,self.lookback)
+        
         return latest_time
     
     def loadHistoryMinBars(self,data,histLen,minbar_size):
