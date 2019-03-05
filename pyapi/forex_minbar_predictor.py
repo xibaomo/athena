@@ -76,10 +76,10 @@ class ForexMinBarPredictor(object):
         self.featureCalculator.computeFeatures(self.featureNames)
         features = self.featureCalculator.getLatestFeatures()
         
+        print "Compute latest binom ..."
         sells,pb = self.featureCalculator.compLatestBinom()
         features = np.append(features, [sells,pb])
         
-        print "Feature computed"
         nanList = np.where(np.isnan(features))[0]
         if len(nanList) >0:
             print "Nan found in features, skip ..."

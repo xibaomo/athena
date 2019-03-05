@@ -196,13 +196,15 @@ class BarFeatureCalculator(object):
         n_sell = len(np.where(label==1)[0])
         p = n_sell*1./(len(label)-n_tbd)
         
+        print "Sell prob: %f" % p
+        
         return p
     
     def compLatestBinom(self):
         arr = self.labels[-self.lookback-1:-1]
         k = sum(arr)
         pb = owls.binom_entropy(k+1,self.lookback+1,self.binomProb)
-        
+
         return k*1./self.lookback,pb
     
     def compBinomial(self):
@@ -218,7 +220,7 @@ class BarFeatureCalculator(object):
             
         p = self.binomProb
         
-        Log(LOG_INFO) << "Sell prob: %f" % p
+        
         res=[]
         sells = []
         for i in range(len(self.labels)):
@@ -552,6 +554,8 @@ class BarFeatureCalculator(object):
             labels[id] = model.predict(f.reshape(1,-1))[0]
          
         self.labels = labels   
+        
+        print self.labels
         return
              
     def setLatestLabel(self,pred):
