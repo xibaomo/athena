@@ -30,6 +30,10 @@ ForexMinBarClassifier::prepare()
     int lookback = stoi(getYamlValue("PREDICTION/LOOKBACK"));
     configPredictor(m_buyPredictor,lookback);
 
+    String barFile = getYamlValue("PREDICTION/HISTORY_BAR_FILE");
+    CPyObject pyBarFile = Py_BuildValue("s",barFile.c_str());
+    m_pyLatestMinbar = PyObject_CallMethod(m_buyPredictor,"loadHistoryBarFile","(O)",pyBarFile.getObject());
+
 }
 
 void
@@ -42,16 +46,6 @@ ForexMinBarClassifier::configPredictor(CPyObject& predictor,int lookback)
     String featureNames = getYamlValue("PREDICTION/FEATURE_LIST");
     CPyObject ag = Py_BuildValue("s",featureNames.c_str());
     PyObject_CallMethod(predictor,"setFeatureNames","(O)",ag.getObject());
-
-//    // load history file
-//    CPyObject pyLatestTime;
-//    ag = Py_BuildValue("s",histBarFile.c_str());
-//    pyLatestTime = PyObject_CallMethod(predictor,"loadHistoryBarFile","(O)",ag.getObject());
-//    if(!pyLatestTime) {
-//        Log(LOG_FATAL) << "Failed to get latest time of bar file";
-//    }
-//
-//    m_barFileLatestTime = getStringFromPyobject(pyLatestTime);
 
 }
 
@@ -199,13 +193,12 @@ ForexMinBarClassifier::procMsg_INIT_TIME(Message& msg)
     String latestMinBar;
     CPyObject pyLatestMinbar;
 
-    String barFile = getYamlValue("PREDICTION/HISTORY_BAR_FILE");
-    CPyObject pyBarFile = Py_BuildValue("s",barFile.c_str());
+
     CPyObject pyInitMin = Py_BuildValue("s",initTime.c_str());
     PyObject_CallMethod(m_buyPredictor,"setInitMin","(O)",pyInitMin.getObject());
-    pyLatestMinbar = PyObject_CallMethod(m_buyPredictor,"loadHistoryBarFile","(O)",pyBarFile.getObject());
 
-    latestMinBar = getStringFromPyobject(pyLatestMinbar);
+
+    latestMinBar = getStringFromPyobject(m_pyLatestMinbar);
 
     Log(LOG_INFO) << "Latest min bar in history: " + latestMinBar;
     auto diffTime = getTimeDiffInMin(initTime,latestMinBar);

@@ -29,6 +29,7 @@ protected:
     CPyObject   m_buyPredictor;
     CPyObject   m_sellPredictor;
     CPyObject   m_predictorModule;
+    CPyObject   m_pyLatestMinbar;
 
     String      m_fxSymbol;
 

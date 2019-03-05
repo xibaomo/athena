@@ -35,7 +35,11 @@ class ForexMinBarPredictor(object):
     def loadHistoryBarFile(self,barFile):
         latest_time = self.featureCalculator.loadMinBars(barFile)
         
-        self.labelHistoryMinBars(self.model,self.lookback)
+#         if self.model is None:
+#             print "Model not set"
+#             exit(1)
+        
+        self.labelHistoryMinBars()
         
         return latest_time
     

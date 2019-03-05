@@ -41,7 +41,7 @@ class BarFeatureCalculator(object):
     def loadMinBars(self,barFile):
         self.allMinBars = pd.read_csv(barFile)
         N = self.allMinBars.shape[0]
-        print "Hisotry min bars loaded: " + str(N)
+        print "Hisotry min bar file loaded: " + str(N)
         
         if self.initMin is not None:
             k = N-1
@@ -70,7 +70,7 @@ class BarFeatureCalculator(object):
         self.labels = self.allMinBars['LABEL'].values
         
         self.time = self.allMinBars['TIME'].values
-        print self.time[-1]
+        print "Latest min bar: " + self.time[-1]
         return self.time[-1]
     
     def resetFeatureTable(self):
