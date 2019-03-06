@@ -4,6 +4,7 @@ Created on Dec 13, 2018
 @author: fxua
 '''
 from pyapi.forex_minbar_predictor import ForexMinBarPredictor
+import numpy as np
 
 predictor = ForexMinBarPredictor()
 
@@ -17,6 +18,11 @@ predictor.setFeatureNames(nameStr)
 predictor.setLookback(1440)
 
 predictor.loadHistoryBarFile("EURUSD_labeled.csv")
+predictor.loadAModel("EURUSD_buy.pkl")
 
-predictor.labelHistoryMinBars()
+data = np.random.random((200,5))
+
+predictor.loadHistoryMinBars(data, 200, 5)
+
+# predictor.labelHistoryMinBars()
 predictor.classifyMinBar(1.62, 1.63, 1.61, 1.62,80.)

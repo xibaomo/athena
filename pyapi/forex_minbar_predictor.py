@@ -35,12 +35,6 @@ class ForexMinBarPredictor(object):
     def loadHistoryBarFile(self,barFile):
         latest_time = self.featureCalculator.loadMinBars(barFile)
         
-#         if self.model is None:
-#             print "Model not set"
-#             exit(1)
-        
-        self.labelHistoryMinBars()
-        
         return latest_time
     
     def loadHistoryMinBars(self,data,histLen,minbar_size):
@@ -49,13 +43,17 @@ class ForexMinBarPredictor(object):
         print "first: ", data[:5,:]
         print "last: ", data[-5:,:]
         
-        k=0
-        while k < data.shape[0]-1:
-            self.featureCalculator.appendNewBar(data[k,0],data[k,1],data[k,2],
-                                                data[k,3],data[k,4])
-            k+=1
-#       
-        self.labelHistoryMinBars()  
+#         k=0
+#         while k < data.shape[0]-1:
+#             self.featureCalculator.appendNewBar(data[k,0],data[k,1],data[k,2],
+#                                                 data[k,3],data[k,4])
+#             k+=1
+
+        self.featureCalculator.loadHistoryMinBars(data[:-1,:])
+        
+        self.featureCalculator.markUnlabeled(tp=200, spread=10, digits=1.0e-5)
+        
+        self.predictHistoryMinBars()  
         return
     
     def setFeatureNames(self,nameStr):
@@ -76,6 +74,8 @@ class ForexMinBarPredictor(object):
         
         print "append new bar ..."
         self.featureCalculator.appendNewBar(open,high,low,close,tickvol)
+        
+        self.featureCalculator.correctPastPrediction()
         
         if 'BINOM' in self.featureNames:
             self.featureNames.remove('BINOM')
@@ -104,17 +104,19 @@ class ForexMinBarPredictor(object):
         
         return pred[0]
         
-    def labelHistoryMinBars(self):
+    def predictHistoryMinBars(self):
         print "Labeling all history bars ..."
         
         pb = self.featureCalculator.compBinomProb()
         self.featureCalculator.setBinomProb(pb)
+        
         self.featureCalculator.computeFeatures(self.featureNames,self.lookback*20)
-        self.featureCalculator.labelUnlabeledBars(self.model,self.lookback)
+        
+        print "all features ready"
+        self.featureCalculator.predictUnlabeledBars(self.model,self.lookback)
         
         print "All history bars labeled"
         return
-        
         
         
         

@@ -9,6 +9,7 @@
 *.obj
 .idea
 *.log
+*.pkl
 bin
 obj
 output*

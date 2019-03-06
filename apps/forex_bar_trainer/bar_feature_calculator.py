@@ -32,6 +32,8 @@ class BarFeatureCalculator(object):
         self.low   = np.array([])
         self.tickVol= np.array([])
         self.binomProb = None
+        
+        self.unlabeledID = np.array([])
         return
         
     def setInitMin(self,minbar):
@@ -97,8 +99,29 @@ class BarFeatureCalculator(object):
         self.tickVol = np.append(self.tickVol,tickvol)
         
         self.labels = np.append(self.labels,-1)
+        self.time = np.append(self.time,'unknown_time')
+        
+        self.unlabeledID = np.append(self.unlabeledID, len(self.labels)-1)
         return
     
+    def loadHistoryMinBars(self,data):
+        print "loading history min bars ..."
+        self.open = np.append(self.open, np.around(data[:,0],5))
+        self.high = np.append(self.high, np.around(data[:,1],5))
+        self.low = np.append(self.low, np.around(data[:,2],5))
+        self.close = np.append(self.close,np.around(data[:,3],5))
+        self.tickVol = np.append(self.tickVol,data[:,4])
+        
+        newtime = ["unknown_time" for x in range(data.shape[0])]
+        newlabels = np.ones(data.shape[0]) * (-1)
+        
+        self.labels = np.append(self.labels,newlabels)
+        
+        self.time = np.append(self.time,newtime)
+        
+        return
+        
+        
     def getLatestFeatures(self):
 #         print self.rawFeatures
         
@@ -172,8 +195,9 @@ class BarFeatureCalculator(object):
         
         self.labels = self.labels[-latestBars:]
         self.time = self.time[-latestBars:]
-        
+
         for fn in featureNames:
+#             print "feature: " + fn
             BarFeatureSwitcher[fn]()
     
     def removeNullID(self,ind):
@@ -209,37 +233,38 @@ class BarFeatureCalculator(object):
     
     def compBinomial(self):
         Log(LOG_INFO) << "Computing binomial prob..."
-#         label = self.labels
-#         n_tbd = len(np.where(label==-1)[0])
-#         n_sell = len(np.where(label==1)[0])
-#         p = n_sell*1./(len(label)-n_tbd)
-
         
         if self.binomProb is None:
             self.binomProb = self.compBinomProb()
             
         p = self.binomProb
         
-        
         res=[]
         sells = []
         for i in range(len(self.labels)):
+                
             s = i-self.lookback 
             if s < 0:
                 res.append(np.nan)
                 sells.append(np.nan)
                 continue
             arr = self.labels[s:i]
-            k = sum(arr) # incorrect if label == -1
-#             pb = binom.pmf(k+1,self.lookback+1,p)
-            pb = owls.binom_entropy(k+1,self.lookback+1,p)
+            k = int(sum(arr)) # incorrect if label == -1
+
+            pb=-1
+            if k>=0:
+                pb = owls.binom_entropy(k+1,self.lookback+1,p)
+            
             res.append(pb)
             sells.append(k*1./self.lookback)
-           
+            
+ 
         res = np.array(res)
         sells = np.array(sells)
+        
         self.removeNullID(res) 
         self.removeNullID(sells)
+        
         self.rawFeatures['SELLS'] = sells
         self.rawFeatures['BINOM'] = res
         
@@ -536,32 +561,110 @@ class BarFeatureCalculator(object):
     def getTime(self):
         return self.time
     
-    def labelUnlabeledBars(self,model,lookback):
+    def predictUnlabeledBars(self,model,lookback):
         p = self.getBinomProb()
         fm,labels = self.getTotalFeatureMatrix(isDropN1=False)
         unlabeled = np.where(labels<0)[0]
         
+        self.unlabeledID = unlabeled
+        
+#         print self.unlabeledID
+        
         print "Unlabeled hist bars: %d" % len(unlabeled)
-        for id in unlabeled:
-            arr = labels[id - lookback:id]
-            k = sum(arr)
+#         print fm.shape[0],len(labels)
+#         print fm
+        for i in unlabeled:
+            arr = labels[i - lookback:i]
+            k = int(sum(arr))
             
             pb = owls.binom_entropy(k+1,lookback+1,p)
             
-            f = fm[id,:]
+#             print "pb: %f %f %d" % (pb,p,lookback)
+#             print fm.shape,i
+#             print model
+#             print fm[i,:]
+            f = fm[i,:]
+#             print f 
+            
             f[-2] = k*1./lookback
             f[-1] = pb
-            labels[id] = model.predict(f.reshape(1,-1))[0]
+            
+            
+            labels[i] = model.predict(f.reshape(1,-1))[0]
          
-        self.labels = labels   
+        self.labels = labels.astype(int)
         
-        print self.labels
+        print "labels = ",self.labels
         return
              
     def setLatestLabel(self,pred):
         self.labels[-1] = pred
+
         return
-            
         
+    def markUnlabeled(self,tp = 200, spread = 10,digits=1.e-5):
+        unlabeledID = np.where(self.labels<0)[0]
+        
+        print unlabeledID
+        
+        for id in unlabeledID.tolist():
+            ub = self.open[id] + (spread + tp)*digits 
+            lb = self.open[id] + (spread - tp)*digits
+            s = id + 1
+            while s < len(self.labels):
+                if self.high[s] >= ub and self.low[s] > lb:
+                    self.labels[id] = 0
+#                     print "labeled 0: %d" % id 
+                    break
+                elif self.low[s]  <= lb and self.high[s] < ub:
+                    self.labels[id] = 1
+#                     print "labeled 1: %d" % id 
+                    break
+                
+                elif self.high[s] >= ub and self.low[s] <= lb:
+                    self.labels[id] = 2
+                    print "rush hour, high-low = %f" % (self.high[s] -self.low[s])
+                    break
+                elif self.high[s] < ub and self.low[s] > lb:
+                    s+=1
+                    continue
+                else:
+                    print 'impossible minute'
+                    print self.high[s],ub,self.low[s],lb
+                    
+        print "All min bars marked"
+        
+
+    def correctPastPrediction(self,tp=200,spread=10,digits=1.e-5):
+        high = self.high[-1]
+        low  = self.low[-1]
+        
+        correctedID=[]
+        for i in range(len(self.unlabeledID)):
+            idx = self.unlabeledID[i]
+            price = self.open[idx]
+            ub = price + (spread + tp)*digits 
+            lb = price + (spread - tp)*digits
+            if high >= ub and low > lb:
+                self.labels[idx] = 0
+                correctedID.append(i)
+                print "marked 0 : %f %f %f" % (price,high,high-price)
+                
+            elif low <= lb and high < ub:
+                self.labels[idx] = 1
+                correctedID.append(i)
+                print "marked 1: %f %f %f" % (price,low,price-low)
+                
+            elif high >= ub and low <= lb:
+                self.labels[idx] = 2
+                correctedID.append(i)
+            else:
+                pass
+            
+        if len(correctedID) > 0:
+            self.unlabeledID =  np.delete(self.unlabeledID, correctedID)
+            print "History bars marked: %d" % len(correctedID)
+            
+            
     
     
