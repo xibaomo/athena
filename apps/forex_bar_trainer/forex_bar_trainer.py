@@ -6,7 +6,7 @@ Created on Dec 2, 2018
 from apps.app import App
 from modules.basics.common.logger import *
 from apps.forex_bar_trainer.fbtconf import FbtConfig
-from apps.forex_bar_trainer.bar_feature_calculator import BarFeatureCalculator
+from apps.forex_bar_trainer.bar_feature_calculator import BarFeatureCalculator,BINOM_FUNC
 from modules.mlengine_cores.mlengine_core_creator import createMLEngineCore
 from modules.basics.conf.mlengineconf import gMLEngineConfig
 from modules.basics.conf.generalconf import gGeneralConfig
@@ -100,7 +100,7 @@ class ForexBarTrainer(App):
             arr = labels[-lookback:]
             k = sum(arr)
 #             pb= binom.pmf(k+1,lookback+1,p)
-            pb = owls.binom_entropy(k+1,lookback+1,p)
+            pb = BINOM_FUNC(k+1,lookback+1,p)
             f = self.testFeatureMatrix[i,:]
             f[-2] = k*1./lookback
             f[-1] = pb
@@ -109,6 +109,8 @@ class ForexBarTrainer(App):
             new_label = self.mlEngine.getPredictedTargets()[0]
             labels = np.append(labels, new_label)
             pred.append(new_label)
+            
+            print i,new_label
             
         
         return np.array(pred)

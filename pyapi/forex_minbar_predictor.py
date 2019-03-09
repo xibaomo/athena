@@ -105,7 +105,7 @@ class ForexMinBarPredictor(object):
         return pred[0]
         
     def predictHistoryMinBars(self):
-        print "Labeling all history bars ..."
+        print "predicting all history bars ..."
         
         pb = self.featureCalculator.compBinomProb()
         self.featureCalculator.setBinomProb(pb)

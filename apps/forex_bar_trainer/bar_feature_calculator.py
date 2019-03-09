@@ -12,6 +12,9 @@ from dateutil import parser
 from modules.basics.common.utils import smooth1D
 from scipy.stats import binom
 import owls
+
+BINOM_FUNC = owls.binom_logpdf
+
 class BarFeatureCalculator(object):
     '''
     classdocs
@@ -227,7 +230,7 @@ class BarFeatureCalculator(object):
     def compLatestBinom(self):
         arr = self.labels[-self.lookback-1:-1]
         k = sum(arr)
-        pb = owls.binom_entropy(k+1,self.lookback+1,self.binomProb)
+        pb = BINOM_FUNC(k+1,self.lookback+1,self.binomProb)
 
         return k*1./self.lookback,pb
     
@@ -253,7 +256,7 @@ class BarFeatureCalculator(object):
 
             pb=-1
             if k>=0:
-                pb = owls.binom_entropy(k+1,self.lookback+1,p)
+                pb = BINOM_FUNC(k+1,self.lookback+1,p)
             
             res.append(pb)
             sells.append(k*1./self.lookback)
@@ -524,7 +527,7 @@ class BarFeatureCalculator(object):
         data = self.rawFeatures.values[len(self.nullID)+1:,:]
         data = np.around(data,6)
         labels = self.labels[len(self.nullID)+1:]
-        self.time = self.time[len(self.nullID)+1:]
+        time = self.time[len(self.nullID)+1:]
         
         sells = self.rawFeatures['SELLS'].values[len(self.nullID)+1:]
         binom = self.rawFeatures['BINOM'].values[len(self.nullID)+1:]
@@ -532,12 +535,20 @@ class BarFeatureCalculator(object):
         labels = labels[1:]
         binom = binom[1:]
         sells = sells[1:]
-        self.time = self.time[1:]
+        time = time[1:]
+        
+        lz = len(self.nullID)+1
+        self.labels = self.labels[lz:]
+        self.open = self.open[lz:]
+        self.high = self.high[lz:]
+        self.low  = self.low[lz:]
+        self.close = self.close[lz:]
+        self.time = self.time[lz:]
         
         df = pd.DataFrame(data,columns=self.rawFeatures.keys())
         
         df.insert(0,'label',labels)
-        df.insert(0,'time',self.time)
+        df.insert(0,'time',time)
         
         df['SELLS']=sells
         df['BINOM']=binom
@@ -577,7 +588,7 @@ class BarFeatureCalculator(object):
             arr = labels[i - lookback:i]
             k = int(sum(arr))
             
-            pb = owls.binom_entropy(k+1,lookback+1,p)
+            pb = BINOM_FUNC(k+1,lookback+1,p)
             
 #             print "pb: %f %f %d" % (pb,p,lookback)
 #             print fm.shape,i
@@ -648,12 +659,12 @@ class BarFeatureCalculator(object):
             if high >= ub and low > lb:
                 self.labels[idx] = 0
                 correctedID.append(i)
-                print "marked 0 : %f %f %f" % (price,high,high-price)
+                print "marked 0 : %s %f %f %f" % (self.time[idx],price,high,high-price)
                 
             elif low <= lb and high < ub:
                 self.labels[idx] = 1
                 correctedID.append(i)
-                print "marked 1: %f %f %f" % (price,low,price-low)
+                print "marked 1: %s %f %f %f" % (self.time[idx],price,low,price-low)
                 
             elif high >= ub and low <= lb:
                 self.labels[idx] = 2
