@@ -21,6 +21,7 @@ class ForexMinBarPredictor(object):
         '''
         self.featureCalculator =  BarFeatureCalculator()
         self.model = None
+        self.isBinom = False
         return
     
     def setInitMin(self,minbar):
@@ -53,11 +54,17 @@ class ForexMinBarPredictor(object):
         
         self.featureCalculator.markUnlabeled(tp=200, spread=10, digits=1.0e-5)
         
+        if "BINOM" not in self.featureNames:
+            return 
+                
         self.predictHistoryMinBars()  
         return
     
     def setFeatureNames(self,nameStr):
         self.featureNames = re.split('\W+',str(nameStr))
+        if "BINOM" in self.featureNames:
+            self.isBinom = True
+            
         print self.featureNames
         print "Num of features: %d" % len(self.featureNames)
         return
@@ -83,9 +90,10 @@ class ForexMinBarPredictor(object):
         self.featureCalculator.computeFeatures(self.featureNames)
         features = self.featureCalculator.getLatestFeatures()
         
-        print "Compute latest binom ..."
-        sells,pb = self.featureCalculator.compLatestBinom()
-        features = np.append(features, [sells,pb])
+        if self.isBinom is True:
+            print "Compute latest binom ..."
+            sells,pb = self.featureCalculator.compLatestBinom()
+            features = np.append(features, [sells,pb])
         
         nanList = np.where(np.isnan(features))[0]
         if len(nanList) >0:

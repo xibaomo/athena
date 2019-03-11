@@ -110,7 +110,7 @@ class ForexBarTrainer(App):
             labels = np.append(labels, new_label)
             pred.append(new_label)
             
-            print i,new_label
+#             print i,new_label
             
         
         return np.array(pred)
@@ -155,7 +155,7 @@ class ForexBarTrainer(App):
         Log(LOG_INFO) << "***************************";
         Log(LOG_INFO) << "Total transactions (original): %d" % (len(true_tar))
         badfrac = sum(true_tar)/float(len(true_tar)) 
-        Log(LOG_INFO) << "good: %.1f%%, bad: %.1f%%" % ((1-badfrac)*100,badfrac*100)
+        Log(LOG_INFO) << "buy: %.1f%%, sell: %.1f%%" % ((1-badfrac)*100,badfrac*100)
         Log(LOG_INFO) << "Test set accuracy: %f" % acc
         Log(LOG_INFO) << "Actual transactions: %d" % (num_good + num_miss)
         Log(LOG_INFO) << "Profit transactions: %d" % (num_good)

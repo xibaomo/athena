@@ -148,7 +148,7 @@ class BarFeatureCalculator(object):
         self.lookback = lookback
         return
     
-    def computeFeatures(self,featureNames,latestBars=None):
+    def computeFeatures(self,featureNames,latestBars=None, lastOnly = False):
         BarFeatureSwitcher = {
             "MIDPRICE": self.compMidPrice,
             "KAMA" : self.compKAMA,
