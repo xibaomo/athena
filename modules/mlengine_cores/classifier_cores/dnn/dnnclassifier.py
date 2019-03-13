@@ -8,6 +8,7 @@ from modules.basics.conf.mlengineconf import gMLEngineConfig
 from keras.wrappers.scikit_learn import KerasClassifier
 from modules.mlengine_cores.dnncomm.dnncreator import createDNNModel
 from modules.mlengine_cores.dnncomm.dnn_core import DNNCore
+import pdb
 class DNNClassifier(DNNCore):
     '''
     classdocs
@@ -42,6 +43,7 @@ class DNNClassifier(DNNCore):
         return
 
     def predict(self,fm):
+#         pdb.set_trace()
         super(DNNClassifier,self).predict(fm)
         
         self.predictedTargets = [int(round(x)) for x in self.predictedTargets]

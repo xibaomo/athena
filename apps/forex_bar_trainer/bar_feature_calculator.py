@@ -184,7 +184,8 @@ class BarFeatureCalculator(object):
             'MACDFIX': self.compMACDFIX,
             'ULTOSC': self.compULTOSC,
             'ILS': self.compILS,
-            'BINOM': self.compBinomial
+            'BINOM': self.compBinomial,
+            'FFT': self.compFFT
         }
         
         if latestBars is None:
@@ -210,6 +211,40 @@ class BarFeatureCalculator(object):
             self.nullID = nullID
         return
     
+    def compFFT(self):
+        Log(LOG_INFO) << "Computing FFT ..."
+        data = []
+        
+        mp = talib.MEDPRICE(self.high,self.low)
+        
+        for i in range(len(self.labels)):
+#             print i
+            s = i - self.lookback + 1
+            if s < 0:
+                f=np.ones(self.lookback/2+1) * np.nan 
+                data.append(f)
+                continue
+                
+#             pdb.set_trace()
+            arr = mp[s:i+1].values
+            arr = arr - arr[0]
+            ff = np.fft.fft(arr)
+            f = ff[:self.lookback/2+1]
+            
+            data.append(np.abs(f))
+            
+        Log(LOG_INFO) <<"FFT done. Appending to feature table ..."
+        
+        data = np.array(data)
+        self.removeNullID(data[:,0])
+        
+        for i in range(data.shape[1]):
+            key = "F_" + str(i)
+            self.rawFeatures[key] = data[:,i]
+    
+        Log(LOG_INFO) << "FFT feature added"
+        return
+    
     def getBinomProb(self):
         return self.binomProb
     
@@ -228,6 +263,8 @@ class BarFeatureCalculator(object):
         return p
     
     def compLatestBinom(self):
+#         self.binomProb = self.compBinomProb()
+        
         arr = self.labels[-self.lookback-1:-1]
         k = sum(arr)
         pb = BINOM_FUNC(k+1,self.lookback+1,self.binomProb)
@@ -528,13 +565,18 @@ class BarFeatureCalculator(object):
         data = np.around(data,6)
         labels = self.labels[len(self.nullID)+1:]
         time = self.time[len(self.nullID)+1:]
+        binom = None
         
-        sells = self.rawFeatures['SELLS'].values[len(self.nullID)+1:]
-        binom = self.rawFeatures['BINOM'].values[len(self.nullID)+1:]
+        
+        if "BINOM" in self.rawFeatures.keys():
+            sells = self.rawFeatures['SELLS'].values[len(self.nullID)+1:]
+            binom = self.rawFeatures['BINOM'].values[len(self.nullID)+1:]
+            binom = binom[1:]
+            sells = sells[1:]
+            
         data = data[:-1,:]
         labels = labels[1:]
-        binom = binom[1:]
-        sells = sells[1:]
+
         time = time[1:]
         
         lz = len(self.nullID)+1
@@ -550,8 +592,9 @@ class BarFeatureCalculator(object):
         df.insert(0,'label',labels)
         df.insert(0,'time',time)
         
-        df['SELLS']=sells
-        df['BINOM']=binom
+        if binom is not None:
+            df['SELLS']=sells
+            df['BINOM']=binom
         # remove label == -1
         if len(np.where(labels==-1)[0])>0 and isDropN1:
             ids = list(np.where(labels==-1)[0])

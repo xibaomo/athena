@@ -23,6 +23,8 @@ class MLEngine(object):
         self.engineCore.train(fm,targets)
         Log(LOG_INFO) << "Training is finished"
         
+        if fm.shape[0] > 100:
+            return
         acc,mr,crt = self.engineCore.getAccuracy(fm,targets)
 
         Log(LOG_INFO) << "Correct on train set: " + str(crt)
