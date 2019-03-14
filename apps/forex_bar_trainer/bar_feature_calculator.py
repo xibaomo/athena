@@ -185,7 +185,7 @@ class BarFeatureCalculator(object):
             'ULTOSC': self.compULTOSC,
             'ILS': self.compILS,
             'BINOM': self.compBinomial,
-            'FFT': self.compFFT
+            'BMFFT': self.compBMFFT
         }
         
         if latestBars is None:
@@ -211,29 +211,33 @@ class BarFeatureCalculator(object):
             self.nullID = nullID
         return
     
-    def compFFT(self):
-        Log(LOG_INFO) << "Computing FFT ..."
-        data = []
+    def compLabelFFT(self,labels):
+        N=4
+#         N=self.lookback/2+1
+        if len(labels)  < self.lookback:
+            return np.ones(N) * np.nan
         
-        mp = talib.MEDPRICE(self.high,self.low)
+        ff = np.fft.fft(labels)
+        
+        f = np.abs(ff[:self.lookback/2+1])
+        
+        return f[:N]
+        
+    def compBMFFT(self):
+        Log(LOG_INFO) << "Computing BMFFT ..."
+        data = []
         
         for i in range(len(self.labels)):
 #             print i
             s = i - self.lookback + 1
             if s < 0:
-                f=np.ones(self.lookback/2+1) * np.nan 
-                data.append(f)
-                continue
-                
-#             pdb.set_trace()
-            arr = mp[s:i+1].values
-            arr = arr - arr[0]
-            ff = np.fft.fft(arr)
-            f = ff[:self.lookback/2+1]
+                s = 0
+            labels = self.labels[s:i+1]
+            f = self.compLabelFFT(labels)
             
             data.append(np.abs(f))
             
-        Log(LOG_INFO) <<"FFT done. Appending to feature table ..."
+        Log(LOG_INFO) <<"BMFFT done. Appending to feature table ..."
         
         data = np.array(data)
         self.removeNullID(data[:,0])
@@ -242,7 +246,7 @@ class BarFeatureCalculator(object):
             key = "F_" + str(i)
             self.rawFeatures[key] = data[:,i]
     
-        Log(LOG_INFO) << "FFT feature added"
+        Log(LOG_INFO) << "BMFFT feature added"
         return
     
     def getBinomProb(self):
@@ -601,9 +605,9 @@ class BarFeatureCalculator(object):
 #             df=df.iloc[:idx,:]
             df = df.drop(df.index[ids])
                 
-        df.to_csv("features.csv",index=False)
-        
-        Log(LOG_INFO) << "Feature file dumped: features.csv"
+#         df.to_csv("features.csv",index=False)
+#         
+#         Log(LOG_INFO) << "Feature file dumped: features.csv"
         if data.shape[0] != len(labels):
             Log(LOG_FATAL) << "Samples inconsistent with labels"
             

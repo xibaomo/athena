@@ -91,6 +91,7 @@ class ForexBarTrainer(App):
     def predict_binom(self):
 #         pdb.set_trace()
         testSize =  self.testFeatureMatrix.shape[0]
+        regLen = 16
 
         lookback = self.config.getLookBack()
         labels = self.trainTargets
@@ -99,18 +100,20 @@ class ForexBarTrainer(App):
         for i in range(testSize):
             arr = labels[-lookback:]
             k = sum(arr)
-#             pb= binom.pmf(k+1,lookback+1,p)
             pb = BINOM_FUNC(k+1,lookback+1,p)
-            f = self.testFeatureMatrix[i,:]
-            f[-2] = k*1./lookback
-            f[-1] = pb
+            f = self.testFeatureMatrix[i,:regLen]
+            bm = np.array([k*1./lookback,pb])
+            f = np.append(f,bm)
+            
+            if "BMFFT" in self.config.getFeatureList():
+                lb = labels[-lookback:]
+                ff = self.fextor.compLabelFFT(lb)
+                f = np.append(f,ff)
             
             self.mlEngine.predict(f.reshape(1,-1))
             new_label = self.mlEngine.getPredictedTargets()[0]
             labels = np.append(labels, new_label)
             pred.append(new_label)
-            
-#             print i,new_label
             
         
         return np.array(pred)
