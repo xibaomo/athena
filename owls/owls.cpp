@@ -25,6 +25,18 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_sf_log.h>
 #include <limits>
+#include <cstdio>
+#include <iostream>
+using namespace std;
+typedef unsigned int Uint;
+void pyArray2vector(PyArrayObject* pyarr, vector<double>& v)
+{
+    v.clear();
+    double* p = (double*)pyarr->data;
+
+    v.assign(p, p+pyarr->dimensions[0]);
+}
+
 static PyObject* binom_entropy(PyObject* self, PyObject* args)
 {
     unsigned int k;
@@ -157,12 +169,139 @@ static PyObject* _binom(PyObject* self, PyObject* args)
     return PyArray_Return(out);
 }
 
+static PyObject* _getNan(PyObject* self, PyObject* args)
+{
+    return PyFloat_FromDouble(NAN);
+}
+
+/*-----------------------------------------------------------------------------
+ *  Compute binomial features.
+ *  Current label is included.
+ *  Return: 1. ratio of 1 in lookback bars.
+ *          2. probability of k occurrances in lookback bars, global probability
+ *             is computed over prob_period
+ *-----------------------------------------------------------------------------*/
+void compBinomFeature(PyArrayObject* pylabels, Uint lookback, Uint prob_period,
+        PyArrayObject* pyratio, PyArrayObject* pyprobs)
+{
+    double* labels = (double*)pylabels->data;
+    double* ratio  = (double*)pyratio->data;
+    double* probs  = (double*)pyprobs->data;
+
+    int en = pylabels->dimensions[0]-1;
+//    cout << "label[end] = " << labels[en] << endl;
+#pragma omp parallel for num_threads(20)
+    for ( int i =0; i < pylabels->dimensions[0]; i++ ) {
+        if ( i < prob_period ) {
+            ratio[i] = NAN;
+            probs[i] = NAN;
+            continue;
+        }
+        // count 1 and -1 in prob_period
+        int  k1 = 0;
+        int  kn1 = 0;
+        for ( int j = i - prob_period; j <= i; j++ ) {
+            if ( labels[j] == 1) k1++;
+            if ( labels[j] == -1) kn1++;
+        }
+        double p = k1*1./(prob_period+1.-kn1);
+
+//        if ( i == prob_period )
+//            cout << k1 << " " << p << endl;
+//
+        k1 = 0; kn1 = 0;
+        for ( int j = i - lookback; j<=i; j++ ) {
+            if ( labels[j] == 1) k1++;
+            if ( labels[j] == -1) kn1++;
+        }
+        double pb = gsl_ran_binomial_pdf(k1, p, lookback-kn1);
+        pb = pb==0?std::numeric_limits<double>::min(): pb;
+
+        probs[i] = -gsl_sf_log(pb);
+        ratio[i] = k1*1./(lookback+1.-kn1);
+
+//        if ( i == prob_period )
+//        printf("%d %f %f\n",i, ratio[i], probs[i]);
+    }
+}
+void __compBinomFeature(PyArrayObject* pylabels, Uint lookback, Uint prob_period,
+        PyArrayObject* pyratio, PyArrayObject* pyprobs)
+{
+    double* labels = (double*)pylabels->data;
+    double* ratio  = (double*)pyratio->data;
+    double* probs  = (double*)pyprobs->data;
+    int k1 = 0; int kn1 = 0; //global
+    int sk1 = 0; int skn1 = 0; //local
+
+    for ( int i =0; i < pylabels->dimensions[0]; i++ ) {
+        if ( i < prob_period ) {
+            ratio[i] = NAN;
+            probs[i] = NAN;
+            continue;
+        }
+        if ( i - prob_period == 0 ) {
+            for ( int j = i-prob_period; j<=i; j++ ) {
+                if ( labels[j] == 1 ) {
+                    k1++;
+                    if ( i-j <=lookback ) sk1++;
+                }
+                if ( labels[j] == -1 ) {
+                    kn1++;
+                    if ( i-j <= lookback) skn1++;
+                }
+            }
+        } else {
+;
+        }
+
+        double p = k1*1./(prob_period+1.-kn1);
+
+        double pb = gsl_ran_binomial_pdf(k1, p, lookback-kn1);
+        pb = pb==0?std::numeric_limits<double>::min(): pb;
+
+        probs[i] = -gsl_sf_log(pb);
+        ratio[i] = k1*1./(lookback+1.-kn1);
+    }
+}
+
+static PyObject* _compBinom(PyObject* self, PyObject* args)
+{
+    PyObject* in_arr;
+    PyArrayObject* arr = NULL;
+    unsigned int lookback;
+    unsigned int prob_period;
+    if ( !PyArg_ParseTuple(args, "OII",&arr, &lookback, &prob_period) ) {
+        return NULL;
+    }
+
+//    cout << "size passed: " << arr->dimensions[0] << endl;
+//    cout << "lk, pb = " << lookback << " " << prob_period << endl;
+//    double* p = (double*)arr->data;
+//    cout << "p[0] = " << p[0] << endl;
+
+    int dims[1];
+    dims[0] = arr->dimensions[0];
+    PyArrayObject* o1 = (PyArrayObject*)PyArray_FromDims(1, dims, NPY_DOUBLE);
+    PyArrayObject* o2 = (PyArrayObject*)PyArray_FromDims(1, dims, NPY_DOUBLE);
+
+    compBinomFeature(arr, lookback, prob_period, o1, o2);
+/*
+    cout << "Result: " << endl;
+    double* p1 = (double*)o1->data;
+    double* p2 = (double*)o2->data;
+    cout << p1[20] << " " << p2[20] << endl;
+*/
+    return Py_BuildValue("OO",o1, o2);
+}
+
 static PyMethodDef myMethods[] = {
     {"std",_std, METH_VARARGS, "compute std of array"},
     {"addone",_add_one, METH_VARARGS, "all elements of array adds one"},
     {"binom_entropy",binom_entropy, METH_VARARGS, "binomial entropy"},
     {"binom_pdf",binom_pdf, METH_VARARGS, "binomial pdf"},
     {"binom_logpdf",binom_logpdf, METH_VARARGS, "binomial log pdf"},
+    {"getNan",_getNan, METH_NOARGS, "GET A NAN"},
+    {"compBinom",_compBinom, METH_VARARGS, "WFWEOJO"},
     {NULL, NULL, 0, NULL}
 };
 

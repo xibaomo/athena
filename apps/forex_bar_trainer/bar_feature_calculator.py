@@ -14,6 +14,7 @@ from scipy.stats import binom
 import owls
 
 BINOM_FUNC = owls.binom_logpdf
+GLOBAL_PROB_PERIOD=1440*15  # ONE WEEK
 
 class BarFeatureCalculator(object):
     '''
@@ -276,6 +277,18 @@ class BarFeatureCalculator(object):
         return k*1./self.lookback,pb
     
     def compBinomial(self):
+        Log(LOG_INFO) << "Computing binomial prob ..."
+        sells,res = owls.compBinom(self.labels.astype(float),self.lookback,GLOBAL_PROB_PERIOD)
+        
+        self.removeNullID(res) 
+        self.removeNullID(sells)
+        
+        self.rawFeatures['SELLS'] = sells
+        self.rawFeatures['BINOM'] = res
+        
+        Log(LOG_INFO) << "binom done"
+        
+    def __compBinomial(self):
         Log(LOG_INFO) << "Computing binomial prob..."
         
         if self.binomProb is None:
@@ -286,15 +299,19 @@ class BarFeatureCalculator(object):
         res=[]
         sells = []
         for i in range(len(self.labels)):
-                
-            s = i-self.lookback 
-            if s < 0:
+            S = i - GLOBAL_PROB_PERIOD
+            if S < 0:
                 res.append(np.nan)
                 sells.append(np.nan)
                 continue
+            
+            s = i - self.lookback
             arr = self.labels[s:i]
             k = int(sum(arr)) # incorrect if label == -1
 
+            Arr = self.labels[i-GLOBAL_PROB_PERIOD:i]
+            a = np.where(Arr==1)[0]
+            p = len(a)*1./GLOBAL_PROB_PERIOD
             pb=-1
             if k>=0:
                 pb = BINOM_FUNC(k+1,self.lookback+1,p)
@@ -605,7 +622,7 @@ class BarFeatureCalculator(object):
 #             df=df.iloc[:idx,:]
             df = df.drop(df.index[ids])
                 
-#         df.to_csv("features.csv",index=False)
+        df.to_csv("features.csv",index=False)
 #         
 #         Log(LOG_INFO) << "Feature file dumped: features.csv"
         if data.shape[0] != len(labels):
