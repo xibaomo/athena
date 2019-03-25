@@ -313,6 +313,7 @@ void __compRSI(PyArrayObject* open, PyArrayObject* close, Uint lookback, double 
         vector<int> inc;
         vector<int> dec;
         for ( int j = i - lookback + 1; j <= i; j++ ) {
+//            cout << i << " " << j << " " << open->dimensions[0] << " " << close->dimensions[0] << endl;
             double ch = pc[j] - po[j];
             int pts = ch / digits;
             if ( pts >=0 ) {

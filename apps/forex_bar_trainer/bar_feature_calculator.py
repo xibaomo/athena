@@ -69,11 +69,11 @@ class BarFeatureCalculator(object):
 #         if self.initMin is not None:
 #             self.allMinBars = self.allMinBars.iloc[-50000:,:]
 #           
-        self.open = self.allMinBars['OPEN']
-        self.high = self.allMinBars['HIGH']
-        self.low  = self.allMinBars['LOW']
-        self.close = self.allMinBars['CLOSE']
-        self.tickVol = self.allMinBars['TICKVOL']
+        self.open = self.allMinBars['OPEN'].values
+        self.high = self.allMinBars['HIGH'].values
+        self.low  = self.allMinBars['LOW'].values
+        self.close = self.allMinBars['CLOSE'].values
+        self.tickVol = self.allMinBars['TICKVOL'].values.astype(float)
         self.labels = self.allMinBars['LABEL'].values
         
         self.time = self.allMinBars['TIME'].values
@@ -535,12 +535,24 @@ class BarFeatureCalculator(object):
         FEATURE_SIZE_DICT['KAMA'] = 1
         return
     
-    def compRSI(self):
+    def __compRSI(self):
         rsi = talib.RSI(self.close,timeperiod=self.lookback)
         self.removeNullID(rsi)
         self.rawFeatures['RSI'] = rsi
         
         FEATURE_SIZE_DICT['RSI'] = 1
+        return
+    
+    def compRSI(self):
+        Log(LOG_INFO) << "Owls RSI ...%d %d %d" % (len(self.open),len(self.close),self.lookback)
+        up,rsi = owls.compRSI(self.open,self.close,self.lookback,1e-5)
+        self.removeNullID(rsi)
+        self.rawFeatures['NET_UP'] = up 
+        self.rawFeatures['RSI'] = rsi
+        
+        FEATURE_SIZE_DICT['RSI'] = 2
+        
+        Log(LOG_INFO) << "Owls RSI done"
         return
     
     def compWILLR(self):

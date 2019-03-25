@@ -92,7 +92,8 @@ class ForexBarTrainer(App):
     def predict_binom(self):
 #         pdb.set_trace()
         testSize =  self.testFeatureMatrix.shape[0]
-        regLen = 16
+        regLen = self.config.getRegFeatureSize()
+        Log(LOG_INFO) << "Reg feature size: %d" % regLen
 
         lookback = self.config.getLookBack()
         labels = self.trainTargets

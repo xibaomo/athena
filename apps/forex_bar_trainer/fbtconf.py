@@ -5,6 +5,9 @@ Created on Dec 2, 2018
 '''
 from modules.basics.conf.topconf import TopConf
 from modules.basics.conf.masterconf import gMasterConfig
+from apps.forex_bar_trainer.bar_feature_calculator import FEATURE_SIZE_DICT
+from modules.basics.common.logger import *
+from libpasteurize.fixes.feature_base import Feature
 
 class FbtConfig(TopConf):
     '''
@@ -47,5 +50,15 @@ class FbtConfig(TopConf):
     def getForexSymbol(self):
         return self.yamlDict['FOREX_SYMBOL']
     
+    def getRegFeatureSize(self):
+        if len(FEATURE_SIZE_DICT) == 0:
+            Log(LOG_FATAL) << "No feature is computed"
+        
+        fs=0
+        for k in self.getRegFeatures():
+            fs += FEATURE_SIZE_DICT[k]
+            
+        return fs
+            
     
     
