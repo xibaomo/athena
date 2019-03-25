@@ -11,6 +11,7 @@ from modules.mlengine_cores.mlengine_core_creator import createMLEngineCore
 from modules.basics.conf.mlengineconf import gMLEngineConfig
 from modules.basics.conf.generalconf import gGeneralConfig
 from modules.mlengines.classifier.classifier import Classifier
+from apps.forex_bar_trainer.bar_feature_calculator import GLOBAL_PROB_PERIOD
 import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score
@@ -98,22 +99,26 @@ class ForexBarTrainer(App):
         p = self.fextor.getBinomProb()
         pred = []
         for i in range(testSize):
-            arr = labels[-lookback:]
-            k = sum(arr)
-            pb = BINOM_FUNC(k+1,lookback+1,p)
+            Log(LOG_DEBUG) << "predicting i = %d" % i 
             f = self.testFeatureMatrix[i,:regLen]
-            bm = np.array([k*1./lookback,pb])
+            tr,ts = owls.compLastBinom(labels.astype(float),lookback,GLOBAL_PROB_PERIOD)
+            bm = np.array([tr,ts])
             f = np.append(f,bm)
             
+            Log(LOG_DEBUG) << "binom done, start to predict .."
             if "BMFFT" in self.config.getFeatureList():
                 lb = labels[-lookback:]
                 ff = self.fextor.compLabelFFT(lb)
                 f = np.append(f,ff)
             
             self.mlEngine.predict(f.reshape(1,-1))
+            
+            Log(LOG_DEBUG) << "prediction done"
             new_label = self.mlEngine.getPredictedTargets()[0]
             labels = np.append(labels, new_label)
             pred.append(new_label)
+            
+            Log(LOG_DEBUG) << "new label appended. total labels: %d" % len(labels)
             
         
         return np.array(pred)

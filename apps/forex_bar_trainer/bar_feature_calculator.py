@@ -14,7 +14,7 @@ from scipy.stats import binom
 import owls
 
 BINOM_FUNC = owls.binom_logpdf
-GLOBAL_PROB_PERIOD=1440*15  # ONE WEEK
+GLOBAL_PROB_PERIOD=1440*15  # two WEEK
 
 class BarFeatureCalculator(object):
     '''
@@ -624,7 +624,7 @@ class BarFeatureCalculator(object):
                 
         df.to_csv("features.csv",index=False)
 #         
-#         Log(LOG_INFO) << "Feature file dumped: features.csv"
+        Log(LOG_INFO) << "Feature file dumped: features.csv"
         if data.shape[0] != len(labels):
             Log(LOG_FATAL) << "Samples inconsistent with labels"
             
