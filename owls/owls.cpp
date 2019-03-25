@@ -247,6 +247,9 @@ void compLastBinom(PyArrayObject* pylabels, Uint lookback, Uint prob_period,
     ratio = k1*1./(lookback+1.-kn1);
 }
 
+/*-----------------------------------------------------------------------------
+ *  Compute binom features of the entire label array
+ *-----------------------------------------------------------------------------*/
 static PyObject* _compBinom(PyObject* self, PyObject* args)
 {
     PyObject* in_arr;
@@ -266,6 +269,9 @@ static PyObject* _compBinom(PyObject* self, PyObject* args)
     return Py_BuildValue("OO",o1, o2);
 }
 
+/*-----------------------------------------------------------------------------
+ *  Compute binom feature of the last label
+ *-----------------------------------------------------------------------------*/
 static PyObject* _compLastBinom(PyObject* self, PyObject* args)
 {
     Uint lookback;
@@ -281,6 +287,66 @@ static PyObject* _compLastBinom(PyObject* self, PyObject* args)
 
     return Py_BuildValue("dd",ratio, prob);
 }
+
+/*-----------------------------------------------------------------------------
+ *  Compute RSI feature of the entire history
+ *  Returns: 1. the accumulated net increase points
+ *           2. the ratio of increase points over increase + decrease points
+ *-----------------------------------------------------------------------------*/
+void __compRSI(PyArrayObject* open, PyArrayObject* close, Uint lookback, double digits,
+        PyArrayObject* inc_pts, PyArrayObject* r_inc_pts)
+{
+    int hist_len = open->dimensions[0];
+    double* pinc = (double*)inc_pts->data;
+    double* pr   = (double*)r_inc_pts->data;
+
+    double* po = (double*)open->data;
+    double* pc = (double*)close->data;
+
+#pragma omp parallel for num_threads(20)
+    for ( int i =0; i < hist_len; i++ ) {
+        if ( i < lookback - 1 ) {
+            pinc[i] = NAN;
+            pr[i] = NAN;
+            continue;
+        }
+        vector<int> inc;
+        vector<int> dec;
+        for ( int j = i - lookback + 1; j <= i; j++ ) {
+            double ch = pc[j] - po[j];
+            int pts = ch / digits;
+            if ( pts >=0 ) {
+                inc.push_back(pts);
+            } else {
+                dec.push_back(-pts);
+            }
+        }
+        double sum_up = std::accumulate(inc.begin(), inc.end(), 0.);
+        double sum_down = std::accumulate(dec.begin(), dec.end(), 0.);
+        pinc[i] = sum_up - sum_down;
+        pr[i] = sum_up/(sum_up+sum_down);
+    }
+}
+static PyObject* _compRSI(PyObject* self, PyObject* args)
+{
+    Uint lookback;
+    PyArrayObject* open;
+    PyArrayObject* close;
+    double digits;
+
+    if ( !PyArg_ParseTuple(args, "OOId",&open, &close, &lookback, &digits) ) {
+        return NULL;
+    }
+
+    int dims[1];
+    dims[0] = open->dimensions[0];
+    PyArrayObject* inc_pts = (PyArrayObject*)PyArray_FromDims(1, dims, NPY_DOUBLE);
+    PyArrayObject* r_inc_pts = (PyArrayObject*)PyArray_FromDims(1, dims, NPY_DOUBLE);
+
+    __compRSI(open, close, lookback, digits, inc_pts, r_inc_pts);
+
+    return Py_BuildValue("OO",inc_pts, r_inc_pts);
+}
 static PyMethodDef myMethods[] = {
     {"std",_std, METH_VARARGS, "compute std of array"},
     {"addone",_add_one, METH_VARARGS, "all elements of array adds one"},
@@ -290,6 +356,7 @@ static PyMethodDef myMethods[] = {
     {"getNan",_getNan, METH_NOARGS, "GET A NAN"},
     {"compBinom",_compBinom, METH_VARARGS, "WFWEOJO"},
     {"compLastBinom",_compLastBinom, METH_VARARGS, "only compute binom of last label"},
+    {"compRSI",_compRSI, METH_VARARGS, "RSI feature"},
     {NULL, NULL, 0, NULL}
 };
 
