@@ -27,7 +27,13 @@ class FbtConfig(TopConf):
         return self.yamlDict['LOOK_BACK']
     
     def getFeatureList(self):
-        return self.yamlDict['FEATURE_LIST']
+        return self.getRegFeatures() + self.getLabelFeatures()
+    
+    def getRegFeatures(self):
+        return self.yamlDict['REG_FEATURES']
+    
+    def getLabelFeatures(self):
+        return self.yamlDict['LABEL_FEATURES']
     
     def getTestSize(self):
         return self.yamlDict['TEST_SIZE']

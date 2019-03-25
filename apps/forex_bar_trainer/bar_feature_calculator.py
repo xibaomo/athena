@@ -12,10 +12,11 @@ from dateutil import parser
 from modules.basics.common.utils import smooth1D
 from scipy.stats import binom
 import owls
+from libpasteurize.fixes.feature_base import Feature
 
 BINOM_FUNC = owls.binom_logpdf
 GLOBAL_PROB_PERIOD=1440*15  # two WEEK
-
+FEATURE_SIZE_DICT = {}
 class BarFeatureCalculator(object):
     '''
     classdocs
@@ -211,18 +212,6 @@ class BarFeatureCalculator(object):
         if len(nullID) > len(self.nullID):
             self.nullID = nullID
         return
-    
-    def compLabelFFT(self,labels):
-        N=4
-#         N=self.lookback/2+1
-        if len(labels)  < self.lookback:
-            return np.ones(N) * np.nan
-        
-        ff = np.fft.fft(labels)
-        
-        f = np.abs(ff[:self.lookback/2+1])
-        
-        return f[:N]
         
     def compBMFFT(self):
         Log(LOG_INFO) << "Computing BMFFT ..."
@@ -247,6 +236,8 @@ class BarFeatureCalculator(object):
             key = "F_" + str(i)
             self.rawFeatures[key] = data[:,i]
     
+        FEATURE_SIZE_DICT['BMFFT'] = data.shape[1]
+        
         Log(LOG_INFO) << "BMFFT feature added"
         return
     
@@ -286,6 +277,7 @@ class BarFeatureCalculator(object):
         self.rawFeatures['SELLS'] = sells
         self.rawFeatures['BINOM'] = res
         
+        FEATURE_SIZE_DICT['BINOM'] = 2
         Log(LOG_INFO) << "binom done"
         
     def __compBinomial(self):
@@ -329,6 +321,7 @@ class BarFeatureCalculator(object):
         self.rawFeatures['SELLS'] = sells
         self.rawFeatures['BINOM'] = res
         
+        FEATURE_SIZE_DICT['BINOM'] = 2
         Log(LOG_INFO) << "binom done"
         return
             
@@ -351,6 +344,8 @@ class BarFeatureCalculator(object):
    
         self.rawFeatures['ILS'] = ils
         self.rawFeatures['MA_ILS'] = ave
+        
+        FEATURE_SIZE_DICT['ILS'] = 2
             
         ## find nearest turning 
 #         wl=11
@@ -383,107 +378,143 @@ class BarFeatureCalculator(object):
                           timeperiod2=self.lookback/2, timeperiod3=self.lookback)
         self.removeNullID(uc)
         self.rawFeatures['ULTOSC'] = uc
+        
+        FEATURE_SIZE_DICT['ULTOSC']=1
         return
     
     def compMACDFIX(self):
         macd,ms,mc = talib.MACDFIX(self.close,signalperiod=self.lookback)
         self.removeNullID(macd)
         self.rawFeatures['MACD'] = macd
+        
+        FEATURE_SIZE_DICT['MACD'] = 1
         return
     
     def compEMA(self):
         ema = talib.EMA(self.close,timeperiod=self.lookback)
         self.removeNullID(ema)
         self.rawFeatures['EMA']=ema
+        
+        FEATURE_SIZE_DICT['EMA'] = 1
         return
     
     def compTEMA(self):
         tema = talib.TEMA(self.close,timeperiod=self.lookback)
         self.removeNullID(tema)
         self.rawFeatures['TEMA'] = tema 
+        
+        FEATURE_SIZE_DICT['TEMA'] = 1
         return
     
     def compWMA(self):
         wma = talib.WMA(self.close,timeperiod=self.lookback)
         self.removeNullID(wma)
         self.rawFeatures['WMA'] = wma 
+        
+        FEATURE_SIZE_DICT['WMA'] = 1
         return
     
     def compTRIMA(self):
         ta = talib.TRIMA(self.close,timeperiod=self.lookback)
         self.removeNullID(ta)
         self.rawFeatures['TRIMA'] = ta 
+        
+        FEATURE_SIZE_DICT['TRIMA'] =1
         return
     
     def compMA(self):
         ma = talib.MA(self.close,timeperiod=self.lookback)
         self.removeNullID(ma)
         self.rawFeatures['MA']=ma 
+        
+        FEATURE_SIZE_DICT['MA'] = 1
         return
     
     def compMEDPRICE(self):
         med = talib.MEDPRICE(self.high,self.low)
         self.removeNullID(med)
         self.rawFeatures['MEDPRICE'] = med 
+        
+        FEATURE_SIZE_DICT['MEDPRICE'] = 1
         return
     
     def compWCLPRICE(self):
         wcl = talib.WCLPRICE(self.high,self.low,self.close)
         self.removeNullID(wcl)
         self.rawFeatures['WCLPRICE'] = wcl 
+        
+        FEATURE_SIZE_DICT['WCLPRICE'] = 1
         return
         
     def compOBV(self):
         obv  = talib.OBV(self.close,self.tickVol)
         self.removeNullID(obv)
         self.rawFeatures['OBV'] = obv
+        
+        FEATURE_SIZE_DICT['OBV'] = 1
         return
     
     def compAD(self):
         ad = talib.AD(self.high,self.low,self.close,self.tickVol)
         self.removeNullID(ad)
         self.rawFeatures['AD'] = ad 
+        
+        FEATURE_SIZE_DICT['AD'] = 1
         return
     
     def compPLUSDI(self):
         pdi = talib.PLUS_DI(self.high,self.low,self.close,timeperiod=self.lookback)
         self.removeNullID(pdi)
         self.rawFeatures['PLUS_DI']=pdi 
+        
+        FEATURE_SIZE_DICT['PLUS_DI'] = 1
         return
     
     def compPLUSDM(self):
         pdm = talib.PLUS_DM(self.high,self.low,timeperiod=self.lookback)
         self.removeNullID(pdm)
         self.rawFeatures['PLUS_DM'] = pdm
+        
+        FEATURE_SIZE_DICT['PLUS_DM'] = 1
         return
     def compMOM(self):
         mom = talib.MOM(self.close,timeperiod=self.lookback)
         self.removeNullID(mom)
         self.rawFeatures['MOM'] = mom 
+        
+        FEATURE_SIZE_DICT['MOM'] = 1
         return
     
     def compMINUSDI(self):
         mi = talib.MINUS_DI(self.high,self.low,self.close,timeperiod=self.lookback)
         self.removeNullID(mi)
         self.rawFeatures['MINUS_DI'] = mi 
+        
+        FEATURE_SIZE_DICT['MINUS_DI'] = 1
         return
     
     def compMINUSDM(self):
         md = talib.MINUS_DM(self.high,self.low,timeperiod=self.lookback)
         self.removeNullID(md)
         self.rawFeatures['MINUS_DM'] = md 
+        
+        FEATURE_SIZE_DICT['MINUS_DM'] = 1
         return
     
     def compMFI(self):
         mfi = talib.MFI(self.high,self.low,self.close,self.tickVol,timeperiod=self.lookback)
         self.removeNullID(mfi)
         self.rawFeatures['MFI'] = mfi
+        
+        FEATURE_SIZE_DICT['MFI'] = 1
         return
     
     def compNATR(self):
         natr = talib.NATR(self.high,self.low,self.close,timeperiod=self.lookback)
         self.removeNullID(natr)
         self.rawFeatures['NATR'] = natr 
+        
+        FEATURE_SIZE_DICT['NATR'] = 1
         return
     
     def compMidPrice(self):
@@ -491,6 +522,8 @@ class BarFeatureCalculator(object):
         self.removeNullID(mp)
         
         self.rawFeatures['MIDPRICE'] = mp
+        
+        FEATURE_SIZE_DICT['MIDPRICE'] = 1
         return
     
     def compKAMA(self):
@@ -498,72 +531,97 @@ class BarFeatureCalculator(object):
         self.removeNullID(kama)
         
         self.rawFeatures['KAMA'] = kama
+        
+        FEATURE_SIZE_DICT['KAMA'] = 1
         return
     
     def compRSI(self):
         rsi = talib.RSI(self.close,timeperiod=self.lookback)
         self.removeNullID(rsi)
         self.rawFeatures['RSI'] = rsi
+        
+        FEATURE_SIZE_DICT['RSI'] = 1
         return
     
     def compWILLR(self):
         wr = talib.WILLR(self.high,self.low,self.close,timeperiod=self.lookback)
         self.removeNullID(wr)
         self.rawFeatures['WILLR'] = wr
+        
+        FEATURE_SIZE_DICT['WILLR'] = 1
         return
     
     def compTRIX(self):
         tx = talib.TRIX(self.close,timeperiod=self.lookback)
         self.removeNullID(tx)
         self.rawFeatures['TRIX'] = tx
+        
+        FEATURE_SIZE_DICT['TRIX'] = 1
         return
     
     def compROC(self):
         roc = talib.ROC(self.close,timeperiod=self.lookback)
         self.removeNullID(roc)
         self.rawFeatures['ROC'] = roc 
+        
+        FEATURE_SIZE_DICT['ROC'] = 1
         return
     
     def compAROONOSC(self):
         ac = talib.AROONOSC(self.high,self.low,timeperiod=self.lookback)
         self.removeNullID(ac)
         self.rawFeatures['AROONOSC'] = ac
+        
+        FEATURE_SIZE_DICT['AROONOSC'] = 1
         return
     
     def compADX(self):
         adx = talib.ADX(self.high,self.low,self.close,timeperiod=self.lookback)
         self.removeNullID(adx)
         self.rawFeatures['ADX'] = adx 
+        
+        FEATURE_SIZE_DICT['ADX']=1
         return
     
     def compATR(self):
         atr = talib.ATR(self.high,self.low,self.close,timeperiod=self.lookback)
         self.removeNullID(atr)
         self.rawFeatures['ATR'] = atr 
+        
+        FEATURE_SIZE_DICT['ATR'] = 1
         return
     
     def compDX(self):
         dx = talib.DX(self.high,self.low,self.close,timeperiod=self.lookback)
         self.removeNullID(dx)
         self.rawFeatures['DX'] = dx
+        
+        FEATURE_SIZE_DICT['DX'] = 1
         return
     
     def compTSF(self):
         tsf = talib.TSF(self.close,timeperiod=self.lookback) 
         self.removeNullID(tsf)
         self.rawFeatures['TSF'] = tsf
+        
+        FEATURE_SIZE_DICT['TSF'] = 1
+        
         return
     
     def compCMO(self):
         cmo = talib.CMO(self.close,timeperiod=self.lookback)
         self.removeNullID(cmo)
         self.rawFeatures['CMO'] = cmo 
+        
+        FEATURE_SIZE_DICT['CMO'] = 1
         return
     
     def compBETA(self):
         beta = talib.BETA(self.high,self.low,timeperiod=self.lookback)
         self.removeNullID(beta)
         self.rawFeatures['BETA'] = beta
+        
+        FEATURE_SIZE_DICT['BETA'] = 1
         return
     
     def compBBANDS(self):
@@ -573,34 +631,29 @@ class BarFeatureCalculator(object):
         self.rawFeatures['MIDDLEBAND'] = mb
         self.rawFeatures['LOWERBAND'] = lb 
 
+        FEATURE_SIZE_DICT['BBANDS'] = 3
         return
     
     def compCCI(self):
         cci = talib.CCI(self.high,self.low,self.close,timeperiod=self.lookback)
         self.removeNullID(cci)
         self.rawFeatures['CCI']=cci 
+        
+        FEATURE_SIZE_DICT['CCI'] = 1
         return
     
     def getTotalFeatureMatrix(self,isDropN1=True):
-        data = self.rawFeatures.values[len(self.nullID)+1:,:]
-        data = np.around(data,6)
-        labels = self.labels[len(self.nullID)+1:]
-        time = self.time[len(self.nullID)+1:]
-        binom = None
-        
-        
-        if "BINOM" in self.rawFeatures.keys():
-            sells = self.rawFeatures['SELLS'].values[len(self.nullID)+1:]
-            binom = self.rawFeatures['BINOM'].values[len(self.nullID)+1:]
-            binom = binom[1:]
-            sells = sells[1:]
+        lz = len(self.nullID)+1
+        data = self.rawFeatures.values[lz:,:]
+
+        labels = self.labels[lz:]
+        time = self.time[lz:]
             
         data = data[:-1,:]
         labels = labels[1:]
 
         time = time[1:]
         
-        lz = len(self.nullID)+1
         self.labels = self.labels[lz:]
         self.open = self.open[lz:]
         self.high = self.high[lz:]
@@ -613,9 +666,6 @@ class BarFeatureCalculator(object):
         df.insert(0,'label',labels)
         df.insert(0,'time',time)
         
-        if binom is not None:
-            df['SELLS']=sells
-            df['BINOM']=binom
         # remove label == -1
         if len(np.where(labels==-1)[0])>0 and isDropN1:
             ids = list(np.where(labels==-1)[0])
@@ -623,8 +673,8 @@ class BarFeatureCalculator(object):
             df = df.drop(df.index[ids])
                 
         df.to_csv("features.csv",index=False)
-#         
         Log(LOG_INFO) << "Feature file dumped: features.csv"
+        
         if data.shape[0] != len(labels):
             Log(LOG_FATAL) << "Samples inconsistent with labels"
             
