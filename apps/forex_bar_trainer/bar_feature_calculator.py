@@ -261,11 +261,13 @@ class BarFeatureCalculator(object):
     def compLatestBinom(self):
 #         self.binomProb = self.compBinomProb()
         
-        arr = self.labels[-self.lookback-1:-1]
-        k = sum(arr)
-        pb = BINOM_FUNC(k+1,self.lookback+1,self.binomProb)
+#         arr = self.labels[-self.lookback-1:-1]
+#         k = sum(arr)
+#         pb = BINOM_FUNC(k+1,self.lookback+1,self.binomProb)
+        
+        tr,ts = owls.compLastBinom(self.labels.astype(float),self.lookback,GLOBAL_PROB_PERIOD)
 
-        return k*1./self.lookback,pb
+        return tr,ts
     
     def compBinomial(self):
         Log(LOG_INFO) << "Computing binomial prob ..."
@@ -545,12 +547,13 @@ class BarFeatureCalculator(object):
     
     def compRSI(self):
         Log(LOG_INFO) << "Owls RSI ...%d %d %d" % (len(self.open),len(self.close),self.lookback)
-        up,rsi = owls.compRSI(self.open,self.close,self.lookback,1e-5)
+        up,down,rsi = owls.compRSI(self.open,self.close,self.lookback,1e-5)
         self.removeNullID(rsi)
         self.rawFeatures['NET_UP'] = up 
+        self.rawFeatures['DOWN'] = down
         self.rawFeatures['RSI'] = rsi
         
-        FEATURE_SIZE_DICT['RSI'] = 2
+        FEATURE_SIZE_DICT['RSI'] = 3
         
         Log(LOG_INFO) << "Owls RSI done"
         return
@@ -711,21 +714,12 @@ class BarFeatureCalculator(object):
 #         print fm.shape[0],len(labels)
 #         print fm
         for i in unlabeled:
-            arr = labels[i - lookback:i]
-            k = int(sum(arr))
+            arr = labels[i - GLOBAL_PROB_PERIOD-1:i]
+            tr,ts = owls.compLastBinom(arr.astype(float),lookback,GLOBAL_PROB_PERIOD)
             
-            pb = BINOM_FUNC(k+1,lookback+1,p)
-            
-#             print "pb: %f %f %d" % (pb,p,lookback)
-#             print fm.shape,i
-#             print model
-#             print fm[i,:]
             f = fm[i,:]
-#             print f 
-            
-            f[-2] = k*1./lookback
-            f[-1] = pb
-            
+            f[-2] = tr
+            f[-1] = ts        
             
             labels[i] = model.predict(f.reshape(1,-1))[0]
          

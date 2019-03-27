@@ -3,7 +3,8 @@ Created on Dec 6, 2018
 
 @author: fxua
 '''
-from apps.forex_bar_trainer.bar_feature_calculator import BarFeatureCalculator
+from apps.forex_bar_trainer.bar_feature_calculator import BarFeatureCalculator,\
+    GLOBAL_PROB_PERIOD
 from modules.mlengine_cores.sklearn_comm.model_io import loadSklearnModel
 import numpy as np
 import re
@@ -118,7 +119,7 @@ class ForexMinBarPredictor(object):
         pb = self.featureCalculator.compBinomProb()
         self.featureCalculator.setBinomProb(pb)
         
-        self.featureCalculator.computeFeatures(self.featureNames,self.lookback*20)
+        self.featureCalculator.computeFeatures(self.featureNames,GLOBAL_PROB_PERIOD*3)
         
         print "all features ready"
         self.featureCalculator.predictUnlabeledBars(self.model,self.lookback)

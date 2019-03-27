@@ -294,10 +294,11 @@ static PyObject* _compLastBinom(PyObject* self, PyObject* args)
  *           2. the ratio of increase points over increase + decrease points
  *-----------------------------------------------------------------------------*/
 void __compRSI(PyArrayObject* open, PyArrayObject* close, Uint lookback, double digits,
-        PyArrayObject* inc_pts, PyArrayObject* r_inc_pts)
+        PyArrayObject* inc_pts, PyArrayObject* dec_pts, PyArrayObject* r_inc_pts)
 {
     int hist_len = open->dimensions[0];
     double* pinc = (double*)inc_pts->data;
+    double* pdec = (double*)dec_pts->data;
     double* pr   = (double*)r_inc_pts->data;
 
     double* po = (double*)open->data;
@@ -313,7 +314,6 @@ void __compRSI(PyArrayObject* open, PyArrayObject* close, Uint lookback, double 
         vector<int> inc;
         vector<int> dec;
         for ( int j = i - lookback + 1; j <= i; j++ ) {
-//            cout << i << " " << j << " " << open->dimensions[0] << " " << close->dimensions[0] << endl;
             double ch = pc[j] - po[j];
             int pts = ch / digits;
             if ( pts >=0 ) {
@@ -325,6 +325,8 @@ void __compRSI(PyArrayObject* open, PyArrayObject* close, Uint lookback, double 
         double sum_up = std::accumulate(inc.begin(), inc.end(), 0.);
         double sum_down = std::accumulate(dec.begin(), dec.end(), 0.);
         pinc[i] = sum_up - sum_down;
+//        pinc[i] = sum_up;
+        pdec[i] = sum_down;
         pr[i] = sum_up/(sum_up+sum_down);
     }
 }
@@ -342,11 +344,12 @@ static PyObject* _compRSI(PyObject* self, PyObject* args)
     int dims[1];
     dims[0] = open->dimensions[0];
     PyArrayObject* inc_pts = (PyArrayObject*)PyArray_FromDims(1, dims, NPY_DOUBLE);
+    PyArrayObject* dec_pts = (PyArrayObject*)PyArray_FromDims(1, dims, NPY_DOUBLE);
     PyArrayObject* r_inc_pts = (PyArrayObject*)PyArray_FromDims(1, dims, NPY_DOUBLE);
 
-    __compRSI(open, close, lookback, digits, inc_pts, r_inc_pts);
+    __compRSI(open, close, lookback, digits, inc_pts, dec_pts, r_inc_pts);
 
-    return Py_BuildValue("OO",inc_pts, r_inc_pts);
+    return Py_BuildValue("OOO",inc_pts, dec_pts, r_inc_pts);
 }
 static PyMethodDef myMethods[] = {
     {"std",_std, METH_VARARGS, "compute std of array"},

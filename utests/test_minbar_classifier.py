@@ -20,9 +20,11 @@ predictor.setLookback(1440)
 predictor.loadHistoryBarFile("EURUSD_labeled.csv")
 predictor.loadAModel("EURUSD_buy.pkl")
 
-data = np.random.random((200,5))
+vol = np.random.uniform(low=10,high=100,size=(200,1))
+data = np.random.uniform(low=1.2,high=1.4,size=(200,4))
 
-predictor.loadHistoryMinBars(data, 200, 5)
+v = np.hstack((data,vol.astype(int)))
+predictor.loadHistoryMinBars(v, 200, 5)
 
 # predictor.labelHistoryMinBars()
 predictor.classifyMinBar(1.62, 1.63, 1.61, 1.62,80.)
