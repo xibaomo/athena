@@ -687,8 +687,8 @@ class BarFeatureCalculator(object):
 #             df=df.iloc[:idx,:]
             df = df.drop(df.index[ids])
                 
-        df.to_csv("features.csv",index=False)
-        Log(LOG_INFO) << "Feature file dumped: features.csv"
+#         df.to_csv("features.csv",index=False)
+#         Log(LOG_INFO) << "Feature file dumped: features.csv"
         
         if data.shape[0] != len(labels):
             Log(LOG_FATAL) << "Samples inconsistent with labels"
@@ -767,12 +767,19 @@ class BarFeatureCalculator(object):
         
 
     def correctPastPrediction(self,tp=200,spread=10,digits=1.e-5):
+        
+        if len(self.unlabeledID) == 0:
+            print "No past labels need to be corrected"
+            return
+        else:
+            print "%d past labels need to be corrected" % len(self.unlabeledID)
+        
         high = self.high[-1]
         low  = self.low[-1]
         
         correctedID=[]
         for i in range(len(self.unlabeledID)):
-            idx = self.unlabeledID[i]
+            idx = int(self.unlabeledID[i])
             price = self.open[idx]
             ub = price + (spread + tp)*digits 
             lb = price + (spread - tp)*digits
@@ -791,10 +798,12 @@ class BarFeatureCalculator(object):
                 correctedID.append(i)
             else:
                 pass
-            
+        
+        print "Marking done"    
         if len(correctedID) > 0:
             self.unlabeledID =  np.delete(self.unlabeledID, correctedID)
             print "History bars marked: %d" % len(correctedID)
+
             
             
     

@@ -40,8 +40,10 @@ class ForexMinBarPredictor(object):
         return latest_time
     
     def loadHistoryMinBars(self,data,histLen,minbar_size):
-        data = np.array(data).reshape(histLen,minbar_size)
+        
         print "loading received minbars"
+        data = np.array(data).reshape(histLen,minbar_size)
+        
         print "first: ", data[:5,:]
         print "last: ", data[-5:,:]
         
@@ -80,9 +82,10 @@ class ForexMinBarPredictor(object):
         print "Predicting features: " + str(self.featureNames)
         self.featureCalculator.resetFeatureTable()
         
-        print "append new bar ..."
+        print "append new bar: %f, %f, %f, %f, %d" % (open,high,low,close,tickvol)
         self.featureCalculator.appendNewBar(open,high,low,close,tickvol)
         
+        print "Correcting past labels ..."
         self.featureCalculator.correctPastPrediction()
         
         if 'BINOM' in self.featureNames:
