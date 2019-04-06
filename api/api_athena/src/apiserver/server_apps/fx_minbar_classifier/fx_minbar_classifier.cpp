@@ -120,14 +120,14 @@ ForexMinBarClassifier::procMsg_CHECKIN(Message& msg)
 Message
 ForexMinBarClassifier::procMsg_MINBAR(Message& msg)
 {
-    Log(LOG_INFO) << "New min bar arrives:";
+    Log(LOG_INFO) << "New min bar arrives: " + msg.getComment() + " + 00:05 ";
     Real* pm = (Real*)msg.getData();
 
-    Log(LOG_DEBUG) << to_string(pm[0]) << " "
-                  << to_string(pm[1]) << " "
-                  << to_string(pm[2]) << " "
-                  << to_string(pm[3]) << " "
-                  << to_string(pm[4]) << " ";
+    Log(LOG_INFO) << to_string(pm[0]) + " "
+                  + to_string(pm[1]) + " "
+                  + to_string(pm[2]) + " "
+                  + to_string(pm[3]) + " "
+                  + to_string(pm[4]) + " ";
 
     ActionType action;
     CPyObject pypred;
@@ -136,12 +136,14 @@ ForexMinBarClassifier::procMsg_MINBAR(Message& msg)
     CPyObject pylow  = Py_BuildValue(REALFORMAT,pm[2]);
     CPyObject pyclose= Py_BuildValue(REALFORMAT,pm[3]);
     CPyObject pytickvol=Py_BuildValue(REALFORMAT,pm[4]);
+    CPyObject pytime = Py_BuildValue("s",msg.getComment().c_str());
 
-    pypred = PyObject_CallMethod(m_buyPredictor,"classifyMinBar","(OOOOO)",pyopen.getObject(),
+    pypred = PyObject_CallMethod(m_buyPredictor,"classifyMinBar","(OOOOOO)",pyopen.getObject(),
                                  pyhigh.getObject(),
                                  pylow.getObject(),
                                  pyclose.getObject(),
-                                 pytickvol.getObject());
+                                 pytickvol.getObject(),
+                                 pytime.getObject());
 
     if (!pypred) {
         Log(LOG_FATAL) << "Buy prediction failed";

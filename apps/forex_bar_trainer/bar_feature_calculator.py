@@ -90,7 +90,7 @@ class BarFeatureCalculator(object):
         print "Total minbars: %d" % len(self.open) 
         return
     
-    def appendNewBar(self,open,high,low,close,tickvol):
+    def appendNewBar(self,open,high,low,close,tickvol,timestr):
         open=np.around(open,5)
         high=np.around(high,5)
         low = np.around(low,5)
@@ -104,7 +104,7 @@ class BarFeatureCalculator(object):
         self.tickVol = np.append(self.tickVol,tickvol)
         
         self.labels = np.append(self.labels,-1)
-        self.time = np.append(self.time,'unknown_time')
+        self.time = np.append(self.time,timestr)
         
         self.unlabeledID = np.append(self.unlabeledID, len(self.labels)-1)
         return
@@ -187,7 +187,8 @@ class BarFeatureCalculator(object):
             'ULTOSC': self.compULTOSC,
             'ILS': self.compILS,
             'BINOM': self.compBinomial,
-            'BMFFT': self.compBMFFT
+            'BMFFT': self.compBMFFT,
+            'ROR' : self.compROR
         }
         
         if latestBars is None:
@@ -212,7 +213,7 @@ class BarFeatureCalculator(object):
         if len(nullID) > len(self.nullID):
             self.nullID = nullID
         return
-        
+
     def compBMFFT(self):
         Log(LOG_INFO) << "Computing BMFFT ..."
         data = []
@@ -374,7 +375,30 @@ class BarFeatureCalculator(object):
 #         self.rawFeatures['TURN_DIS']=tds
 #         
         return
+    
+    def compROR(self):
+        # rate of range
+        Log(LOG_INFO) << "Computing ROR ..."
+        res =  np.zeros(len(self.close))
+        for i in range(len(self.close)):
+            if i - self.lookback < 0: 
+                res[i] = np.nan
+                continue
+            h = self.high[i-self.lookback:i]
+            l = self.low[i-self.lookback:i]
+            uh = np.max(h)
+            ul = np.min(l)
+            cur= (self.high[i] + self.low[i])*.5;
+            res[i] = (cur - ul)*1./(uh - ul)
         
+        self.removeNullID(res)
+        self.rawFeatures['ROR'] = res
+        
+        FEATURE_SIZE_DICT['ROR'] = 1
+        
+        Log(LOG_INFO) << "ROR done"
+        return   
+                
     def compULTOSC(self):
         uc = talib.ULTOSC(self.high,self.low,self.close,timeperiod1=self.lookback/3,
                           timeperiod2=self.lookback/2, timeperiod3=self.lookback)
@@ -687,8 +711,8 @@ class BarFeatureCalculator(object):
 #             df=df.iloc[:idx,:]
             df = df.drop(df.index[ids])
                 
-#         df.to_csv("features.csv",index=False)
-#         Log(LOG_INFO) << "Feature file dumped: features.csv"
+        df.to_csv("features.csv",index=False)
+        Log(LOG_INFO) << "Feature file dumped: features.csv"
         
         if data.shape[0] != len(labels):
             Log(LOG_FATAL) << "Samples inconsistent with labels"
@@ -702,7 +726,7 @@ class BarFeatureCalculator(object):
         return self.time
     
     def predictUnlabeledBars(self,model,lookback):
-        p = self.getBinomProb()
+
         fm,labels = self.getTotalFeatureMatrix(isDropN1=False)
         unlabeled = np.where(labels<0)[0]
         
