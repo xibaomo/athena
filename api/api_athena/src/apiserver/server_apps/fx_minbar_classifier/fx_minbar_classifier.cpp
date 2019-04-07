@@ -28,7 +28,8 @@ ForexMinBarClassifier::prepare()
     loadFilter(m_buyPredictor,mf);
 
     int lookback = stoi(getYamlValue("PREDICTION/LOOKBACK"));
-    configPredictor(m_buyPredictor,lookback);
+    int malookback = stoi(getYamlValue("PREDICTION/MA_LOOKBACK"));
+    configPredictor(m_buyPredictor,lookback,malookback);
 
     String barFile = getYamlValue("PREDICTION/HISTORY_BAR_FILE");
     CPyObject pyBarFile = Py_BuildValue("s",barFile.c_str());
@@ -37,10 +38,13 @@ ForexMinBarClassifier::prepare()
 }
 
 void
-ForexMinBarClassifier::configPredictor(CPyObject& predictor,int lookback)
+ForexMinBarClassifier::configPredictor(CPyObject& predictor,int lookback, int malookback)
 {
     CPyObject arg = Py_BuildValue("i",lookback);
     PyObject_CallMethod(predictor,"setLookback","(O)",arg.getObject());
+
+    CPyObject arg1 = Py_BuildValue("i",malookback);
+    PyObject_CallMethod(predictor,"setMALookback","(O)",arg1.getObject());
 
     // set feature names
     String featureNames = getYamlValue("PREDICTION/FEATURE_LIST");

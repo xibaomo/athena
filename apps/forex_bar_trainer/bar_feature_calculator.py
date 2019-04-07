@@ -13,6 +13,7 @@ from modules.basics.common.utils import smooth1D
 from scipy.stats import binom
 import owls
 from libpasteurize.fixes.feature_base import Feature
+from tensorflow.python.framework.test_ops import reserved_attr
 
 BINOM_FUNC = owls.binom_logpdf
 GLOBAL_PROB_PERIOD=1440*15  # two WEEK
@@ -149,6 +150,9 @@ class BarFeatureCalculator(object):
     def setLookback(self,lookback):
         self.lookback = lookback
         return
+    def setMALookback(self,malookback):
+        self.maLookback = malookback
+        return
     
     def computeFeatures(self,featureNames,latestBars=None, lastOnly = False):
         BarFeatureSwitcher = {
@@ -188,7 +192,8 @@ class BarFeatureCalculator(object):
             'ILS': self.compILS,
             'BINOM': self.compBinomial,
             'BMFFT': self.compBMFFT,
-            'ROR' : self.compROR
+            'ROR' : self.compROR,
+            'LWMA': self.compLWMA,
         }
         
         if latestBars is None:
@@ -260,12 +265,7 @@ class BarFeatureCalculator(object):
         return p
     
     def compLatestBinom(self):
-#         self.binomProb = self.compBinomProb()
-        
-#         arr = self.labels[-self.lookback-1:-1]
-#         k = sum(arr)
-#         pb = BINOM_FUNC(k+1,self.lookback+1,self.binomProb)
-        
+       
         tr,ts = owls.compLastBinom(self.labels.astype(float),self.lookback,GLOBAL_PROB_PERIOD)
 
         return tr,ts
@@ -399,6 +399,37 @@ class BarFeatureCalculator(object):
         Log(LOG_INFO) << "ROR done"
         return   
                 
+    def compLWMA(self):
+        period=self.maLookback
+        Log(LOG_INFO) << "Start LWMA with period %d" % period
+        signal = (self.high + self.low)*.5 
+        buffer = [np.nan] * period;
+        for i in range(period,len(signal)):
+            buffer.append(
+                (signal[i-period:i] * (np.arange(period)+1)).sum()
+                / (np.arange(period)+1).sum()
+                )
+        bf = np.array(buffer)
+        
+        res = signal - bf
+        self.removeNullID(res)
+        self.rawFeatures['LWMA_D'] = res
+        
+        grad = np.zeros(len(res))
+        for i in range(len(res)):
+            if i==0:
+                grad[i] = np.nan 
+                continue
+            grad[i] = bf[i] - bf[i-1]
+                
+        self.removeNullID(grad)
+        self.rawFeatures['GRAD_LWMA'] = grad
+        
+        FEATURE_SIZE_DICT['LWMA'] = 2
+        
+        Log(LOG_INFO) << "LWMA done"
+        return
+        
     def compULTOSC(self):
         uc = talib.ULTOSC(self.high,self.low,self.close,timeperiod1=self.lookback/3,
                           timeperiod2=self.lookback/2, timeperiod3=self.lookback)

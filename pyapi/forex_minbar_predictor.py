@@ -78,6 +78,11 @@ class ForexMinBarPredictor(object):
         print "Lookback: %d" % lookback
         return
     
+    def setMALookback(self,malookback):
+        self.featureCalculator.setMALookback(malookback)
+        print "MA_lookback: %d" % malookback
+        return
+    
     def classifyMinBar(self,open,high,low,close,tickvol,timestr):
         print "Predicting features: " + str(self.featureNames)
         self.featureCalculator.resetFeatureTable()

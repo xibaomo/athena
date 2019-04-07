@@ -6,7 +6,7 @@ Created on Dec 2, 2018
 from apps.app import App
 from modules.basics.common.logger import *
 from apps.forex_bar_trainer.fbtconf import FbtConfig
-from apps.forex_bar_trainer.bar_feature_calculator import BarFeatureCalculator,BINOM_FUNC
+from apps.forex_bar_trainer.bar_feature_calculator import BarFeatureCalculator
 from modules.mlengine_cores.mlengine_core_creator import createMLEngineCore
 from modules.basics.conf.mlengineconf import gMLEngineConfig
 from modules.basics.conf.generalconf import gGeneralConfig
@@ -42,6 +42,7 @@ class ForexBarTrainer(App):
         
     def prepare(self):
         self.fextor.setLookback(self.config.getLookBack())
+        self.fextor.setMALookback(self.config.getMALookBack())
         self.fextor.loadMinBars(self.config.getBarFile())
         self.fextor.computeFeatures(self.config.getFeatureList())
         self.totalFeatureMatrix,self.totalLabels = self.fextor.getTotalFeatureMatrix()

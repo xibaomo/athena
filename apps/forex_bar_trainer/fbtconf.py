@@ -29,6 +29,9 @@ class FbtConfig(TopConf):
     def getLookBack(self):
         return self.yamlDict['LOOK_BACK']
     
+    def getMALookBack(self):
+        return self.yamlDict['MA_LOOK_BACK']
+    
     def getFeatureList(self):
         return self.getRegFeatures() + self.getLabelFeatures()
     

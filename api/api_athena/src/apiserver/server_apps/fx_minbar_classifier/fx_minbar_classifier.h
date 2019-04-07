@@ -54,7 +54,7 @@ public:
     /**
      * Config predictor
      */
-    void configPredictor(CPyObject& predictor, int lookback);
+    void configPredictor(CPyObject& predictor, int lookback, int malookback);
 
     /**
      * Process incoming msg, return response msg
