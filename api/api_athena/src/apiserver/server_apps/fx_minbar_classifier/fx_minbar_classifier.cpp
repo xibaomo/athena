@@ -32,8 +32,11 @@ ForexMinBarClassifier::prepare()
     configPredictor(m_buyPredictor,lookback,malookback);
 
     String barFile = getYamlValue("PREDICTION/HISTORY_BAR_FILE");
+    m_histBarFile = barFile;
     CPyObject pyBarFile = Py_BuildValue("s",barFile.c_str());
     m_pyLatestMinbar = PyObject_CallMethod(m_buyPredictor,"loadHistoryBarFile","(O)",pyBarFile.getObject());
+
+    Log(LOG_INFO) << "First loading history file, latest bar time: " + getStringFromPyobject(m_pyLatestMinbar);
 
 }
 
@@ -194,19 +197,18 @@ Message
 ForexMinBarClassifier::procMsg_INIT_TIME(Message& msg)
 {
     String initTime = msg.getComment();
-    Log(LOG_INFO) << "MT5 starting time: " + initTime;
+    Log(LOG_INFO) << "MT5 latest bar: " + initTime;
 
     String latestMinBar;
     CPyObject pyLatestMinbar;
 
 
     CPyObject pyInitMin = Py_BuildValue("s",initTime.c_str());
-    PyObject_CallMethod(m_buyPredictor,"setInitMin","(O)",pyInitMin.getObject());
-
+    CPyObject pyBarfile = Py_BuildValue("s",m_histBarFile.c_str());
+    PyObject_CallMethod(m_buyPredictor,"setInitMin","(OO)",pyInitMin.getObject(),pyBarfile.getObject());
 
     latestMinBar = getStringFromPyobject(m_pyLatestMinbar);
 
-    Log(LOG_INFO) << "Latest min bar in history: " + latestMinBar;
     auto diffTime = getTimeDiffInMin(initTime,latestMinBar);
 
     int histLen;

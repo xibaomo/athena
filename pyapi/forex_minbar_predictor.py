@@ -25,8 +25,11 @@ class ForexMinBarPredictor(object):
         self.isBinom = False
         return
     
-    def setInitMin(self,minbar):
+    def setInitMin(self,minbar,barfile):
         self.featureCalculator.setInitMin(minbar)
+        latest_time = self.loadHistoryBarFile(barfile)
+        
+        print "Latest time in history after setting init_time: " + latest_time
         return
     
     def loadAModel(self,modelFile):

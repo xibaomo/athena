@@ -64,11 +64,6 @@ class BarFeatureCalculator(object):
                 
             if k < N-1:
                 self.allMinBars = self.allMinBars.iloc[:k+2,:]
-
-        Log(LOG_INFO) << "Latest min bar in history: " + self.allMinBars.iloc[-1,:]['TIME']  
-        
-#         if self.initMin is not None:
-#             self.allMinBars = self.allMinBars.iloc[-50000:,:]
 #           
         self.open = self.allMinBars['OPEN'].values
         self.high = self.allMinBars['HIGH'].values
@@ -78,7 +73,7 @@ class BarFeatureCalculator(object):
         self.labels = self.allMinBars['LABEL'].values
         
         self.time = self.allMinBars['TIME'].values
-        print "Latest min bar: " + self.time[-1]
+        print "Latest min bar in history: " + self.time[-1]
         return self.time[-1]
     
     def resetFeatureTable(self):
@@ -132,7 +127,7 @@ class BarFeatureCalculator(object):
 #         print self.rawFeatures
         
         f = self.rawFeatures.iloc[-1,:].values
-        f = np.around(f,6)
+#         f = np.around(f,6)
 #         print self.rawFeatures.values
 
         allbars = np.vstack([self.open,self.high,self.low,self.close,self.tickVol])

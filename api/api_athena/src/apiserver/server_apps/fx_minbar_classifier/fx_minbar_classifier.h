@@ -32,6 +32,7 @@ protected:
     CPyObject   m_pyLatestMinbar;
 
     String      m_fxSymbol;
+    String      m_histBarFile;
 
     ForexMinBarClassifier(const String& configFile) : ServerBaseApp(configFile) {
         m_fxSymbol =  getYamlValue("PREDICTION/SYMBOL");
