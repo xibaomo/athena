@@ -39,6 +39,8 @@ class BarFeatureCalculator(object):
         self.tickVol= np.array([])
         self.binomProb = None
         
+        self.lastFeature = None
+        
         self.unlabeledID = np.array([])
         return
         
@@ -99,10 +101,10 @@ class BarFeatureCalculator(object):
         self.close= np.append(self.close,close)
         self.tickVol = np.append(self.tickVol,tickvol)
         
-        self.labels = np.append(self.labels,-1)
+#         self.labels = np.append(self.labels,-1)
         self.time = np.append(self.time,timestr)
         
-        self.unlabeledID = np.append(self.unlabeledID, len(self.labels)-1)
+#         self.unlabeledID = np.append(self.unlabeledID, len(self.labels)-1)
         return
     
     def loadHistoryMinBars(self,data):
@@ -206,6 +208,8 @@ class BarFeatureCalculator(object):
         for fn in featureNames:
 #             print "feature: " + fn
             BarFeatureSwitcher[fn]()
+            
+        self.lastFeature = self.rawFeatures.iloc[-1,:].values
     
     def removeNullID(self,ind):
         
@@ -775,11 +779,22 @@ class BarFeatureCalculator(object):
          
         self.labels = labels.astype(int)
         
-        print "labels = ",self.labels
+        ### Compute target of the last feature, which is removed when getting total features
+
+        arr = self.labels[- GLOBAL_PROB_PERIOD-1:]
+        tr,ts = owls.compLastBinom(arr.astype(float),lookback,GLOBAL_PROB_PERIOD)
+
+        self.lastFeature[-2] = tr 
+        self.lastFeature[-1] = ts
+        lb = model.predict(self.lastFeature.reshape(1,-1))[0]
+        self.labels = np.append(self.labels,lb)
+        self.unlabeledID = np.append(self.unlabeledID, len(self.labels)-1)
+
         return
              
-    def setLatestLabel(self,pred):
-        self.labels[-1] = pred
+    def appendLatestLabel(self,pred):
+        self.labels = np.append(self.labels, pred)
+        self.unlabeledID = np.append(self.unlabeledID,len(self.labels)-1)
 
         return
         

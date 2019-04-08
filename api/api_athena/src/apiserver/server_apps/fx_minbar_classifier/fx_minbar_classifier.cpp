@@ -94,20 +94,20 @@ ForexMinBarClassifier::processMsg(Message& msg)
     Message msgnew;
     FXAction action = (FXAction)msg.getAction();
     switch(action) {
-        case FXAction::MINBAR:
-            msgnew = std::move(procMsg_MINBAR(msg));
-            break;
-        case FXAction::CHECKIN:
-            msgnew = std::move(procMsg_CHECKIN(msg));
-            break;
-        case FXAction::HISTORY_MINBAR:
-            msgnew = std::move(procMsg_HISTORY_MINBAR(msg));
-            break;
-        case FXAction::INIT_TIME:
-            msgnew = std::move(procMsg_INIT_TIME(msg));
-            break;
-        default:
-            break;
+    case FXAction::MINBAR:
+        msgnew = std::move(procMsg_MINBAR(msg));
+        break;
+    case FXAction::CHECKIN:
+        msgnew = std::move(procMsg_CHECKIN(msg));
+        break;
+    case FXAction::HISTORY_MINBAR:
+        msgnew = std::move(procMsg_HISTORY_MINBAR(msg));
+        break;
+    case FXAction::INIT_TIME:
+        msgnew = std::move(procMsg_INIT_TIME(msg));
+        break;
+    default:
+        break;
     }
 
     return msgnew;
@@ -117,8 +117,9 @@ Message
 ForexMinBarClassifier::procMsg_CHECKIN(Message& msg)
 {
     Log(LOG_INFO) << "Client checks in";
-    if ( !compareStringNoCase(m_fxSymbol, msg.getComment()) )
+    if ( !compareStringNoCase(m_fxSymbol, msg.getComment()) ) {
         Log(LOG_FATAL) << "Received symbol is inconsistent with model files";
+    }
 
     Message msgnew;
     return msgnew;
@@ -175,19 +176,28 @@ ForexMinBarClassifier::procMsg_HISTORY_MINBAR(Message& msg)
 {
     int *pc = (int*)msg.getChar();
     int histLen = pc[0];
-    int minbar_size = pc[1];
-    Real* pm = (Real*)msg.getData();
-    CPyObject lst = PyList_New(histLen*minbar_size);
-    for (int i=0;i < histLen*minbar_size; i++) {
-        PyList_SetItem(lst,i,Py_BuildValue(REALFORMAT,pm[i]));
+
+    if (histLen >0) {
+        int minbar_size = pc[1];
+        Real* pm = (Real*)msg.getData();
+        CPyObject lst = PyList_New(histLen*minbar_size);
+        for (int i=0; i < histLen*minbar_size; i++) {
+            PyList_SetItem(lst,i,Py_BuildValue(REALFORMAT,pm[i]));
+        }
+        CPyObject pylookback = Py_BuildValue("i",histLen);
+        CPyObject pyminbarsize = Py_BuildValue("i",minbar_size);
+        PyObject_CallMethod(m_buyPredictor,"loadHistoryMinBars","(OOO)",
+                            lst.getObject(),
+                            pylookback.getObject(),
+                            pyminbarsize.getObject());
+        Log(LOG_INFO) << "Buy predictor loads history min bars. History length: " + to_string(histLen);
+    } else {
+        Log(LOG_INFO) << "No min bars from mt5, predicting unlabeled bars in history ...";
+        PyObject_CallMethod(m_buyPredictor,"predictHistoryMinBars",NULL);
+
+        Log(LOG_INFO) << "All history bars are labeled";
     }
-    CPyObject pylookback = Py_BuildValue("i",histLen);
-    CPyObject pyminbarsize = Py_BuildValue("i",minbar_size);
-    PyObject_CallMethod(m_buyPredictor,"loadHistoryMinBars","(OOO)",
-                        lst.getObject(),
-                        pylookback.getObject(),
-                        pyminbarsize.getObject());
-    Log(LOG_INFO) << "Buy predictor loads history min bars. History length: " + to_string(histLen);
+
 
     Message msgnew;
     return msgnew;

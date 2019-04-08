@@ -118,7 +118,7 @@ class ForexMinBarPredictor(object):
         
         pred = self.model.predict(features)
         
-        self.featureCalculator.setLatestLabel(pred[0])
+        self.featureCalculator.appendLatestLabel(pred[0])
         
         print "prediction: %d" % pred
         
@@ -126,9 +126,6 @@ class ForexMinBarPredictor(object):
         
     def predictHistoryMinBars(self):
         print "predicting all history bars ..."
-        
-        pb = self.featureCalculator.compBinomProb()
-        self.featureCalculator.setBinomProb(pb)
         
         self.featureCalculator.computeFeatures(self.featureNames,GLOBAL_PROB_PERIOD*3)
         
