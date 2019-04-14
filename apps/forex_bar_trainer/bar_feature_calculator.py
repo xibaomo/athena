@@ -50,6 +50,8 @@ class BarFeatureCalculator(object):
     
     def loadMinBars(self,barFile):
         self.allMinBars = pd.read_csv(barFile)
+        # drop last bar which is not accurate
+        self.allMinBars = self.allMinBars.iloc[:-1,:]
         N = self.allMinBars.shape[0]
         print "Hisotry min bar file loaded: " + str(N)
         

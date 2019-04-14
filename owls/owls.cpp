@@ -351,6 +351,59 @@ static PyObject* _compRSI(PyObject* self, PyObject* args)
 
     return Py_BuildValue("OOO",inc_pts, dec_pts, r_inc_pts);
 }
+
+/*-----------------------------------------------------------------------------
+ *  Find the consecutive increasing subarray with the largest climb-up
+ *-----------------------------------------------------------------------------*/
+template <typename Fn>
+void __maxGapSubArray(const Fn& fn, const vector<double>& arr,
+        double& max_gap, int& startID, int& endID) //endID not included
+{
+    size_t i = 0;
+    max_gap = 0.;
+    while ( i < arr.size() ) {
+        size_t j = i+1;
+        while ( j < arr.size() ) {
+            if ( fn( j) ) {
+                double gap = fabs(arr[j-1] - arr[i]);
+                if ( gap > max_gap ) {
+                    max_gap = gap;
+                    startID = i;
+                    endID = j;
+                }
+                i  = j;
+
+                break;
+            }
+            j++;
+        }
+        if ( j == arr.size() ) {
+            double gap = fabs(arr[j-1] - arr[i]);
+            if ( gap > max_gap ) {
+                max_gap = gap;
+                startID = i;
+                endID = j;
+            }
+            break;
+        }
+    }
+}
+
+void __maxRiseSubArray(const vector<double>& arr,
+        double& max_rise, int& sid, int& eid)
+{
+    __maxGapSubArray([&arr](size_t j){ return arr[j] < arr[j-1]; }, arr, max_rise, sid, eid);
+}
+
+void __maxDropSubArray(const vector<double>& arr,
+        double& max_drop, int& sid, int& eid)
+{
+    __maxGapSubArray([&arr](size_t j){ return arr[j] > arr[j-1]; }, arr, max_drop, sid, eid);
+}
+
+//=============================================
+// Method list
+//=============================================
 static PyMethodDef myMethods[] = {
     {"std",_std, METH_VARARGS, "compute std of array"},
     {"addone",_add_one, METH_VARARGS, "all elements of array adds one"},
