@@ -21,6 +21,7 @@
 #include "messenger/sockutils.h"
 
 using namespace std;
+using namespace athena;
 
 void
 ServerBaseApp::execute()

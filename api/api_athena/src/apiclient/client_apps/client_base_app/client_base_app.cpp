@@ -16,7 +16,7 @@
 #include "basics/utils.h"
 #include "messenger/messenger.h"
 using namespace std;
-
+using namespace athena;
 ClientBaseApp::ClientBaseApp() : App()
 {
 ;

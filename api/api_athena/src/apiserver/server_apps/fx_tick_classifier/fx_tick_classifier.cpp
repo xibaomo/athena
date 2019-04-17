@@ -18,7 +18,7 @@
 
 #include "fx_tick_classifier.h"
 using namespace std;
-
+using namespace athena;
 void
 ForexTickClassifier::prepare()
 {

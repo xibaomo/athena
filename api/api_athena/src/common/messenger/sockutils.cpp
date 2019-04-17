@@ -24,7 +24,7 @@
 #include <netdb.h>
 #include <string.h>
 using namespace std;
-
+using namespace athena;
 void
 connectSockAddr(int sock, struct sockaddr_in* servAddr)
 {

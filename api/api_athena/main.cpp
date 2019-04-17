@@ -4,7 +4,7 @@
 #include "basics/types.h"
 #include "messenger/messenger.h"
 using namespace std;
-
+using namespace athena;
 int main(int argc, char** argv)
 {
     Log::setLogLevel(LOG_INFO);

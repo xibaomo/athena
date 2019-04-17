@@ -54,7 +54,7 @@ public:
 
     String getYamlValue(const String& key) {
         String cmd = m_yamlParser + key + " " + m_configFile;
-        String val = execSysCall_block(cmd);
+        String val = athena::execSysCall_block(cmd);
         return val;
     }
 

@@ -29,7 +29,7 @@
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 using namespace std;
-
+namespace athena{
 String
 execSysCall_block(const String& cmd)
 {
@@ -141,4 +141,5 @@ convertTimeString(const String& timeStr, const String& fmt)
     String resStr = stream.str();
 //    delete facet;
     return resStr;
+}
 }

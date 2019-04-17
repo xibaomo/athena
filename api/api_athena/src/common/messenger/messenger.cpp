@@ -22,6 +22,7 @@
 #include "basics/log.h"
 
 using namespace std;
+using namespace athena;
 
 Messenger::Messenger() : m_hostSock(-1), m_port(-1),
     m_bufferSize(-1), m_isListening(false)

@@ -356,14 +356,16 @@ static PyObject* _compRSI(PyObject* self, PyObject* args)
  *  Find the consecutive increasing subarray with the largest climb-up
  *-----------------------------------------------------------------------------*/
 template <typename Fn>
-void __maxGapSubArray(const Fn& fn, const vector<double>& arr,
+void __maxGapSubArray(const Fn& fn, PyArrayObject* pyarr,
         double& max_gap, int& startID, int& endID) //endID not included
 {
     size_t i = 0;
     max_gap = 0.;
-    while ( i < arr.size() ) {
+    size_t len = pyarr->dimensions[0];
+    double* arr = (double*)pyarr->data;
+    while ( i < len ) {
         size_t j = i+1;
-        while ( j < arr.size() ) {
+        while ( j < len ) {
             if ( fn( j) ) {
                 double gap = fabs(arr[j-1] - arr[i]);
                 if ( gap > max_gap ) {
@@ -377,7 +379,7 @@ void __maxGapSubArray(const Fn& fn, const vector<double>& arr,
             }
             j++;
         }
-        if ( j == arr.size() ) {
+        if ( j == len ) {
             double gap = fabs(arr[j-1] - arr[i]);
             if ( gap > max_gap ) {
                 max_gap = gap;
@@ -389,16 +391,29 @@ void __maxGapSubArray(const Fn& fn, const vector<double>& arr,
     }
 }
 
-void __maxRiseSubArray(const vector<double>& arr,
+void __maxRiseSubArray(PyArrayObject* pyarr,
         double& max_rise, int& sid, int& eid)
 {
-    __maxGapSubArray([&arr](size_t j){ return arr[j] < arr[j-1]; }, arr, max_rise, sid, eid);
+    __maxGapSubArray([&pyarr](size_t j){ double* arr = (double*)pyarr->data;return arr[j] < arr[j-1]; }, pyarr, max_rise, sid, eid);
 }
 
-void __maxDropSubArray(const vector<double>& arr,
+void __maxDropSubArray(PyArrayObject* pyarr,
         double& max_drop, int& sid, int& eid)
 {
-    __maxGapSubArray([&arr](size_t j){ return arr[j] > arr[j-1]; }, arr, max_drop, sid, eid);
+    __maxGapSubArray([&pyarr](size_t j){ double* arr = (double*)pyarr->data;return arr[j] > arr[j-1]; }, pyarr, max_drop, sid, eid);
+}
+
+static PyObject* _maxRise(PyObject* self, PyObject* args)
+{
+    PyArrayObject* arr;
+    if ( !PyArg_ParseTuple(args, "O",&arr) ) {
+        return NULL;
+    }
+    int sid, eid;
+    double mrise;
+    __maxRiseSubArray(arr, mrise, sid, eid);
+
+    return Py_BuildValue("dii",mrise, sid, eid);
 }
 
 //=============================================
@@ -414,6 +429,7 @@ static PyMethodDef myMethods[] = {
     {"compBinom",_compBinom, METH_VARARGS, "WFWEOJO"},
     {"compLastBinom",_compLastBinom, METH_VARARGS, "only compute binom of last label"},
     {"compRSI",_compRSI, METH_VARARGS, "RSI feature"},
+    {"maxRise",_maxRise, METH_VARARGS, "max-rise sub-array"},
     {NULL, NULL, 0, NULL}
 };
 

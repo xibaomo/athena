@@ -18,7 +18,7 @@
 
 #include "fx_minbar_classifier.h"
 using namespace std;
-
+using namespace athena;
 void
 ForexMinBarClassifier::prepare()
 {
@@ -235,7 +235,7 @@ ForexMinBarClassifier::procMsg_INIT_TIME(Message& msg)
     msgnew.setComment(latestMinBar);
     int* pm = (int*)msgnew.getData();
     pm[0] = histLen;
-    msgnew.setAction((ActionType)FXAction::REQUEST_HISTORY_MINBAR);
+    msgnew.setAction(FXAction::REQUEST_HISTORY_MINBAR);
     Log(LOG_INFO) << "Request client to send history min bars: " + to_string(histLen);
 
     return msgnew;

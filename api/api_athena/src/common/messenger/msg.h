@@ -32,7 +32,9 @@ enum class MsgAction {
     GET_READY = 0,
     NORMAL_EXIT = 1,
     ERROR_EXIT,
-    CHECK_IN
+    CHECK_IN,
+
+    NUM_ACTIONS  // SENTINEL
 };
 
 /*****************************************************************************************
@@ -62,8 +64,7 @@ public:
      *                     + size_of_payload
      */
 
-    Message(const size_t dataBytes = 0, const size_t charBytes = 0) : m_entireMsg(nullptr)
-    {
+    void init(size_t dataBytes, size_t charBytes) {
         size_t msgSize = sizeof(SizeType) + sizeof(ActionType) + sizeof(TagType) +
                 sizeof(size_t)*2 + dataBytes + charBytes + sizeof(char)*3;
         m_entireMsg = (Uchar*)malloc(msgSize);
@@ -76,6 +77,10 @@ public:
 
         setAction(MsgAction::GET_READY);
         m_own = true;
+    }
+    Message(const size_t dataBytes = 0, const size_t charBytes = 0) : m_entireMsg(nullptr)
+    {
+        init(dataBytes,charBytes);
     }
 
     Message(const Message& other)
@@ -203,10 +208,8 @@ public:
     /**
     *  Set the Action
     */
-
-    void      setAction(ActionType action)  { *getActionPtr() = action; }
-
-    void      setAction(MsgAction action) { setAction((ActionType)action); }
+    template <typename T>
+    void      setAction(T action) { *getActionPtr() = (ActionType)action;}
 
     /**
     * Return the total size of the message

@@ -740,8 +740,9 @@ class BarFeatureCalculator(object):
         # remove label == -1
         if len(np.where(labels==-1)[0])>0 and isDropN1:
             ids = list(np.where(labels==-1)[0])
-#             df=df.iloc[:idx,:]
-            df = df.drop(df.index[ids])
+            idx = ids[0]
+            df=df.iloc[:idx,:]
+#             df = df.drop(df.index[ids])
                 
         df.to_csv("features.csv",index=False)
         Log(LOG_INFO) << "Feature file dumped: features.csv"

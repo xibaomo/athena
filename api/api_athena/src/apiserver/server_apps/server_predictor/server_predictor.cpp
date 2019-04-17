@@ -18,6 +18,7 @@
 #include "basics/utils.h"
 #include <iostream>
 using namespace std;
+using namespace athena;
 
 void
 ServerPredictor::prepare()

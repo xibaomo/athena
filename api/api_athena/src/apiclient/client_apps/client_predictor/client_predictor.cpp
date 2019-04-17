@@ -17,7 +17,7 @@
 #include "predictor/prdtypes.h"
 #include "basics/utils.h"
 using namespace std;
-
+using namespace athena;
 void
 ClientPredictor::prepare(const String& modelfile)
 {
@@ -31,7 +31,7 @@ ClientPredictor::sendEngineConfig(const String& modelfile)
     int dataBytes = sizeof(int)*2;
     int charBytes = modelfile.size();
     Message msg(dataBytes, charBytes);
-    msg.setAction((MsgAction)PrdAction::SETUP);
+    msg.setAction(PrdAction::SETUP);
     int *pm = (int*)msg.getData();
     pm[0] = (int)EngineType::REGRESSOR;
     pm[1] = (int)EngineCoreType::RANDOMFOREST;
@@ -48,7 +48,7 @@ ClientPredictor::sendFeatures(Real* fm, const Uint rows, const Uint cols)
     int dataBytes = sizeof(Real) * rows * cols;
     int charBytes = sizeof(Uint) * 2;
     Message msg(dataBytes, charBytes);
-    msg.setAction((MsgAction)PrdAction::PREDICT);
+    msg.setAction(PrdAction::PREDICT);
     void* pm = (void*)msg.getData();
     memcpy(pm, (void*)fm, dataBytes);
     Uint* pc = (Uint*)msg.getChar();
