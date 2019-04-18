@@ -16,7 +16,7 @@ public:
 
     void loadConfig(const String& cfgFile) {
         if(m_allConfig.IsNull()) {
-            m_cfgFile() = cfgFile;
+            m_cfgFile = cfgFile;
             m_allConfig = YAML::LoadFile(cfgFile);
         } else {
             Log(LOG_FATAL) << "Yaml file already loaded. Overwrite not supported: " + m_cfgFile;
@@ -47,7 +47,7 @@ YamlConfig::getKeyValue(const String& keys)
             Log(LOG_FATAL) << "Key not found: " + key;
         }
         p = &node;
-        if f(i == v.size()-1) {
+        if (i == v.size()-1) {
             return p->as<T>();
         }
     }
