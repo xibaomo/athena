@@ -1,0 +1,12 @@
+GENERAL: 
+    # Application type: 0 - min bar tracker
+    #                   1 - min bar classifier
+    APPLICATION: 0
+
+    # Log level: 0 - LOG_FATAL
+    #            1 - LOG_ERROR
+    #            2 - LOG_WARNING
+    #            3 - LOG_INFO
+    #            4 - LOG_VERBOSE
+    #            5 - LOG_DEBUG
+    LOG_LEVEL: 3

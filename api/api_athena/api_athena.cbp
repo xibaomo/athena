@@ -58,6 +58,7 @@
 			<Add option="-lboost_thread" />
 			<Add option="-lboost_system" />
 			<Add option="-lboost_filesystem" />
+			<Add option="-lyaml-cpp" />
 			<Add option="-Wl,-Bdynamic" />
 			<Add option="-lpython2.7" />
 			<Add option="-lpthread" />
@@ -79,6 +80,10 @@
 		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_action.h" />
 		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.cpp" />
 		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.h" />
+		<Unit filename="src/apiserver/server_apps/ma_hunter/ma_hunter.cpp" />
+		<Unit filename="src/apiserver/server_apps/ma_hunter/ma_hunter.h" />
+		<Unit filename="src/apiserver/server_apps/ma_hunter/mhconf.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.h" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.cpp" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.h" />
 		<Unit filename="src/apiserver/server_apps/server_predictor/fx_action.h" />
@@ -90,6 +95,7 @@
 		<Unit filename="src/c_api/athena_c_api.cpp" />
 		<Unit filename="src/c_api/athena_c_api.h" />
 		<Unit filename="src/common/app_base/app_base.h" />
+		<Unit filename="src/common/basics/baseconf.h" />
 		<Unit filename="src/common/basics/log.cpp" />
 		<Unit filename="src/common/basics/log.h" />
 		<Unit filename="src/common/basics/mtqueue.h" />

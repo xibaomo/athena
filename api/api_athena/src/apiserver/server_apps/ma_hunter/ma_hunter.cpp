@@ -21,7 +21,7 @@
 using namespace std;
 using namespace athena;
 
-MAHunter::MAHunter(const String& cfg) : m_config(nullptr), ServerBaseApp(cfg)
+MAHunter::MAHunter(const String& cfg) : ServerBaseApp(cfg),m_config(nullptr)
 {
     m_config = &MahuntConfig::getInstance();
     m_config->loadConfig(cfg);

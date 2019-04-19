@@ -1,11 +1,7 @@
 #ifndef APP_BASE_H_INCLUDED
 #define APP_BASE_H_INCLUDED
 #include "messenger/messenger.h"
-enum AppType {
-    APP_PREDICTOR = 0,
-    APP_TICKCLASSIFIER,
-    APP_MINBARCLASSIFIER
-};
+#include "basics/types.h"
 
 class App{
 protected:

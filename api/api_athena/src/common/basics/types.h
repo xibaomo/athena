@@ -35,4 +35,11 @@ typedef double Real;
 typedef float Real;
 #define REALFORMAT "f"
 #endif
+
+enum AppType {
+    APP_MINBAR_TRACKER = 0,
+    APP_MINBARCLASSIFIER,
+    APP_PREDICTOR,
+    APP_TICKCLASSIFIER,
+};
 #endif   /* ----- #ifndef _BASICS_TYPES_H_  ----- */

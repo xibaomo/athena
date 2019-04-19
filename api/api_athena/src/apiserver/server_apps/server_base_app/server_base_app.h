@@ -58,6 +58,13 @@ public:
         return val;
     }
 
+    template <typename Fn>
+    Message procMsg_noreply(Message& msg, const Fn& fn) {
+        fn(msg);
+        Message out;
+        return out;
+    }
+
 };
 
 #endif
