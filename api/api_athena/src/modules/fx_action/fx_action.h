@@ -1,8 +1,9 @@
 #ifndef _CLIENT_API_FX_ACTION_H_
 #define _CLIENT_API_FX_ACTION_H_
+#include "messenger/msg.h"
 
 enum class FXAction {
-    HISTORY = 10,
+    HISTORY = MsgAction::NUM_ACTIONS,
     HISTORY_MINBAR,
     CHECKIN,
     TICK,

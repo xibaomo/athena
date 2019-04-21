@@ -34,7 +34,7 @@ enum class MsgAction {
     ERROR_EXIT,
     CHECK_IN,
 
-    NUM_ACTIONS  // SENTINEL
+    NUM_ACTIONS = 10  // SENTINEL
 };
 
 /*****************************************************************************************

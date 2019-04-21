@@ -14,7 +14,7 @@
  * =====================================================================================
  */
 #include "server_predictor.h"
-#include "fx_action.h"
+#include "fx_action/fx_action.h"
 #include "basics/utils.h"
 #include <iostream>
 using namespace std;

@@ -98,6 +98,7 @@
 		<Unit filename="src/c_api/athena_c_api.h" />
 		<Unit filename="src/common/app_base/app_base.h" />
 		<Unit filename="src/common/basics/baseconf.h" />
+		<Unit filename="src/common/basics/csv_parser.h" />
 		<Unit filename="src/common/basics/log.cpp" />
 		<Unit filename="src/common/basics/log.h" />
 		<Unit filename="src/common/basics/mtqueue.h" />
@@ -110,6 +111,7 @@
 		<Unit filename="src/common/messenger/sockutils.cpp" />
 		<Unit filename="src/common/messenger/sockutils.h" />
 		<Unit filename="src/common/pyhelper.hpp" />
+		<Unit filename="src/modules/fx_action/fx_action.h" />
 		<Unit filename="src/modules/minbar_predictor/ma_hunter/ma_hunter.cpp" />
 		<Unit filename="src/modules/minbar_predictor/ma_hunter/ma_hunter.h" />
 		<Unit filename="src/modules/minbar_predictor/ma_hunter/mhconf.h" />

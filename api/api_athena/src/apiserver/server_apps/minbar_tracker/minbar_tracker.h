@@ -23,6 +23,7 @@
 #include "minbar_predictor/mb_base/mb_base_pred.h"
 #include "create_mbp.h"
 #include "mbtconf.h"
+#define NUM_MINBAR_FIELDS 6
 struct MinBar {
     String time;
     real32 open;
@@ -30,6 +31,12 @@ struct MinBar {
     real32  low;
     real32 close;
     int32  tickvol;
+
+    MinBar(String p_time,real32 p_open,real32 p_high,real32 p_low,real32 p_close,int32 p_tickvol):
+        time(std::move(p_time)),open(p_open),high(p_high),low(p_low),close(p_close),tickvol(p_tickvol)
+        {
+            ;
+        }
 };
 
 class MinBarTracker : public ServerBaseApp {
@@ -39,6 +46,7 @@ protected:
     MbtConfig* m_mbtCfg;
 
     std::vector<MinBar> m_allMinBars;
+
     MinBarTracker(const String& cfgFile) : m_predictor(nullptr), m_mbtCfg(nullptr), ServerBaseApp(cfgFile){
         m_mbtCfg = &MbtConfig::getInstance();
         m_mbtCfg->loadConfig(cfgFile);
@@ -51,8 +59,14 @@ public:
         return _ins;
     }
 
-    void prepare(){;}
+    void prepare();
+
+    void loadMinBarFromFile(const String& barFile);
 
     Message processMsg(Message& msg);
+
+    Message procMsg_HISTORY_MINBAR(Message& msg);
+    Message procMsg_INIT_TIME(Message& msg);
+    Message procMsg_MINBAR(Message& msg);
 };
 #endif   /* ----- #ifndef _SERVER_MINBAR_TRACKER_H_  ----- */

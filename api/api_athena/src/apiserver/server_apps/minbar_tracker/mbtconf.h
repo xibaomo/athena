@@ -35,7 +35,11 @@ public:
     }
 
     MBP_Type getMinBarPredictorType() {
-        return (MBP_Type)getKeyValue<int>(MBT_ROOT + "PREDITOR_TYPE");
+        return (MBP_Type)getKeyValue<int>(MBT_ROOT + "PREDICTOR_TYPE");
+    }
+
+    String getHistoryMinBarFile() {
+        return getKeyValue<String>(MBT_ROOT + "HISTORY_BAR_FILE");
     }
 };
 #endif   /* ----- #fndef _MIN_BAR_CONFIG_H_  ----- */
