@@ -51,6 +51,7 @@ protected:
         m_mbtCfg = &MbtConfig::getInstance();
         m_mbtCfg->loadConfig(cfgFile);
         m_predictor = createMBPredictor(m_mbtCfg->getMinBarPredictorType(), cfgFile);
+        m_predictor->loadAllMinBars(&m_allMinBars);
     }
 public:
     virtual ~MinBarTracker(){;}
