@@ -20,6 +20,9 @@
 #define  _SERVER_MINBAR_TRACKER_H_
 
 #include "server_apps/server_base_app/server_base_app.h"
+#include "minbar_predictor/mb_base/mb_base_pred.h"
+#include "create_mbp.h"
+#include "mbtconf.h"
 struct MinBar {
     String time;
     real32 open;
@@ -31,8 +34,16 @@ struct MinBar {
 
 class MinBarTracker : public ServerBaseApp {
 protected:
+
+    MinBarBasePredictor* m_predictor;
+    MbtConfig* m_mbtCfg;
+
     std::vector<MinBar> m_allMinBars;
-    MinBarTracker(const String& cfgFile) : ServerBaseApp(cfgFile){;}
+    MinBarTracker(const String& cfgFile) : m_predictor(nullptr), m_mbtCfg(nullptr), ServerBaseApp(cfgFile){
+        m_mbtCfg = &MbtConfig::getInstance();
+        m_mbtCfg->loadConfig(cfgFile);
+        m_predictor = createMBPredictor(m_mbtCfg->getMinBarPredictorType(), cfgFile);
+    }
 public:
     virtual ~MinBarTracker(){;}
     static MinBarTracker& getInstance(const String& cf) {
@@ -42,6 +53,6 @@ public:
 
     void prepare(){;}
 
-    Message processMsg(Message& msg) {Message m; return m;}
+    Message processMsg(Message& msg);
 };
 #endif   /* ----- #ifndef _SERVER_MINBAR_TRACKER_H_  ----- */

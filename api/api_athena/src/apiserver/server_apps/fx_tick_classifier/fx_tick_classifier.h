@@ -22,7 +22,7 @@
 #include "server_apps/server_base_app/server_base_app.h"
 #include "pyhelper.hpp"
 #include "basics/utils.h"
-#include "fx_action.h"
+#include "fx_action/fx_action.h"
 class ForexTickClassifier : public ServerBaseApp {
 protected:
     CPyInstance m_pyInst; // Initialize python environment. must be the first. last destroyed

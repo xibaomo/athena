@@ -19,9 +19,10 @@
 #ifndef  _SERVER_MA_HUNTER_H_
 #define  _SERVER_MA_HUNTER_H_
 
-#include "server_apps/server_base_app/server_base_app.h"
+#include "messenger/msg.h"
+#include "minbar_predictor/mb_base/mb_base_pred.h"
 #include "mhconf.h"
-class  MAHunter : public ServerBaseApp {
+class  MAHunter : public MinBarBasePredictor {
 protected:
     MahuntConfig* m_config;
     MAHunter(const String& cfg);

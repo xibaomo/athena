@@ -20,7 +20,7 @@
 #define  _MINBAR_BASE_PREDICTOR_H_
 
 class MinBarBasePredictor {
-pretected:
+protected:
     MinBarBasePredictor() {;}
 public:
     virtual ~MinBarBasePredictor() {;}

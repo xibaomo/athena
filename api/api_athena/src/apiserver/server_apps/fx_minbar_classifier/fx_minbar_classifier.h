@@ -19,7 +19,7 @@
 #ifndef  _FX_MINBAR_CLASSIFIER_H_
 #define  _FX_MINBAR_CLASSIFIER_H_
 
-#include "server_apps/fx_tick_classifier/fx_action.h"
+#include "fx_action/fx_action.h"
 #include "server_apps/server_base_app/server_base_app.h"
 #include "pyhelper.hpp"
 #include "basics/utils.h"

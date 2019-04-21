@@ -1,12 +1,12 @@
 /*
  * =====================================================================================
  *
- *       Filename:  ma_hunter.cpp
+ *       Filename:  create_mbp.h
  *
  *    Description:
  *
  *        Version:  1.0
- *        Created:  04/18/2019 03:18:00 AM
+ *        Created:  04/20/2019 06:38:10 PM
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -16,13 +16,12 @@
  * =====================================================================================
  */
 
-#include "ma_hunter.h"
+#ifndef  _MIN_BAR_CREATE_H_
+#define  _MIN_BAR_CREATE_H_
+#include "basics/types.h"
+#include "minbar_predictor/mb_base/mb_base_pred.h"
 
-using namespace std;
-using namespace athena;
+MinBarBasePredictor*
+createMBPredictor(MBP_Type mt, const String& cfg);
 
-MAHunter::MAHunter(const String& cfg) :m_config(nullptr)
-{
-    m_config = &MahuntConfig::getInstance();
-    m_config->loadConfig(cfg);
-}
+#endif   /* ----- #ifndef _MIN_BAR_CREATE_H_  ----- */

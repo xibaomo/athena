@@ -70,6 +70,7 @@
 		<Unit filename="src/apiclient/client_apps/client_base_app/client_base_app.h" />
 		<Unit filename="src/apiclient/client_apps/client_predictor/client_predictor.cpp" />
 		<Unit filename="src/apiclient/client_apps/client_predictor/client_predictor.h" />
+		<Unit filename="src/apiserver/main/generalconf.h" />
 		<Unit filename="src/apiserver/main/main.cpp">
 			<Option target="api_server" />
 		</Unit>
@@ -80,6 +81,10 @@
 		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_action.h" />
 		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.cpp" />
 		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/create_mbp.cpp" />
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/create_mbp.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/mbtconf.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.cpp" />
 		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.h" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.cpp" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.h" />

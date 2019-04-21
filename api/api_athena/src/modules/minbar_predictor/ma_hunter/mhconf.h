@@ -33,8 +33,8 @@ public:
         return _ins;
     }
 
-    int getLookback() {
-        return getKeyValue<int>(MA_HUNTER_ROOT + "LOOKBACK");
+    int getMALookback() {
+        return getKeyValue<int>(MA_HUNTER_ROOT + "MA_LOOKBACK");
     }
 };
 #endif   /* ----- #ifndef _MA_HUNTER_CONFIG_H_  ----- */
