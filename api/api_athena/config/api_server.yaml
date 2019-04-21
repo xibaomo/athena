@@ -1,6 +1,6 @@
 GENERAL: 
     # Application type: 0 - min bar tracker
-    #                   1 - min bar classifier
+    #                   1 - min bar classifier - rf model
     APPLICATION: 0
 
     # Log level: 0 - LOG_FATAL

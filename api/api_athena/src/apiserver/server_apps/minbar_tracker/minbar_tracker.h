@@ -20,8 +20,18 @@
 #define  _SERVER_MINBAR_TRACKER_H_
 
 #include "server_apps/server_base_app/server_base_app.h"
+struct MinBar {
+    String time;
+    real32 open;
+    real32 high;
+    real32  low;
+    real32 close;
+    int32  tickvol;
+};
+
 class MinBarTracker : public ServerBaseApp {
 protected:
+    std::vector<MinBar> m_allMinBars;
     MinBarTracker(const String& cfgFile) : ServerBaseApp(cfgFile){;}
 public:
     virtual ~MinBarTracker(){;}

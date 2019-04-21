@@ -35,6 +35,7 @@ create_server_app(AppType type, const String& configFile)
             break;
         case AppType::APP_MINBAR_TRACKER:
             app = &MinBarTracker::getInstance(configFile);
+            Log(LOG_INFO) << "Min bar tracker created";
             break;
         default:
             break;

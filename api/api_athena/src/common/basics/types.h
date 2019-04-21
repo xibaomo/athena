@@ -26,6 +26,9 @@
 typedef unsigned int Uint;
 typedef unsigned char Uchar;
 using String = std::string;
+typedef float real32;
+typedef double real64;
+typedef int int32;
 
 #ifdef __USE_64_BIT
 typedef double Real;

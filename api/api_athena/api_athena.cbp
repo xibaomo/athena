@@ -80,9 +80,6 @@
 		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_action.h" />
 		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.cpp" />
 		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.h" />
-		<Unit filename="src/apiserver/server_apps/ma_hunter/ma_hunter.cpp" />
-		<Unit filename="src/apiserver/server_apps/ma_hunter/ma_hunter.h" />
-		<Unit filename="src/apiserver/server_apps/ma_hunter/mhconf.h" />
 		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.h" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.cpp" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.h" />
@@ -108,6 +105,10 @@
 		<Unit filename="src/common/messenger/sockutils.cpp" />
 		<Unit filename="src/common/messenger/sockutils.h" />
 		<Unit filename="src/common/pyhelper.hpp" />
+		<Unit filename="src/modules/minbar_predictor/ma_hunter/ma_hunter.cpp" />
+		<Unit filename="src/modules/minbar_predictor/ma_hunter/ma_hunter.h" />
+		<Unit filename="src/modules/minbar_predictor/ma_hunter/mhconf.h" />
+		<Unit filename="src/modules/minbar_predictor/mb_base/mb_base_pred.h" />
 		<Unit filename="src/modules/predictor/prdtypes.h" />
 		<Extensions>
 			<envvars />
