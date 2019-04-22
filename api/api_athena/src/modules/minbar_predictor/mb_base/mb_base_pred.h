@@ -20,7 +20,21 @@
 #define  _MINBAR_BASE_PREDICTOR_H_
 
 #include <vector>
-struct MinBar;
+#include "fx_action/fx_action.h"
+struct MinBar {
+    String time;
+    real32 open;
+    real32 high;
+    real32  low;
+    real32 close;
+    int32  tickvol;
+
+    MinBar(String p_time,real32 p_open,real32 p_high,real32 p_low,real32 p_close,int32 p_tickvol):
+        time(std::move(p_time)),open(p_open),high(p_high),low(p_low),close(p_close),tickvol(p_tickvol)
+        {
+            ;
+        }
+};
 class MinBarBasePredictor {
 protected:
     std::vector<MinBar>* m_allMinBars;
@@ -28,8 +42,12 @@ protected:
 public:
     virtual ~MinBarBasePredictor() {;}
 
-    void loadAllMinBars(std::vector<MinBar>* bars) {
+    virtual void loadAllMinBars(std::vector<MinBar>* bars) {
         m_allMinBars = bars;
     }
+
+    virtual void prepare() = 0;
+
+    virtual FXAction predict() = 0;
 };
 #endif   /* ----- #ifndef _MINBAR_BASE_PREDICTOR_H_  ----- */

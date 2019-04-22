@@ -40,7 +40,16 @@ MinBarTracker::processMsg(Message& msg)
 Message
 MinBarTracker::procMsg_MINBAR(Message& msg)
 {
+    String timestr = msg.getComment();
+    Log(LOG_INFO) << "New min bar arrives: " + timestr + " + 00:01";
+
+    real32* pm = (real32*)msg.getData();
+
+    m_allMinBars.emplace_back(timestr,pm[0],pm[1],pm[2],pm[3],pm[4]);
+
+    FXAction action = m_predictor->predict();
     Message out;
+    out.setAction(action);
     return out;
 }
 

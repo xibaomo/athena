@@ -22,8 +22,14 @@
 #include "messenger/msg.h"
 #include "minbar_predictor/mb_base/mb_base_pred.h"
 #include "mhconf.h"
+#include "ma_cal.h"
 class  MAHunter : public MinBarBasePredictor {
 protected:
+
+    std::vector<real32> m_median;
+    std::vector<real32> m_ma;
+
+    MACalculator* m_maCal;
     MahuntConfig* m_config;
     MAHunter(const String& cfg);
 public:
@@ -33,7 +39,11 @@ public:
         return _ins;
     }
 
-    void prepare() {;}
-    Message processMsg(Message& msg) {Message m; return m;}
+    void prepare();
+
+    FXAction predict();
+
+    void compLWMA();
+    real32 compALWMA(int lookback, size_t idx);
 };
 #endif   /* ----- #ifndef _SERVER_MA_HUNTER_H_  ----- */

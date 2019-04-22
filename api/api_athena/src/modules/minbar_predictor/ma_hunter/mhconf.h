@@ -23,9 +23,22 @@
 
 const String MA_HUNTER_ROOT = "MA_HUNTER/";
 
+enum class MA_TYPE {
+    LWMA,
+    EMA,
+    SMA
+};
+
+
+
 class MahuntConfig : public BaseConfig {
 protected:
-    MahuntConfig() {;}
+    std::unordered_map<String,MA_TYPE> m_str2matype;
+    MahuntConfig() {
+        m_str2matype["LWMA"] = MA_TYPE::LWMA;
+        m_str2matype["EMA"]  = MA_TYPE::EMA;
+        m_str2matype["SMA"]  = MA_TYPE::SMA;
+    }
 public:
     virtual ~MahuntConfig() {;}
     static MahuntConfig& getInstance() {
@@ -35,6 +48,11 @@ public:
 
     int getMALookback() {
         return getKeyValue<int>(MA_HUNTER_ROOT + "MA_LOOKBACK");
+    }
+
+    MA_TYPE getMAType() {
+        String tmp = getKeyValue<String>(MA_HUNTER_ROOT + "MA_TYPE");
+        return m_str2matype[tmp];
     }
 };
 #endif   /* ----- #ifndef _MA_HUNTER_CONFIG_H_  ----- */
