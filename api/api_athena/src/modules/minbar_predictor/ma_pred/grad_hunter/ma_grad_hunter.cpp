@@ -16,17 +16,15 @@
  * =====================================================================================
  */
 
-#include "ma_hunter.h"
+#include "ma_grad_hunter.h"
 
 using namespace std;
 using namespace athena;
 
-MAHunter::MAHunter(const String& cfg) : m_maCal(nullptr),m_config(nullptr)
+MAHunter::MAHunter(const String& cfg,MACalculator* cal) : MABasePredictor(cal),m_config(nullptr)
 {
     m_config = &MahuntConfig::getInstance();
     m_config->loadConfig(cfg);
-
-    m_maCal = createMACalculator(m_config->getMAType());
 }
 
 void

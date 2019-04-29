@@ -49,7 +49,7 @@ enum AppType {
 
 // MinBar predictor
 enum class MBP_Type : int {
-    MA_HUNTER = 0,
+    MA_PRED = 0,
     ML_EACH_MB
 };
 #endif   /* ----- #ifndef _BASICS_TYPES_H_  ----- */

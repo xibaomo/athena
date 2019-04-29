@@ -20,15 +20,9 @@
 #define  _MA_HUNTER_CONFIG_H_
 
 #include "basics/baseconf.h"
+#include "minbar_predictor/ma_pred/ma_cal/ma_cal.h"
 
 const String MA_HUNTER_ROOT = "MA_HUNTER/";
-
-enum class MA_TYPE {
-    LWMA,
-    EMA,
-    SMA
-};
-
 
 
 class MahuntConfig : public BaseConfig {

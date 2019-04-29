@@ -21,7 +21,13 @@
 
 #include <vector>
 #include "minbar_predictor/mb_base/mb_base_pred.h"
-#include "mhconf.h"
+
+enum class MA_TYPE {
+    LWMA,
+    EMA,
+    SMA
+};
+
 class MACalculator {
 protected:
 

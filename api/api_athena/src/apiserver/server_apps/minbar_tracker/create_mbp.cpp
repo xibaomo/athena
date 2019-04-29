@@ -18,7 +18,7 @@
 
 #include "create_mbp.h"
 #include "mbtconf.h"
-#include "minbar_predictor/ma_hunter/ma_hunter.h"
+#include "minbar_predictor/ma_pred/createMAPredictor.h"
 using namespace std;
 
 MinBarBasePredictor*
@@ -26,8 +26,8 @@ createMBPredictor(MBP_Type mt, const String& cfg)
 {
     MinBarBasePredictor* p (nullptr);
     switch(mt) {
-        case MBP_Type::MA_HUNTER:
-            p = &MAHunter::getInstance(cfg);
+        case MBP_Type::MA_PRED:
+            p = (MinBarBasePredictor*)createMAPredictor(cfg);
             break;
         default:
             Log(LOG_FATAL) << "Unrecognized predictor type: " + to_string((int)mt);

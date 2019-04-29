@@ -16,8 +16,11 @@ GENERAL:
 ########################################################
 MINBAR_TRACKER:
     HISTORY_BAR_FILE: EURUSD_labeled.csv
-    PREDICTOR_TYPE: 0 #  0 - MA hunter
+    PREDICTOR_TYPE: 0 #  0 - MA predictor
 
-MA_HUNTER:
-    MA_LOOKBACK: 90
+MA_PREDICTOR:
+    MA_PREDICTOR_TYPE: 0 # 0 - MA hunter
     MA_TYPE: LWMA
+
+    MA_GRAD_HUNTER: 
+        LOOKBACK: 90

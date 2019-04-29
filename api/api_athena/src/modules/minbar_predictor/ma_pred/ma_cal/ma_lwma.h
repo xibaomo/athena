@@ -46,6 +46,7 @@ public:
         }
         return s/W;
     }
+
     void compAllMA(std::vector<real32>& arr, int lookback, std::vector<real32>& out)
     {
         out.resize(arr.size());

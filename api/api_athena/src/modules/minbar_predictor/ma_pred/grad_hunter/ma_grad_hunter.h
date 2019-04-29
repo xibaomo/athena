@@ -20,22 +20,21 @@
 #define  _SERVER_MA_HUNTER_H_
 
 #include "messenger/msg.h"
-#include "minbar_predictor/mb_base/mb_base_pred.h"
-#include "mhconf.h"
-#include "ma_cal.h"
-class  MAHunter : public MinBarBasePredictor {
+#include "minbar_predictor/ma_pred/ma_pred_base/ma_pred_base.h"
+#include "mghconf.h"
+#include "minbar_predictor/ma_pred/ma_cal/ma_cal.h"
+class  MAHunter : public MABasePredictor {
 protected:
 
     std::vector<real32> m_median;
     std::vector<real32> m_ma;
 
-    MACalculator* m_maCal;
     MahuntConfig* m_config;
-    MAHunter(const String& cfg);
+    MAHunter(const String& cf, MACalculator* cal);
 public:
     virtual ~MAHunter() {;}
-    static MAHunter& getInstance(const String& cfg) {
-        static MAHunter _ins(cfg);
+    static MAHunter& getInstance(const String& cf,MACalculator* cal) {
+        static MAHunter _ins(cf,cal);
         return _ins;
     }
 
