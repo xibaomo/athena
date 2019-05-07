@@ -38,6 +38,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-std=c++0x" />
+			<Add option="-g" />
 			<Add option="-fexceptions" />
 			<Add directory="src/apiclient" />
 			<Add directory="src/apiserver" />
@@ -118,8 +119,10 @@
 		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_cal/ma_cal.cpp" />
 		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_cal/ma_cal.h" />
 		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_cal/ma_lwma.h" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_pred_base/ma_pred_base.h" />
 		<Unit filename="src/modules/minbar_predictor/ma_pred/mpconf.h" />
 		<Unit filename="src/modules/minbar_predictor/mb_base/mb_base_pred.h" />
+		<Unit filename="src/modules/minbar_predictor/mbpconf.h" />
 		<Unit filename="src/modules/predictor/prdtypes.h" />
 		<Extensions>
 			<envvars />

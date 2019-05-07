@@ -34,7 +34,7 @@ createMAPredictor(const String& cf)
     switch(cfg->getMAPredictorType()) {
         case MP_Type::MA_GRAD_HUNT:
             mp = &MAHunter::getInstance(cf,macal);
-
+            break;
         default:
             Log(LOG_FATAL) << "MA predictor type not supported";
             break;

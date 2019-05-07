@@ -139,7 +139,61 @@ convertTimeString(const String& timeStr, const String& fmt)
     stream << t;
 
     String resStr = stream.str();
-//    delete facet;
+    delete facet;
     return resStr;
 }
+
+void
+showMinBar(MinBar& mb)
+{
+    Log(LOG_INFO) << to_string(mb.open) + " " +
+                         to_string(mb.high) + " " +
+                         to_string(mb.low)  + " " +
+                         to_string(mb.close) + " " +
+                         to_string(mb.tickvol);
+}
+
+String
+getFileFolder(const String& fp)
+{
+    boost::filesystem::path p(fp.c_str());
+    boost::filesystem::path dir = p.parent_path();
+
+    return dir.string();
+}
+
+String
+getFileStem(const String& fp)
+{
+    boost::filesystem::path p(fp.c_str());
+    boost::filesystem::path s = p.stem();
+
+    return s.string();
+}
+
+CPyObject getPythonFunction(const String& modFile, const String& funcName)
+{
+    CPyInstance inst;
+    String mod_folder = getFileFolder(modFile);
+    inst.appendSysPath(mod_folder);
+    String mod_name = getFileStem(modFile);
+    CPyObject mod = PyImport_ImportModule(mod_name.c_str());
+    if (!mod) {
+        Log(LOG_FATAL) << "Failed to import module: " + modFile;
+    }
+
+    CPyObject pDict = PyModule_GetDict(mod);
+    if (!pDict) {
+        Log(LOG_FATAL) << "Failed to get dict from module";
+    }
+
+    CPyObject func = PyDict_GetItemString(pDict,(char*)funcName.c_str());
+    if (!func || !PyCallable_Check(func)) {
+        Log(LOG_FATAL) << "Failed to get function or it's not callable: " + funcName;
+    }
+
+    return func;
+
+}
+
 }

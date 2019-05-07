@@ -23,26 +23,32 @@
 #include "minbar_predictor/ma_pred/ma_pred_base/ma_pred_base.h"
 #include "mghconf.h"
 #include "minbar_predictor/ma_pred/ma_cal/ma_cal.h"
+
 class  MAHunter : public MABasePredictor {
 protected:
 
     std::vector<real32> m_median;
     std::vector<real32> m_ma;
 
+    std::vector<real32> m_records;
+
     MahuntConfig* m_config;
     MAHunter(const String& cf, MACalculator* cal);
 public:
-    virtual ~MAHunter() {;}
+    virtual ~MAHunter();
     static MAHunter& getInstance(const String& cf,MACalculator* cal) {
         static MAHunter _ins(cf,cal);
         return _ins;
     }
 
+    void dumpRecords();
     void prepare();
 
     FXAction predict();
 
     void compLWMA();
     real32 compALWMA(int lookback, size_t idx);
+
+    int findNearestTurnPoint(std::vector<real32>& curve);
 };
 #endif   /* ----- #ifndef _SERVER_MA_HUNTER_H_  ----- */

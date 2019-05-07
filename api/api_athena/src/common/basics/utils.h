@@ -28,33 +28,41 @@
 #include "basics/log.h"
 #include "types.h"
 #include "pyhelper.hpp"
+#include "minbar_predictor/mb_base/mb_base_pred.h"
 
-namespace athena {
+namespace athena
+{
 /*-----------------------------------------------------------------------------
  *  Execute system call by popen and return result as a string
  *-----------------------------------------------------------------------------*/
 String execSysCall_block(const String& cmd);
 
-class NonBlockSysCall {
+class NonBlockSysCall
+{
 private:
     std::vector<FILE*> m_fhs;
     char m_buffer[1024];
-    NonBlockSysCall(){;}
+    NonBlockSysCall() {;}
 public:
 
-    static NonBlockSysCall& getInstance() {
+    static NonBlockSysCall& getInstance()
+    {
         static NonBlockSysCall _inst;
         return _inst;
     }
-    void exec(const String& cmd) {
+    void exec(const String& cmd)
+    {
         FILE* fh = popen(cmd.c_str(), "r");
         int d = fileno(fh);
         fcntl(d, F_SETFL, O_NONBLOCK);
         m_fhs.push_back(fh);
     }
-   virtual ~NonBlockSysCall() {
-       for ( auto fh: m_fhs) pclose(fh);
-   }
+    virtual ~NonBlockSysCall()
+    {
+        for ( auto fh: m_fhs) {
+            pclose(fh);
+        }
+    }
 //    bool checkFinished() {
 //        int d = fileno(m_fh);
 //        ssize_t r = read(d, m_buffer, 1024);
@@ -68,7 +76,8 @@ public:
 //        return false;
 //    }
 
-    String getResult() {
+    String getResult()
+    {
         String res(m_buffer);
         return res;
     }
@@ -111,12 +120,17 @@ String
 convertTimeString(const String& timeStr, const String& format="%Y.%m.%d %H:%M");
 
 
-class Timer {
+class Timer
+{
 protected:
     std::chrono::time_point<std::chrono::system_clock> m_start;
 public:
-    Timer() { m_start = std::chrono::system_clock::now();}
-    double getElapsedTime() {
+    Timer()
+    {
+        m_start = std::chrono::system_clock::now();
+    }
+    double getElapsedTime()
+    {
         auto now = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed = now - m_start;
         return elapsed.count();
@@ -126,5 +140,48 @@ public:
 
 int getIntFromPyobject(CPyObject& pyobj);
 String getStringFromPyobject(CPyObject& pyobj);
+
+template <typename T>
+void freeSTL(T& t)
+{
+    T tmp;
+    t.swap(tmp);
+}
+
+void showMinBar(MinBar& mb);
+
+String getFileFolder(const String& fp);
+
+String getFileStem(const String& fp);
+
+CPyObject getPythonFunction(const String& modFile, const String& funcName);
+
+template <typename T>
+void savgol_smooth1D(std::vector<T>& invec, int width, int order, std::vector<T>& ov)
+{
+    String mhome = getenv("ATHENA_HOME");
+    String utilscript = mhome + "/modules/basics/common/utils.py";
+    CPyObject func = getPythonFunction(utilscript,"savgol_smooth1D");
+
+    CPyObject lst = PyList_New(invec.size());
+    for (size_t i=0; i < invec.size(); i++) {
+        PyList_SetItem(lst,i,Py_BuildValue("d",invec[i]));
+    }
+//    CPyObject args = Py_BuildValue("(Oii)",lst.getObject(),width,order);
+    CPyObject pywidth = Py_BuildValue("i",width);
+    CPyObject pyorder = Py_BuildValue("i",order);
+    CPyObject args = Py_BuildValue("(OOO)",lst.getObject(),pywidth.getObject(),pyorder.getObject());
+    CPyObject res = PyEval_CallObject(func,args.getObject());
+
+    ov.clear();
+    PyArrayObject* arr =  (PyArrayObject*)res.getObject();
+    int dim = arr->dimensions[0];
+    T* data = (T*)arr->data;
+//    for (int i=0; i < dim; i++) {
+//        ov.push_back(data[i]);
+//    }
+    ov.assign(data,data+dim);
+
+}
 }
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */

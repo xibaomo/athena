@@ -51,6 +51,7 @@ BarMarker::parseBarFile(const String& barFile)
         MinBar mb;
         String timestr = tmp[0] + " " + tmp[1];
         TimePoint tp(boost::posix_time::time_from_string(timestr));
+        mb.timestr = timestr;
         mb.time = tp;
         mb.open = stof(tmp[2]);
         mb.high = stof(tmp[3]);
@@ -111,7 +112,7 @@ BarMarker::dumpCSV()
     for (auto& bar : m_allMinBars) {
         long duration = (bar.close_time-bar.time).total_seconds()/60;
 
-        ofs << boost::posix_time::to_simple_string(bar.time) << ","
+        ofs << bar.timestr << ","
             << bar.open << ","
             << bar.high << ","
             << bar.low  << ","

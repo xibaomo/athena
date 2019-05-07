@@ -228,8 +228,8 @@ ForexMinBarClassifier::procMsg_INIT_TIME(Message& msg)
         histLen = 0;
     }
 
-    latestMinBar = convertTimeString(latestMinBar,"%Y.%m.%d %H:%M");
-    Log(LOG_INFO) << "Converted latest min bar: " + latestMinBar;
+//    latestMinBar = convertTimeString(latestMinBar,"%Y.%m.%d %H:%M");
+//    Log(LOG_INFO) << "Converted latest min bar: " + latestMinBar;
 
     Message msgnew(sizeof(int),latestMinBar.size());
     msgnew.setComment(latestMinBar);

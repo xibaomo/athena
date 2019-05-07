@@ -24,6 +24,11 @@
 #include "create_mbp.h"
 #include "mbtconf.h"
 #define NUM_MINBAR_FIELDS 6
+struct ActionRecord {
+    String timestr;
+    int action;
+    ActionRecord(String& ts, int ac) : timestr(ts),action(ac){;}
+};
 
 class MinBarTracker : public ServerBaseApp {
 protected:
@@ -33,20 +38,22 @@ protected:
 
     std::vector<MinBar> m_allMinBars;
 
+    std::vector<ActionRecord> m_actions;
+
     MinBarTracker(const String& cfgFile) : m_predictor(nullptr), m_mbtCfg(nullptr), ServerBaseApp(cfgFile){
         m_mbtCfg = &MbtConfig::getInstance();
         m_mbtCfg->loadConfig(cfgFile);
         m_predictor = createMBPredictor(m_mbtCfg->getMinBarPredictorType(), cfgFile);
         m_predictor->loadAllMinBars(&m_allMinBars);
-        m_predictor->prepare();
     }
 public:
-    virtual ~MinBarTracker(){;}
+    virtual ~MinBarTracker();
     static MinBarTracker& getInstance(const String& cf) {
         static MinBarTracker _ins(cf);
         return _ins;
     }
 
+    void dumpActions();
     void prepare();
 
     void loadMinBarFromFile(const String& barFile);

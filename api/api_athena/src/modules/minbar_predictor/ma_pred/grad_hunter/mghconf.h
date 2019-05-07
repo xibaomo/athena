@@ -22,7 +22,7 @@
 #include "basics/baseconf.h"
 #include "minbar_predictor/ma_pred/ma_cal/ma_cal.h"
 
-const String MA_HUNTER_ROOT = "MA_HUNTER/";
+const String MA_HUNTER_ROOT = "MA_PREDICTOR/MA_GRAD_HUNTER/";
 
 
 class MahuntConfig : public BaseConfig {
@@ -41,12 +41,25 @@ public:
     }
 
     int getMALookback() {
-        return getKeyValue<int>(MA_HUNTER_ROOT + "MA_LOOKBACK");
+        return getKeyValue<int>(MA_HUNTER_ROOT + "LOOKBACK");
     }
 
     MA_TYPE getMAType() {
         String tmp = getKeyValue<String>(MA_HUNTER_ROOT + "MA_TYPE");
         return m_str2matype[tmp];
     }
+
+    int getTurnPointOffset() {
+        return getKeyValue<int>(MA_HUNTER_ROOT + "TURN_POINT_OFFSET");
+    }
+
+    real32 getSlopeZero() {
+        return getKeyValue<real32>(MA_HUNTER_ROOT + "SLOPE_ZERO");
+    }
+
+    real32 getFireOffSlope() {
+        return getKeyValue<real32>(MA_HUNTER_ROOT + "STARTOFF_SLOPE");
+    }
+
 };
 #endif   /* ----- #ifndef _MA_HUNTER_CONFIG_H_  ----- */

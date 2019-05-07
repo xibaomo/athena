@@ -13,6 +13,7 @@ import random
 import pandas as pd
 import operator
 from sklearn.preprocessing import StandardScaler
+from scipy.signal import savgol_filter 
 
 def tic():
     return timer()
@@ -153,3 +154,7 @@ def smooth1D(x,window_len=11,window='hanning'):
     y = np.convolve(w/w.sum(), s, mode='valid')
     
     return y
+
+def savgol_smooth1D(lst,width,order):
+    arr = np.array(lst)
+    return savgol_filter(arr, width, order)
