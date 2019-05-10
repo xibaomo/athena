@@ -14,7 +14,7 @@ void
 MinBarTracker::dumpActions()
 {
     ofstream ofs("actions.csv");
-    ofs << "time,actions"<<endl;
+    ofs << "time,action"<<endl;
     for (auto& a : m_actions) {
         ofs << a.timestr<<"," << a.action << endl;
     }

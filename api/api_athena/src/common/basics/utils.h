@@ -154,29 +154,28 @@ String getFileFolder(const String& fp);
 
 String getFileStem(const String& fp);
 
-CPyObject getPythonFunction(const String& modFile, const String& funcName);
+void getPythonFunction(const String& modFile, const String& funcName,CPyObject& func);
 
 template <typename T>
-void savgol_smooth1D(std::vector<T>& invec, int width, int order, std::vector<T>& ov)
+void savgol_smooth1D(std::vector<T>& invec, int width, int order, std::vector<real64>& ov)
 {
     String mhome = getenv("ATHENA_HOME");
     String utilscript = mhome + "/modules/basics/common/utils.py";
-    CPyObject func = getPythonFunction(utilscript,"savgol_smooth1D");
+    CPyObject func;
+    getPythonFunction(utilscript,"savgol_smooth1D",func);
 
     CPyObject lst = PyList_New(invec.size());
     for (size_t i=0; i < invec.size(); i++) {
-        PyList_SetItem(lst,i,Py_BuildValue("d",invec[i]));
+        PyList_SetItem(lst,i,Py_BuildValue("d",(real64)invec[i]));
     }
-//    CPyObject args = Py_BuildValue("(Oii)",lst.getObject(),width,order);
-    CPyObject pywidth = Py_BuildValue("i",width);
-    CPyObject pyorder = Py_BuildValue("i",order);
-    CPyObject args = Py_BuildValue("(OOO)",lst.getObject(),pywidth.getObject(),pyorder.getObject());
-    CPyObject res = PyEval_CallObject(func,args.getObject());
+
+    CPyObject args = Py_BuildValue("(Oii)",lst.getObject(),5,3);
+    CPyObject res = PyObject_CallObject(func,args.getObject());
 
     ov.clear();
     PyArrayObject* arr =  (PyArrayObject*)res.getObject();
     int dim = arr->dimensions[0];
-    T* data = (T*)arr->data;
+    real64* data = (real64*)arr->data;
 //    for (int i=0; i < dim; i++) {
 //        ov.push_back(data[i]);
 //    }

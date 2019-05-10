@@ -171,9 +171,9 @@ getFileStem(const String& fp)
     return s.string();
 }
 
-CPyObject getPythonFunction(const String& modFile, const String& funcName)
+void getPythonFunction(const String& modFile, const String& funcName,CPyObject& func)
 {
-    CPyInstance inst;
+    CPyInstance& inst = CPyInstance::getInstance();
     String mod_folder = getFileFolder(modFile);
     inst.appendSysPath(mod_folder);
     String mod_name = getFileStem(modFile);
@@ -182,18 +182,13 @@ CPyObject getPythonFunction(const String& modFile, const String& funcName)
         Log(LOG_FATAL) << "Failed to import module: " + modFile;
     }
 
-    CPyObject pDict = PyModule_GetDict(mod);
-    if (!pDict) {
-        Log(LOG_FATAL) << "Failed to get dict from module";
-    }
+    func = PyObject_GetAttrString(mod, funcName.c_str());
 
-    CPyObject func = PyDict_GetItemString(pDict,(char*)funcName.c_str());
     if (!func || !PyCallable_Check(func)) {
         Log(LOG_FATAL) << "Failed to get function or it's not callable: " + funcName;
     }
 
-    return func;
-
 }
+
 
 }

@@ -156,5 +156,8 @@ def smooth1D(x,window_len=11,window='hanning'):
     return y
 
 def savgol_smooth1D(lst,width,order):
+#     print lst
     arr = np.array(lst)
-    return savgol_filter(arr, width, order)
+    s =  savgol_filter(arr, width, order)
+#     print "res = ",s
+    return np.array(s)

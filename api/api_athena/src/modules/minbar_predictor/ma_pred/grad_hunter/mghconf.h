@@ -57,8 +57,8 @@ public:
         return getKeyValue<real32>(MA_HUNTER_ROOT + "SLOPE_ZERO");
     }
 
-    real32 getFireOffSlope() {
-        return getKeyValue<real32>(MA_HUNTER_ROOT + "STARTOFF_SLOPE");
+    real64 getFireOffSlope() {
+        return getKeyValue<real64>(MA_HUNTER_ROOT + "STARTOFF_SLOPE");
     }
 
 };

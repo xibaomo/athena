@@ -68,17 +68,24 @@ MAHunter::predict()
     m_records.push_back(ma);
 
     vector<real32> ma_aux(m_ma.begin()+10000,m_ma.end());
-    vector<real32> curve;
+
+
+    vector<real64> curve;
     savgol_smooth1D(ma_aux,51,3,curve);
 
     int tp = findNearestTurnPoint(curve);
     int id = ma_aux.size() - 2;
     int offset = id - tp;
+
+    Log(LOG_INFO) << "Nearest turn point: " + to_string(offset);
+
     if (offset > m_config->getTurnPointOffset())
         return FXAction::NOACTION;
 
-    real32 slope = (ma_aux[id+1]-ma_aux[id-1])/2.;
-    real32 fos    = m_config->getFireOffSlope();
+    real64 slope = (ma_aux[id+1]-ma_aux[id-1])/2.;
+    real64 fos    = m_config->getFireOffSlope();
+    Log(LOG_INFO) << "Slope (1e6) = " + to_string(slope*1e6);
+
     if (slope >= fos)
         return FXAction::PLACE_BUY;
 
@@ -89,20 +96,23 @@ MAHunter::predict()
 }
 
 int
-MAHunter::findNearestTurnPoint(vector<real32>& curve)
+MAHunter::findNearestTurnPoint(vector<real64>& curve)
 {
-    int id = curve.size() - 1;
+    int id = curve.size() - 2;
     while(id>0) {
         real32 c = curve[id];
         if (c > curve[id+1] && c > curve[id-1]) {
-            return id;
+            break;
         } else if(c < curve[id+1] && c < curve[id-1]) {
-            return id;
+            break;
         } else {
             id--;
         }
     }
 
+    if (id == -1) {
+        Log(LOG_ERROR) << "Failed to find turn point";
+    }
     return id;
 }
 //int

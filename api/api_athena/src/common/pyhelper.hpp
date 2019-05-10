@@ -3,7 +3,7 @@
  *
  *       Filename:  pyhelper.hpp
  *
- *    Description:  
+ *    Description:
  *
  *        Version:  1.0
  *        Created:  10/25/2018 10:28:31 PM
@@ -32,6 +32,10 @@ public:
         Py_Finalize();
     }
 
+    static CPyInstance& getInstance() {
+        static CPyInstance _ins;
+        return _ins;
+    }
     void appendSysPath(const std::string& modulePath) {
         std::string cmd = "sys.path.append(\'"+modulePath + "\')";
         PyRun_SimpleString(cmd.c_str());

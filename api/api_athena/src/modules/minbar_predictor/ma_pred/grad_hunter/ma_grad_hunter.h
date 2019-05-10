@@ -49,6 +49,6 @@ public:
     void compLWMA();
     real32 compALWMA(int lookback, size_t idx);
 
-    int findNearestTurnPoint(std::vector<real32>& curve);
+    int findNearestTurnPoint(std::vector<real64>& curve);
 };
 #endif   /* ----- #ifndef _SERVER_MA_HUNTER_H_  ----- */
