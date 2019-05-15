@@ -113,6 +113,9 @@
 		<Unit filename="src/modules/fx_action/fx_action.h" />
 		<Unit filename="src/modules/minbar_predictor/ma_pred/createMAPredictor.cpp" />
 		<Unit filename="src/modules/minbar_predictor/ma_pred/createMAPredictor.h" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/crosser/ma_crosser.cpp" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/crosser/ma_crosser.h" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/crosser/mcconf.h" />
 		<Unit filename="src/modules/minbar_predictor/ma_pred/grad_hunter/ma_grad_hunter.cpp" />
 		<Unit filename="src/modules/minbar_predictor/ma_pred/grad_hunter/ma_grad_hunter.h" />
 		<Unit filename="src/modules/minbar_predictor/ma_pred/grad_hunter/mghconf.h" />

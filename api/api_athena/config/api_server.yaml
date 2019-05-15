@@ -19,11 +19,17 @@ MINBAR_TRACKER:
     PREDICTOR_TYPE: 0 #  0 - MA predictor
 
 MA_PREDICTOR:
-    MA_PREDICTOR_TYPE: 0 # 0 - MA Grad Hunter
+    MA_PREDICTOR_TYPE: 1 # 0 - MA Grad Hunter
+                         # 1 - MA crosser
     MA_TYPE: LWMA
 
     MA_GRAD_HUNTER: 
         LOOKBACK: 90
         STARTOFF_SLOPE: 1.0e-6
         TURN_POINT_OFFSET: 10
+    MA_CROSSER:
+        LONG_LOOKBACK: 120
+        SHORT_LOOKBACK: 10
+        TURN_POINT_EXPIRY: 10
+        STARTOFF_GAP: 5.e-5
 
