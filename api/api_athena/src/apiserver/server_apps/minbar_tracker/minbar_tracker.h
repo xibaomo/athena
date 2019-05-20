@@ -40,6 +40,8 @@ protected:
 
     std::vector<ActionRecord> m_actions;
 
+    real32 m_lowestProfit = 1.e6;
+
     MinBarTracker(const String& cfgFile) : m_predictor(nullptr), m_mbtCfg(nullptr), ServerBaseApp(cfgFile){
         m_mbtCfg = &MbtConfig::getInstance();
         m_mbtCfg->loadConfig(cfgFile);
@@ -63,5 +65,6 @@ public:
     Message procMsg_HISTORY_MINBAR(Message& msg);
     Message procMsg_INIT_TIME(Message& msg);
     Message procMsg_MINBAR(Message& msg);
+
 };
 #endif   /* ----- #ifndef _SERVER_MINBAR_TRACKER_H_  ----- */

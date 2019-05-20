@@ -47,6 +47,15 @@ MinBarTracker::processMsg(Message& msg)
     case FXAction::INIT_TIME:
         msgnew = procMsg_INIT_TIME(msg);
         break;
+    case FXAction::PROFIT:
+        msgnew = procMsg_noreply(msg,[this](Message& m){
+        real32* pm = (real32*)m.getData();
+        Log(LOG_INFO) << "Total profit of current positions: " + to_string(pm[0]);
+        if (pm[0] < m_lowestProfit) m_lowestProfit = pm[0];
+
+        Log(LOG_INFO) << "Lowest profit: " + to_string(m_lowestProfit);
+                                 });
+        break;
     default:
         break;
     }
