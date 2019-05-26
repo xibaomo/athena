@@ -48,7 +48,7 @@ ServerBaseApp::execute()
 
             Message msgReply = std::move(processMsg(msg));
             if ((MsgAction)msgReply.getAction() == MsgAction::GET_READY) {
-                Log(LOG_INFO) << "No reply, shut down connection";
+                Log(LOG_DEBUG) << "No reply, shut down connection";
                 m_msger->shutdownConnection(clntsock);
                 close(clntsock);
                 continue;

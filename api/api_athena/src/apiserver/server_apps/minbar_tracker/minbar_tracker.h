@@ -40,6 +40,9 @@ protected:
 
     std::vector<ActionRecord> m_actions;
 
+    std::vector<real32> m_revenue;
+    std::vector<real32> m_loss;
+
     real32 m_lowestProfit = 1.e6;
 
     MinBarTracker(const String& cfgFile) : m_predictor(nullptr), m_mbtCfg(nullptr), ServerBaseApp(cfgFile){

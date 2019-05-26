@@ -56,6 +56,20 @@ MinBarTracker::processMsg(Message& msg)
         Log(LOG_INFO) << "Lowest profit: " + to_string(m_lowestProfit);
                                  });
         break;
+
+    case FXAction::CLOSE_POS:
+        msgnew = procMsg_noreply(msg,[this](Message& m) {
+        real32* pm = (real32*)m.getData();
+        if (pm[0] > 0) m_revenue.push_back(pm[0]);
+        else m_loss.push_back(pm[0]);
+
+        real32 rev = std::accumulate(m_revenue.begin(),m_revenue.end(),0.);
+        real32 loss = std::accumulate(m_loss.begin(),m_loss.end(),0.);
+        Log(LOG_INFO) << "Earn: " + to_string(rev);
+        Log(LOG_INFO) << "Loss: " + to_string(loss);
+        Log(LOG_INFO) << "Net profit: " + to_string(rev + loss);
+                                 });
+        break;
     default:
         break;
     }
