@@ -21,6 +21,22 @@
 #define  _SERVER_APP_MINBAR_PAIR_TRADER_H_
 
 #include "server_apps/server_base_app/server_base_app.h"
+#include "mptconf.h"
 
-class MinBarPairTrader : public Server
+class MinBarPairTrader : public ServerBaseApp {
+protected:
+    MptConfig* m_cfg;
+    MinBarPairTrader(const String& cf) : ServerBaseApp (cf){
+        m_cfg = &MptConfig::getInstance();
+        m_cfg->loadConfig(cf);
+    }
+public:
+    virtual ~MinBarPairTrader() {;}
+    static MinBarPairTrader& getInstance(const String& cf) {
+        static MinBarPairTrader _ins(cf);
+        return _ins;
+    }
+
+
+};
 #endif   /* ----- #ifndef _SERVER_APP_MINBAR_PAIR_TRADER_H_  ----- */

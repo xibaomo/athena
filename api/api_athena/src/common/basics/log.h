@@ -33,6 +33,8 @@
 #include <typeinfo>
 #include "types.h"
 
+#define BASE_METHOD_WARN Log(LOG_FATAL) << "Should be implemented in concrete class"
+
 namespace logging = boost::log;
 namespace src = boost::log::sources;
 namespace sinks = boost::log::sinks;

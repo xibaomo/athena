@@ -44,13 +44,13 @@ protected:
 public:
     virtual ~ServerBaseApp() {;}
 
-    virtual void prepare() = 0;
+    virtual void prepare() {BASE_METHOD_WARN;}
 
     void execute();
 
     virtual void finish() {;}
 
-    virtual Message processMsg(Message& msg) = 0;
+    virtual Message processMsg(Message& msg) { BASE_METHOD_WARN; return Message();}
 
     String getYamlValue(const String& key) {
         String cmd = m_yamlParser + key + " " + m_configFile;

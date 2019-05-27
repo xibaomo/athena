@@ -42,6 +42,7 @@ typedef float Real;
 enum AppType {
     APP_MINBAR_TRACKER = 0,
     APP_MINBARCLASSIFIER,
+    APP_MINBAR_PAIRTRADER,
     APP_PREDICTOR,
     APP_TICKCLASSIFIER,
 };

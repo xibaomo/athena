@@ -81,6 +81,8 @@
 		<Unit filename="src/apiserver/server_apps/fx_minbar_classifier/fx_minbar_classifier.h" />
 		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.cpp" />
 		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_pair/mb_pairtrader.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_pair/mptconf.h" />
 		<Unit filename="src/apiserver/server_apps/minbar_tracker/create_mbp.cpp" />
 		<Unit filename="src/apiserver/server_apps/minbar_tracker/create_mbp.h" />
 		<Unit filename="src/apiserver/server_apps/minbar_tracker/mbtconf.h" />

@@ -37,7 +37,7 @@ public:
         return getKeyValue<String>(MPT_ROOT + "PAIR_A_SYM");
     }
 
-    String getPairASym() {
+    String getPairBSym() {
         return getKeyValue<String>(MPT_ROOT + "PAIR_B_SYM");
     }
 
