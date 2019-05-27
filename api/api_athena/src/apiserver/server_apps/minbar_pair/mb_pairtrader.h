@@ -25,6 +25,10 @@
 
 class MinBarPairTrader : public ServerBaseApp {
 protected:
+
+    std::vector<MinBar> m_minbarX;
+    std::vector<MinBar> m_minbarY;
+
     MptConfig* m_cfg;
     MinBarPairTrader(const String& cf) : ServerBaseApp (cf){
         m_cfg = &MptConfig::getInstance();
@@ -37,6 +41,15 @@ public:
         return _ins;
     }
 
+    void prepare() {;}
+    Message processMsg(Message& msg);
 
+    Message procMsg_ASK_PAIR(Message& msg);
+    void loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v);
+
+    /**
+     * Linear regression of X & Y
+     */
+    void linearReg();
 };
 #endif   /* ----- #ifndef _SERVER_APP_MINBAR_PAIR_TRADER_H_  ----- */

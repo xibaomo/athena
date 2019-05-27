@@ -33,12 +33,12 @@ public:
         return _ins;
     }
 
-    String getPairASym() {
-        return getKeyValue<String>(MPT_ROOT + "PAIR_A_SYM");
+    String getPairSymX() {
+        return getKeyValue<String>(MPT_ROOT + "PAIR_SYM_X");
     }
 
-    String getPairBSym() {
-        return getKeyValue<String>(MPT_ROOT + "PAIR_B_SYM");
+    String getPairSymY() {
+        return getKeyValue<String>(MPT_ROOT + "PAIR_SYM_Y");
     }
 
     int getLRLen() {

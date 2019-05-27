@@ -23,7 +23,7 @@
 #include "minbar_predictor/mb_base/mb_base_pred.h"
 #include "create_mbp.h"
 #include "mbtconf.h"
-#define NUM_MINBAR_FIELDS 6
+
 struct ActionRecord {
     String timestr;
     int action;

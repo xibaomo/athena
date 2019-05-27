@@ -47,10 +47,25 @@ enum AppType {
     APP_TICKCLASSIFIER,
 };
 
-
 // MinBar predictor
 enum class MBP_Type : int {
     MA_PRED = 0,
     ML_EACH_MB
+};
+
+#define NUM_MINBAR_FIELDS 6
+struct MinBar {
+    String time;
+    real32 open;
+    real32 high;
+    real32  low;
+    real32 close;
+    int32  tickvol;
+
+    MinBar(String p_time,real32 p_open,real32 p_high,real32 p_low,real32 p_close,int32 p_tickvol):
+        time(std::move(p_time)),open(p_open),high(p_high),low(p_low),close(p_close),tickvol(p_tickvol)
+        {
+            ;
+        }
 };
 #endif   /* ----- #ifndef _BASICS_TYPES_H_  ----- */

@@ -83,6 +83,13 @@ public:
         init(dataBytes,charBytes);
     }
 
+    template <typename T>
+    Message(T action, const size_t dataBytes = 0, const size_t charBytes = 0) : m_entireMsg(nullptr)
+    {
+        init(dataBytes,charBytes);
+        setAction((ActionType)action);
+    }
+
     Message(const Message& other)
     {
         size_t msgSize = other.getMsgSize();
