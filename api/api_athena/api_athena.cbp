@@ -60,6 +60,8 @@
 			<Add option="-lboost_system" />
 			<Add option="-lboost_filesystem" />
 			<Add option="-lyaml-cpp" />
+			<Add option="-lgsl" />
+			<Add option="-lgslcblas" />
 			<Add option="-Wl,-Bdynamic" />
 			<Add option="-lpython2.7" />
 			<Add option="-lpthread" />
@@ -114,6 +116,8 @@
 		<Unit filename="src/common/messenger/sockutils.h" />
 		<Unit filename="src/common/pyhelper.hpp" />
 		<Unit filename="src/modules/fx_action/fx_action.h" />
+		<Unit filename="src/modules/linreg/linreg.cpp" />
+		<Unit filename="src/modules/linreg/linreg.h" />
 		<Unit filename="src/modules/minbar_predictor/ma_pred/createMAPredictor.cpp" />
 		<Unit filename="src/modules/minbar_predictor/ma_pred/createMAPredictor.h" />
 		<Unit filename="src/modules/minbar_predictor/ma_pred/crosser/ma_crosser.cpp" />

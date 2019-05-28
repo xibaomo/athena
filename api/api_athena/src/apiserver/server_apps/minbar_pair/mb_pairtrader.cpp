@@ -27,6 +27,9 @@ MinBarPairTrader::processMsg(Message& msg)
         }
         linearReg();
         break;
+    case FXAction::PAIR_MIN_OPEN:
+        outmsg = procMsg_PAIR_MIN_OPEN(msg);
+        break;
     default:
         break;
     }
@@ -81,6 +84,40 @@ MinBarPairTrader::procMsg_ASK_PAIR(Message& msg)
 void
 MinBarPairTrader::linearReg()
 {
+    int len = m_minbarX.size();
+    real64* x = new real64[len];
+    real64* y = new real64[len];
+    for (int i=0; i< len; i++) {
+        x[i] = m_minbarX[i].open;
+        y[i] = m_minbarY[i].open;
+    }
 
+    m_linregParam = linreg(x,y,len);
+    Log(LOG_INFO) << "Linear regression done: c0 = " + to_string(m_linregParam.c0)
+                    + ", c1 = " + to_string(m_linregParam.c1)
+                    + ", sum_sq =  " + to_string(m_linregParam.chisq);
 }
 
+Message
+MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
+{
+    real32* pm = (real32*)msg.getData();
+    real64 x = pm[0];
+    real64 y = pm[1];
+
+    real64 yp,yp_err;
+    linreg_est(m_linregParam,x,&yp,&yp_err);
+
+    real64 thd = m_cfg->getThresholdStd();
+
+    Message outmsg;
+    if (y - yp > thd*yp_err) {
+        outmsg.setAction(FXAction::PLACE_SELL);
+    } else if( y - yp < -thd*yp_err) {
+        outmsg.setAction(FXAction::PLACE_BUY);
+    } else {
+        outmsg.setAction(FXAction::NOACTION);
+    }
+
+    return outmsg;
+}

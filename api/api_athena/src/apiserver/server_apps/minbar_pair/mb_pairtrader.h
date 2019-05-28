@@ -22,12 +22,15 @@
 
 #include "server_apps/server_base_app/server_base_app.h"
 #include "mptconf.h"
+#include "linreg/linreg.h"
 
 class MinBarPairTrader : public ServerBaseApp {
 protected:
 
     std::vector<MinBar> m_minbarX;
     std::vector<MinBar> m_minbarY;
+
+    LRParam             m_linregParam;
 
     MptConfig* m_cfg;
     MinBarPairTrader(const String& cf) : ServerBaseApp (cf){
@@ -46,6 +49,8 @@ public:
 
     Message procMsg_ASK_PAIR(Message& msg);
     void loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v);
+
+    Message procMsg_PAIR_MIN_OPEN(Message& msg);
 
     /**
      * Linear regression of X & Y

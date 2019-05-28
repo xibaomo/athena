@@ -1,0 +1,34 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename:  linreg.cpp
+ *
+ *    Description:
+ *
+ *        Version:  1.0
+ *        Created:  05/27/2019 05:42:21 PM
+ *       Revision:  none
+ *       Compiler:  gcc
+ *
+ *         Author:  YOUR NAME (),
+ *   Organization:
+ *
+ * =====================================================================================
+ */
+
+#include "linreg.h"
+#include <gsl/gsl_fit.h>
+using namespace std;
+
+LRParam linreg(real64* xs, real64* ys, size_t n)
+{
+    LRParam pm;
+    gsl_fit_linear(xs, 1, ys, 1, n, &pm.c0, &pm.c1, &pm.cov00, &pm.cov01, &pm.cov11, &pm.chisq);
+
+    return pm;
+}
+
+void linreg_est(LRParam& pm, real64 xp, real64* yp, real64* yp_err)
+{
+    gsl_fit_linear_est(xp,pm.c0,pm.c1,pm.cov00,pm.cov01,pm.cov11,yp,yp_err);
+}
