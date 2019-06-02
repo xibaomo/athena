@@ -2,7 +2,7 @@ GENERAL:
     # Application type: 0 - min bar tracker
     #                   1 - min bar classifier - rf model
     #                   2 - min bar pair trader
-    APPLICATION: 0
+    APPLICATION: 2
 
     # Log level: 0 - LOG_FATAL
     #            1 - LOG_ERROR
@@ -19,8 +19,8 @@ GENERAL:
 MINBAR_PAIR_TRADER:
     PAIR_SYM_X: EURUSD
     PAIR_SYM_Y: USDCZK
-    LR_LEN: 200000  # Linear regression history length
-    THRESHOLD_STD: 4 # in unit of std
+    LR_LEN: 20000  # Linear regression history length
+    THRESHOLD_STD: 1 # in unit of std
 
 # ------------- MINBAR_TRACKER -------------------
 MINBAR_TRACKER:

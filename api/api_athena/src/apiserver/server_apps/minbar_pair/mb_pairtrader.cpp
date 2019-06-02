@@ -1,4 +1,5 @@
 #include "mb_pairtrader.h"
+#include <gsl/gsl_statistics_double.h>
 using namespace std;
 
 Message
@@ -7,16 +8,22 @@ MinBarPairTrader::processMsg(Message& msg)
     Message outmsg;
     FXAction action = (FXAction) msg.getAction();
     switch(action) {
+    case FXAction::CHECKIN:
+        outmsg = procMsg_noreply(msg,[this](Message& msg){
+                                 Log(LOG_INFO) << "Client checked in";});
+        break;
     case FXAction::ASK_PAIR:
         outmsg = procMsg_ASK_PAIR(msg);
         break;
     case FXAction::PAIR_HIST_X:
+        Log(LOG_INFO) << "X min bars arrive";
         outmsg = procMsg_noreply(msg,[this](Message& msg) {
             loadHistoryFromMsg(msg,m_minbarX);
             Log(LOG_INFO) << "Min bar X loaded";
         });
         break;
-    case FXAction::PAIR_HIST_Y:
+    case FXAction::PAIR_HIST_Y: {
+        Log(LOG_INFO) << "Y min bars arrive";
         outmsg = procMsg_noreply(msg,[this](Message& msg) {
             loadHistoryFromMsg(msg,m_minbarY);
             Log(LOG_INFO) << "Min bar Y loaded";
@@ -25,8 +32,14 @@ MinBarPairTrader::processMsg(Message& msg)
         if (m_minbarX.size() != m_minbarY.size()) {
             Log(LOG_FATAL) << "Inconsistent length of X & Y";
         }
+
+        real64 corr = computePairCorr();
+        Log(LOG_INFO) << "Correlation: " + to_string(corr);
+
         linearReg();
-        break;
+
+    }
+    break;
     case FXAction::PAIR_MIN_OPEN:
         outmsg = procMsg_PAIR_MIN_OPEN(msg);
         break;
@@ -76,8 +89,12 @@ MinBarPairTrader::procMsg_ASK_PAIR(Message& msg)
     String s2 = m_cfg->getPairSymY();
     String st = s1 + ":" + s2;
 
-    Message outmsg(FXAction::ASK_PAIR,0,st.size());
+    Message outmsg(FXAction::ASK_PAIR,sizeof(int),st.size());
     outmsg.setComment(st);
+
+    int* pm = (int*)outmsg.getData();
+    pm[0] = m_cfg->getLRLen();
+
     return outmsg;
 }
 
@@ -94,8 +111,8 @@ MinBarPairTrader::linearReg()
 
     m_linregParam = linreg(x,y,len);
     Log(LOG_INFO) << "Linear regression done: c0 = " + to_string(m_linregParam.c0)
-                    + ", c1 = " + to_string(m_linregParam.c1)
-                    + ", sum_sq =  " + to_string(m_linregParam.chisq);
+                  + ", c1 = " + to_string(m_linregParam.c1)
+                  + ", sum_sq =  " + to_string(m_linregParam.chisq);
 }
 
 Message
@@ -120,4 +137,19 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
     }
 
     return outmsg;
+}
+
+real64
+MinBarPairTrader::computePairCorr()
+{
+    int len = m_minbarX.size();
+    real64* x = new real64[len];
+    real64* y = new real64[len];
+    for (int i=0; i<len; i++) {
+        x[i] = m_minbarX[i].open;
+        y[i] = m_minbarY[i].open;
+    }
+    real64 corr = gsl_stats_correlation(x,1,y,1,len);
+
+    return corr;
 }

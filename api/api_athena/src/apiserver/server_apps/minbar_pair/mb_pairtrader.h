@@ -52,6 +52,8 @@ public:
 
     Message procMsg_PAIR_MIN_OPEN(Message& msg);
 
+    real64 computePairCorr();
+
     /**
      * Linear regression of X & Y
      */

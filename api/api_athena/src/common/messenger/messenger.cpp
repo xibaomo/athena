@@ -108,16 +108,17 @@ Messenger::getBufferSize()
 void
 Messenger::drainSocket(int sock)
 {
-    char buffer[m_bufferSize];
+    char* buffer = new char[m_bufferSize];
     memset(buffer, 0, m_bufferSize);
 
     int valread = read(sock, buffer, m_bufferSize);
     if ( valread > 0 ) {
         char* buf = buffer;
         while ( buf ) {
-            buf = readMsgFromSocket(sock, buf, valread, buffer);
+            buf = readMsgFromSocket(sock, buf, valread, buffer);//return when a whole msg is read
         }
     }
+    delete buffer;
     return;
 }
 

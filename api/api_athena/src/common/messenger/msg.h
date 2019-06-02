@@ -84,7 +84,7 @@ public:
     }
 
     template <typename T>
-    Message(T action, const size_t dataBytes = 0, const size_t charBytes = 0) : m_entireMsg(nullptr)
+    Message(T action, const size_t dataBytes, const size_t charBytes) : m_entireMsg(nullptr)
     {
         init(dataBytes,charBytes);
         setAction((ActionType)action);
