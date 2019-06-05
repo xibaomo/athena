@@ -32,6 +32,9 @@ protected:
 
     LRParam             m_linregParam;
 
+    real64 m_spreadMean;
+    real64 m_spreadStd;
+
     MptConfig* m_cfg;
     MinBarPairTrader(const String& cf) : ServerBaseApp (cf){
         m_cfg = &MptConfig::getInstance();
@@ -51,6 +54,12 @@ public:
     void loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v);
 
     Message procMsg_PAIR_MIN_OPEN(Message& msg);
+
+    /**
+     * Load min bar history for Y
+     * Send back hedge factor
+     */
+    Message procMsg_PAIR_HIST_Y(Message& msg);
 
     real64 computePairCorr();
 
