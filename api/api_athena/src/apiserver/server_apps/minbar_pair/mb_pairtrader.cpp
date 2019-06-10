@@ -1,5 +1,6 @@
 #include "mb_pairtrader.h"
 #include <gsl/gsl_statistics_double.h>
+#include <fstream>
 using namespace std;
 
 Message
@@ -19,12 +20,11 @@ MinBarPairTrader::processMsg(Message& msg)
     case FXAction::PAIR_HIST_X:
         Log(LOG_INFO) << "X min bars arrive";
         outmsg = procMsg_noreply(msg,[this](Message& msg) {
-            loadHistoryFromMsg(msg,m_minbarX);
+            loadHistoryFromMsg(msg,m_minbarX,m_openX);
             Log(LOG_INFO) << "Min bar X loaded";
         });
         break;
     case FXAction::PAIR_HIST_Y: {
-        Log(LOG_INFO) << "Y min bars arrive";
         outmsg = procMsg_PAIR_HIST_Y(msg);
     }
     break;
@@ -43,7 +43,7 @@ MinBarPairTrader::procMsg_PAIR_HIST_Y(Message& msg)
 {
     Log(LOG_INFO) << "Y min bars arrive";
 
-    loadHistoryFromMsg(msg,m_minbarY);
+    loadHistoryFromMsg(msg,m_minbarY,m_openY);
     Log(LOG_INFO) << "Min bar Y loaded";
 
 
@@ -63,7 +63,7 @@ MinBarPairTrader::procMsg_PAIR_HIST_Y(Message& msg)
     return outmsg;
 }
 void
-MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v)
+MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::vector<real32>& openvec)
 {
 
     int* pc = (int*)msg.getChar();
@@ -87,6 +87,7 @@ MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v)
 
     for (int i = 0; i < nbars; i++) {
         v.emplace_back("unknown_time",pm[0],pm[1],pm[2],pm[3],pm[4]);
+        openvec.push_back(v.back().open);
         pm+=bar_size;
     }
 
@@ -113,13 +114,13 @@ MinBarPairTrader::procMsg_ASK_PAIR(Message& msg)
 void
 MinBarPairTrader::linearReg()
 {
-    int len = m_minbarX.size();
+    int len = m_openX.size();
     real64* x = new real64[len];
     real64* y = new real64[len];
     real64* spread = new real64[len];
     for (int i=0; i< len; i++) {
-        x[i] = m_minbarX[i].open;
-        y[i] = m_minbarY[i].open;
+        x[i] = m_openX[i];
+        y[i] = m_openY[i];
     }
 
     m_linregParam = linreg(x,y,len);
@@ -131,8 +132,7 @@ MinBarPairTrader::linearReg()
         spread[i] = y[i] - m_linregParam.c1*x[i];
     }
     m_spreadMean = gsl_stats_mean(spread,1,len);
-    real64 var  = gsl_stats_sd_m(spread,1,len,m_spreadMean);
-    m_spreadStd = sqrt(var);
+    m_spreadStd  = gsl_stats_sd_m(spread,1,len,m_spreadMean);
 
     real64 minsp,maxsp;
     gsl_stats_minmax(&minsp,&maxsp,spread,1,len);
@@ -140,6 +140,15 @@ MinBarPairTrader::linearReg()
     Log(LOG_INFO) << "Max deviation/std: " + to_string((minsp-m_spreadMean)/m_spreadStd) + ", "
                         + to_string((maxsp-m_spreadMean)/m_spreadStd);
 
+    //dump spread
+    ofstream ofs("spread.csv");
+    ofs<<"x,y,spread"<<endl;
+    for (int i=0; i < len; i++) {
+        ofs << m_openX[i]<<","<<m_openY[i]<<","<<spread[i] << endl;
+    }
+    ofs.close();
+
+    Log(LOG_INFO) << "spread dumped to spread.csv";
     delete[] x;
     delete[] y;
     delete[] spread;
@@ -149,6 +158,8 @@ Message
 MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
 {
     real32* pm = (real32*)msg.getData();
+    m_openX.push_back(pm[0]);
+    m_openY.push_back(pm[1]);
     real64 x = pm[0];
     real64 y = pm[1];
 
@@ -158,6 +169,11 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
 
     Log(LOG_INFO) << "Mt5 time: " + timeStr + ", X: " + to_string(x)
                   + ", Y: " + to_string(y);
+
+    real64 corr = computePairCorr();
+    Log(LOG_INFO) << "Correlation so far: " + to_string(corr);
+
+    linearReg();
 
     real64 spread = y - m_linregParam.c1*x;
 
@@ -171,24 +187,29 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
         outmsg.setAction(FXAction::PLACE_SELL);
     } else if( spread - m_spreadMean < -thd*m_spreadStd) {
         outmsg.setAction(FXAction::PLACE_BUY);
+    } else if ( fac * m_prevSpread < 0) {
+        outmsg.setAction(FXAction::CLOSE_ALL_POS);
     } else {
         outmsg.setAction(FXAction::NOACTION);
     }
-
+    m_prevSpread = fac;
     return outmsg;
 }
 
 real64
 MinBarPairTrader::computePairCorr()
 {
-    int len = m_minbarX.size();
+    int len = m_openX.size();
     real64* x = new real64[len];
     real64* y = new real64[len];
     for (int i=0; i<len; i++) {
-        x[i] = m_minbarX[i].open;
-        y[i] = m_minbarY[i].open;
+        x[i] = m_openX[i];
+        y[i] = m_openY[i];
     }
     real64 corr = gsl_stats_correlation(x,1,y,1,len);
+
+    delete[] x;
+    delete[] y;
 
     return corr;
 }

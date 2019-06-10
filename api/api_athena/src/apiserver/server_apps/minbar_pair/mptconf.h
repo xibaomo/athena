@@ -48,5 +48,6 @@ public:
     real32 getThresholdStd() {
         return getKeyValue<real32>(MPT_ROOT + "THRESHOLD_STD");
     }
+
 };
 #endif   /* ----- #ifndef _MINBAR_PAIR_TRADER_CONFIG_H_  ----- */

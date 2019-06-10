@@ -18,9 +18,9 @@ GENERAL:
 # ------------- MINBAR_PAIR_TRADER -----------------
 MINBAR_PAIR_TRADER:
     PAIR_SYM_X: EURUSD
-    PAIR_SYM_Y: USDCHF
-    LR_LEN: 6000  # Linear regression history length
-    THRESHOLD_STD: 0.1  # in unit of std
+    PAIR_SYM_Y: USDCZK
+    LR_LEN: 2000  # Linear regression history length
+    THRESHOLD_STD: 1.3  # in unit of std
 
 # ------------- MINBAR_TRACKER -------------------
 MINBAR_TRACKER:

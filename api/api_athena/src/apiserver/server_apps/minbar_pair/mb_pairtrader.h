@@ -30,16 +30,22 @@ protected:
     std::vector<MinBar> m_minbarX;
     std::vector<MinBar> m_minbarY;
 
+    std::vector<real32> m_openX;
+    std::vector<real32> m_openY;
+
     LRParam             m_linregParam;
 
     real64 m_spreadMean;
     real64 m_spreadStd;
 
     MptConfig* m_cfg;
+    real64 m_prevSpread;
     MinBarPairTrader(const String& cf) : ServerBaseApp (cf){
         m_cfg = &MptConfig::getInstance();
         m_cfg->loadConfig(cf);
+        m_prevSpread = 0.;
     }
+
 public:
     virtual ~MinBarPairTrader() {;}
     static MinBarPairTrader& getInstance(const String& cf) {
@@ -51,7 +57,7 @@ public:
     Message processMsg(Message& msg);
 
     Message procMsg_ASK_PAIR(Message& msg);
-    void loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v);
+    void loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::vector<real32>& openvec);
 
     Message procMsg_PAIR_MIN_OPEN(Message& msg);
 
