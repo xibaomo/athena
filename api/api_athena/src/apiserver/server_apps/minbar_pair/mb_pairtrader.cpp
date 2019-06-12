@@ -31,13 +31,34 @@ MinBarPairTrader::processMsg(Message& msg)
     case FXAction::PAIR_MIN_OPEN:
         outmsg = procMsg_PAIR_MIN_OPEN(msg);
         break;
+
+    case FXAction::SYM_HIST_OPEN:
+        outmsg = procMsg_SYM_HIST_OPEN(msg);
+        break;
     default:
         break;
     }
 
     return outmsg;
 }
+Message
+MinBarPairTrader::procMsg_SYM_HIST_OPEN(Message& msg)
+{
+    String sym = msg.getComment();
+    Log(LOG_INFO) << "Received history: " + sym;
 
+    if (m_sym2hist.find(sym) != m_sym2hist.end()) {
+        Log(LOG_FATAL) << "Duplicated symbol received: " + sym;
+    }
+
+    int len = msg.getDataBytes()/sizeof(real32);
+    real32* pm = (real32*)msg.getData();
+    std::vector<real32> v(pm,pm+len);
+    m_sym2hist[sym] = std::move(v);
+
+    Message out;
+    return out;
+}
 Message
 MinBarPairTrader::procMsg_PAIR_HIST_Y(Message& msg)
 {
@@ -51,7 +72,7 @@ MinBarPairTrader::procMsg_PAIR_HIST_Y(Message& msg)
         Log(LOG_FATAL) << "Inconsistent length of X & Y";
     }
 
-    real64 corr = computePairCorr();
+    real64 corr = computePairCorr(m_openX,m_openY);
     Log(LOG_INFO) << "Correlation: " + to_string(corr);
 
     linearReg();
@@ -98,6 +119,8 @@ MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::
 Message
 MinBarPairTrader::procMsg_ASK_PAIR(Message& msg)
 {
+    selectTopCorr();
+
     String s1 = m_cfg->getPairSymX();
     String s2 = m_cfg->getPairSymY();
     String st = s1 + ":" + s2;
@@ -105,16 +128,13 @@ MinBarPairTrader::procMsg_ASK_PAIR(Message& msg)
     Message outmsg(FXAction::ASK_PAIR,sizeof(int),st.size());
     outmsg.setComment(st);
 
-    int* pm = (int*)outmsg.getData();
-    pm[0] = m_cfg->getLRLen();
-
     return outmsg;
 }
 
 void
 MinBarPairTrader::linearReg()
 {
-    int len = m_openX.size();
+    int len = m_openX.size()-1;
     real64* x = new real64[len];
     real64* y = new real64[len];
     real64* spread = new real64[len];
@@ -138,7 +158,7 @@ MinBarPairTrader::linearReg()
     gsl_stats_minmax(&minsp,&maxsp,spread,1,len);
     Log(LOG_INFO) << "Spread mean: " + to_string(m_spreadMean) + ", std: " + to_string(m_spreadStd);
     Log(LOG_INFO) << "Max deviation/std: " + to_string((minsp-m_spreadMean)/m_spreadStd) + ", "
-                        + to_string((maxsp-m_spreadMean)/m_spreadStd);
+                  + to_string((maxsp-m_spreadMean)/m_spreadStd);
 
     //dump spread
     ofstream ofs("spread.csv");
@@ -170,7 +190,7 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
     Log(LOG_INFO) << "Mt5 time: " + timeStr + ", X: " + to_string(x)
                   + ", Y: " + to_string(y);
 
-    real64 corr = computePairCorr();
+    real64 corr = computePairCorr(m_openX,m_openY);
     Log(LOG_INFO) << "Correlation so far: " + to_string(corr);
 
     linearReg();
@@ -197,14 +217,14 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
 }
 
 real64
-MinBarPairTrader::computePairCorr()
+MinBarPairTrader::computePairCorr(std::vector<real32>& v1, std::vector<real32>& v2)
 {
-    int len = m_openX.size();
+    int len = v1.size();
     real64* x = new real64[len];
     real64* y = new real64[len];
     for (int i=0; i<len; i++) {
-        x[i] = m_openX[i];
-        y[i] = m_openY[i];
+        x[i] = v1[i];
+        y[i] = v2[i];
     }
     real64 corr = gsl_stats_correlation(x,1,y,1,len);
 
@@ -212,4 +232,24 @@ MinBarPairTrader::computePairCorr()
     delete[] y;
 
     return corr;
+}
+
+void
+MinBarPairTrader::selectTopCorr()
+{
+    vector<String> keys;
+    for(const auto& kv : m_sym2hist) {
+        keys.push_back(kv.first);
+    }
+
+    for (size_t i = 0; i < keys.size(); i++) {
+        for(size_t j=i+1; j < keys.size(); j++) {
+            auto corr = computePairCorr(m_sym2hist[keys[i]],m_sym2hist[keys[j]]);
+            if (corr > m_cfg->getCorrBaseline()) {
+                SymPair sp{keys[i],keys[j],corr};
+                m_topCorrSyms.push_back(sp);
+                Log(LOG_INFO) << "Top coor pair: " + keys[i] + "," + keys[j] + ": " +to_string(corr);
+            }
+        }
+    }
 }

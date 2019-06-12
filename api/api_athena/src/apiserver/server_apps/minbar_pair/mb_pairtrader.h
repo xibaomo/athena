@@ -23,9 +23,18 @@
 #include "server_apps/server_base_app/server_base_app.h"
 #include "mptconf.h"
 #include "linreg/linreg.h"
+#include <unordered_map>
+struct SymPair {
+    String symx;
+    String symy;
+    real64 corr;
+};
 
 class MinBarPairTrader : public ServerBaseApp {
 protected:
+
+    std::unordered_map<String,std::vector<real32>> m_sym2hist;
+    std::vector<SymPair> m_topCorrSyms;
 
     std::vector<MinBar> m_minbarX;
     std::vector<MinBar> m_minbarY;
@@ -67,11 +76,15 @@ public:
      */
     Message procMsg_PAIR_HIST_Y(Message& msg);
 
-    real64 computePairCorr();
+    Message procMsg_SYM_HIST_OPEN(Message& msg);
+
+    real64 computePairCorr(std::vector<real32>& v1, std::vector<real32>& v2);
 
     /**
      * Linear regression of X & Y
      */
     void linearReg();
+
+    void selectTopCorr();
 };
 #endif   /* ----- #ifndef _SERVER_APP_MINBAR_PAIR_TRADER_H_  ----- */

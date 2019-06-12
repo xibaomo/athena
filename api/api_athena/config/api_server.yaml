@@ -11,6 +11,7 @@ GENERAL:
     #            4 - LOG_VERBOSE
     #            5 - LOG_DEBUG
     LOG_LEVEL: 3
+    PORT: 8888
 
 ########################################################
 #################### App configs #######################
@@ -19,8 +20,8 @@ GENERAL:
 MINBAR_PAIR_TRADER:
     PAIR_SYM_X: EURUSD
     PAIR_SYM_Y: USDCZK
-    LR_LEN: 2000  # Linear regression history length
     THRESHOLD_STD: 1.3  # in unit of std
+    CORR_BSL: 0.8
 
 # ------------- MINBAR_TRACKER -------------------
 MINBAR_TRACKER:

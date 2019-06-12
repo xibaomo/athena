@@ -49,5 +49,10 @@ public:
         return getKeyValue<real32>(MPT_ROOT + "THRESHOLD_STD");
     }
 
+    real32 getCorrBaseline() {
+        return getKeyValue<real32>(MPT_ROOT + "CORR_BSL");
+    }
+
+
 };
 #endif   /* ----- #ifndef _MINBAR_PAIR_TRADER_CONFIG_H_  ----- */

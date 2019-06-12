@@ -20,6 +20,7 @@
 #include "sockutils.h"
 #include "basics/utils.h"
 #include "basics/log.h"
+#include "conf/generalconf.h"
 
 using namespace std;
 using namespace athena;
@@ -27,6 +28,8 @@ using namespace athena;
 Messenger::Messenger() : m_hostSock(-1), m_port(-1),
     m_bufferSize(-1), m_isListening(false)
 {
+    m_port = GeneralConfig::getInstance().getPort();
+
     m_hostSock = createTCPSocket();
     bindSocketToPort();
     enableListenSocket(m_hostSock);
@@ -67,9 +70,9 @@ Messenger::bindSocketToPort(bool isGenPort)
         Log(LOG_FATAL) << "Not supported";
     }
 
-    m_port = getpid();
+    //m_port = getpid();
     while ( 1 ) {
-            m_port = 8888;
+            //m_port = 8888;
         //m_port = m_port%(MAXPORTNUM-MINPORTNUM) + MINPORTNUM;
         memset((char*)&m_addr, 0, sizeof(m_addr));
         m_addr.sin_family = AF_INET;

@@ -19,6 +19,7 @@ enum class FXAction {
     PAIR_HIST_X,
     PAIR_HIST_Y,
     PAIR_MIN_OPEN,
-    CLOSE_ALL_POS
+    CLOSE_ALL_POS,
+    SYM_HIST_OPEN
 };
 #endif // _CLIENT_API_FX_ACTION_H_

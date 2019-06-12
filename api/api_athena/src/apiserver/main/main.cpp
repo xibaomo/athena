@@ -15,7 +15,7 @@
 //
 #include "server_apps/create_svr_app.h"
 #include "basics/log.h"
-#include "generalconf.h"
+#include "conf/generalconf.h"
 #include <iostream>
 using namespace std;
 
