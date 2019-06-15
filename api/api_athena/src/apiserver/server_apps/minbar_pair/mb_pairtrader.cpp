@@ -44,7 +44,10 @@ MinBarPairTrader::processMsg(Message& msg)
 Message
 MinBarPairTrader::procMsg_SYM_HIST_OPEN(Message& msg)
 {
-    String sym = msg.getComment();
+    char* pc = (char*)msg.getChar();
+    size_t cb = msg.getCharBytes() - 2*sizeof(int);
+    String sym = String(pc + 2*sizeof(int),cb);
+
     Log(LOG_INFO) << "Received history: " + sym;
 
     if (m_sym2hist.find(sym) != m_sym2hist.end()) {
@@ -245,7 +248,7 @@ MinBarPairTrader::selectTopCorr()
     for (size_t i = 0; i < keys.size(); i++) {
         for(size_t j=i+1; j < keys.size(); j++) {
             auto corr = computePairCorr(m_sym2hist[keys[i]],m_sym2hist[keys[j]]);
-            if (corr > m_cfg->getCorrBaseline()) {
+            if (fabs(corr) > m_cfg->getCorrBaseline()) {
                 SymPair sp{keys[i],keys[j],corr};
                 m_topCorrSyms.push_back(sp);
                 Log(LOG_INFO) << "Top coor pair: " + keys[i] + "," + keys[j] + ": " +to_string(corr);

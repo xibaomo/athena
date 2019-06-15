@@ -83,7 +83,7 @@ Messenger::bindSocketToPort(bool isGenPort)
             break;
         }
         Log(LOG_VERBOSE) << "Tried port: " << m_port;
-        m_port++;
+        //m_port++;
     }
 }
 
