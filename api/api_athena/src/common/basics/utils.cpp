@@ -190,5 +190,4 @@ void getPythonFunction(const String& modFile, const String& funcName,CPyObject& 
 
 }
 
-
 }

@@ -2,6 +2,7 @@ GENERAL:
     # Application type: 0 - min bar tracker
     #                   1 - min bar classifier - rf model
     #                   2 - min bar pair trader
+    #                   3 - multiple pair trader
     APPLICATION: 2
 
     # Log level: 0 - LOG_FATAL

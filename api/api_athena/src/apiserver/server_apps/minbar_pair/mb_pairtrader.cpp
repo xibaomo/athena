@@ -1,8 +1,9 @@
 #include "mb_pairtrader.h"
-#include <gsl/gsl_statistics_double.h>
+#include "pyrunner/pyrunner.h"
+#include "basics/utils.h"
 #include <fstream>
 using namespace std;
-
+using namespace athena;
 Message
 MinBarPairTrader::processMsg(Message& msg)
 {
@@ -122,7 +123,7 @@ MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::
 Message
 MinBarPairTrader::procMsg_ASK_PAIR(Message& msg)
 {
-    selectTopCorr();
+    //selectTopCorr();
 
     String s1 = m_cfg->getPairSymX();
     String s2 = m_cfg->getPairSymY();
@@ -211,7 +212,8 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
     } else if( spread - m_spreadMean < -thd*m_spreadStd) {
         outmsg.setAction(FXAction::PLACE_BUY);
     } else if ( fac * m_prevSpread < 0) {
-        outmsg.setAction(FXAction::CLOSE_ALL_POS);
+        //outmsg.setAction(FXAction::CLOSE_ALL_POS);
+        outmsg.setAction(FXAction::NOACTION);
     } else {
         outmsg.setAction(FXAction::NOACTION);
     }
@@ -219,40 +221,6 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
     return outmsg;
 }
 
-real64
-MinBarPairTrader::computePairCorr(std::vector<real32>& v1, std::vector<real32>& v2)
-{
-    int len = v1.size();
-    real64* x = new real64[len];
-    real64* y = new real64[len];
-    for (int i=0; i<len; i++) {
-        x[i] = v1[i];
-        y[i] = v2[i];
-    }
-    real64 corr = gsl_stats_correlation(x,1,y,1,len);
 
-    delete[] x;
-    delete[] y;
 
-    return corr;
-}
 
-void
-MinBarPairTrader::selectTopCorr()
-{
-    vector<String> keys;
-    for(const auto& kv : m_sym2hist) {
-        keys.push_back(kv.first);
-    }
-
-    for (size_t i = 0; i < keys.size(); i++) {
-        for(size_t j=i+1; j < keys.size(); j++) {
-            auto corr = computePairCorr(m_sym2hist[keys[i]],m_sym2hist[keys[j]]);
-            if (fabs(corr) > m_cfg->getCorrBaseline()) {
-                SymPair sp{keys[i],keys[j],corr};
-                m_topCorrSyms.push_back(sp);
-                Log(LOG_INFO) << "Top coor pair: " + keys[i] + "," + keys[j] + ": " +to_string(corr);
-            }
-        }
-    }
-}

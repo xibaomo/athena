@@ -29,7 +29,7 @@
 #include "types.h"
 #include "pyhelper.hpp"
 #include "minbar_predictor/mb_base/mb_base_pred.h"
-
+#include <gsl/gsl_statistics_double.h>
 namespace athena
 {
 /*-----------------------------------------------------------------------------
@@ -181,6 +181,25 @@ void savgol_smooth1D(std::vector<T>& invec, int width, int order, std::vector<re
 //    }
     ov.assign(data,data+dim);
 
+}
+
+template <typename T>
+real64
+computePairCorr(std::vector<T>& v1, std::vector<T>& v2)
+{
+    int len = v1.size();
+    real64* x = new real64[len];
+    real64* y = new real64[len];
+    for (int i=0; i<len; i++) {
+        x[i] = v1[i];
+        y[i] = v2[i];
+    }
+    real64 corr = gsl_stats_correlation(x,1,y,1,len);
+
+    delete[] x;
+    delete[] y;
+
+    return corr;
 }
 }
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */
