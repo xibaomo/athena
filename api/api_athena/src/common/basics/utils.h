@@ -201,5 +201,8 @@ computePairCorr(std::vector<T>& v1, std::vector<T>& v2)
 
     return corr;
 }
+
+bool
+test_coint(std::vector<real32>& v1, std::vector<real32>& v2);
 }
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */

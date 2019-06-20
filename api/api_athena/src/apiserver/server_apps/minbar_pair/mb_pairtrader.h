@@ -81,6 +81,5 @@ public:
 
     void selectTopCorr();
 
-    bool test_coint(std::vector<real32>& v1, std::vector<real32>& v2);
 };
 #endif   /* ----- #ifndef _SERVER_APP_MINBAR_PAIR_TRADER_H_  ----- */

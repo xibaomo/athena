@@ -40,6 +40,21 @@ MinBarPairTrader::processMsg(Message& msg)
         break;
     }
 
+    switch((FXAction)outmsg.getAction()) {
+    case FXAction::PLACE_BUY:
+        Log(LOG_INFO) << "Action: buy Y";
+        break;
+    case FXAction::PLACE_SELL:
+        Log(LOG_INFO) << "Action: sell Y";
+        break;
+    case FXAction::NOACTION:
+        Log(LOG_INFO) << "No action";
+        break;
+    default:
+        break;
+
+    }
+
     return outmsg;
 }
 Message
@@ -152,11 +167,20 @@ MinBarPairTrader::linearReg()
                   + ", c1 = " + to_string(m_linregParam.c1)
                   + ", sum_sq =  " + to_string(m_linregParam.chisq);
 
+    real64 mean_y = gsl_stats_mean(y,1,len);
+    real64 ss_tot=0.;
+    real64 ss_res=0.;
     for (int i=0; i < len; i++) {
         spread[i] = y[i] - m_linregParam.c1*x[i];
+        ss_tot += pow(y[i]-mean_y,2);
+        real64 err = m_linregParam.c0 + m_linregParam.c1*x[i] - y[i];
+        ss_res += pow(err,2);
     }
+    real64 r2 = 1-ss_res/ss_tot;
+    Log(LOG_INFO) << "R2 = " + to_string(r2);
     m_spreadMean = gsl_stats_mean(spread,1,len);
     m_spreadStd  = gsl_stats_sd_m(spread,1,len,m_spreadMean);
+
 
     real64 minsp,maxsp;
     gsl_stats_minmax(&minsp,&maxsp,spread,1,len);
@@ -181,6 +205,7 @@ MinBarPairTrader::linearReg()
 Message
 MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
 {
+    Message outmsg(sizeof(real32),0);
     real32* pm = (real32*)msg.getData();
     m_openX.push_back(pm[0]);
     m_openY.push_back(pm[1]);
@@ -196,6 +221,16 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
 
     real64 corr = computePairCorr(m_openX,m_openY);
     Log(LOG_INFO) << "Correlation so far: " + to_string(corr);
+    if (corr < m_cfg->getCorrBaseline()) {
+        outmsg.setAction(FXAction::NOACTION);
+        Log(LOG_ERROR) << "Correlation lower than threshold";
+        return outmsg;
+    }
+
+//    if (!test_coint(m_openX,m_openY)) {
+//        outmsg.setAction(FXAction::NOACTION);
+//        return outmsg;
+//    }
 
     linearReg();
 
@@ -204,9 +239,11 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
     real64 thd = m_cfg->getThresholdStd();
 
     real64 fac = (spread - m_spreadMean)/m_spreadStd;
-    Log(LOG_INFO) << "err/sigma: " + to_string(fac);
+    Log(LOG_INFO) << " ====== err/sigma: " + to_string(fac) + " ======";
 
-    Message outmsg;
+    real32* pcm = (real32*)outmsg.getData();
+    pcm[0] = m_linregParam.c1;
+
     if ( spread- m_spreadMean > thd*m_spreadStd) {
         outmsg.setAction(FXAction::PLACE_SELL);
     } else if( spread - m_spreadMean < -thd*m_spreadStd) {

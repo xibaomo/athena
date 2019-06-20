@@ -52,7 +52,7 @@ public:
     Message procMsg_SYM_HIST_OPEN(Message& msg);
     Message procMsg_ASK_PAIR(Message& msg);
 
-    bool test_coint(std::vector<real32>& v1, std::vector<real32>& v2);
+    //bool test_coint(std::vector<real32>& v1, std::vector<real32>& v2);
 
     void selectTopCorr();
 

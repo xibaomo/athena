@@ -17,6 +17,7 @@
  */
 
 #include "utils.h"
+#include "pyrunner/pyrunner.h"
 #include <memory>
 #include <array>
 #include <chrono>
@@ -189,5 +190,26 @@ void getPythonFunction(const String& modFile, const String& funcName,CPyObject& 
     }
 
 }
+bool
+test_coint(std::vector<real32>& v1, std::vector<real32>& v2)
+{
+    CPyObject lx = PyList_New(v1.size());
+    CPyObject ly = PyList_New(v2.size());
+    for (size_t i = 0; i < v1.size(); i++) {
+        PyList_SetItem(lx,i,Py_BuildValue("f",v1[i]));
+        PyList_SetItem(ly,i,Py_BuildValue("f",v2[i]));
+    }
 
+    CPyObject args = Py_BuildValue("(OO)",lx.getObject(),ly.getObject());
+    PyRunner& pyrun = PyRunner::getInstance();
+
+    CPyObject res = pyrun.runAthenaPyFunc("coint","coint_verify",args);
+
+    if (PyInt_AsLong(res) == 1) {
+        return true;
+    }
+
+    return false;
+
+}
 }
