@@ -99,7 +99,9 @@ MultiPairTrader::selectTopCorr()
 
                 SymPair sp{keys[i],keys[j],corr};
                 m_topCorrSyms.push_back(sp);
-                if (v1[0] < v2[0])
+
+                LRParam pm = veclinreg(v1,v2);
+                if (pm.c0 > 0.)
                     Log(LOG_INFO) << "Top coor pair: " + keys[i] + "," + keys[j] + ": " +to_string(corr);
                 else
                     Log(LOG_INFO) << "Top coor pair: " + keys[j] + "," + keys[i] + ": " +to_string(corr);

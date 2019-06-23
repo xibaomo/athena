@@ -73,7 +73,6 @@
 		<Unit filename="src/apiclient/client_apps/client_base_app/client_base_app.h" />
 		<Unit filename="src/apiclient/client_apps/client_predictor/client_predictor.cpp" />
 		<Unit filename="src/apiclient/client_apps/client_predictor/client_predictor.h" />
-		<Unit filename="src/apiserver/main/generalconf.h" />
 		<Unit filename="src/apiserver/main/main.cpp">
 			<Option target="api_server" />
 		</Unit>
@@ -91,6 +90,9 @@
 		<Unit filename="src/apiserver/server_apps/minbar_tracker/mbtconf.h" />
 		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.cpp" />
 		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.h" />
+		<Unit filename="src/apiserver/server_apps/multipair_trader/mulpairconf.h" />
+		<Unit filename="src/apiserver/server_apps/multipair_trader/multi_pairtrader.cpp" />
+		<Unit filename="src/apiserver/server_apps/multipair_trader/multi_pairtrader.h" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.cpp" />
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.h" />
 		<Unit filename="src/apiserver/server_apps/server_predictor/server_predictor.cpp" />
@@ -109,12 +111,15 @@
 		<Unit filename="src/common/basics/types.h" />
 		<Unit filename="src/common/basics/utils.cpp" />
 		<Unit filename="src/common/basics/utils.h" />
+		<Unit filename="src/common/conf/generalconf.h" />
 		<Unit filename="src/common/messenger/messenger.cpp" />
 		<Unit filename="src/common/messenger/messenger.h" />
 		<Unit filename="src/common/messenger/msg.h" />
 		<Unit filename="src/common/messenger/sockutils.cpp" />
 		<Unit filename="src/common/messenger/sockutils.h" />
 		<Unit filename="src/common/pyhelper.hpp" />
+		<Unit filename="src/common/pyrunner/pyrunner.cpp" />
+		<Unit filename="src/common/pyrunner/pyrunner.h" />
 		<Unit filename="src/modules/fx_action/fx_action.h" />
 		<Unit filename="src/modules/linreg/linreg.cpp" />
 		<Unit filename="src/modules/linreg/linreg.h" />

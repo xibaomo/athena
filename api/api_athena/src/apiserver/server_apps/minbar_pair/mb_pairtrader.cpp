@@ -163,9 +163,11 @@ MinBarPairTrader::linearReg()
     }
 
     m_linregParam = linreg(x,y,len);
+
+    real64 rms = sqrt(m_linregParam.chisq/len);
     Log(LOG_INFO) << "Linear regression done: c0 = " + to_string(m_linregParam.c0)
                   + ", c1 = " + to_string(m_linregParam.c1)
-                  + ", sum_sq =  " + to_string(m_linregParam.chisq);
+                  + ", rms =  " + to_string(rms);
 
     real64 mean_y = gsl_stats_mean(y,1,len);
     real64 ss_tot=0.;
