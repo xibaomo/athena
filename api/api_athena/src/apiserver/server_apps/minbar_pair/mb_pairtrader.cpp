@@ -36,6 +36,12 @@ MinBarPairTrader::processMsg(Message& msg)
     case FXAction::SYM_HIST_OPEN:
         outmsg = procMsg_SYM_HIST_OPEN(msg);
         break;
+    case FXAction::PAIR_POS_PLACED:
+        outmsg = procMsg_PAIR_POS_PLACED(msg);
+        break;
+    case FXAction::PAIR_POS_CLOSED:
+        outmsg = procMsg_PAIR_POS_CLOSED(msg);
+        break;
     default:
         break;
     }
@@ -55,6 +61,40 @@ MinBarPairTrader::processMsg(Message& msg)
 
     }
 
+    return outmsg;
+}
+
+Message
+MinBarPairTrader::procMsg_PAIR_POS_CLOSED(Message& msg)
+{
+    Message outmsg;
+
+    String key = msg.getComment();
+
+    if (m_pairTracker.find(key) == m_pairTracker.end()) {
+        auto v = splitString(key,"/");
+        key = v[1] + "/" + v[0];
+    }
+    if (m_pairTracker.find(key) == m_pairTracker.end()) {
+        Log(LOG_ERROR) << "Cannot find the pair: " + key;
+        return outmsg;
+    }
+
+    PairStatus& ps = m_pairTracker[key];
+    real32* pc = (real32*)msg.getData();
+    ps["profit"] = pc[0];
+
+    return outmsg;
+}
+
+Message
+MinBarPairTrader::procMsg_PAIR_POS_PLACED(Message& msg)
+{
+    String key = msg.getComment();
+
+    m_pairTracker[key] = m_currStatus;
+
+    Message outmsg;
     return outmsg;
 }
 Message
@@ -190,6 +230,11 @@ MinBarPairTrader::linearReg()
     Log(LOG_INFO) << "Max deviation/std: " + to_string((minsp-m_spreadMean)/m_spreadStd) + ", "
                   + to_string((maxsp-m_spreadMean)/m_spreadStd);
 
+    m_currStatus["profit"] = 0;
+    m_currStatus["c0"] = m_linregParam.c0;
+    m_currStatus["c1"] = m_linregParam.c1;
+    m_currStatus["rms"] = rms;
+    m_currStatus["r2"] = r2;
     //dump spread
     ofstream ofs("spread.csv");
     ofs<<"x,y,spread"<<endl;
@@ -243,12 +288,13 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
     real64 fac = (spread - m_spreadMean)/m_spreadStd;
     Log(LOG_INFO) << " ====== err/sigma: " + to_string(fac) + " ======";
 
+    m_currStatus["err/sigma"] = fac;
     real32* pcm = (real32*)outmsg.getData();
     pcm[0] = m_linregParam.c1;
 
-    if ( spread- m_spreadMean > thd*m_spreadStd) {
+    if ( fac > thd) {
         outmsg.setAction(FXAction::PLACE_SELL);
-    } else if( spread - m_spreadMean < -thd*m_spreadStd) {
+    } else if( fac < -thd) {
         outmsg.setAction(FXAction::PLACE_BUY);
     } else if ( fac * m_prevSpread < 0) {
         //outmsg.setAction(FXAction::CLOSE_ALL_POS);
@@ -260,6 +306,31 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
     return outmsg;
 }
 
+void
+MinBarPairTrader::finish()
+{
+    ofstream ofs("all_pos_pair.csv");
+    int k=0;
+    for (auto& it : m_pairTracker) {
+        auto& status = it.second;
+        if (status.empty()) continue;
+        if (k==0) {
+            // dump headers
+            ofs << "tickets,";
+            for(auto& itt : status) {
+                ofs<<itt.first<<",";
+            }
+            ofs << "extra\n";
+            k++;
+        }
+        // value
+        ofs << it.first<<",";
+        for(auto& itt : status) {
+            ofs << itt.second<<",";
+        }
+        ofs << "-1\n";
+    }
+    ofs.close();
 
-
+}
 

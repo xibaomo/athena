@@ -25,6 +25,8 @@
 #include "linreg/linreg.h"
 #include <unordered_map>
 
+typedef std::unordered_map<String,real32> PairStatus;
+
 class MinBarPairTrader : public ServerBaseApp {
 protected:
 
@@ -35,6 +37,10 @@ protected:
 
     std::vector<real32> m_openX;
     std::vector<real32> m_openY;
+
+    std::unordered_map<String,PairStatus> m_pairTracker;
+
+    PairStatus m_currStatus;
 
     LRParam             m_linregParam;
 
@@ -57,6 +63,7 @@ public:
     }
 
     void prepare() {;}
+    void finish();
     Message processMsg(Message& msg);
 
     Message procMsg_ASK_PAIR(Message& msg);
@@ -71,6 +78,9 @@ public:
     Message procMsg_PAIR_HIST_Y(Message& msg);
 
     Message procMsg_SYM_HIST_OPEN(Message& msg);
+
+    Message procMsg_PAIR_POS_PLACED(Message& msg);
+    Message procMsg_PAIR_POS_CLOSED(Message& msg);
 
     //real64 computePairCorr(std::vector<real32>& v1, std::vector<real32>& v2);
 
