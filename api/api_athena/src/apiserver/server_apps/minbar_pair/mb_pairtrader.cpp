@@ -5,8 +5,7 @@
 using namespace std;
 using namespace athena;
 Message
-MinBarPairTrader::processMsg(Message& msg)
-{
+MinBarPairTrader::processMsg(Message& msg) {
     Message outmsg;
     FXAction action = (FXAction) msg.getAction();
     switch(action) {
@@ -65,8 +64,7 @@ MinBarPairTrader::processMsg(Message& msg)
 }
 
 Message
-MinBarPairTrader::procMsg_PAIR_POS_CLOSED(Message& msg)
-{
+MinBarPairTrader::procMsg_PAIR_POS_CLOSED(Message& msg) {
     Message outmsg;
 
     String key = msg.getComment();
@@ -88,8 +86,7 @@ MinBarPairTrader::procMsg_PAIR_POS_CLOSED(Message& msg)
 }
 
 Message
-MinBarPairTrader::procMsg_PAIR_POS_PLACED(Message& msg)
-{
+MinBarPairTrader::procMsg_PAIR_POS_PLACED(Message& msg) {
     String key = msg.getComment();
 
     m_pairTracker[key] = m_currStatus;
@@ -98,8 +95,7 @@ MinBarPairTrader::procMsg_PAIR_POS_PLACED(Message& msg)
     return outmsg;
 }
 Message
-MinBarPairTrader::procMsg_SYM_HIST_OPEN(Message& msg)
-{
+MinBarPairTrader::procMsg_SYM_HIST_OPEN(Message& msg) {
     char* pc = (char*)msg.getChar();
     size_t cb = msg.getCharBytes() - 2*sizeof(int);
     String sym = String(pc + 2*sizeof(int),cb);
@@ -119,8 +115,7 @@ MinBarPairTrader::procMsg_SYM_HIST_OPEN(Message& msg)
     return out;
 }
 Message
-MinBarPairTrader::procMsg_PAIR_HIST_Y(Message& msg)
-{
+MinBarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     Log(LOG_INFO) << "Y min bars arrive";
 
     loadHistoryFromMsg(msg,m_minbarY,m_openY);
@@ -143,8 +138,7 @@ MinBarPairTrader::procMsg_PAIR_HIST_Y(Message& msg)
     return outmsg;
 }
 void
-MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::vector<real32>& openvec)
-{
+MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::vector<real32>& openvec) {
 
     int* pc = (int*)msg.getChar();
     int histLen = pc[0];
@@ -176,8 +170,7 @@ MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::
 }
 
 Message
-MinBarPairTrader::procMsg_ASK_PAIR(Message& msg)
-{
+MinBarPairTrader::procMsg_ASK_PAIR(Message& msg) {
     //selectTopCorr();
 
     String s1 = m_cfg->getPairSymX();
@@ -191,8 +184,7 @@ MinBarPairTrader::procMsg_ASK_PAIR(Message& msg)
 }
 
 void
-MinBarPairTrader::linearReg()
-{
+MinBarPairTrader::linearReg() {
     int len = m_openX.size()-1;
     real64* x = new real64[len];
     real64* y = new real64[len];
@@ -206,8 +198,7 @@ MinBarPairTrader::linearReg()
 
     real64 rms = sqrt(m_linregParam.chisq/len);
     Log(LOG_INFO) << "Linear regression done: c0 = " + to_string(m_linregParam.c0)
-                  + ", c1 = " + to_string(m_linregParam.c1)
-                  + ", rms =  " + to_string(rms);
+                  + ", c1 = " + to_string(m_linregParam.c1);
 
     real64 mean_y = gsl_stats_mean(y,1,len);
     real64 ss_tot=0.;
@@ -250,14 +241,15 @@ MinBarPairTrader::linearReg()
 }
 
 Message
-MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
-{
+MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     Message outmsg(sizeof(real32),0);
     real32* pm = (real32*)msg.getData();
     m_openX.push_back(pm[0]);
     m_openY.push_back(pm[1]);
     real64 x = pm[0];
     real64 y = pm[1];
+    real32 y_pv = pm[2];
+    real32 y_pd = pm[3];
 
     char* pc = (char*)msg.getChar() + sizeof(int)*2;
     int cb = msg.getCharBytes() - sizeof(int)*2;
@@ -268,7 +260,7 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
 
     real64 corr = computePairCorr(m_openX,m_openY);
     Log(LOG_INFO) << "Correlation so far: " + to_string(corr);
-    if (corr < m_cfg->getCorrBaseline()) {
+    if (fabs(corr) < m_cfg->getCorrBaseline()) {
         outmsg.setAction(FXAction::NOACTION);
         Log(LOG_ERROR) << "Correlation lower than threshold";
         return outmsg;
@@ -281,6 +273,10 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
 
     linearReg();
 
+    m_currStatus["rms"] = m_currStatus["rms"] / y_pv*y_pd;
+
+    Log(LOG_INFO) << "rms = $" + to_string(m_currStatus["rms"]) + " (per unit volume)";
+
     real64 spread = y - m_linregParam.c1*x;
 
     real64 thd = m_cfg->getThresholdStd();
@@ -288,13 +284,14 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
     real64 fac = (spread - m_spreadMean)/m_spreadStd;
     Log(LOG_INFO) << " ====== err/sigma: " + to_string(fac) + " ======";
 
-    m_currStatus["err/sigma"] = fac;
+    m_currStatus["err"] = fac;
+    m_currStatus["spread"] = spread;
     real32* pcm = (real32*)outmsg.getData();
     pcm[0] = m_linregParam.c1;
 
-    if ( fac > thd) {
+    if ( fac > thd && fac < 3) {
         outmsg.setAction(FXAction::PLACE_SELL);
-    } else if( fac < -thd) {
+    } else if( fac < -thd && fac > -3) {
         outmsg.setAction(FXAction::PLACE_BUY);
     } else if ( fac * m_prevSpread < 0) {
         //outmsg.setAction(FXAction::CLOSE_ALL_POS);
@@ -303,24 +300,37 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
         outmsg.setAction(FXAction::NOACTION);
     }
     m_prevSpread = fac;
+
+    if (m_currStatus["r2"] < m_cfg->getR2Baseline()) {
+        outmsg.setAction(FXAction::NOACTION);
+    }
     return outmsg;
 }
 
 void
-MinBarPairTrader::finish()
-{
+MinBarPairTrader::finish() {
+
+    dumpStatus();
+}
+
+void
+MinBarPairTrader::dumpStatus() {
     ofstream ofs("all_pos_pair.csv");
     int k=0;
     for (auto& it : m_pairTracker) {
         auto& status = it.second;
-        if (status.empty()) continue;
+        if (status.empty()) {
+            continue;
+        }
+        if (status["profit"] == 0)
+            continue;
         if (k==0) {
             // dump headers
             ofs << "tickets,";
             for(auto& itt : status) {
                 ofs<<itt.first<<",";
             }
-            ofs << "extra\n";
+            ofs << "label\n";
             k++;
         }
         // value
@@ -328,9 +338,13 @@ MinBarPairTrader::finish()
         for(auto& itt : status) {
             ofs << itt.second<<",";
         }
-        ofs << "-1\n";
+        if (status["profit"] > 0) {
+            ofs << "1\n";
+        }  else {
+            ofs << "0\n";
+        }
+
     }
     ofs.close();
-
 }
 

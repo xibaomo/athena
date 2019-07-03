@@ -19,10 +19,11 @@ GENERAL:
 ########################################################
 # ------------- MINBAR_PAIR_TRADER -----------------
 MINBAR_PAIR_TRADER:
-    PAIR_SYM_X: EURUSD
-    PAIR_SYM_Y: USDCZK
-    THRESHOLD_STD: 1.3  # in unit of std
+    PAIR_SYM_X: GBPSEK
+    PAIR_SYM_Y: EURSEK
+    THRESHOLD_STD: 2  # in unit of std
     CORR_BSL: 0.8
+    R2_BSL: 0.8
 
 # ------------- MINBAR_TRACKER -------------------
 MINBAR_TRACKER:

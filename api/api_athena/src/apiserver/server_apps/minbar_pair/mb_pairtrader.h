@@ -64,6 +64,8 @@ public:
 
     void prepare() {;}
     void finish();
+
+    void dumpStatus();
     Message processMsg(Message& msg);
 
     Message procMsg_ASK_PAIR(Message& msg);

@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <chrono>
+#include <fstream>
 #include "basics/log.h"
 #include "types.h"
 #include "pyhelper.hpp"
@@ -205,4 +206,17 @@ computePairCorr(std::vector<T>& v1, std::vector<T>& v2)
 bool
 test_coint(std::vector<real32>& v1, std::vector<real32>& v2);
 }
+
+//template <typename ... T>
+//void
+//dump_csv(const String& fn, std::vector<T>& ... vs)
+//{
+//    const int nv = sizeof...(vs);
+//    std::ofstream ofs(fn);
+//    ofs <<"v1,v2\n";
+//    for (size_t i = 0; i < v1.size(); i++) {
+//        ofs<<v1[i] <<","<<v2[i]<<"\n";
+//    }
+//    ofs.close();
+//}
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */

@@ -55,29 +55,6 @@ MultiPairTrader::procMsg_SYM_HIST_OPEN(Message& msg)
     return out;
 }
 
-//bool
-//MultiPairTrader::test_coint(std::vector<real32>& v1, std::vector<real32>& v2)
-//{
-//    CPyObject lx = PyList_New(v1.size());
-//    CPyObject ly = PyList_New(v2.size());
-//    for (size_t i = 0; i < v1.size(); i++) {
-//        PyList_SetItem(lx,i,Py_BuildValue("f",v1[i]));
-//        PyList_SetItem(ly,i,Py_BuildValue("f",v2[i]));
-//    }
-//
-//    CPyObject args = Py_BuildValue("(OO)",lx.getObject(),ly.getObject());
-//    PyRunner& pyrun = PyRunner::getInstance();
-//
-//    CPyObject res = pyrun.runAthenaPyFunc("coint","coint_verify",args);
-//
-//    if (PyInt_AsLong(res) == 1) {
-//        return true;
-//    }
-//
-//    return false;
-//
-//}
-
 void
 MultiPairTrader::selectTopCorr()
 {
@@ -90,6 +67,10 @@ MultiPairTrader::selectTopCorr()
         for(size_t j=i+1; j < keys.size(); j++) {
             auto& v1 = m_sym2hist[keys[i]];
             auto& v2 = m_sym2hist[keys[j]];
+
+//            String fn = keys[i]+"_"+keys[j]+".csv";
+//            dump_csv(fn,v1,v2);
+
             auto corr = computePairCorr(v1,v2);
             if (fabs(corr) > m_cfg->getCorrBaseline()) {
                 Log(LOG_INFO) << "Testing cointegration: " +  keys[i] + " vs " + keys[j];
@@ -102,9 +83,9 @@ MultiPairTrader::selectTopCorr()
 
                 LRParam pm = veclinreg(v1,v2);
                 if (pm.c0 > 0.)
-                    Log(LOG_INFO) << "Top coor pair: " + keys[i] + "," + keys[j] + ": " +to_string(corr);
+                    Log(LOG_INFO) << "Top coor pair: " + keys[i] + " , " + keys[j] + ": " +to_string(corr);
                 else
-                    Log(LOG_INFO) << "Top coor pair: " + keys[j] + "," + keys[i] + ": " +to_string(corr);
+                    Log(LOG_INFO) << "Top coor pair: " + keys[j] + " , " + keys[i] + ": " +to_string(corr);
             }
         }
     }

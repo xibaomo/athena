@@ -53,6 +53,10 @@ public:
         return getKeyValue<real32>(MPT_ROOT + "CORR_BSL");
     }
 
+    real32 getR2Baseline() {
+        return getKeyValue<real32>(MPT_ROOT + "R2_BSL");
+    }
+
 
 };
 #endif   /* ----- #ifndef _MINBAR_PAIR_TRADER_CONFIG_H_  ----- */
