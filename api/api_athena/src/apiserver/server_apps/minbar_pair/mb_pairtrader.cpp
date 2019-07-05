@@ -251,6 +251,8 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     real32 y_pv = pm[2];
     real32 y_pd = pm[3];
 
+    //dumpVectors("open_price.csv",m_openX,m_openY);
+
     char* pc = (char*)msg.getChar() + sizeof(int)*2;
     int cb = msg.getCharBytes() - sizeof(int)*2;
     String timeStr = String(pc,cb);

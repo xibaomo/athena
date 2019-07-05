@@ -205,18 +205,25 @@ computePairCorr(std::vector<T>& v1, std::vector<T>& v2)
 
 bool
 test_coint(std::vector<real32>& v1, std::vector<real32>& v2);
+
+inline
+void  dumpVectors_aux(std::ofstream& ofs, int) {
+    ofs<<"\n";
+}
+template <typename V, typename... T>
+void dumpVectors_aux(std::ofstream& ofs, int i, V& v, T&... args) {
+    ofs << v[i] <<",";
+    dumpVectors_aux(ofs,i,args...);
 }
 
-//template <typename ... T>
-//void
-//dump_csv(const String& fn, std::vector<T>& ... vs)
-//{
-//    const int nv = sizeof...(vs);
-//    std::ofstream ofs(fn);
-//    ofs <<"v1,v2\n";
-//    for (size_t i = 0; i < v1.size(); i++) {
-//        ofs<<v1[i] <<","<<v2[i]<<"\n";
-//    }
-//    ofs.close();
-//}
+template <typename V, typename ... T>
+void dumpVectors(const String& csvfile, V& v, T&... args)
+{
+    std::ofstream ofs(csvfile);
+    for (size_t i = 0; i < v.size(); i++) {
+        dumpVectors_aux(ofs, i, v, args...);
+    }
+    ofs.close();
+}
+}
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */
