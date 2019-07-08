@@ -19,9 +19,9 @@ GENERAL:
 ########################################################
 # ------------- MINBAR_PAIR_TRADER -----------------
 MINBAR_PAIR_TRADER:
-    PAIR_SYM_X: GBPSEK
-    PAIR_SYM_Y: EURSEK
-    THRESHOLD_STD: 2  # in unit of std
+    PAIR_SYM_X: USDCHF
+    PAIR_SYM_Y: USDDKK
+    THRESHOLD_STD: 1.9  # in unit of std
     CORR_BSL: 0.8
     R2_BSL: 0.8
 

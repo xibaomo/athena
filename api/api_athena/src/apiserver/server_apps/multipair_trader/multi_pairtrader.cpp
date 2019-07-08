@@ -32,6 +32,10 @@ Message
 MultiPairTrader::procMsg_ASK_PAIR(Message& msg)
 {
     selectTopCorr();
+
+    Message out;
+    out.setAction(FXAction::ASK_PAIR);
+    return out;
 }
 Message
 MultiPairTrader::procMsg_SYM_HIST_OPEN(Message& msg)
