@@ -212,4 +212,18 @@ test_coint(std::vector<real32>& v1, std::vector<real32>& v2)
     return false;
 
 }
+
+real64
+testADF(real64* v, int len)
+{
+    CPyObject lx = PyList_New(len);
+    for(int i=0; i < len; i++) {
+        PyList_SetItem(lx,i,Py_BuildValue("d",v[i]));
+    }
+    CPyObject args = Py_BuildValue("(O)",lx.getObject());
+
+    CPyObject res = PyRunner::getInstance().runAthenaPyFunc("coint","test_adf",args);
+
+    return PyFloat_AsDouble(res);
+}
 }

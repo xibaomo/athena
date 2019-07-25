@@ -24,6 +24,10 @@ def coint_verify(list_x, list_y) :
 
     return 1
 
+def test_adf(list_x):
+    af = adfuller(np.array(list_x))
+    return af[1]
+
 if __name__ == "__main__":
 
     import random

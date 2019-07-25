@@ -131,6 +131,8 @@ MinBarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
 
     linearReg();
 
+    test_coint(m_openX,m_openY);
+
     Message outmsg(msg.getAction(),sizeof(real32),0);
     real32* pm = (real32*) outmsg.getData();
     pm[0] = m_linregParam.c1;
@@ -214,12 +216,14 @@ MinBarPairTrader::linearReg() {
     m_spreadMean = gsl_stats_mean(spread,1,len);
     m_spreadStd  = gsl_stats_sd_m(spread,1,len,m_spreadMean);
 
-
     real64 minsp,maxsp;
     gsl_stats_minmax(&minsp,&maxsp,spread,1,len);
     Log(LOG_INFO) << "Spread mean: " + to_string(m_spreadMean) + ", std: " + to_string(m_spreadStd);
     Log(LOG_INFO) << "Max deviation/std: " + to_string((minsp-m_spreadMean)/m_spreadStd) + ", "
                   + to_string((maxsp-m_spreadMean)/m_spreadStd);
+
+    real64 pv = testADF(spread,len);
+    Log(LOG_INFO) << "p-value of non-stationarity of spread: " + to_string(pv);
 
     m_currStatus["profit"] = 0;
     m_currStatus["c0"] = m_linregParam.c0;
@@ -248,8 +252,8 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     m_openY.push_back(pm[1]);
     real64 x = pm[0];
     real64 y = pm[1];
-    real32 y_pv = pm[2];
-    real32 y_pd = pm[3];
+    real32 y_pv = pm[2]; // point digits
+    real32 y_pd = pm[3]; // point value in dollar
 
     //dumpVectors("open_price.csv",m_openX,m_openY);
 
@@ -283,8 +287,11 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 
     real64 thd = m_cfg->getThresholdStd();
 
+    real64 dev_val = m_spreadStd/y_pv*y_pd;
+    Log(LOG_INFO) << "std = $" + to_string(dev_val) + " (per unit volume)";
+
     real64 fac = (spread - m_spreadMean)/m_spreadStd;
-    Log(LOG_INFO) << " ====== err/sigma: " + to_string(fac) + " ======";
+    Log(LOG_INFO) << " ====== err/std: " + to_string(fac) + " ======";
 
     m_currStatus["err"] = fac;
     m_currStatus["spread"] = spread;

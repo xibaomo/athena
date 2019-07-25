@@ -43,14 +43,15 @@ MultiPairTrader::procMsg_SYM_HIST_OPEN(Message& msg)
     char* pc = (char*)msg.getChar();
     size_t cb = msg.getCharBytes() - 2*sizeof(int);
     String sym = String(pc + 2*sizeof(int),cb);
-
+    int len = msg.getDataBytes()/sizeof(real32);
     Log(LOG_INFO) << "Received history: " + sym;
+    Log(LOG_INFO) << "History length: " + to_string(len);
 
     if (m_sym2hist.find(sym) != m_sym2hist.end()) {
         Log(LOG_FATAL) << "Duplicated symbol received: " + sym;
     }
 
-    int len = msg.getDataBytes()/sizeof(real32);
+
     real32* pm = (real32*)msg.getData();
     std::vector<real32> v(pm,pm+len);
     m_sym2hist[sym] = std::move(v);
@@ -62,6 +63,7 @@ MultiPairTrader::procMsg_SYM_HIST_OPEN(Message& msg)
 void
 MultiPairTrader::selectTopCorr()
 {
+    Log(LOG_INFO) << "Total symbols received: " + to_string(m_sym2hist.size());
     vector<String> keys;
     for(const auto& kv : m_sym2hist) {
         keys.push_back(kv.first);
