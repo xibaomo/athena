@@ -19,11 +19,16 @@ GENERAL:
 ########################################################
 # ------------- MINBAR_PAIR_TRADER -----------------
 MINBAR_PAIR_TRADER:
-    PAIR_SYM_X: USDHUF
-    PAIR_SYM_Y: USDCZK
-    THRESHOLD_STD: 2.2  # in unit of std
-    CORR_BSL: 0.86
-    R2_BSL: 0.86
+    #PAIR_SYM_X: USDHUF
+    #PAIR_SYM_Y: USDCZK
+    #PAIR_SYM_X: USDDKK
+    #PAIR_SYM_Y: USDCHF
+    PAIR_SYM_X: USDZAR
+    PAIR_SYM_Y: USDCAD
+
+    THRESHOLD_STD: 1.7  # in unit of std
+    CORR_BSL: 0.85
+    R2_BSL: 0.85
 
 # ------------- MINBAR_TRACKER -------------------
 MINBAR_TRACKER:

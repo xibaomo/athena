@@ -47,6 +47,9 @@ protected:
     real64 m_spreadMean;
     real64 m_spreadStd;
 
+    real64 m_initSpreadMean;
+    real64 m_initSpreadStd;
+
     MptConfig* m_cfg;
     real64 m_prevSpread;
     MinBarPairTrader(const String& cf) : ServerBaseApp (cf){
@@ -91,7 +94,44 @@ public:
      */
     void linearReg();
 
+    template <typename T>
+    std::vector<T> generateBins(T min, T max, T mean, T sd, T bin_size_sd);
+
+    void compDistr(real64* data, int len, real64* mean=nullptr, real64* sd=nullptr);
     void selectTopCorr();
 
 };
+
+template <typename T>
+std::vector<T>
+MinBarPairTrader::generateBins(T min, T max, T mean, T sd, T bin_size_sd)
+{
+    const T eps=1e-6;
+    std::vector<T> neg_bin;
+    T s = mean;
+    while (1) {
+        s -= bin_size_sd * sd;
+        if (s < min) {
+            neg_bin.push_back(min-eps);
+            break;
+        }
+        neg_bin.push_back(s);
+    }
+    std::reverse(neg_bin.begin(),neg_bin.end());
+
+    std::vector<T> pos_bin;
+    s = mean;
+    while(1) {
+        pos_bin.push_back(s);
+        s+=bin_size_sd*sd;
+        if (s > max) {
+            pos_bin.push_back(max+eps);
+            break;
+        }
+    }
+
+    neg_bin.insert(neg_bin.end(),pos_bin.begin(),pos_bin.end());
+
+    return neg_bin;
+}
 #endif   /* ----- #ifndef _SERVER_APP_MINBAR_PAIR_TRADER_H_  ----- */

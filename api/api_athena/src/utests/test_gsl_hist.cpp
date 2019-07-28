@@ -20,6 +20,7 @@
 #include "basics/types.h"
 #include <vector>
 #include <iostream>
+#include "gsl/gsl_histogram.h"
 using namespace std;
 
 int main(int argc, char** argv)
@@ -35,9 +36,17 @@ int main(int argc, char** argv)
         sps.push_back(spread);
     }
 
-    for (auto& v : sps) {
-        cout<<v<<endl;
+    gsl_histogram_pdf* hp = gsl_histogram_pdf_alloc(100);
+    gsl_histogram *h = gsl_histogram_alloc(100);
+    gsl_histogram_set_ranges_uniform(h,-5,5);
+    for(auto v: sps) {
+        gsl_histogram_increment(h,v);
     }
+
+    gsl_histogram_pdf_init(hp,h);
+
+    gsl_histogram_pdf_free(hp);
+    gsl_histogram_free(h);
 
     return 0;
 }

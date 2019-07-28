@@ -215,96 +215,25 @@
 			<Option target="api_server" />
 			<Option target="test_server" />
 		</Unit>
-		<Unit filename="src/common/app_base/app_base.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/basics/baseconf.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/basics/csv_parser.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/basics/log.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/basics/log.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/basics/mtqueue.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/basics/types.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/basics/utils.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/basics/utils.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/conf/generalconf.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/messenger/messenger.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/messenger/messenger.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/messenger/msg.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/messenger/sockutils.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/messenger/sockutils.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/pyhelper.hpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/pyrunner/pyrunner.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/common/pyrunner/pyrunner.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
+		<Unit filename="src/common/app_base/app_base.h" />
+		<Unit filename="src/common/basics/baseconf.h" />
+		<Unit filename="src/common/basics/csv_parser.h" />
+		<Unit filename="src/common/basics/log.cpp" />
+		<Unit filename="src/common/basics/log.h" />
+		<Unit filename="src/common/basics/mtqueue.h" />
+		<Unit filename="src/common/basics/types.h" />
+		<Unit filename="src/common/basics/utils.cpp" />
+		<Unit filename="src/common/basics/utils.h" />
+		<Unit filename="src/common/conf/generalconf.h" />
+		<Unit filename="src/common/histogram/histogram.h" />
+		<Unit filename="src/common/messenger/messenger.cpp" />
+		<Unit filename="src/common/messenger/messenger.h" />
+		<Unit filename="src/common/messenger/msg.h" />
+		<Unit filename="src/common/messenger/sockutils.cpp" />
+		<Unit filename="src/common/messenger/sockutils.h" />
+		<Unit filename="src/common/pyhelper.hpp" />
+		<Unit filename="src/common/pyrunner/pyrunner.cpp" />
+		<Unit filename="src/common/pyrunner/pyrunner.h" />
 		<Unit filename="src/modules/fx_action/fx_action.h">
 			<Option target="Release" />
 			<Option target="api_server" />

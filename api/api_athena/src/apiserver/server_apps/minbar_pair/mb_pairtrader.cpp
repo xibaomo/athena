@@ -1,6 +1,7 @@
 #include "mb_pairtrader.h"
 #include "pyrunner/pyrunner.h"
 #include "basics/utils.h"
+#include "histogram/histogram.h"
 #include <fstream>
 using namespace std;
 using namespace athena;
@@ -131,6 +132,9 @@ MinBarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
 
     linearReg();
 
+    m_initSpreadMean = m_spreadMean;
+    m_initSpreadStd  = m_spreadStd;
+
     test_coint(m_openX,m_openY);
 
     Message outmsg(msg.getAction(),sizeof(real32),0);
@@ -213,17 +217,16 @@ MinBarPairTrader::linearReg() {
     }
     real64 r2 = 1-ss_res/ss_tot;
     Log(LOG_INFO) << "R2 = " + to_string(r2);
-    m_spreadMean = gsl_stats_mean(spread,1,len);
-    m_spreadStd  = gsl_stats_sd_m(spread,1,len,m_spreadMean);
 
-    real64 minsp,maxsp;
-    gsl_stats_minmax(&minsp,&maxsp,spread,1,len);
-    Log(LOG_INFO) << "Spread mean: " + to_string(m_spreadMean) + ", std: " + to_string(m_spreadStd);
-    Log(LOG_INFO) << "Max deviation/std: " + to_string((minsp-m_spreadMean)/m_spreadStd) + ", "
-                  + to_string((maxsp-m_spreadMean)/m_spreadStd);
+    compDistr(spread,len,&m_spreadMean,&m_spreadStd);
 
-    real64 pv = testADF(spread,len);
-    Log(LOG_INFO) << "p-value of non-stationarity of spread: " + to_string(pv);
+    const char* env = getenv("NO_ADF_TEST");
+    if (env && atoi(env)==1) {
+            ;
+    }else {
+        real64 pv = testADF(spread,len);
+        Log(LOG_INFO) << "p-value of non-stationarity of spread: " + to_string(pv);
+    }
 
     m_currStatus["profit"] = 0;
     m_currStatus["c0"] = m_linregParam.c0;
@@ -244,6 +247,62 @@ MinBarPairTrader::linearReg() {
     delete[] spread;
 }
 
+void
+MinBarPairTrader::compDistr(real64* data, int len, real64* mean_out, real64* sd_out)
+{
+    real64 minsp,maxsp;
+    gsl_stats_minmax(&minsp,&maxsp,data,1,len);
+
+    real64 mean = gsl_stats_mean(data,1,len);
+    real64 sd   = gsl_stats_sd_m(data,1,len,mean);
+
+    if(mean_out)    *mean_out=mean;
+    if(sd_out)      *sd_out=sd;
+
+    Log(LOG_INFO) << "Spread mean: " + to_string(mean) + ", std: " + to_string(sd);
+    Log(LOG_INFO) << "Max deviation/std: " + to_string((minsp-mean)/sd) + ", "
+                  + to_string((maxsp-mean)/sd);
+
+    vector<real64> bins = generateBins(minsp,maxsp,mean,sd,1.);
+    vector<real64> v_data(data,data+len);
+    vector<size_t> hist = histogram(v_data,bins);
+
+    unordered_map<String,size_t> bin2count;
+    for(size_t i=0; i < hist.size(); i++) {
+        bin2count[to_string(bins[i])] = hist[i];
+    }
+
+    size_t sum = std::accumulate(hist.begin(),hist.end(),0);
+    int s=0;
+    size_t sn=0;
+    while(1) {
+        real64 rs = mean+s*sd;
+        real64 ls = mean-(s+1)*sd;
+        if (rs> bins.back()) {
+            Log(LOG_INFO) << to_string(s+1) + "std exceeds max";
+            break;
+        }
+        if (ls < bins[0]) {
+            Log(LOG_INFO) << to_string(s+1) + "std exceeds min";
+            break;
+        }
+        String srs = to_string(rs);
+        String sls = to_string(ls);
+        if (bin2count.find(srs)==bin2count.end())
+            Log(LOG_FATAL) << "Fail to find right std: " + srs;
+        if (bin2count.find(sls)==bin2count.end())
+            Log(LOG_FATAL) << "Fail to find left std: " + sls;
+
+        sn += bin2count[srs] + bin2count[sls];
+        real64 rat = (real64)sn/sum;
+        String msg = "[-" + to_string(s+1) + "," + to_string(s+1) + "]std: " + to_string(rat);
+        Log(LOG_INFO) << msg;
+
+        s++;
+    }
+
+}
+
 Message
 MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     Message outmsg(sizeof(real32),0);
@@ -260,6 +319,8 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     char* pc = (char*)msg.getChar() + sizeof(int)*2;
     int cb = msg.getCharBytes() - sizeof(int)*2;
     String timeStr = String(pc,cb);
+
+    Log(LOG_INFO) <<"";
 
     Log(LOG_INFO) << "Mt5 time: " + timeStr + ", X: " + to_string(x)
                   + ", Y: " + to_string(y);
@@ -278,6 +339,10 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 //    }
 
     linearReg();
+
+    real64 z = compZtest(m_initSpreadMean,m_spreadMean,m_initSpreadStd,m_spreadStd);
+
+    Log(LOG_INFO) << "Z-test: " + to_string(z);
 
     m_currStatus["rms"] = m_currStatus["rms"] / y_pv*y_pd;
 
@@ -356,4 +421,6 @@ MinBarPairTrader::dumpStatus() {
     }
     ofs.close();
 }
+
+
 

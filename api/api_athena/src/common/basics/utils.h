@@ -233,5 +233,18 @@ void dumpVectors(const String& csvfile, V& v, T&... args)
     }
     ofs.close();
 }
+
+/**
+ * Use Z-test to compare two normal distributions
+ * Z = 2.33 corresponds to p=0.01
+ */
+template <typename T>
+T
+compZtest(T m1, T m2, T sd1, T sd2)
+{
+    real64 z = fabs(m1-m2)/sqrt(sd1*sd1+sd2*sd2);
+
+    return z;
+}
 }
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */
