@@ -224,7 +224,12 @@ MinBarPairTrader::linearReg() {
     if (env && atoi(env)==1) {
             ;
     }else {
-        real64 pv = testADF(spread,len);
+        vector<real64> spv(spread,spread+len);
+        int lookback = m_cfg->getStationaryCheckLookback();
+        real64 pv = testADF(spv,len-lookback,len);
+        if (pv > m_maxStatPValue) m_maxStatPValue = pv;
+
+        m_currStatus["statPV"] = pv;
         Log(LOG_INFO) << "p-value of non-stationarity of spread: " + to_string(pv);
     }
 
@@ -378,6 +383,10 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     if (m_currStatus["r2"] < m_cfg->getR2Baseline()) {
         outmsg.setAction(FXAction::NOACTION);
     }
+
+    if (m_currStatus["statPV"] >= m_cfg->getStationaryPVLimit()) {
+        outmsg.setAction(FXAction::CLOSE_ALL_POS);
+    }
     return outmsg;
 }
 
@@ -385,6 +394,9 @@ void
 MinBarPairTrader::finish() {
 
     dumpStatus();
+
+    Log(LOG_INFO) << "Stationary check lookback: " + to_string(m_cfg->getStationaryCheckLookback());
+    Log(LOG_INFO) << "Max stationary p-value: " + to_string(m_maxStatPValue);
 }
 
 void

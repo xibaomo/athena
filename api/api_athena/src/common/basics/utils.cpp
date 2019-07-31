@@ -226,4 +226,22 @@ testADF(real64* v, int len)
 
     return PyFloat_AsDouble(res);
 }
+
+real64
+testADF(vector<real64>& vec, int start, int last)
+{
+    real64* v;
+    int len;
+    if (start < 0 || last < 0) {
+        v = &vec[0];
+        len = vec.size();
+    } else {
+        v = &vec[start];
+        len = last-start;
+    }
+    real64 pv = testADF(v,len);
+
+    return pv;
+}
+
 }

@@ -57,6 +57,13 @@ public:
         return getKeyValue<real32>(MPT_ROOT + "R2_BSL");
     }
 
+    int getStationaryCheckLookback() {
+        return getKeyValue<int>(MPT_ROOT + "STATIONARY_CHECK_LOOKBACK");
+    }
+
+    real32 getStationaryPVLimit() {
+        return getKeyValue<real32>(MPT_ROOT + "STATIONARY_PV_LIMIT");
+    }
 
 };
 #endif   /* ----- #ifndef _MINBAR_PAIR_TRADER_CONFIG_H_  ----- */

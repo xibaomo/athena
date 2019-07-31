@@ -50,12 +50,20 @@ protected:
     real64 m_initSpreadMean;
     real64 m_initSpreadStd;
 
+    real64 m_maxStatPValue;
+
     MptConfig* m_cfg;
     real64 m_prevSpread;
     MinBarPairTrader(const String& cf) : ServerBaseApp (cf){
         m_cfg = &MptConfig::getInstance();
         m_cfg->loadConfig(cf);
         m_prevSpread = 0.;
+        m_spreadMean = -1.;
+        m_spreadStd = -1.;
+        m_initSpreadMean = m_spreadMean;
+        m_initSpreadStd  = m_spreadStd;
+        m_maxStatPValue  = -1.;
+
     }
 
 public:
