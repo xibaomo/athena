@@ -190,6 +190,16 @@ void getPythonFunction(const String& modFile, const String& funcName,CPyObject& 
     }
 
 }
+
+static void import_numpy()
+{
+//    static int a = 0;
+//    if (a>0) return;
+//    a++;
+//    PyRunner& pyrun = PyRunner::getInstance();
+//    (void)pyrun;
+    import_array();
+}
 bool
 test_coint(std::vector<real32>& v1, std::vector<real32>& v2)
 {
@@ -200,8 +210,22 @@ test_coint(std::vector<real32>& v1, std::vector<real32>& v2)
         PyList_SetItem(ly,i,Py_BuildValue("f",v2[i]));
     }
 
-    CPyObject args = Py_BuildValue("(OO)",lx.getObject(),ly.getObject());
-    PyRunner& pyrun = PyRunner::getInstance();
+    auto& pyrun = PyRunner::getInstance();
+
+//    npy_intp dims[1];
+//    dims[0] = v1.size();
+//
+//
+//
+//    import_numpy();
+//
+//    CPyObject pyv1 = PyArray_SimpleNewFromData(1,dims,NPY_FLOAT32,(void*)&v1[0]);
+//    CPyObject pyv2 = PyArray_SimpleNewFromData(1,dims,NPY_FLOAT32,(void*)&v2[0]);
+
+//    CPyObject args = Py_BuildValue("(OO)",pyv1.getObject(),pyv2.getObject());
+    CPyObject args = PyTuple_New(2);
+    PyTuple_SetItem(args.getObject(),0,lx.getObject());
+    PyTuple_SetItem(args.getObject(),1,ly.getObject());
 
     CPyObject res = pyrun.runAthenaPyFunc("coint","coint_verify",args);
 

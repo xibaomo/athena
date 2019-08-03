@@ -19,12 +19,12 @@ GENERAL:
 ########################################################
 # ------------- MINBAR_PAIR_TRADER -----------------
 MINBAR_PAIR_TRADER:
-    PAIR_SYM_X: USDDKK
-    PAIR_SYM_Y: EURUSD
+    #PAIR_SYM_X: USDNOK
+    #PAIR_SYM_Y: USDCZK
     #
     # ==== lose 711-720-2019
-    #PAIR_SYM_X: USDDKK
-    #PAIR_SYM_Y: USDCHF
+    PAIR_SYM_X: USDDKK
+    PAIR_SYM_Y: USDCHF
     #==== profit 711-720-2019
     #PAIR_SYM_X: USDZAR
     #PAIR_SYM_Y: USDCAD

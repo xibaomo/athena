@@ -2,13 +2,17 @@
 #include "basics/utils.h"
 using namespace std;
 using namespace athena;
-
+static void import_numpy()
+{
+    import_array();
+}
 PyRunner::PyRunner()
 {
     String athenaHome = String(getenv("ATHENA_HOME"));
     String modulePath = athenaHome + "/pyapi";
 
     m_pyInst.appendSysPath(modulePath);
+    //import_numpy();
 }
 
 CPyObject

@@ -69,11 +69,14 @@ MultiPairTrader::selectTopCorr()
         keys.push_back(kv.first);
     }
 
+    int k = 0;
+
     for (size_t i = 0; i < keys.size(); i++) {
         for(size_t j=i+1; j < keys.size(); j++) {
             auto& v1 = m_sym2hist[keys[i]];
             auto& v2 = m_sym2hist[keys[j]];
 
+            k++;
 //            String fn = keys[i]+"_"+keys[j]+".csv";
 //            dump_csv(fn,v1,v2);
 
@@ -95,4 +98,6 @@ MultiPairTrader::selectTopCorr()
             }
         }
     }
+
+    Log(LOG_INFO) << "Inspected pairs: " + to_string(k);
 }

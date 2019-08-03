@@ -345,10 +345,6 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 
     linearReg();
 
-    real64 z = compZtest(m_initSpreadMean,m_spreadMean,m_initSpreadStd,m_spreadStd);
-
-    Log(LOG_INFO) << "Z-test: " + to_string(z);
-
     m_currStatus["rms"] = m_currStatus["rms"] / y_pv*y_pd;
 
     Log(LOG_INFO) << "rms = $" + to_string(m_currStatus["rms"]) + " (per unit volume)";
