@@ -198,7 +198,8 @@ static void import_numpy()
 //    a++;
 //    PyRunner& pyrun = PyRunner::getInstance();
 //    (void)pyrun;
-    import_array();
+    if(PyArray_API==NULL)
+        import_array();
 }
 bool
 test_coint(std::vector<real32>& v1, std::vector<real32>& v2)
@@ -235,6 +236,57 @@ test_coint(std::vector<real32>& v1, std::vector<real32>& v2)
 
     return false;
 
+}
+
+bool
+__test_coint(std::vector<real32>& v1, std::vector<real32>& v2)
+{
+    auto& pyrun=PyRunner::getInstance();
+
+    String athenaHome = String(getenv("ATHENA_HOME"));
+    String modulePath = athenaHome + "/pyapi";
+    PyRun_SimpleString("import sys");
+    std::string cmd = "sys.path.append(\'" + modulePath + "\')";
+        PyRun_SimpleString(cmd.c_str());
+
+    String modName = "coint";
+    String funcName="test_test";
+
+    PyObject* mod = PyImport_ImportModule(modName.c_str());
+    if (!mod)
+        Log(LOG_FATAL) << "Failed to import module: " + modName;
+
+    CPyObject func = PyObject_GetAttrString(mod,funcName.c_str());
+    if(!func)
+        Log(LOG_FATAL) << "Failed to find py function: " + funcName;
+    npy_intp dims[1];
+    dims[0] = v1.size();
+
+    static int a=0;
+    if (a==0) {import_numpy();a++;}
+//
+    PyObject* pyv1 = PyArray_SimpleNewFromData(1,dims,NPY_FLOAT32,reinterpret_cast<void*>(&v1[0]));
+    PyObject* pyv2 = PyArray_SimpleNewFromData(1,dims,NPY_FLOAT32,reinterpret_cast<void*>(&v2[0]));
+
+//    CPyObject args = Py_BuildValue("(OO)",pyv1.getObject(),pyv2.getObject());
+    PyObject* args = PyTuple_New(2);
+    PyTuple_SetItem(args,0,pyv1);
+    PyTuple_SetItem(args,1,pyv2);
+
+    //CPyObject res = pyrun.runAthenaPyFunc("coint","coint_verify",args);
+
+    CPyObject res = PyObject_CallObject(func,args);
+
+    if (PyInt_AsLong(res) == 1) {
+        return true;
+    }
+
+    Py_XDECREF(args);
+    Py_XDECREF(mod);
+    Py_XDECREF(pyv1);
+    Py_XDECREF(pyv2);
+
+    return false;
 }
 
 real64

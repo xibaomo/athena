@@ -19,22 +19,19 @@ GENERAL:
 ########################################################
 # ------------- MINBAR_PAIR_TRADER -----------------
 MINBAR_PAIR_TRADER:
-    #PAIR_SYM_X: USDNOK
-    #PAIR_SYM_Y: USDCZK
+    PAIR_SYM_X: USDZAR
+    PAIR_SYM_Y: AUDJPY
     #
     # ==== lose 711-720-2019
-    PAIR_SYM_X: USDDKK
-    PAIR_SYM_Y: USDCHF
-    #==== profit 711-720-2019
-    #PAIR_SYM_X: USDZAR
-    #PAIR_SYM_Y: USDCAD
+    #PAIR_SYM_X: USDDKK
+    #PAIR_SYM_Y: USDCHF
 
     STATIONARY_CHECK_LOOKBACK: 5000
-    STATIONARY_PV_LIMIT: 0.06
+    STATIONARY_PV_LIMIT: 0.015
 
     THRESHOLD_STD: 1.7  # in unit of std
-    CORR_BSL: 0.85
-    R2_BSL: 0.85
+    CORR_BSL: 0.8
+    R2_BSL: 0.8
 
 # ------------- MINBAR_TRACKER -------------------
 MINBAR_TRACKER:

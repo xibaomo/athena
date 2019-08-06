@@ -130,7 +130,7 @@ MinBarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     real64 corr = computePairCorr(m_openX,m_openY);
     Log(LOG_INFO) << "Correlation: " + to_string(corr);
 
-    linearReg();
+    linearReg(m_openX.size()-5000);
 
     m_initSpreadMean = m_spreadMean;
     m_initSpreadStd  = m_spreadStd;
@@ -190,14 +190,16 @@ MinBarPairTrader::procMsg_ASK_PAIR(Message& msg) {
 }
 
 void
-MinBarPairTrader::linearReg() {
-    int len = m_openX.size()-1;
+MinBarPairTrader::linearReg(int start) {
+    int len = m_openX.size()-start;
     real64* x = new real64[len];
     real64* y = new real64[len];
     real64* spread = new real64[len];
-    for (int i=0; i< len; i++) {
-        x[i] = m_openX[i];
-        y[i] = m_openY[i];
+    int k=0;
+    for (int i=start; i< m_openX.size(); i++) {
+        x[k] = m_openX[i];
+        y[k] = m_openY[i];
+        k++;
     }
 
     m_linregParam = linreg(x,y,len);
@@ -239,14 +241,14 @@ MinBarPairTrader::linearReg() {
     m_currStatus["rms"] = rms;
     m_currStatus["r2"] = r2;
     //dump spread
-    ofstream ofs("spread.csv");
-    ofs<<"x,y,spread"<<endl;
-    for (int i=0; i < len; i++) {
-        ofs << m_openX[i]<<","<<m_openY[i]<<","<<spread[i] << endl;
-    }
-    ofs.close();
-
-    Log(LOG_INFO) << "spread dumped to spread.csv";
+//    ofstream ofs("spread.csv");
+//    ofs<<"x,y,spread"<<endl;
+//    for (int i=0; i < len; i++) {
+//        ofs << m_openX[i]<<","<<m_openY[i]<<","<<spread[i] << endl;
+//    }
+//    ofs.close();
+//
+//    Log(LOG_INFO) << "spread dumped to spread.csv";
     delete[] x;
     delete[] y;
     delete[] spread;
@@ -343,7 +345,7 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 //        return outmsg;
 //    }
 
-    linearReg();
+    linearReg(m_openX.size()-5000);
 
     m_currStatus["rms"] = m_currStatus["rms"] / y_pv*y_pd;
 

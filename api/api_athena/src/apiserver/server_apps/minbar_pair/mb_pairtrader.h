@@ -100,7 +100,7 @@ public:
     /**
      * Linear regression of X & Y
      */
-    void linearReg();
+    void linearReg(int start);
 
     template <typename T>
     std::vector<T> generateBins(T min, T max, T mean, T sd, T bin_size_sd);

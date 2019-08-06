@@ -28,6 +28,10 @@ def test_adf(list_x):
     af = adfuller(np.array(list_x))
     return af[1]
 
+def test_test(lx, ly):
+    print lx.shape
+    print ly.shape
+
 if __name__ == "__main__":
 
     import random

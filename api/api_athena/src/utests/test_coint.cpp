@@ -14,7 +14,10 @@ int main() {
     }
 
     bool r = test_coint(v1,v2);
+    cout<<r<<endl;
     r = test_coint(v1,v2);
+
+    cout<<r<<endl;
 
     return 0;
 }
