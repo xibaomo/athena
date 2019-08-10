@@ -90,11 +90,11 @@ MultiPairTrader::selectTopCorr()
                 SymPair sp{keys[i],keys[j],corr};
                 m_topCorrSyms.push_back(sp);
 
-                LRParam pm = veclinreg(v1,v2);
+                LRParam pm = ordLinreg(v1,v2);
                 if (pm.c0 > 0.)
-                    Log(LOG_INFO) << "Top coor pair: " + keys[i] + " , " + keys[j] + ": " +to_string(corr);
+                    Log(LOG_INFO) << "Top corr pair: " + keys[i] + " , " + keys[j] + ": " +to_string(corr);
                 else
-                    Log(LOG_INFO) << "Top coor pair: " + keys[j] + " , " + keys[i] + ": " +to_string(corr);
+                    Log(LOG_INFO) << "Top corr pair: " + keys[j] + " , " + keys[i] + ": " +to_string(corr);
             }
         }
     }

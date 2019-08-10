@@ -36,9 +36,14 @@
 				<Option type="0" />
 				<Option compiler="gcc" />
 			</Target>
+			<Target title="test_coint">
+				<Option output="release/bin/test_coint" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+			</Target>
 		</Build>
 		<VirtualTargets>
-			<Add alias="all" targets="Release;api_server;test_server;" />
+			<Add alias="all" targets="Release;api_server;test_server;test_coint;" />
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
@@ -328,6 +333,9 @@
 			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
+		</Unit>
+		<Unit filename="src/utests/test_coint.cpp">
+			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/utests/test_gsl_hist.cpp">
 			<Option target="gsl_hist" />
