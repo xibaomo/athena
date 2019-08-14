@@ -187,6 +187,21 @@
 			<Option target="api_server" />
 			<Option target="test_server" />
 		</Unit>
+		<Unit filename="src/apiserver/server_apps/robust_pair_trader/robust_pair_trader.cpp">
+			<Option target="Release" />
+			<Option target="api_server" />
+			<Option target="test_server" />
+		</Unit>
+		<Unit filename="src/apiserver/server_apps/robust_pair_trader/robust_pair_trader.h">
+			<Option target="Release" />
+			<Option target="api_server" />
+			<Option target="test_server" />
+		</Unit>
+		<Unit filename="src/apiserver/server_apps/robust_pair_trader/rptconf.h">
+			<Option target="Release" />
+			<Option target="api_server" />
+			<Option target="test_server" />
+		</Unit>
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.cpp">
 			<Option target="Release" />
 			<Option target="api_server" />
@@ -250,6 +265,16 @@
 			<Option target="test_server" />
 		</Unit>
 		<Unit filename="src/modules/linreg/linreg.h">
+			<Option target="Release" />
+			<Option target="api_server" />
+			<Option target="test_server" />
+		</Unit>
+		<Unit filename="src/modules/linreg/roblinreg.cpp">
+			<Option target="Release" />
+			<Option target="api_server" />
+			<Option target="test_server" />
+		</Unit>
+		<Unit filename="src/modules/linreg/roblinreg.h">
 			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />

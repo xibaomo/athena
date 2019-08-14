@@ -20,6 +20,7 @@
 #include "server_apps/minbar_tracker/minbar_tracker.h"
 #include "server_apps/minbar_pair/mb_pairtrader.h"
 #include "server_apps/multipair_trader/multi_pairtrader.h"
+#include "server_apps/robust_pair_trader/robust_pair_trader.h"
 
 ServerBaseApp*
 create_server_app(AppType type, const String& configFile)
@@ -45,6 +46,9 @@ create_server_app(AppType type, const String& configFile)
         case AppType::APP_MINBAR_PAIRTRADER:
             app = &MinBarPairTrader::getInstance(configFile);
             Log(LOG_INFO) << "Min bar pair trader created";
+            break;
+        case AppType::APP_ROBUST_PAIRTRADER:
+            app = &RobustPairTrader::getInstance(configFile);
             break;
         default:
             break;
