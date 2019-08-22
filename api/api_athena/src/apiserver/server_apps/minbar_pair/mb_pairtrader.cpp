@@ -307,7 +307,6 @@ MinBarPairTrader::compDistr(real64* data, int len, real64* mean_out, real64* sd_
 
         s++;
     }
-
 }
 
 Message

@@ -50,5 +50,13 @@ public:
     int getOutlierNumLimit() {
         return getKeyValue<int>(RPT_ROOT + "OUTLIER_NUM_LIMIT");
     }
+
+    real32 getStationaryPVLimit() {
+        return getKeyValue<real32>(RPT_ROOT + "STATIONARY_PV_LIMIT");
+    }
+
+    real32 getR2Limit() {
+        return getKeyValue<real32>(RPT_ROOT + "R2_LIMIT");
+    }
 };
 #endif   /* ----- #ifndef _ROBUST_PAIRTRADER_CONF_H_  ----- */

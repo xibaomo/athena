@@ -1,5 +1,6 @@
 #include "multi_pairtrader.h"
 #include "pyrunner/pyrunner.h"
+#include "linreg/roblinreg.h"
 using namespace std;
 using namespace athena;
 
@@ -90,11 +91,13 @@ MultiPairTrader::selectTopCorr()
                 SymPair sp{keys[i],keys[j],corr};
                 m_topCorrSyms.push_back(sp);
 
-                LRParam pm = ordLinreg(v1,v2);
+                RobLRParam pm = robLinreg(v1,v2);
                 if (pm.c0 > 0.)
                     Log(LOG_INFO) << "Top corr pair: " + keys[i] + " , " + keys[j] + ": " +to_string(corr);
                 else
                     Log(LOG_INFO) << "Top corr pair: " + keys[j] + " , " + keys[i] + ": " +to_string(corr);
+
+                Log(LOG_INFO) << "R2 = " + to_string(pm.r2);
             }
         }
     }

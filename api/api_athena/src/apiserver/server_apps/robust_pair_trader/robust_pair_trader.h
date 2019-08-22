@@ -32,6 +32,7 @@ protected:
     std::vector<real32>     m_openX;
     std::vector<real32>     m_openY;
     PTStatus                m_currStatus;
+    size_t                  m_numPos;
 
     size_t                  m_numOutliers;
 
@@ -41,6 +42,7 @@ protected:
         m_cfg = &RptConfig::getInstance();
         m_cfg->loadConfig(cfg);
         m_initBalance = -1.;
+        m_numPos= 0;
         m_numOutliers = 0;
         Log(LOG_INFO) << "Robust pair trader created";
         }

@@ -43,6 +43,12 @@ RobustPairTrader::processMsg(Message& msg) {
     case FXAction::PAIR_MIN_OPEN:
         outmsg = procMsg_PAIR_MIN_OPEN(msg);
         break;
+    case FXAction::NUM_POS:
+        outmsg = procMsg_noreply(msg,[this](Message& msg) {
+            real32* pm = (real32*)msg.getData();
+            m_numPos = pm[0];
+        });
+        break;
     default:
         break;
     }
@@ -57,17 +63,18 @@ RobustPairTrader::processMsg(Message& msg) {
     case FXAction::NOACTION:
         Log(LOG_INFO) << "No action";
         break;
+    case FXAction::CLOSE_ALL_POS:
+        Log(LOG_WARNING) << "Close all positions!";
+        break;
     default:
         break;
-
     }
 
     return outmsg;
 }
 
 Message
-RobustPairTrader::procMsg_ASK_PAIR(Message& msg)
-{
+RobustPairTrader::procMsg_ASK_PAIR(Message& msg) {
     String s1 = m_cfg->getSymX();
     String s2 = m_cfg->getSymY();
     String st = s1 + ":" + s2;
@@ -78,8 +85,7 @@ RobustPairTrader::procMsg_ASK_PAIR(Message& msg)
 }
 
 Message
-RobustPairTrader::procMsg_PAIR_HIST_X(Message& msg)
-{
+RobustPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
     Log(LOG_INFO) << "X history arrives";
 
     int* pc = (int*)msg.getChar();
@@ -99,8 +105,7 @@ RobustPairTrader::procMsg_PAIR_HIST_X(Message& msg)
 }
 
 Message
-RobustPairTrader::procMsg_PAIR_HIST_Y(Message& msg)
-{
+RobustPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     Log(LOG_INFO) << "Y history arrives";
 
     int* pc = (int*)msg.getChar();
@@ -130,14 +135,13 @@ RobustPairTrader::procMsg_PAIR_HIST_Y(Message& msg)
 }
 
 void
-RobustPairTrader::linreg(size_t start)
-{
+RobustPairTrader::linreg(size_t start) {
     m_LRParams = robLinreg(m_openX,m_openY,start);
 
     real64 c0 = m_LRParams.c0;
     real64 c1 = m_LRParams.c1;
     Log(LOG_INFO) << "Linear reg done: c0 = " + to_string(c0)
-                    + ", c1 = " + to_string(c1);
+                  + ", c1 = " + to_string(c1);
 
     Log(LOG_INFO) << "Ave weight: " + to_string(m_LRParams.w_ave);
     Log(LOG_INFO) << "Latest weight: " + to_string(m_LRParams.w_now);
@@ -158,12 +162,13 @@ RobustPairTrader::linreg(size_t start)
     real64 pv = testADF(spread,len);
     Log(LOG_INFO) << "p-value of non-stationarity of spread: " + to_string(pv);
 
+    m_currStatus["pv"] = pv;
+
     delete[] spread;
 }
 
 Message
-RobustPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
-{
+RobustPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     // This function fits linear model with all past ticks even though they are outliers
     Message outmsg(sizeof(real32),0);
     real32* pm = (real32*)msg.getData();
@@ -187,7 +192,7 @@ RobustPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
     real64 corr = computePairCorr(m_openX,m_openY);
     Log(LOG_INFO) << "Correlation so far: " + to_string(corr);
 
-    linreg();
+    linreg(m_openX.size()-1000);
 
     Log(LOG_INFO) << "R2 = " + to_string(m_currStatus["r2"]);
 
@@ -206,9 +211,9 @@ RobustPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
 
     real32 thd = m_cfg->getThresholdStd();
 
-    if ( fac > thd ) {
+    if ( fac > thd && fac < 2.5) {
         outmsg.setAction(FXAction::PLACE_SELL);
-    } else if( fac < -thd ) {
+    } else if( fac < -thd && fac > -2.5) {
         outmsg.setAction(FXAction::PLACE_BUY);
     } else {
         outmsg.setAction(FXAction::NOACTION);
@@ -216,14 +221,28 @@ RobustPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
 
     real64 w_ratio = m_LRParams.w_now/m_LRParams.w_ave;
     if (w_ratio < m_cfg->getOutlierWeightRatio()) {
-        outmsg.setAction(FXAction::NOACTION);
+        //outmsg.setAction(FXAction::NOACTION);
         m_numOutliers++;
         Log(LOG_WARNING) << "Outlier detected! w_now/w_ave: " + to_string(w_ratio);
+    } else {
+        m_numOutliers = 0;
+    }
+
+    if (m_numOutliers > 0) {
+        Log(LOG_WARNING) << "So far outliers: " + to_string(m_numOutliers);
     }
 
     if (m_numOutliers >= m_cfg->getOutlierNumLimit()) {
         outmsg.setAction(FXAction::CLOSE_ALL_POS);
     }
 
+    if(m_currStatus["pv"] > m_cfg->getStationaryPVLimit()) {
+        outmsg.setAction(FXAction::CLOSE_ALL_POS);
+    }
+
+    if(m_LRParams.r2 < m_cfg->getR2Limit()) {
+        Log(LOG_WARNING) << "R2 too low";
+        outmsg.setAction(FXAction::NOACTION);
+    }
     return outmsg;
 }
