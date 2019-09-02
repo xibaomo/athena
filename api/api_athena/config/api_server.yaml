@@ -20,9 +20,9 @@ GENERAL:
 ########################################################
 # ------------- ROBUST_PAIR_TRADER -----------------
 ROBUST_PAIR_TRADER:
-    SYM_X: USDZAR
-    SYM_Y: EURZAR
-    THRESHOLD_STD: 1.2  # in unit of std
+    SYM_X: GBPSGD
+    SYM_Y: GBPUSD
+    THRESHOLD_STD: [0.2,1.5]  # in unit of std
     OUTLIER_WEIGHT_RATIO: 0.2  # w_now/w_ave
     OUTLIER_NUM_LIMIT: 10  # beyond which the model fails
 

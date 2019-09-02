@@ -39,8 +39,8 @@ public:
         return getKeyValue<String>(RPT_ROOT + "SYM_Y");
     }
 
-    real32 getThresholdStd() {
-        return getKeyValue<real32>(RPT_ROOT + "THRESHOLD_STD");
+    std::vector<real32> getThresholdStd() {
+        return getKeyValue<std::vector<real32>>(RPT_ROOT + "THRESHOLD_STD");
     }
 
     real32 getOutlierWeightRatio() {

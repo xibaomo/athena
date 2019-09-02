@@ -249,5 +249,16 @@ compZtest(T m1, T m2, T sd1, T sd2)
 
     return z;
 }
+
+template <typename T>
+int
+searchVector(std::vector<T>& v, T tgt)
+{
+    for(size_t i=0;i < v.size(); i++) {
+        if (v[i] == tgt)
+            return i;
+    }
+    return -1;
+}
 }
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */

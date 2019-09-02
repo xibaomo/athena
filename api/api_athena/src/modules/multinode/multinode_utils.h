@@ -20,14 +20,21 @@
 #define  _MULTINODE_UTILS_H_
 #include "basics/types.h"
 #include <vector>
-#include <set>
+#include <vector>
 struct Edge {
-    String a, b;
+    int a, b;
     real64 w;
 };
 
 void pushEdges(String sym,
         real64 ask, real64 bid,
+        //output
         std::vector<Edge>& G,
-        std::set<String>& currencies);
+        std::vector<String>& currencies);
+
+std::vector<int>
+bellmanford(std::vector<Edge>& edges, int N);
+
+void
+addDummyNode(std::vector<Edge>& edges, std::vector<String>& nodes);
 #endif   /* ----- #ifndef _MULTINODE_UTILS_H_  ----- */

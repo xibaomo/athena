@@ -254,111 +254,29 @@
 		<Unit filename="src/common/pyhelper.hpp" />
 		<Unit filename="src/common/pyrunner/pyrunner.cpp" />
 		<Unit filename="src/common/pyrunner/pyrunner.h" />
-		<Unit filename="src/modules/fx_action/fx_action.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/linreg/linreg.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/linreg/linreg.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/linreg/roblinreg.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/linreg/roblinreg.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/ma_pred/createMAPredictor.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/ma_pred/createMAPredictor.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/ma_pred/crosser/ma_crosser.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/ma_pred/crosser/ma_crosser.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/ma_pred/crosser/mcconf.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/ma_pred/grad_hunter/ma_grad_hunter.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/ma_pred/grad_hunter/ma_grad_hunter.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/ma_pred/grad_hunter/mghconf.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_cal/ma_cal.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_cal/ma_cal.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_cal/ma_lwma.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_pred_base/ma_pred_base.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/ma_pred/mpconf.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/mb_base/mb_base_pred.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/minbar_predictor/mbpconf.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/modules/predictor/prdtypes.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
+		<Unit filename="src/modules/fx_action/fx_action.h" />
+		<Unit filename="src/modules/linreg/linreg.cpp" />
+		<Unit filename="src/modules/linreg/linreg.h" />
+		<Unit filename="src/modules/linreg/roblinreg.cpp" />
+		<Unit filename="src/modules/linreg/roblinreg.h" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/createMAPredictor.cpp" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/createMAPredictor.h" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/crosser/ma_crosser.cpp" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/crosser/ma_crosser.h" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/crosser/mcconf.h" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/grad_hunter/ma_grad_hunter.cpp" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/grad_hunter/ma_grad_hunter.h" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/grad_hunter/mghconf.h" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_cal/ma_cal.cpp" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_cal/ma_cal.h" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_cal/ma_lwma.h" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_pred_base/ma_pred_base.h" />
+		<Unit filename="src/modules/minbar_predictor/ma_pred/mpconf.h" />
+		<Unit filename="src/modules/minbar_predictor/mb_base/mb_base_pred.h" />
+		<Unit filename="src/modules/minbar_predictor/mbpconf.h" />
+		<Unit filename="src/modules/multinode/multinode_utils.cpp" />
+		<Unit filename="src/modules/multinode/multinode_utils.h" />
+		<Unit filename="src/modules/predictor/prdtypes.h" />
 		<Unit filename="src/utests/test_coint.cpp">
 			<Option target="test_coint" />
 		</Unit>

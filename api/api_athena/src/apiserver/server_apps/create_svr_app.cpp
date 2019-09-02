@@ -21,6 +21,7 @@
 #include "server_apps/minbar_pair/mb_pairtrader.h"
 #include "server_apps/multipair_trader/multi_pairtrader.h"
 #include "server_apps/robust_pair_trader/robust_pair_trader.h"
+#include "server_apps/multinode_trader/multinode_trader.h"
 
 ServerBaseApp*
 create_server_app(AppType type, const String& configFile)
@@ -49,6 +50,9 @@ create_server_app(AppType type, const String& configFile)
             break;
         case AppType::APP_ROBUST_PAIRTRADER:
             app = &RobustPairTrader::getInstance(configFile);
+            break;
+        case AppType::APP_MULTINODE_TRADER:
+            app = &MultinodeTrader::getInstance(configFile);
             break;
         default:
             break;

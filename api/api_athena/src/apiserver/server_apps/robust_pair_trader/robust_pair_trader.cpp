@@ -209,11 +209,11 @@ RobustPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     pm = (real32*)outmsg.getData();
     pm[0] = m_currStatus["c1"];
 
-    real32 thd = m_cfg->getThresholdStd();
+    vector<real32> thd = m_cfg->getThresholdStd();
 
-    if ( fac > thd && fac < 2.5) {
+    if ( fac > thd[0] && fac < thd[1]) {
         outmsg.setAction(FXAction::PLACE_SELL);
-    } else if( fac < -thd && fac > -2.5) {
+    } else if( fac < -thd[0] && fac > -thd[1]) {
         outmsg.setAction(FXAction::PLACE_BUY);
     } else {
         outmsg.setAction(FXAction::NOACTION);
