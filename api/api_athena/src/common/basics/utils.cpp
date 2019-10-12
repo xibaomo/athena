@@ -18,6 +18,7 @@
 
 #include "utils.h"
 #include "pyrunner/pyrunner.h"
+#include "linreg/linreg.h"
 #include <memory>
 #include <array>
 #include <chrono>
@@ -304,6 +305,21 @@ testADF(real64* v, int len)
 }
 
 real64
+hurst(real64* v, int len)
+{
+    CPyObject lx = PyList_New(len);
+    for(int i=0; i < len; i++) {
+        PyList_SetItem(lx,i,Py_BuildValue("d",v[i]));
+    }
+
+    CPyObject args = Py_BuildValue("(O)",lx.getObject());
+
+    CPyObject res = PyRunner::getInstance().runAthenaPyFunc("coint","hurst",args);
+
+    return PyFloat_AsDouble(res);
+}
+
+real64
 testADF(vector<real64>& vec, int start, int last)
 {
     real64* v;
@@ -318,6 +334,21 @@ testADF(vector<real64>& vec, int start, int last)
     real64 pv = testADF(v,len);
 
     return pv;
+}
+
+real64
+compHalfLife(real64* y, int len)
+{
+    real64* dy = new real64[len-1];
+    for (int i=0; i < len-1; i++) {
+        dy[i] = y[i+1] - y[i];
+    }
+
+    LRParam pm = linreg(y,dy,len-1);
+    delete[] dy;
+
+    real64 lambda = -log(2.)/pm.c1;
+    return lambda;
 }
 
 }

@@ -214,6 +214,9 @@ testADF(real64* v, int len);
 
 real64
 testADF(std::vector<real64>& v, int start=-1, int last=-1);
+
+real64
+hurst(real64* v, int len);
 /**
  * Dump arbitrary number of vectors
  */
@@ -260,5 +263,8 @@ searchVector(std::vector<T>& v, T tgt)
     }
     return -1;
 }
+
+real64
+compHalfLife(real64* ts, int len);
 }
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */

@@ -20,13 +20,13 @@ GENERAL:
 ########################################################
 # ------------- ROBUST_PAIR_TRADER -----------------
 ROBUST_PAIR_TRADER:
-    SYM_X: GBPSGD
-    SYM_Y: GBPUSD
+    SYM_X: EURUSD
+    SYM_Y: USDDKK
     THRESHOLD_STD: [0.2,1.5]  # in unit of std
     OUTLIER_WEIGHT_RATIO: 0.2  # w_now/w_ave
     OUTLIER_NUM_LIMIT: 10  # beyond which the model fails
 
-    STATIONARY_PV_LIMIT: 1.0
+    STATIONARY_PV_LIMIT: 0.05 
     R2_LIMIT: 0.85 # Stop opening positions if R2 is lower 
 # ------------- MINBAR_PAIR_TRADER -----------------
 MINBAR_PAIR_TRADER:

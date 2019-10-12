@@ -81,6 +81,7 @@ RobustPairTrader::procMsg_ASK_PAIR(Message& msg) {
     Message outmsg(FXAction::ASK_PAIR,0,st.size());
     outmsg.setComment(st);
 
+    Log(LOG_INFO) << "Sym pair: " + s1 + "," + s2;
     return outmsg;
 }
 
@@ -135,6 +136,28 @@ RobustPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
 }
 
 void
+RobustPairTrader::estimateSpreadTend(real64* sp, int len)
+{
+    real64 c0 = m_currStatus["c0"];
+    real64 sigma = m_currStatus["sigma"];
+    int n_up = 0;
+    int n_down = 0;
+    real64 h_dev = 0.;
+    real64 l_dev = -0.;
+    for (int i=0; i < len; i++) {
+        real64 dev  = (sp[i] - c0)/sigma;
+        if (dev >= 2) n_up++;
+        if (dev <= -2) n_down++;
+        if (dev > h_dev) h_dev = dev;
+        if (dev < l_dev) l_dev = dev;
+    }
+
+    Log(LOG_INFO) << "Spread up ratio: " + to_string(n_up) + "/" + to_string(len);
+    Log(LOG_INFO) << "Spread down ratio: " + to_string(n_down) + "/" + to_string(len);
+    Log(LOG_INFO) << "Ratio range: [" + to_string(l_dev) + "," + to_string(h_dev) + "]";
+}
+
+void
 RobustPairTrader::linreg(size_t start) {
     m_LRParams = robLinreg(m_openX,m_openY,start);
 
@@ -161,8 +184,19 @@ RobustPairTrader::linreg(size_t start) {
 
     real64 pv = testADF(spread,len);
     Log(LOG_INFO) << "p-value of non-stationarity of spread: " + to_string(pv);
-
     m_currStatus["pv"] = pv;
+
+    real64 h = hurst(spread,len);
+    Log(LOG_INFO) << "Hurst exponent: " + to_string(h);
+    m_currStatus["hurst"] = h;
+
+    real64 hf = compHalfLife(spread,len);
+    Log(LOG_INFO) << "Half life of spread: " + to_string(hf);
+
+    estimateSpreadTend(spread,len);
+
+    vector<real64> vsp(spread,spread+len);
+    dumpVectors("spread.csv",vsp);
 
     delete[] spread;
 }
@@ -237,12 +271,13 @@ RobustPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     }
 
     if(m_currStatus["pv"] > m_cfg->getStationaryPVLimit()) {
-        outmsg.setAction(FXAction::CLOSE_ALL_POS);
+        outmsg.setAction(FXAction::NOACTION);
     }
 
     if(m_LRParams.r2 < m_cfg->getR2Limit()) {
         Log(LOG_WARNING) << "R2 too low";
         outmsg.setAction(FXAction::NOACTION);
     }
+
     return outmsg;
 }

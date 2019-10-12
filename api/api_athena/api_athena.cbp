@@ -172,6 +172,8 @@
 			<Option target="api_server" />
 			<Option target="test_server" />
 		</Unit>
+		<Unit filename="src/apiserver/server_apps/multinode_trader/multinode_trader.cpp" />
+		<Unit filename="src/apiserver/server_apps/multinode_trader/multinode_trader.h" />
 		<Unit filename="src/apiserver/server_apps/multipair_trader/mulpairconf.h">
 			<Option target="Release" />
 			<Option target="api_server" />

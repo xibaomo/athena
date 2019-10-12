@@ -64,5 +64,7 @@ public:
 
     void linreg(size_t start=0);
 
+    void estimateSpreadTend(real64* sp, int len);
+
 };
 #endif   /* ----- #ifndef _SERVER_APP_ROBUST_PAIR_TRADER_H_  ----- */

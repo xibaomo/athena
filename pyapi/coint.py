@@ -2,6 +2,7 @@
 
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.stattools import coint
+from numpy import cumsum, log, polyfit, sqrt, std, subtract
 import numpy as np
 
 def coint_verify(list_x, list_y) :
@@ -27,6 +28,15 @@ def coint_verify(list_x, list_y) :
 def test_adf(list_x):
     af = adfuller(np.array(list_x))
     return af[1]
+
+def hurst(ts_list):
+    ts = np.array(ts_list)
+    lags = range(2, 100)
+
+    tau = [sqrt(std(subtract(ts[lag:], ts[:-lag]))) for lag in lags]
+    poly = polyfit(log(lags), log(tau), 1)
+
+    return poly[0]*2.
 
 def test_test(lx, ly):
     print lx.shape
