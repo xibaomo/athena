@@ -29,15 +29,23 @@ int main(int argc, char** argv) {
     pc->convertPolys("245:101");
     auto vs = pc->snapToEdge("245:101",-1, 3);
     cout << "(-1, 3) --> " << vs.x << " " << vs.y << endl;
+    cout << vs.norm_dir << endl;
 
     vs = pc->snapToEdge("245:101",3, -1);
     cout << "(3, -1) --> " << vs.x << " " << vs.y << endl;
+    cout << vs.norm_dir << endl;
 
     vs = pc->snapToEdge(layer, 6, 4);
     cout << "(6, 4) --> " << vs.x << " " << vs.y << endl;
+    cout << vs.norm_dir << endl;
 
     vs = pc->snapToEdge(layer, 2, 12);
     cout << "(2, 12) --> " << vs.x << " " << vs.y << endl;
+    cout << vs.norm_dir << endl;
+
+    vs = pc->snapToEdge(layer, 3.5, 9.5);
+    cout << "(3.5, 9.5) --> " << vs.x << " " << vs.y << endl;
+    cout << vs.norm_dir << endl;
 
     return 0;
 }
