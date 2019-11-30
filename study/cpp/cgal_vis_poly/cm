@@ -1,2 +1,4 @@
 #g++ -std=c++14 -O3 -I/tools/include simple_poly_vis.cpp -L/tools/lib -lgmp -lmpfr
 g++ -std=c++14 -O3 -I/tools/include hole_poly.cpp -L/tools/lib -lgmp -lmpfr
+#g++ -std=c++14 -O3 -I/tools/include seg_rtree.cpp -L/tools/lib -lgmp -lmpfr
+#g++ -std=c++14 -O3 -I/tools/include seg_2d_rtree.cpp -L/tools/lib -lgmp -lmpfr
