@@ -28,7 +28,6 @@ std::vector<std::vector<Point>> polygon;
 
 int main() {
     polygon.push_back({{L, 0}, {L, L}, {0, L}, {0, 0}});
-
     for ( int i = 0; i < N; i++ ) {
         for ( int j = 0; j < N; j++ ) {
             polygon.push_back({{i+.1, j+.1}, {i+0.2, j+.1},
@@ -44,6 +43,7 @@ int main() {
     std::vector<unsigned int> indices = mapbox::earcut<unsigned int>(polygon);
     cout << "tri takes " << tm.elapsed() << endl;
 
+    cout << indices.size() << endl;
     for ( size_t v = 0; v < indices.size(); v+=3 ) {
         cout << indices[v] << "," << indices[v+1] << "," << indices[v+2] << endl;
     }
