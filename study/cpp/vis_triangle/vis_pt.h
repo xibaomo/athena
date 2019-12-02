@@ -134,15 +134,15 @@ namespace vis {
                 }
                 tmp_polys.emplace_back(std::move(tmppoly));
             }
-            std::cout << m_allVertices.size() << std::endl;
+//            std::cout << m_allVertices.size() << std::endl;
             std::vector<uint> inds = mapbox::earcut(tmp_polys);
-            std::cout << inds.size() << std::endl;
+//            std::cout << inds.size() << std::endl;
             for ( size_t i =0; i < inds.size(); i+=3 ) {
-                std::cout << inds[i] << "," << inds[i+1] << "," << inds[i+2] << std::endl;
+//                std::cout << inds[i] << "," << inds[i+1] << "," << inds[i+2] << std::endl;
             }
             procAllTriangles(inds);
             for ( auto& it : m_edge2info ) {
-                std::cout << it.first.first << "-" << it.first.second << ": " << it.second.isTrueEdge << std::endl;
+//                std::cout << it.first.first << "-" << it.first.second << ": " << it.second.isTrueEdge << std::endl;
             }
         }
 
