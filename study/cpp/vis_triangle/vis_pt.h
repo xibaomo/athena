@@ -138,7 +138,7 @@ namespace vis {
             std::vector<uint> inds = mapbox::earcut(tmp_polys);
 //            std::cout << inds.size() << std::endl;
             for ( size_t i =0; i < inds.size(); i+=3 ) {
-//                std::cout << inds[i] << "," << inds[i+1] << "," << inds[i+2] << std::endl;
+                std::cout << inds[i] << "," << inds[i+1] << "," << inds[i+2] << std::endl;
             }
             procAllTriangles(inds);
             for ( auto& it : m_edge2info ) {

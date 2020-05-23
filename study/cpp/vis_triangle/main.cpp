@@ -37,8 +37,8 @@ void createPolys(PolygonArray& pa) {
     pa.appendPolygon(std::move(p));
     */
 
-    for ( int i = 1; i < L-2; i+=8 ) {
-        for ( int j = 1; j < L-2; j+=8 ) {
+    for ( int i = 1; i < L-2; i+=96 ) {
+        for ( int j = 1; j < L-2; j+=96 ) {
             Polygon p;
             p.appendVertex(Point{i, j});
             p.appendVertex(Point{i+1, j});
@@ -55,6 +55,7 @@ int main() {
     PolygonArray pa;
     out.appendVertex(Point{0, 0});
     out.appendVertex(Point{L, 0});
+
     out.appendVertex(Point{L, L});
     out.appendVertex(Point{0, L});
     out.appendVertex(Point{0, 0});
