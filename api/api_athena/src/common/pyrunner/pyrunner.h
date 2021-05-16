@@ -29,7 +29,7 @@ class PyRunner {
 protected:
     PyRunner();
 public:
-    virtual ~PyRunner(){;}
+    virtual ~PyRunner(){}
 
     static PyRunner& getInstance() {
         static PyRunner _ins;

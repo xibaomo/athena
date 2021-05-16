@@ -28,7 +28,7 @@ typedef unsigned int ActionType;
 typedef int TagType;
 typedef size_t SizeType;
 
-enum class MsgAction {
+enum class MsgAct {
     GET_READY = 0,
     NORMAL_EXIT = 1,
     ERROR_EXIT,
@@ -75,7 +75,7 @@ public:
         m_entireMsg[msgSize-2]='N';
         m_entireMsg[msgSize-1]='D';
 
-        setAction(MsgAction::GET_READY);
+        setAction(MsgAct::GET_READY);
         m_own = true;
     }
     Message(const size_t dataBytes = 0, const size_t charBytes = 0) : m_entireMsg(nullptr)

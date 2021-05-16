@@ -10,11 +10,6 @@ MinBarPairTrader::processMsg(Message& msg) {
     Message outmsg;
     FXAct action = (FXAct) msg.getAction();
     switch(action) {
-    case FXAct::CHECKIN:
-        outmsg = procMsg_noreply(msg,[this](Message& msg) {
-            Log(LOG_INFO) << "Client checked in";
-        });
-        break;
     case FXAct::ASK_PAIR:
         outmsg = procMsg_ASK_PAIR(msg);
         break;
@@ -224,8 +219,8 @@ MinBarPairTrader::linearReg(int start) {
 
     const char* env = getenv("NO_ADF_TEST");
     if (env && atoi(env)==1) {
-            ;
-    }else {
+        ;
+    } else {
         vector<real64> spv(spread,spread+len);
         int lookback = m_cfg->getStationaryCheckLookback();
         real64 pv = testADF(spv,len-lookback,len);
@@ -255,8 +250,7 @@ MinBarPairTrader::linearReg(int start) {
 }
 
 void
-MinBarPairTrader::compDistr(real64* data, int len, real64* mean_out, real64* sd_out)
-{
+MinBarPairTrader::compDistr(real64* data, int len, real64* mean_out, real64* sd_out) {
     real64 minsp,maxsp;
     gsl_stats_minmax(&minsp,&maxsp,data,1,len);
 

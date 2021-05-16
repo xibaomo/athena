@@ -67,7 +67,7 @@ ClientPredictor::waitResult()
 {
     Message msg;
     while ( m_msger->listenOnce(msg)>=0 ) {
-        if ( (MsgAction)msg.getAction() == MsgAction::GET_READY ) {
+        if ( (MsgAct)msg.getAction() == MsgAct::GET_READY ) {
             sleepMilliSec(ONE_MS);
             continue;
         }
@@ -80,7 +80,7 @@ ClientPredictor::waitResult()
             default:
                 break;
         }
-        msg.setAction(MsgAction::GET_READY);
+        msg.setAction(MsgAct::GET_READY);
         sleepMilliSec(ONE_MS);
     }
 }

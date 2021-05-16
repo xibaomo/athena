@@ -97,9 +97,6 @@ ForexMinBarClassifier::processMsg(Message& msg)
     case FXAct::MINBAR:
         msgnew = std::move(procMsg_MINBAR(msg));
         break;
-    case FXAct::CHECKIN:
-        msgnew = std::move(procMsg_CHECKIN(msg));
-        break;
     case FXAct::HISTORY_MINBAR:
         msgnew = std::move(procMsg_HISTORY_MINBAR(msg));
         break;

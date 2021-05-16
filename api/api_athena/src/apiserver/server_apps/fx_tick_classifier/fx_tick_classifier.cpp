@@ -98,8 +98,7 @@ ForexTickClassifier::processMsg(Message& msg)
         case FXAct::TICK:
             msgnew = std::move(procMsg_TICK(msg));
             break;
-        case FXAct::CHECKIN:
-            msgnew = std::move(procMsg_CHECKIN(msg));
+
         default:
             break;
     }

@@ -11,11 +11,6 @@ MultiPairTrader::processMsg(Message& msg)
 
     FXAct action = (FXAct)msg.getAction();
     switch(action) {
-    case FXAct::CHECKIN:
-        outmsg = procMsg_noreply(msg,[this](Message& msg) {
-            Log(LOG_INFO) << "Client checked in";
-        });
-        break;
     case FXAct::SYM_HIST_OPEN:
         outmsg = procMsg_SYM_HIST_OPEN(msg);
         break;

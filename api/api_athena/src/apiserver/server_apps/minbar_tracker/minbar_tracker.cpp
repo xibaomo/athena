@@ -36,11 +36,6 @@ MinBarTracker::processMsg(Message& msg)
     case FXAct::MINBAR:
         msgnew = procMsg_MINBAR(msg);
         break;
-    case FXAct::CHECKIN:
-        msgnew = procMsg_noreply(msg,[this](Message& m){
-                                 Log(LOG_INFO) << "Client checked in";
-                                 });
-        break;
     case FXAct::HISTORY_MINBAR:
         msgnew = procMsg_HISTORY_MINBAR(msg);
         break;

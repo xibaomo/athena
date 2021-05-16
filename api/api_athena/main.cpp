@@ -25,17 +25,17 @@ int main(int argc, char** argv)
         return 0;
         Message msg;
         while ( msger->listenOnce(msg)>=0 ) {
-            switch((MsgAction)msg.getAction()) {
-            case MsgAction::GET_READY:
+            switch((MsgAct)msg.getAction()) {
+            case MsgAct::GET_READY:
                 break;
-            case MsgAction::CHECK_IN:
+            case MsgAct::CHECK_IN:
                 Log(LOG_INFO) << "another guy is ready";
                 return 0;
                 break;
             default:
                 break;
             }
-            msg.setAction(MsgAction::GET_READY);
+            msg.setAction(MsgAct::GET_READY);
             sleepMilliSec(ONE_MS);
         }
 //    } else {
@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 //        Messenger* msger =  &Messenger::getInstance();
 //
 //        Message msg;
-//        msg.setAction(MsgAction::CHECK_IN);
+//        msg.setAction(MsgAct::CHECK_IN);
 //
 //        msger->sendAMsgToHostPort(msg, hostPort);
 //    }

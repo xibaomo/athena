@@ -30,11 +30,6 @@ MultinodeTrader::processMsg(Message& msg)
     FXAct act = (FXAct)msg.getAction();
 
     switch(act) {
-    case FXAct::CHECKIN:
-        outmsg = procMsg_noreply(msg,[this](Message& msg) {
-            Log(LOG_INFO) << "Client checked in";
-        });
-        break;
     case FXAct::ALL_SYM_OPEN:
         outmsg = procMsg_ALL_SYM_OPEN(msg);
         break;

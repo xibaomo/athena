@@ -26,11 +26,6 @@ RobustPairTrader::processMsg(Message& msg) {
     Message outmsg;
     FXAct action = (FXAct)msg.getAction();
     switch(action) {
-    case FXAct::CHECKIN:
-        outmsg = procMsg_noreply(msg,[](Message& msg) {
-            Log(LOG_INFO)<< "Client checked in";
-        });
-        break;
     case FXAct::ASK_PAIR:
         outmsg = procMsg_ASK_PAIR(msg);
         break;

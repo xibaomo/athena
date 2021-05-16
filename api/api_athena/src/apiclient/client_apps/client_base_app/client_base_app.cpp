@@ -31,7 +31,7 @@ void
 ClientBaseApp::shutdownServer()
 {
     Message msg;
-    msg.setAction(MsgAction::NORMAL_EXIT);
+    msg.setAction(MsgAct::NORMAL_EXIT);
     m_msger->sendAMsgToHostPort(msg, m_serverHostPort);
 }
 
@@ -50,10 +50,10 @@ ClientBaseApp::wakeupServer(AppType atp)
 
     Message msg;
     while ( m_msger->listenOnce(msg)>=0 ) {
-        switch((MsgAction)msg.getAction()) {
-            case MsgAction::GET_READY:
+        switch((MsgAct)msg.getAction()) {
+            case MsgAct::GET_READY:
                 break;
-            case MsgAction::CHECK_IN:
+            case MsgAct::CHECK_IN:
                 Log(LOG_INFO) << "Api server checked in";
                 m_serverHostPort = msg.getComment();
                 return;
@@ -61,7 +61,7 @@ ClientBaseApp::wakeupServer(AppType atp)
             default:
                 break;
         }
-        msg.setAction(MsgAction::GET_READY);
+        msg.setAction(MsgAct::GET_READY);
         sleepMilliSec(ONE_MS);
     }
 }

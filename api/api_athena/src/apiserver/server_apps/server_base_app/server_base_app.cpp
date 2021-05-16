@@ -24,8 +24,7 @@ using namespace std;
 using namespace athena;
 
 void
-ServerBaseApp::execute()
-{
+ServerBaseApp::execute() {
     char buf[16];
     Timer timer;
     int prev_time_point=0;
@@ -42,12 +41,20 @@ ServerBaseApp::execute()
             Message msg = m_msger->popMsgBox();
             if (msg.getMsgSize() == 0)
                 return;
-            MsgAction action = (MsgAction)msg.getAction();
-            if (action == MsgAction::NORMAL_EXIT)
+            MsgAct action = (MsgAct)msg.getAction();
+            if (action == MsgAct::NORMAL_EXIT)
                 return;
 
-            Message msgReply = std::move(processMsg(msg));
-            if ((MsgAction)msgReply.getAction() == MsgAction::GET_READY) {
+            Message msgReply;
+            if (action == MsgAct::CHECK_IN) {
+                msgReply = procMsg_noreply(msg,[this](const Message& msg) {
+                    Log(LOG_INFO) << "Client checked in";
+                });
+            } else {
+                msgReply = std::move(processMsg(msg));
+            }
+
+            if ((MsgAct)msgReply.getAction() == MsgAct::GET_READY) {
                 Log(LOG_DEBUG) << "No reply, shut down connection";
                 m_msger->shutdownConnection(clntsock);
                 close(clntsock);

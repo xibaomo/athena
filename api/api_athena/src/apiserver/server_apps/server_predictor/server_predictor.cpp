@@ -150,7 +150,7 @@ ServerPredictor::predict(Real* featureMatrix, const Uint rows, const Uint cols)
 
     m_result_array = reinterpret_cast<double*>(PyArray_DATA(np_res));
 
-//    sendBackResult((MsgAction)PrdAction::RESULT, m_result_array, len);
+//    sendBackResult((MsgAct)PrdAction::RESULT, m_result_array, len);
     return;
 }
 
@@ -166,8 +166,7 @@ ServerPredictor::processMsg(Message& msg)
         case FXAct::TICK:
             msgnew = std::move(procMsg_TICK(msg));
             break;
-        case FXAct::CHECKIN:
-            msgnew = std::move(procMsg_CHECKIN(msg));
+
         default:
             break;
     }

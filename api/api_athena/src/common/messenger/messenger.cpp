@@ -257,8 +257,8 @@ Messenger::listenOnce(Message& msg)
 
         msg = std::move(m_msgBox.front());
         m_msgBox.pop();
-        MsgAction action = (MsgAction)msg.getAction();
-        if ( action == MsgAction::NORMAL_EXIT )
+        MsgAct action = (MsgAct)msg.getAction();
+        if ( action == MsgAct::NORMAL_EXIT )
             return -1;
 
         return 1;
