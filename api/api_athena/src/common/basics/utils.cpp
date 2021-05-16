@@ -175,9 +175,8 @@ getFileStem(const String& fp)
 
 void getPythonFunction(const String& modFile, const String& funcName,CPyObject& func)
 {
-    CPyInstance& inst = CPyInstance::getInstance();
     String mod_folder = getFileFolder(modFile);
-    inst.appendSysPath(mod_folder);
+    PyEnviron::getInstance().appendSysPath(mod_folder);
     String mod_name = getFileStem(modFile);
     CPyObject mod = PyImport_ImportModule(mod_name.c_str());
     if (!mod) {

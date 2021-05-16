@@ -25,7 +25,6 @@
 #include "basics/utils.h"
 class ForexMinBarClassifier : public ServerBaseApp {
 protected:
-    CPyInstance m_pyInst;
     CPyObject   m_buyPredictor;
     CPyObject   m_sellPredictor;
     CPyObject   m_predictorModule;

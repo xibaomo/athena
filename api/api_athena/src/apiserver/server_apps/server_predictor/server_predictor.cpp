@@ -56,16 +56,16 @@ ServerPredictor::loadPythonModule()
 {
     String athenaHome = String(getenv("ATHENA_HOME"));
     String modulePath = athenaHome + "/apps/generic_app";
-    m_pyInst.appendSysPath(modulePath);
+    PyEnviron::getInstance().appendSysPath(modulePath);
 
     modulePath = athenaHome + "/modules/mlengines/regressor";
-    m_pyInst.appendSysPath(modulePath);
+    PyEnviron::getInstance().appendSysPath(modulePath);
 
     m_engCreatorMod = PyImport_ImportModule("engine_creator");
     m_mlEngMod = PyImport_ImportModule("regressor");
 
     modulePath = athenaHome + "/modules/mlengine_cores";
-    m_pyInst.appendSysPath(modulePath);
+    PyEnviron::getInstance().appendSysPath(modulePath);
     m_engineCoreMod = PyImport_ImportModule("mlengine_core");
 
     if ( !m_engineCoreMod ) {

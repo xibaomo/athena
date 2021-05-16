@@ -11,8 +11,8 @@ String _getModelFile(String qmdlFile)
 {
     String athena_install = String(getenv("ATHENA_INSTALL"));
     String modulePath = athena_install + "/api/release/scripts/";
-    CPyInstance _pyInst;
-    _pyInst.appendSysPath(modulePath);
+
+    PyEnviron::getInstance().appendSysPath(modulePath);
 
     CPyObject qmdlParserMod = PyImport_ImportModule("qmdl_parser");
     CPyObject pDict = PyModule_GetDict(qmdlParserMod);

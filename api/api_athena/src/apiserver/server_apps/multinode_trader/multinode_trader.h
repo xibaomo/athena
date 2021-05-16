@@ -21,6 +21,9 @@
 #include "server_apps/server_base_app/server_base_app.h"
 #include "multinode/multinode_utils.h"
 #include <vector>
+/**
+ *  Find a profitable loop in all the given sym pairs.
+ */
 
 class MultinodeTrader : public ServerBaseApp {
 protected:

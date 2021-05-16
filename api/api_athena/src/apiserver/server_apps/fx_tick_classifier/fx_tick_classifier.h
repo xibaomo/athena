@@ -25,7 +25,6 @@
 #include "fx_action/fx_action.h"
 class ForexTickClassifier : public ServerBaseApp {
 protected:
-    CPyInstance m_pyInst; // Initialize python environment. must be the first. last destroyed
     CPyObject   m_buyPredictor;
     CPyObject   m_sellPredictor;
 

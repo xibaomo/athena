@@ -27,7 +27,6 @@
 #include "basics/log.h"
 class PyRunner {
 protected:
-    CPyInstance m_pyInst;
     PyRunner();
 public:
     virtual ~PyRunner(){;}

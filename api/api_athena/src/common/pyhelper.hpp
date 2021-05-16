@@ -20,6 +20,39 @@
 #include <numpy/arrayobject.h>
 #include <iostream>
 #include <string>
+#include <set>
+
+/**
+ * Use a singleton to initialize and finalize python environment
+ */
+
+class PyEnviron {
+private:
+    std::set<std::string> m_addedModulePaths;
+    PyEnviron() {
+        Py_Initialize();
+        PyRun_SimpleString("import sys");
+    }
+public:
+    ~PyEnviron() {
+        Py_Finalize();
+    }
+
+    static PyEnviron& getInstance() {
+        static PyEnviron _ins;
+        return _ins;
+    }
+
+    void appendSysPath(const std::string& modulePath) {
+        if(m_addedModulePaths.find(modulePath)!=m_addedModulePaths.end()) return;
+
+        std::string cmd = "sys.path.append(\'"+modulePath + "\')";
+        PyRun_SimpleString(cmd.c_str());
+
+        m_addedModulePaths.insert(modulePath);
+    }
+};
+
 class CPyInstance {
 public:
     CPyInstance(const std::string& module_path="./") {

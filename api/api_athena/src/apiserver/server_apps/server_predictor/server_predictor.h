@@ -23,8 +23,6 @@
 class ServerPredictor : public ServerBaseApp
 {
 protected:
-
-    CPyInstance m_pyInst; // Initialize Python environment. must be the first. last destroyed
     CPyObject m_engine;
     CPyObject m_engineCore;
     std::vector<CPyObject> m_buyEngines;

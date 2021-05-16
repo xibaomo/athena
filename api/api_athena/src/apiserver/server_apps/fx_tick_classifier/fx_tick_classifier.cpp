@@ -44,7 +44,7 @@ ForexTickClassifier::loadPythonModules()
 {
     String athenaHome = String(getenv("ATHENA_HOME"));
     String modulePath = athenaHome + "/pyapi";
-    m_pyInst.appendSysPath(modulePath);
+    PyEnviron::getInstance().appendSysPath(modulePath);
     m_predictorModule = PyImport_ImportModule("forex_tick_predictor");
     if ( !m_predictorModule ) {
         Log(LOG_FATAL) << "Failed to import forex_tick_predictor";
