@@ -60,7 +60,7 @@ MACrosser::prepare()
     m_maCal->compAllMA(m_median,m_config->getShortLookBack(),m_short_ma);
 }
 
-FXAction
+FXAct
 MACrosser::predict()
 {
     auto& mb = m_allMinBars->back();
@@ -77,27 +77,27 @@ MACrosser::predict()
     int tp = findNearestCross();
     int cid = m_long_ma.size()-1;
 
-    FXAction action = FXAction::NOACTION;
+    FXAct action = FXAct::NOACTION;
 
     if (cid - tp > m_config->getTurnPointExpiry()) {
-        action = FXAction::NOACTION;
+        action = FXAct::NOACTION;
         m_records.emplace_back(l_ma,s_ma,action);
         return action;
     }
 
     real32 gap = m_long_ma.back() - m_short_ma.back();
     if ( fabs(gap) < m_config->getStartOffGap()) {
-        action = FXAction::NOACTION;
+        action = FXAct::NOACTION;
         m_records.emplace_back(l_ma,s_ma,action);
         return action;
     }
 
     if (gap > 0) {
-//        action =  FXAction::PLACE_SELL;
-        action =  FXAction::PLACE_BUY;
+//        action =  FXAct::PLACE_SELL;
+        action =  FXAct::PLACE_BUY;
     } else {
-//        action =  FXAction::PLACE_BUY;
-        action =  FXAction::PLACE_SELL;
+//        action =  FXAct::PLACE_BUY;
+        action =  FXAct::PLACE_SELL;
     }
 
     m_records.emplace_back(l_ma,s_ma,action);

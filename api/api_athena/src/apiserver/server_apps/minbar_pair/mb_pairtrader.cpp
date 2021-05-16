@@ -8,52 +8,52 @@ using namespace athena;
 Message
 MinBarPairTrader::processMsg(Message& msg) {
     Message outmsg;
-    FXAction action = (FXAction) msg.getAction();
+    FXAct action = (FXAct) msg.getAction();
     switch(action) {
-    case FXAction::CHECKIN:
+    case FXAct::CHECKIN:
         outmsg = procMsg_noreply(msg,[this](Message& msg) {
             Log(LOG_INFO) << "Client checked in";
         });
         break;
-    case FXAction::ASK_PAIR:
+    case FXAct::ASK_PAIR:
         outmsg = procMsg_ASK_PAIR(msg);
         break;
-    case FXAction::PAIR_HIST_X:
+    case FXAct::PAIR_HIST_X:
         Log(LOG_INFO) << "X min bars arrive";
         outmsg = procMsg_noreply(msg,[this](Message& msg) {
             loadHistoryFromMsg(msg,m_minbarX,m_openX);
             Log(LOG_INFO) << "Min bar X loaded";
         });
         break;
-    case FXAction::PAIR_HIST_Y: {
+    case FXAct::PAIR_HIST_Y: {
         outmsg = procMsg_PAIR_HIST_Y(msg);
     }
     break;
-    case FXAction::PAIR_MIN_OPEN:
+    case FXAct::PAIR_MIN_OPEN:
         outmsg = procMsg_PAIR_MIN_OPEN(msg);
         break;
 
-    case FXAction::SYM_HIST_OPEN:
+    case FXAct::SYM_HIST_OPEN:
         outmsg = procMsg_SYM_HIST_OPEN(msg);
         break;
-    case FXAction::PAIR_POS_PLACED:
+    case FXAct::PAIR_POS_PLACED:
         outmsg = procMsg_PAIR_POS_PLACED(msg);
         break;
-    case FXAction::PAIR_POS_CLOSED:
+    case FXAct::PAIR_POS_CLOSED:
         outmsg = procMsg_PAIR_POS_CLOSED(msg);
         break;
     default:
         break;
     }
 
-    switch((FXAction)outmsg.getAction()) {
-    case FXAction::PLACE_BUY:
+    switch((FXAct)outmsg.getAction()) {
+    case FXAct::PLACE_BUY:
         Log(LOG_INFO) << "Action: buy Y";
         break;
-    case FXAction::PLACE_SELL:
+    case FXAct::PLACE_SELL:
         Log(LOG_INFO) << "Action: sell Y";
         break;
-    case FXAction::NOACTION:
+    case FXAct::NOACTION:
         Log(LOG_INFO) << "No action";
         break;
     default:
@@ -183,7 +183,7 @@ MinBarPairTrader::procMsg_ASK_PAIR(Message& msg) {
     String s2 = m_cfg->getPairSymY();
     String st = s1 + ":" + s2;
 
-    Message outmsg(FXAction::ASK_PAIR,sizeof(int),st.size());
+    Message outmsg(FXAct::ASK_PAIR,sizeof(int),st.size());
     outmsg.setComment(st);
 
     return outmsg;
@@ -334,13 +334,13 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     real64 corr = computePairCorr(m_openX,m_openY);
     Log(LOG_INFO) << "Correlation so far: " + to_string(corr);
     if (fabs(corr) < m_cfg->getCorrBaseline()) {
-        outmsg.setAction(FXAction::NOACTION);
+        outmsg.setAction(FXAct::NOACTION);
         Log(LOG_ERROR) << "Correlation lower than threshold";
         return outmsg;
     }
 
 //    if (!test_coint(m_openX,m_openY)) {
-//        outmsg.setAction(FXAction::NOACTION);
+//        outmsg.setAction(FXAct::NOACTION);
 //        return outmsg;
 //    }
 
@@ -366,23 +366,23 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     pcm[0] = m_linregParam.c1;
 
     if ( fac > thd && fac < 3) {
-        outmsg.setAction(FXAction::PLACE_SELL);
+        outmsg.setAction(FXAct::PLACE_SELL);
     } else if( fac < -thd && fac > -3) {
-        outmsg.setAction(FXAction::PLACE_BUY);
+        outmsg.setAction(FXAct::PLACE_BUY);
     } else if ( fac * m_prevSpread < 0) {
-        //outmsg.setAction(FXAction::CLOSE_ALL_POS);
-        outmsg.setAction(FXAction::NOACTION);
+        //outmsg.setAction(FXAct::CLOSE_ALL_POS);
+        outmsg.setAction(FXAct::NOACTION);
     } else {
-        outmsg.setAction(FXAction::NOACTION);
+        outmsg.setAction(FXAct::NOACTION);
     }
     m_prevSpread = fac;
 
     if (m_currStatus["r2"] < m_cfg->getR2Baseline()) {
-        outmsg.setAction(FXAction::NOACTION);
+        outmsg.setAction(FXAct::NOACTION);
     }
 
     if (m_currStatus["statPV"] >= m_cfg->getStationaryPVLimit()) {
-        outmsg.setAction(FXAction::CLOSE_ALL_POS);
+        outmsg.setAction(FXAct::CLOSE_ALL_POS);
     }
     return outmsg;
 }

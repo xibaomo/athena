@@ -35,6 +35,6 @@ public:
 
     virtual void prepare() = 0;
 
-    virtual FXAction predict() = 0;
+    virtual FXAct predict() = 0;
 };
 #endif   /* ----- #ifndef _MINBAR_BASE_PREDICTOR_H_  ----- */

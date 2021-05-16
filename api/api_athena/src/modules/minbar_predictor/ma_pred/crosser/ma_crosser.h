@@ -27,8 +27,8 @@ class MACrosser : public MABasePredictor {
     struct ActionRecord {
         real32 long_ma;
         real32 short_ma;
-        FXAction action;
-        ActionRecord(real32 lma, real32 sma, FXAction ac) :
+        FXAct action;
+        ActionRecord(real32 lma, real32 sma, FXAct ac) :
             long_ma(lma),short_ma(sma),action(ac){;}
     };
 
@@ -53,7 +53,7 @@ public:
     void dumpRecords();
     void prepare();
 
-    FXAction predict();
+    FXAct predict();
 
     int findNearestCross();
 };

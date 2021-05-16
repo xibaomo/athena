@@ -90,15 +90,15 @@ Message
 ForexTickClassifier::processMsg(Message& msg)
 {
     Message msgnew;
-    FXAction action = (FXAction)msg.getAction();
+    FXAct action = (FXAct)msg.getAction();
     switch(action) {
-        case FXAction::HISTORY:
+        case FXAct::HISTORY:
             msgnew = std::move(procMsg_HISTORY(msg));
             break;
-        case FXAction::TICK:
+        case FXAct::TICK:
             msgnew = std::move(procMsg_TICK(msg));
             break;
-        case FXAction::CHECKIN:
+        case FXAct::CHECKIN:
             msgnew = std::move(procMsg_CHECKIN(msg));
         default:
             break;
@@ -154,11 +154,11 @@ ForexTickClassifier::procMsg_TICK(Message& msg)
     CPyObject pytick = Py_BuildValue(REALFORMAT, tick);
     if ( msg.getComment() == "buy" ) {
         pypred = PyObject_CallMethod(m_buyPredictor, "classifyATick","(O)",pytick.getObject());
-        action = (ActionType)FXAction::PLACE_BUY;
+        action = (ActionType)FXAct::PLACE_BUY;
         Log(LOG_DEBUG) << "Buy tick arrives";
     } else if (msg.getComment() == "sell") {
         pypred = PyObject_CallMethod(m_sellPredictor, "classifyATick","(O)",pytick.getObject());
-        action = (ActionType)FXAction::PLACE_SELL;
+        action = (ActionType)FXAct::PLACE_SELL;
         Log(LOG_DEBUG) << "Sell tick arrives";
     } else {
         Log(LOG_ERROR) << "Unexpected position type: " + msg.getComment();
@@ -175,7 +175,7 @@ ForexTickClassifier::procMsg_TICK(Message& msg)
     int pred = stoi(String(cp));
     Py_XDECREF(objrepr);
     if ( pred == 1 )
-        action = (ActionType)FXAction::NOACTION;
+        action = (ActionType)FXAct::NOACTION;
     else if(pred == 0)
         Log(LOG_INFO) << "Good to open position";
         else

@@ -92,18 +92,18 @@ Message
 ForexMinBarClassifier::processMsg(Message& msg)
 {
     Message msgnew;
-    FXAction action = (FXAction)msg.getAction();
+    FXAct action = (FXAct)msg.getAction();
     switch(action) {
-    case FXAction::MINBAR:
+    case FXAct::MINBAR:
         msgnew = std::move(procMsg_MINBAR(msg));
         break;
-    case FXAction::CHECKIN:
+    case FXAct::CHECKIN:
         msgnew = std::move(procMsg_CHECKIN(msg));
         break;
-    case FXAction::HISTORY_MINBAR:
+    case FXAct::HISTORY_MINBAR:
         msgnew = std::move(procMsg_HISTORY_MINBAR(msg));
         break;
-    case FXAction::INIT_TIME:
+    case FXAct::INIT_TIME:
         msgnew = std::move(procMsg_INIT_TIME(msg));
         break;
     default:
@@ -159,10 +159,10 @@ ForexMinBarClassifier::procMsg_MINBAR(Message& msg)
     int buy_pred = getIntFromPyobject(pypred);
 
     if (buy_pred == 0) {
-        action = (ActionType)FXAction::PLACE_BUY;
+        action = (ActionType)FXAct::PLACE_BUY;
         Log(LOG_INFO) << "Place buy position";
     } else {
-        action = (ActionType)FXAction::NOACTION;
+        action = (ActionType)FXAct::NOACTION;
         Log(LOG_INFO) << "No action";
     }
     Message msgnew;
@@ -235,7 +235,7 @@ ForexMinBarClassifier::procMsg_INIT_TIME(Message& msg)
     msgnew.setComment(latestMinBar);
     int* pm = (int*)msgnew.getData();
     pm[0] = histLen;
-    msgnew.setAction(FXAction::REQUEST_HISTORY_MINBAR);
+    msgnew.setAction(FXAct::REQUEST_HISTORY_MINBAR);
     Log(LOG_INFO) << "Request client to send history min bars: " + to_string(histLen);
 
     return msgnew;

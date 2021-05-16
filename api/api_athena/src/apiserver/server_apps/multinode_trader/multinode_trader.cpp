@@ -27,15 +27,15 @@ Message
 MultinodeTrader::processMsg(Message& msg)
 {
     Message outmsg;
-    FXAction act = (FXAction)msg.getAction();
+    FXAct act = (FXAct)msg.getAction();
 
     switch(act) {
-    case FXAction::CHECKIN:
+    case FXAct::CHECKIN:
         outmsg = procMsg_noreply(msg,[this](Message& msg) {
             Log(LOG_INFO) << "Client checked in";
         });
         break;
-    case FXAction::ALL_SYM_OPEN:
+    case FXAct::ALL_SYM_OPEN:
         outmsg = procMsg_ALL_SYM_OPEN(msg);
         break;
     default:
@@ -77,7 +77,7 @@ MultinodeTrader::procMsg_ALL_SYM_OPEN(Message& msg)
     }
 
     Message out;
-    out.setAction(FXAction::NOACTION);
+    out.setAction(FXAct::NOACTION);
     return out;
 
 }

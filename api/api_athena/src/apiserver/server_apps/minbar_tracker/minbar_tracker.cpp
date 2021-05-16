@@ -31,23 +31,23 @@ Message
 MinBarTracker::processMsg(Message& msg)
 {
     Message msgnew;
-    FXAction action = (FXAction)msg.getAction();
+    FXAct action = (FXAct)msg.getAction();
     switch(action) {
-    case FXAction::MINBAR:
+    case FXAct::MINBAR:
         msgnew = procMsg_MINBAR(msg);
         break;
-    case FXAction::CHECKIN:
+    case FXAct::CHECKIN:
         msgnew = procMsg_noreply(msg,[this](Message& m){
                                  Log(LOG_INFO) << "Client checked in";
                                  });
         break;
-    case FXAction::HISTORY_MINBAR:
+    case FXAct::HISTORY_MINBAR:
         msgnew = procMsg_HISTORY_MINBAR(msg);
         break;
-    case FXAction::INIT_TIME:
+    case FXAct::INIT_TIME:
         msgnew = procMsg_INIT_TIME(msg);
         break;
-    case FXAction::PROFIT:
+    case FXAct::PROFIT:
         msgnew = procMsg_noreply(msg,[this](Message& m){
         real32* pm = (real32*)m.getData();
         Log(LOG_INFO) << "Total profit of current positions: " + to_string(pm[0]);
@@ -57,7 +57,7 @@ MinBarTracker::processMsg(Message& msg)
                                  });
         break;
 
-    case FXAction::CLOSE_POS:
+    case FXAct::CLOSE_POS:
         msgnew = procMsg_noreply(msg,[this](Message& m) {
         real32* pm = (real32*)m.getData();
         if (pm[0] > 0) m_revenue.push_back(pm[0]);
@@ -89,7 +89,7 @@ MinBarTracker::procMsg_MINBAR(Message& msg)
 
     showMinBar(m_allMinBars.back());
 
-    FXAction action = m_predictor->predict();
+    FXAct action = m_predictor->predict();
 
     Log(LOG_INFO) << "Prediction: " + to_string((int)action);
     Message out;
@@ -172,7 +172,7 @@ MinBarTracker::procMsg_INIT_TIME(Message& msg)
     out.setComment(latestBarTime);
     int* pm = (int*)out.getData();
     pm[0] =  histLen;
-    out.setAction(FXAction::REQUEST_HISTORY_MINBAR);
+    out.setAction(FXAct::REQUEST_HISTORY_MINBAR);
     Log(LOG_INFO) << "Request client to send history min bars: " + to_string(histLen);
 
     return out;

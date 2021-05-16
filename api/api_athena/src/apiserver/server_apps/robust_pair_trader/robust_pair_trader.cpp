@@ -24,26 +24,26 @@ using namespace athena;
 Message
 RobustPairTrader::processMsg(Message& msg) {
     Message outmsg;
-    FXAction action = (FXAction)msg.getAction();
+    FXAct action = (FXAct)msg.getAction();
     switch(action) {
-    case FXAction::CHECKIN:
+    case FXAct::CHECKIN:
         outmsg = procMsg_noreply(msg,[](Message& msg) {
             Log(LOG_INFO)<< "Client checked in";
         });
         break;
-    case FXAction::ASK_PAIR:
+    case FXAct::ASK_PAIR:
         outmsg = procMsg_ASK_PAIR(msg);
         break;
-    case FXAction::PAIR_HIST_X:
+    case FXAct::PAIR_HIST_X:
         outmsg = procMsg_PAIR_HIST_X(msg);
         break;
-    case FXAction::PAIR_HIST_Y:
+    case FXAct::PAIR_HIST_Y:
         outmsg = procMsg_PAIR_HIST_Y(msg);
         break;
-    case FXAction::PAIR_MIN_OPEN:
+    case FXAct::PAIR_MIN_OPEN:
         outmsg = procMsg_PAIR_MIN_OPEN(msg);
         break;
-    case FXAction::NUM_POS:
+    case FXAct::NUM_POS:
         outmsg = procMsg_noreply(msg,[this](Message& msg) {
             real32* pm = (real32*)msg.getData();
             m_numPos = pm[0];
@@ -53,17 +53,17 @@ RobustPairTrader::processMsg(Message& msg) {
         break;
     }
 
-    switch((FXAction)outmsg.getAction()) {
-    case FXAction::PLACE_BUY:
+    switch((FXAct)outmsg.getAction()) {
+    case FXAct::PLACE_BUY:
         Log(LOG_INFO) << "Action: buy Y";
         break;
-    case FXAction::PLACE_SELL:
+    case FXAct::PLACE_SELL:
         Log(LOG_INFO) << "Action: sell Y";
         break;
-    case FXAction::NOACTION:
+    case FXAct::NOACTION:
         Log(LOG_INFO) << "No action";
         break;
-    case FXAction::CLOSE_ALL_POS:
+    case FXAct::CLOSE_ALL_POS:
         Log(LOG_WARNING) << "Close all positions!";
         break;
     default:
@@ -78,7 +78,7 @@ RobustPairTrader::procMsg_ASK_PAIR(Message& msg) {
     String s1 = m_cfg->getSymX();
     String s2 = m_cfg->getSymY();
     String st = s1 + ":" + s2;
-    Message outmsg(FXAction::ASK_PAIR,0,st.size());
+    Message outmsg(FXAct::ASK_PAIR,0,st.size());
     outmsg.setComment(st);
 
     Log(LOG_INFO) << "Sym pair: " + s1 + "," + s2;
@@ -246,16 +246,16 @@ RobustPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     vector<real32> thd = m_cfg->getThresholdStd();
 
     if ( fac > thd[0] && fac < thd[1]) {
-        outmsg.setAction(FXAction::PLACE_SELL);
+        outmsg.setAction(FXAct::PLACE_SELL);
     } else if( fac < -thd[0] && fac > -thd[1]) {
-        outmsg.setAction(FXAction::PLACE_BUY);
+        outmsg.setAction(FXAct::PLACE_BUY);
     } else {
-        outmsg.setAction(FXAction::NOACTION);
+        outmsg.setAction(FXAct::NOACTION);
     }
 
     real64 w_ratio = m_LRParams.w_now/m_LRParams.w_ave;
     if (w_ratio < m_cfg->getOutlierWeightRatio()) {
-        //outmsg.setAction(FXAction::NOACTION);
+        //outmsg.setAction(FXAct::NOACTION);
         m_numOutliers++;
         Log(LOG_WARNING) << "Outlier detected! w_now/w_ave: " + to_string(w_ratio);
     } else {
@@ -267,16 +267,16 @@ RobustPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     }
 
     if (m_numOutliers >= m_cfg->getOutlierNumLimit()) {
-        outmsg.setAction(FXAction::CLOSE_ALL_POS);
+        outmsg.setAction(FXAct::CLOSE_ALL_POS);
     }
 
     if(m_currStatus["pv"] > m_cfg->getStationaryPVLimit()) {
-        outmsg.setAction(FXAction::NOACTION);
+        outmsg.setAction(FXAct::NOACTION);
     }
 
     if(m_LRParams.r2 < m_cfg->getR2Limit()) {
         Log(LOG_WARNING) << "R2 too low";
-        outmsg.setAction(FXAction::NOACTION);
+        outmsg.setAction(FXAct::NOACTION);
     }
 
     return outmsg;

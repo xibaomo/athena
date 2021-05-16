@@ -9,17 +9,17 @@ MultiPairTrader::processMsg(Message& msg)
 {
     Message outmsg;
 
-    FXAction action = (FXAction)msg.getAction();
+    FXAct action = (FXAct)msg.getAction();
     switch(action) {
-    case FXAction::CHECKIN:
+    case FXAct::CHECKIN:
         outmsg = procMsg_noreply(msg,[this](Message& msg) {
             Log(LOG_INFO) << "Client checked in";
         });
         break;
-    case FXAction::SYM_HIST_OPEN:
+    case FXAct::SYM_HIST_OPEN:
         outmsg = procMsg_SYM_HIST_OPEN(msg);
         break;
-    case FXAction::ASK_PAIR:
+    case FXAct::ASK_PAIR:
         outmsg = procMsg_ASK_PAIR(msg);
         break;
     default:
@@ -35,7 +35,7 @@ MultiPairTrader::procMsg_ASK_PAIR(Message& msg)
     selectTopCorr();
 
     Message out;
-    out.setAction(FXAction::ASK_PAIR);
+    out.setAction(FXAct::ASK_PAIR);
     return out;
 }
 Message

@@ -158,15 +158,15 @@ Message
 ServerPredictor::processMsg(Message& msg)
 {
     Message msgnew;
-    FXAction action = (FXAction)msg.getAction();
+    FXAct action = (FXAct)msg.getAction();
     switch(action) {
-        case FXAction::HISTORY:
+        case FXAct::HISTORY:
             msgnew = std::move(procMsg_HISTORY(msg));
             break;
-        case FXAction::TICK:
+        case FXAct::TICK:
             msgnew = std::move(procMsg_TICK(msg));
             break;
-        case FXAction::CHECKIN:
+        case FXAct::CHECKIN:
             msgnew = std::move(procMsg_CHECKIN(msg));
         default:
             break;
