@@ -102,128 +102,32 @@
 		<Unit filename="src/apiserver/main/main.cpp">
 			<Option target="api_server" />
 		</Unit>
-		<Unit filename="src/apiserver/server_apps/create_svr_app.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/create_svr_app.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/fx_minbar_classifier/fx_minbar_classifier.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/fx_minbar_classifier/fx_minbar_classifier.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/minbar_pair/mb_pairtrader.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/minbar_pair/mb_pairtrader.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/minbar_pair/mptconf.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/minbar_tracker/create_mbp.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/minbar_tracker/create_mbp.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/minbar_tracker/mbtconf.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
+		<Unit filename="src/apiserver/server_apps/create_svr_app.cpp" />
+		<Unit filename="src/apiserver/server_apps/create_svr_app.h" />
+		<Unit filename="src/apiserver/server_apps/fx_minbar_classifier/fx_minbar_classifier.cpp" />
+		<Unit filename="src/apiserver/server_apps/fx_minbar_classifier/fx_minbar_classifier.h" />
+		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.cpp" />
+		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_pair/mb_pairtrader.cpp" />
+		<Unit filename="src/apiserver/server_apps/minbar_pair/mb_pairtrader.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_pair/mptconf.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/create_mbp.cpp" />
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/create_mbp.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/mbtconf.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.cpp" />
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.h" />
 		<Unit filename="src/apiserver/server_apps/multinode_trader/multinode_trader.cpp" />
 		<Unit filename="src/apiserver/server_apps/multinode_trader/multinode_trader.h" />
-		<Unit filename="src/apiserver/server_apps/multipair_trader/mulpairconf.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/multipair_trader/multi_pairtrader.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/multipair_trader/multi_pairtrader.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/robust_pair_trader/robust_pair_trader.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/robust_pair_trader/robust_pair_trader.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/robust_pair_trader/rptconf.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/server_predictor/server_predictor.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/server_predictor/server_predictor.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-		</Unit>
+		<Unit filename="src/apiserver/server_apps/pair_selector/pair_select_conf.h" />
+		<Unit filename="src/apiserver/server_apps/pair_selector/pair_selector.cpp" />
+		<Unit filename="src/apiserver/server_apps/pair_selector/pair_selector.h" />
+		<Unit filename="src/apiserver/server_apps/robust_pair_trader/robust_pair_trader.cpp" />
+		<Unit filename="src/apiserver/server_apps/robust_pair_trader/robust_pair_trader.h" />
+		<Unit filename="src/apiserver/server_apps/robust_pair_trader/rptconf.h" />
+		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.cpp" />
+		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.h" />
+		<Unit filename="src/apiserver/server_apps/server_predictor/server_predictor.cpp" />
+		<Unit filename="src/apiserver/server_apps/server_predictor/server_predictor.h" />
 		<Unit filename="src/apiserver/test_server/main.cpp">
 			<Option target="test_server" />
 		</Unit>
@@ -286,10 +190,7 @@
 			<Option target="gsl_hist" />
 		</Unit>
 		<Extensions>
-			<envvars />
-			<code_completion />
 			<lib_finder disable_auto="1" />
-			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

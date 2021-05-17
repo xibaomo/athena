@@ -20,29 +20,29 @@
 #define  _MULTI_PAir_TRADER_H_
 #include "server_apps/server_base_app/server_base_app.h"
 #include "linreg/linreg.h"
-#include "mulpairconf.h"
+#include "pair_select_conf.h"
 #include <unordered_map>
 struct SymPair {
     String symx;
     String symy;
     real64 corr;
 };
-class MultiPairTrader : public ServerBaseApp {
+class PairSelector : public ServerBaseApp {
 protected:
-    MultiPairConfig* m_cfg;
+    PairSelectConfig* m_cfg;
 
     std::unordered_map<String,std::vector<real32>> m_sym2hist;
     std::vector<SymPair> m_topCorrSyms;
 
-    MultiPairTrader(const String& cf) : ServerBaseApp(cf) {
-        m_cfg = &MultiPairConfig::getInstance();
+    PairSelector(const String& cf) : ServerBaseApp(cf) {
+        m_cfg = &PairSelectConfig::getInstance();
         m_cfg->loadConfig(cf);
     }
 public:
-    virtual ~MultiPairTrader() {;}
+    virtual ~PairSelector() {;}
 
-    static MultiPairTrader& getInstance(const String& cf) {
-        static MultiPairTrader _ins(cf);
+    static PairSelector& getInstance(const String& cf) {
+        static PairSelector _ins(cf);
         return _ins;
     }
 

@@ -19,7 +19,7 @@
 #include "server_apps/fx_minbar_classifier/fx_minbar_classifier.h"
 #include "server_apps/minbar_tracker/minbar_tracker.h"
 #include "server_apps/minbar_pair/mb_pairtrader.h"
-#include "server_apps/multipair_trader/multi_pairtrader.h"
+#include "server_apps/pair_selector/pair_selector.h"
 #include "server_apps/robust_pair_trader/robust_pair_trader.h"
 #include "server_apps/multinode_trader/multinode_trader.h"
 
@@ -38,7 +38,7 @@ create_server_app(AppType type, const String& configFile)
             app = &ForexMinBarClassifier::getInstance(configFile);
             break;
         case AppType::APP_MULTI_PAIRTRADER:
-            app = &MultiPairTrader::getInstance(configFile);
+            app = &PairSelector::getInstance(configFile);
             break;
         case AppType::APP_MINBAR_TRACKER:
             app = &MinBarTracker::getInstance(configFile);

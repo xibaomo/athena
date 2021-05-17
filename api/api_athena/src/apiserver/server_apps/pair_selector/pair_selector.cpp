@@ -1,11 +1,11 @@
-#include "multi_pairtrader.h"
+#include "pair_selector.h"
 #include "pyrunner/pyrunner.h"
 #include "linreg/roblinreg.h"
 using namespace std;
 using namespace athena;
 
 Message
-MultiPairTrader::processMsg(Message& msg)
+PairSelector::processMsg(Message& msg)
 {
     Message outmsg;
 
@@ -25,7 +25,7 @@ MultiPairTrader::processMsg(Message& msg)
 }
 
 Message
-MultiPairTrader::procMsg_ASK_PAIR(Message& msg)
+PairSelector::procMsg_ASK_PAIR(Message& msg)
 {
     selectTopCorr();
 
@@ -34,7 +34,7 @@ MultiPairTrader::procMsg_ASK_PAIR(Message& msg)
     return out;
 }
 Message
-MultiPairTrader::procMsg_SYM_HIST_OPEN(Message& msg)
+PairSelector::procMsg_SYM_HIST_OPEN(Message& msg)
 {
     char* pc = (char*)msg.getChar();
     size_t cb = msg.getCharBytes() - 2*sizeof(int);
@@ -57,7 +57,7 @@ MultiPairTrader::procMsg_SYM_HIST_OPEN(Message& msg)
 }
 
 void
-MultiPairTrader::selectTopCorr()
+PairSelector::selectTopCorr()
 {
     Log(LOG_INFO) << "Total symbols received: " + to_string(m_sym2hist.size());
     vector<String> keys;

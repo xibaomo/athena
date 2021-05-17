@@ -21,14 +21,14 @@
 
 #include "basics/baseconf.h"
 const String MUPAIR_ROOT = "MULTIPAIR_TRADER/";
-class MultiPairConfig : public BaseConfig {
+class PairSelectConfig : public BaseConfig {
 private:
-    MultiPairConfig() {;}
+    PairSelectConfig() {;}
 public:
-    virtual ~MultiPairConfig() {;}
+    virtual ~PairSelectConfig() {;}
 
-    static MultiPairConfig& getInstance() {
-        static MultiPairConfig _ins;
+    static PairSelectConfig& getInstance() {
+        static PairSelectConfig _ins;
         return _ins;
     }
 
