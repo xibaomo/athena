@@ -20,7 +20,7 @@
 #define  _MUL_PAIR_TRADER_H_
 
 #include "basics/baseconf.h"
-const String MUPAIR_ROOT = "MULTIPAIR_TRADER/";
+const String PAIRSELECT_ROOT = "PAIR_SELECTOR/";
 class PairSelectConfig : public BaseConfig {
 private:
     PairSelectConfig() {;}
@@ -33,7 +33,14 @@ public:
     }
 
     real32 getCorrBaseline() {
-        return getKeyValue<real32>(MUPAIR_ROOT + "CORR_BSL");
+        return getKeyValue<real32>(PAIRSELECT_ROOT + "CORR_BSL");
+    }
+
+    /**
+     * Get p value for cointegration test
+     */
+    real32 getCoIntPVal() {
+        return getKeyValue<real32>(PAIRSELECT_ROOT + "COINT_P_VAL");
     }
 };
 

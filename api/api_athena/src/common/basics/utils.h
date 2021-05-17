@@ -204,7 +204,7 @@ computePairCorr(std::vector<T>& v1, std::vector<T>& v2)
 }
 
 bool
-test_coint(std::vector<real32>& v1, std::vector<real32>& v2);
+test_coint(std::vector<real32>& v1, std::vector<real32>& v2, real32 pval=0.01);
 
 /**
  * Compute p-value of adf test (stationarity)

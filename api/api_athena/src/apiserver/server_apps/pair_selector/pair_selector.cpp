@@ -78,8 +78,10 @@ PairSelector::selectTopCorr()
 
             auto corr = computePairCorr(v1,v2);
             if (fabs(corr) > m_cfg->getCorrBaseline()) {
+                std::cout<<std::endl;
                 Log(LOG_INFO) << "Testing cointegration: " +  keys[i] + " vs " + keys[j];
-                if (!test_coint(v1,v2)) {
+                real32 pv = m_cfg->getCoIntPVal();
+                if (!test_coint(v1,v2,pv)) {
                     continue;
                 }
 

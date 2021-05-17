@@ -183,7 +183,7 @@ void getPythonFunction(const String& modFile, const String& funcName,CPyObject& 
         Log(LOG_FATAL) << "Failed to import module: " + modFile;
     }
 
-    func = PyObject_GetAttrString(mod, funcName.c_str());
+    func = PyObject_GetAttrString(mod.getObject(), funcName.c_str());
 
     if (!func || !PyCallable_Check(func)) {
         Log(LOG_FATAL) << "Failed to get function or it's not callable: " + funcName;
@@ -202,10 +202,11 @@ static void import_numpy()
         import_array();
 }
 bool
-test_coint(std::vector<real32>& v1, std::vector<real32>& v2)
+test_coint(std::vector<real32>& v1, std::vector<real32>& v2, real32 pval)
 {
     CPyObject lx = PyList_New(v1.size());
     CPyObject ly = PyList_New(v2.size());
+    CPyObject pv = Py_BuildValue("f",pval);
     for (size_t i = 0; i < v1.size(); i++) {
         PyList_SetItem(lx,i,Py_BuildValue("f",v1[i]));
         PyList_SetItem(ly,i,Py_BuildValue("f",v2[i]));
@@ -224,9 +225,10 @@ test_coint(std::vector<real32>& v1, std::vector<real32>& v2)
 //    CPyObject pyv2 = PyArray_SimpleNewFromData(1,dims,NPY_FLOAT32,(void*)&v2[0]);
 
 //    CPyObject args = Py_BuildValue("(OO)",pyv1.getObject(),pyv2.getObject());
-    CPyObject args = PyTuple_New(2);
+    CPyObject args = PyTuple_New(3);
     PyTuple_SetItem(args.getObject(),0,lx.getObject());
     PyTuple_SetItem(args.getObject(),1,ly.getObject());
+    PyTuple_SetItem(args.getObject(),2,pv.getObject());
 
     CPyObject res = pyrun.runAthenaPyFunc("coint","coint_verify",args);
 

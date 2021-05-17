@@ -2,7 +2,7 @@ GENERAL:
     # Application type: 0 - min bar tracker
     #                   1 - min bar classifier - rf model
     #                   2 - min bar pair trader
-    #                   3 - multiple pair trader
+    #                   3 - pair selector
     #                   4 - robust pair trader
     APPLICATION: 4
 

@@ -5,7 +5,7 @@ from statsmodels.tsa.stattools import coint
 from numpy import cumsum, log, polyfit, sqrt, std, subtract
 import numpy as np
 
-def coint_verify(list_x, list_y) :
+def coint_verify(list_x, list_y, pval) :
     x = np.array(list_x)
     y = np.array(list_y)
 
@@ -18,11 +18,13 @@ def coint_verify(list_x, list_y) :
         print "diff(y) is not steady, p value = %f" % af[1]
         return 0
 
+    print "p-val threshold = %f" % pval
     c = coint(x, y)
-    if c[1] > 0.01:
+    if c[1] > pval:
         print "cointegration test fails. p value = %f" % c[1]
         return 0
 
+    print "========= cointegration passed, p-val: %f" % c[1]
     return 1
 
 def test_adf(list_x):
