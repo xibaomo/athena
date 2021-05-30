@@ -44,7 +44,7 @@ PairSelector::procMsg_SYM_HIST_OPEN(Message& msg)
     Log(LOG_INFO) << "History length: " + to_string(len);
 
     if (m_sym2hist.find(sym) != m_sym2hist.end()) {
-        Log(LOG_FATAL) << "Duplicated symbol received: " + sym;
+        Log(LOG_ERROR) << "Duplicated symbol received: " + sym;
     }
 
 
@@ -88,7 +88,7 @@ PairSelector::selectTopCorr()
                 SymPair sp{keys[i],keys[j],corr};
                 m_topCorrSyms.push_back(sp);
 
-                RobLRParam pm = robLinreg(v1,v2);
+                LRParam pm = ordLinreg(v1,v2);
                 if (pm.c0 > 0.)
                     Log(LOG_INFO) << "Top corr pair: " + keys[i] + " , " + keys[j] + ": " +to_string(corr);
                 else

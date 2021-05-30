@@ -25,6 +25,7 @@ struct LRParam {
     real64 c0, c1;
     real64 cov00, cov01, cov11;
     real64 chisq;
+    real64 r2;
 };
 
 LRParam linreg(real64* x, real64* y, size_t n);

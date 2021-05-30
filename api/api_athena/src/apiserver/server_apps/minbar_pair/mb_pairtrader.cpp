@@ -99,7 +99,7 @@ MinBarPairTrader::procMsg_SYM_HIST_OPEN(Message& msg) {
     Log(LOG_INFO) << "Received history: " + sym;
 
     if (m_sym2hist.find(sym) != m_sym2hist.end()) {
-        Log(LOG_FATAL) << "Duplicated symbol received: " + sym;
+        Log(LOG_ERROR) << "Duplicated symbol received: " + sym;
     }
 
     int len = msg.getDataBytes()/sizeof(real32);

@@ -37,7 +37,7 @@ create_server_app(AppType type, const String& configFile)
         case AppType::APP_MINBARCLASSIFIER:
             app = &ForexMinBarClassifier::getInstance(configFile);
             break;
-        case AppType::APP_MULTI_PAIRTRADER:
+        case AppType::APP_PAIR_SELECTOR:
             app = &PairSelector::getInstance(configFile);
             break;
         case AppType::APP_MINBAR_TRACKER:

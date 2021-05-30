@@ -37,6 +37,8 @@ protected:
     PairSelector(const String& cf) : ServerBaseApp(cf) {
         m_cfg = &PairSelectConfig::getInstance();
         m_cfg->loadConfig(cf);
+
+        Log(LOG_INFO) << "Pair selector created";
     }
 public:
     virtual ~PairSelector() {;}

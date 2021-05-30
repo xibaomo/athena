@@ -26,6 +26,7 @@ LRParam linreg(real64* xs, real64* ys, size_t n)
     LRParam pm;
     gsl_fit_linear(xs, 1, ys, 1, n, &pm.c0, &pm.c1, &pm.cov00, &pm.cov01, &pm.cov11, &pm.chisq);
 
+    pm.r2 = compR2(pm,xs,ys,n);
     return pm;
 }
 
