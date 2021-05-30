@@ -20,34 +20,26 @@
 #include "server_apps/server_base_app/server_base_app.h"
 #include "mptconf.h"
 #include "linreg/linreg.h"
-
-typedef std::unordered_map<String, real32> PTStatus;
-
 class DecisionMaker;
 class MinbarPairTrader : public ServerBaseApp {
-protected:
+  protected:
     real32                  m_initBalance;
     MptConfig*              m_cfg;
     std::vector<real32>     m_openX;
     std::vector<real32>     m_openY;
     std::vector<real64>     m_errs;
-    PTStatus                m_currStatus;
     size_t                  m_numPos;
 
     LRParam       m_linParam;
 
     DecisionMaker* m_oracle;
 
-
-    MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg),m_oracle(nullptr) {
-        m_cfg = &MptConfig::getInstance();
-        m_cfg->loadConfig(cfg);
-        m_initBalance = -1.;
-        m_numPos = 0;
-        Log(LOG_INFO) << "Minbar pair trader created";
-        }
-public:
-    virtual ~MinbarPairTrader() {;}
+    MinbarPairTrader(const String& cfg);
+  public:
+    virtual ~MinbarPairTrader() {
+        if(m_oracle)
+            delete m_oracle;
+    }
 
     static MinbarPairTrader& getInstance(const String& cfg) {
         static MinbarPairTrader _ins(cfg);

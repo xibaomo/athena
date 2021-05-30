@@ -20,8 +20,20 @@
 #include "pyrunner/pyrunner.h"
 #include "basics/utils.h"
 #include "linreg/linreg.h"
+#include "dm_rule_75.h"
 using namespace std;
 using namespace athena;
+
+MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg),m_oracle(nullptr) {
+    m_cfg = &MptConfig::getInstance();
+    m_cfg->loadConfig(cfg);
+    m_initBalance = -1.;
+    m_numPos = 0;
+
+    m_oracle = new Rule75(this);
+    Log(LOG_INFO) << "Minbar pair trader created";
+}
+
 Message
 MinbarPairTrader::processMsg(Message& msg) {
     Message outmsg;

@@ -1,0 +1,33 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename:  decision_maker.h
+ *
+ *    Description:
+ *
+ *        Version:  1.0
+ *        Created:  05/30/2021 05:02:43 AM
+ *       Revision:  none
+ *       Compiler:  gcc
+ *
+ *         Author:  YOUR NAME (),
+ *   Organization:
+ *
+ * =====================================================================================
+ */
+#pragma once
+#include "fx_action/fx_action.h"
+
+class MinbarPairTrader;
+class DecisionMaker {
+protected:
+    MinbarPairTrader* m_trader;
+public:
+    DecisionMaker(MinbarPairTrader* p) : m_trader(p){;}
+
+    virtual ~DecisionMaker(){;}
+
+    virtual FXAct getDecision() = 0;
+
+    virtual bool isContinue() = 0;
+};
