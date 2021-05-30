@@ -19,6 +19,7 @@
 #include "minbar_pair_trader.h"
 #include "pyrunner/pyrunner.h"
 #include "basics/utils.h"
+#include "linreg/linreg.h"
 using namespace std;
 using namespace athena;
 Message
@@ -100,6 +101,28 @@ MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
     return out;
 }
 
+void
+MinbarPairTrader::compErrs() {
+    size_t len = m_openX.size();
+    real64* x = new real64[len];
+    real64* y = new real64[len];
+
+    for (size_t i=0; i< len; i++) {
+        x[i] = m_openX[i];
+        y[i] = m_openY[i];
+    }
+
+    m_linParam = linreg(x,y,len);
+
+    for(int i=0; i < len; i++) {
+        real64 tmp = m_linParam.c0 + m_linParam.c1 * x[i] - y[i];
+        m_errs.push_back(tmp);
+    }
+
+    delete[] x;
+    delete[] y;
+}
+
 Message
 MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     Log(LOG_INFO) << "Y history arrives";
@@ -122,83 +145,20 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     real64 corr = computePairCorr(m_openX, m_openY);
     Log(LOG_INFO) << "Correlation: " + to_string(corr);
 
-    linreg();
+    compErrs();
+
+    real64 pv = testADF(&m_errs[0],m_errs.size());
+
+    Log(LOG_INFO) << "p-value of adf test on errors: " + to_string(pv);
 
     Message outmsg(msg.getAction(), sizeof(real32), 0);
     pm = (real32*)outmsg.getData();
-    pm[0] = m_currStatus["c1"];
+    pm[0] = m_linParam.c1;
     return outmsg;
-}
-
-void
-MinbarPairTrader::estimateSpreadTend(real64* sp, int len)
-{
-    real64 c0 = m_currStatus["c0"];
-    real64 sigma = m_currStatus["sigma"];
-    int n_up = 0;
-    int n_down = 0;
-    real64 h_dev = 0.;
-    real64 l_dev = -0.;
-    for ( int i = 0; i < len; i++ ) {
-        real64 dev  = (sp[i] - c0)/sigma;
-        if ( dev >= 2) n_up++;
-        if ( dev <= -2) n_down++;
-        if ( dev > h_dev) h_dev = dev;
-        if ( dev < l_dev) l_dev = dev;
-    }
-
-    Log(LOG_INFO) << "Spread up ratio: " + to_string(n_up) + "/" + to_string(len);
-    Log(LOG_INFO) << "Spread down ratio: " + to_string(n_down) + "/" + to_string(len);
-    Log(LOG_INFO) << "Ratio range: [" + to_string(l_dev) + "," + to_string(h_dev) + "]";
-}
-
-void
-MinbarPairTrader::linreg(size_t start) {
-    m_LRParams = robLinreg(m_openX, m_openY, start);
-
-    real64 c0 = m_LRParams.c0;
-    real64 c1 = m_LRParams.c1;
-    Log(LOG_INFO) << "Linear reg done: c0 = " + to_string(c0)
-                  + ", c1 = " + to_string(c1);
-
-    Log(LOG_INFO) << "Ave weight: " + to_string(m_LRParams.w_ave);
-    Log(LOG_INFO) << "Latest weight: " + to_string(m_LRParams.w_now);
-
-    m_currStatus["c0"] = c0;
-    m_currStatus["c1"] = c1;
-    m_currStatus["rms"]= m_LRParams.rms;
-    m_currStatus["r2"] = m_LRParams.r2;
-    m_currStatus["sigma"] = m_LRParams.sigma;
-
-    size_t len = m_openX.size() - start;
-    real64* spread = new real64[len];
-    int k = 0;
-    for ( size_t i = start; i < m_openX.size(); i++ ) {
-        spread[k++] = m_openY[i] - c1*m_openX[i];
-    }
-
-    real64 pv = testADF(spread, len);
-    Log(LOG_INFO) << "p-value of non-stationarity of spread: " + to_string(pv);
-    m_currStatus["pv"] = pv;
-
-    real64 h = hurst(spread, len);
-    Log(LOG_INFO) << "Hurst exponent: " + to_string(h);
-    m_currStatus["hurst"] = h;
-
-    real64 hf = compHalfLife(spread, len);
-    Log(LOG_INFO) << "Half life of spread: " + to_string(hf);
-
-    estimateSpreadTend(spread, len);
-
-    vector<real64> vsp(spread, spread+len);
-    dumpVectors("spread.csv",vsp);
-
-    delete[] spread;
 }
 
 Message
 MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
-    // This function fits linear model with all past ticks even though they are outliers
     Message outmsg(sizeof(real32), 0);
     real32* pm = (real32*)msg.getData();
     real64 x = pm[0];
@@ -208,7 +168,11 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     m_openX.push_back(x);
     m_openY.push_back(y);
 
-    #if 0
+    real64 err = m_linParam.c0 + m_linParam.c1*x - y;
+
+    m_errs.push_back(err);
+
+#if 0
     dumpVectors("ticks.csv",m_openX, m_openY);
 
     char* pc = (char*)msg.getChar() + sizeof(int)*2;
@@ -274,7 +238,7 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
         Log(LOG_WARNING) << "R2 too low";
         outmsg.setAction(FXAct::NOACTION);
     }
-    #endif // 0
+#endif // 0
 
 
     return outmsg;

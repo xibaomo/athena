@@ -18,7 +18,7 @@
 #include "server_apps/fx_tick_classifier/fx_tick_classifier.h"
 #include "server_apps/fx_minbar_classifier/fx_minbar_classifier.h"
 #include "server_apps/minbar_tracker/minbar_tracker.h"
-#include "server_apps/minbar_pair/mb_pairtrader.h"
+#include "server_apps/minbar_pair_trader/minbar_pair_trader.h"
 #include "server_apps/pair_selector/pair_selector.h"
 #include "server_apps/robust_pair_trader/robust_pair_trader.h"
 #include "server_apps/multinode_trader/multinode_trader.h"
@@ -45,8 +45,7 @@ create_server_app(AppType type, const String& configFile)
             Log(LOG_INFO) << "Min bar tracker created";
             break;
         case AppType::APP_MINBAR_PAIRTRADER:
-            app = &MinBarPairTrader::getInstance(configFile);
-            Log(LOG_INFO) << "Min bar pair trader created";
+            app = &MinbarPairTrader::getInstance(configFile);
             break;
         case AppType::APP_ROBUST_PAIRTRADER:
             app = &RobustPairTrader::getInstance(configFile);
