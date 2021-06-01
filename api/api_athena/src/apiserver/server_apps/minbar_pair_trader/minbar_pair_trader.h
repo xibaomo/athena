@@ -27,8 +27,10 @@ class MinbarPairTrader : public ServerBaseApp {
     MptConfig*              m_cfg;
     std::vector<real32>     m_openX;
     std::vector<real32>     m_openY;
-    std::vector<real64>     m_errs;
+    std::vector<real64>     m_spreads;
     size_t                  m_numPos;
+    bool                    m_isRunning;
+    size_t                  m_pairCount;
 
     LRParam       m_linParam;
 
@@ -36,19 +38,19 @@ class MinbarPairTrader : public ServerBaseApp {
 
     MinbarPairTrader(const String& cfg);
   public:
-    virtual ~MinbarPairTrader() {
-        if(m_oracle)
-            delete m_oracle;
-    }
+    virtual ~MinbarPairTrader();
 
     static MinbarPairTrader& getInstance(const String& cfg) {
         static MinbarPairTrader _ins(cfg);
         return _ins;
     }
 
+    MptConfig* getConfig() { return m_cfg; }
     void prepare() {;}
 
-    void compErrs();
+    void compSpreads();
+    std::vector<real64>& getSpreads() { return m_spreads; }
+
     Message processMsg(Message& msg);
     Message procMsg_ASK_PAIR(Message& msg);
     Message procMsg_PAIR_HIST_X(Message& msg);

@@ -24,7 +24,7 @@
 using namespace std;
 using namespace athena;
 
-MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg),m_oracle(nullptr) {
+MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg),m_isRunning(true),m_pairCount(0),m_oracle(nullptr) {
     m_cfg = &MptConfig::getInstance();
     m_cfg->loadConfig(cfg);
     m_initBalance = -1.;
@@ -32,6 +32,11 @@ MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg),m_ora
 
     m_oracle = new Rule75(this);
     Log(LOG_INFO) << "Minbar pair trader created";
+}
+
+MinbarPairTrader::~MinbarPairTrader() {
+    if(m_oracle)
+        delete m_oracle;
 }
 
 Message
@@ -114,7 +119,7 @@ MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
 }
 
 void
-MinbarPairTrader::compErrs() {
+MinbarPairTrader::compSpreads() {
     size_t len = m_openX.size();
     real64* x = new real64[len];
     real64* y = new real64[len];
@@ -126,9 +131,11 @@ MinbarPairTrader::compErrs() {
 
     m_linParam = linreg(x,y,len);
 
+    Log(LOG_INFO) << "Liner regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1);
+
     for(int i=0; i < len; i++) {
-        real64 tmp = m_linParam.c0 + m_linParam.c1 * x[i] - y[i];
-        m_errs.push_back(tmp);
+        real64 tmp = y[i] - (m_linParam.c1 * x[i]);
+        m_spreads.push_back(tmp);
     }
 
     delete[] x;
@@ -157,9 +164,11 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     real64 corr = computePairCorr(m_openX, m_openY);
     Log(LOG_INFO) << "Correlation: " + to_string(corr);
 
-    compErrs();
+    compSpreads();
 
-    real64 pv = testADF(&m_errs[0],m_errs.size());
+    m_oracle->init();
+
+    real64 pv = testADF(&m_spreads[0],m_spreads.size());
 
     Log(LOG_INFO) << "p-value of adf test on errors: " + to_string(pv);
 
@@ -171,6 +180,8 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
 
 Message
 MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
+
+    m_pairCount++;
     Message outmsg(sizeof(real32), 0);
     real32* pm = (real32*)msg.getData();
     real64 x = pm[0];
@@ -180,9 +191,23 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     m_openX.push_back(x);
     m_openY.push_back(y);
 
-    real64 err = m_linParam.c0 + m_linParam.c1*x - y;
+    Log(LOG_INFO) << "\n\t\t\t" + to_string(m_pairCount) + "th pair arrives. x: " + to_string(x) + ", y: " +to_string(y);
 
-    m_errs.push_back(err);
+    if(!m_isRunning) {
+        outmsg.setAction(FXAct::NOACTION);
+        return outmsg;
+    }
+
+    real64 err = y - (m_linParam.c1*x);
+
+    m_spreads.push_back(err);
+
+    FXAct act = m_oracle->getDecision();
+    outmsg.setAction(act);
+    pm = (real32*)outmsg.getData();
+    pm[0] = m_linParam.c1;
+
+    m_isRunning = m_oracle->isContinue();
 
 #if 0
     dumpVectors("ticks.csv",m_openX, m_openY);

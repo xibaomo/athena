@@ -18,10 +18,24 @@
 #pragma once
 
 #include "decision_maker.h"
+#include <string>
 class Rule75 : public DecisionMaker {
+private:
+    real64 m_median;
+    real64 m_std;
+
+    size_t m_numBuys;
+    size_t m_numSells;
 public:
 
-    Rule75(MinbarPairTrader* trader) : DecisionMaker(trader){;}
+    Rule75(MinbarPairTrader* trader) : DecisionMaker(trader), m_numBuys(0),m_numSells(0){;}
+
+    ~Rule75();
+
+    void init();
+    void stats();
     FXAct getDecision();
     bool isContinue();
+
+    void finish();
 };

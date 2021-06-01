@@ -111,6 +111,9 @@
 		<Unit filename="src/apiserver/server_apps/minbar_pair/mb_pairtrader.cpp" />
 		<Unit filename="src/apiserver/server_apps/minbar_pair/mb_pairtrader.h" />
 		<Unit filename="src/apiserver/server_apps/minbar_pair/mptconf.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/decision_maker.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/dm_rule_75.cpp" />
+		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/dm_rule_75.h" />
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/minbar_pair_trader.cpp" />
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/minbar_pair_trader.h" />
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/mptconf.h" />

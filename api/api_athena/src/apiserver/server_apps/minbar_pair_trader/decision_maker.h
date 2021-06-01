@@ -20,14 +20,18 @@
 
 class MinbarPairTrader;
 class DecisionMaker {
-protected:
+  protected:
     MinbarPairTrader* m_trader;
-public:
-    DecisionMaker(MinbarPairTrader* p) : m_trader(p){;}
+  public:
+    DecisionMaker(MinbarPairTrader* p) : m_trader(p) {;}
 
-    virtual ~DecisionMaker(){;}
+    virtual void init() = 0;
+
+    virtual ~DecisionMaker() {;}
 
     virtual FXAct getDecision() = 0;
 
     virtual bool isContinue() = 0;
+
+    virtual void finish() = 0;
 };
