@@ -24,6 +24,7 @@ private:
     real64 m_median;
     real64 m_std;
 
+    std::vector<real64> m_deviations; // in unit of m_std
     size_t m_numBuys;
     size_t m_numSells;
 public:

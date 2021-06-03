@@ -24,6 +24,8 @@ using namespace std;
 using namespace athena;
 
 Rule75::~Rule75() {
+    dumpVectors("devs.csv",m_deviations);
+
     Log(LOG_INFO) << "Num buys: " + to_string(m_numBuys) + ", num sells: " + to_string(m_numSells);
 }
 
@@ -63,7 +65,10 @@ Rule75::getDecision()
     auto& spreads = m_trader->getSpreads();
 
     real64 cur = spreads.back();
-    Log(LOG_INFO) << "Latest error (std) relative to original mean: " + to_string((cur-m_median)/m_std);
+    real64 dev = (cur-m_median)/m_std;
+    Log(LOG_INFO) << "Latest error (std) relative to original mean: " + to_string(dev);
+    m_deviations.push_back(dev);
+
     if(cur > m_median) {
         Log(LOG_INFO) << "Current error higher than median";
         m_numSells++;

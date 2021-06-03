@@ -35,6 +35,7 @@ MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg),m_isR
 }
 
 MinbarPairTrader::~MinbarPairTrader() {
+    dumpVectors("spreads.csv",m_spreads);
     if(m_oracle)
         delete m_oracle;
 }
@@ -193,10 +194,10 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 
     Log(LOG_INFO) << "\n\t\t\t" + to_string(m_pairCount) + "th pair arrives. x: " + to_string(x) + ", y: " +to_string(y);
 
-    if(!m_isRunning) {
-        outmsg.setAction(FXAct::NOACTION);
-        return outmsg;
-    }
+//    if(!m_isRunning) {
+//        outmsg.setAction(FXAct::NOACTION);
+//        return outmsg;
+//    }
 
     real64 err = y - (m_linParam.c1*x);
 
@@ -208,6 +209,8 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     pm[0] = m_linParam.c1;
 
     m_isRunning = m_oracle->isContinue();
+    if(!m_isRunning)
+        outmsg.setAction(FXAct::NOACTION);
 
 #if 0
     dumpVectors("ticks.csv",m_openX, m_openY);
