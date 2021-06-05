@@ -21,6 +21,8 @@
 #include "basics/utils.h"
 #include "linreg/linreg.h"
 #include "dm_rule_75.h"
+#include "mean_reverse.h"
+#include "spread_trend/spread_trend.h"
 using namespace std;
 using namespace athena;
 
@@ -30,11 +32,12 @@ MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg),m_isR
     m_initBalance = -1.;
     m_numPos = 0;
 
-    m_oracle = new Rule75(this);
+    m_oracle = new SpreadTrend(this);
     Log(LOG_INFO) << "Minbar pair trader created";
 }
 
 MinbarPairTrader::~MinbarPairTrader() {
+    dumpVectors("prices.csv",m_openX,m_openY);
     dumpVectors("spreads.csv",m_spreads);
     if(m_oracle)
         delete m_oracle;
@@ -135,7 +138,7 @@ MinbarPairTrader::compSpreads() {
     Log(LOG_INFO) << "Liner regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1);
 
     for(int i=0; i < len; i++) {
-        real64 tmp = y[i] - (m_linParam.c1 * x[i]);
+        real64 tmp = y[i] - (m_linParam.c1 * x[i] + m_linParam.c0);
         m_spreads.push_back(tmp);
     }
 
@@ -167,11 +170,10 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
 
     compSpreads();
 
-    m_oracle->init();
-
     real64 pv = testADF(&m_spreads[0],m_spreads.size());
+    Log(LOG_INFO) << "p-value of stationarity of spreads: " + to_string(pv);
 
-    Log(LOG_INFO) << "p-value of adf test on errors: " + to_string(pv);
+    m_oracle->init();
 
     Message outmsg(msg.getAction(), sizeof(real32), 0);
     pm = (real32*)outmsg.getData();
@@ -199,7 +201,7 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 //        return outmsg;
 //    }
 
-    real64 err = y - (m_linParam.c1*x);
+    real64 err = y - (m_linParam.c1*x + m_linParam.c0);
 
     m_spreads.push_back(err);
 

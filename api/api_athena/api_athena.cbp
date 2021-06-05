@@ -47,8 +47,8 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-std=c++0x" />
 			<Add option="-g" />
+			<Add option="-std=c++0x" />
 			<Add option="-fexceptions" />
 			<Add directory="src/apiclient" />
 			<Add directory="src/apiserver" />
@@ -58,6 +58,7 @@
 			<Add directory="/tools/include" />
 			<Add directory="/tools/lib/python2.7/site-packages/numpy/core/include" />
 			<Add directory="/tools/include/python2.7" />
+			<Add directory="src/apiserver/server_apps" />
 		</Compiler>
 		<Linker>
 			<Add option="-O2" />
@@ -111,9 +112,12 @@
 		<Unit filename="src/apiserver/server_apps/minbar_pair/mb_pairtrader.cpp" />
 		<Unit filename="src/apiserver/server_apps/minbar_pair/mb_pairtrader.h" />
 		<Unit filename="src/apiserver/server_apps/minbar_pair/mptconf.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/decision_maker.cpp" />
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/decision_maker.h" />
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/dm_rule_75.cpp" />
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/dm_rule_75.h" />
+		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/mean_reverse.cpp" />
+		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/mean_reverse.h" />
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/minbar_pair_trader.cpp" />
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/minbar_pair_trader.h" />
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/mptconf.h" />
@@ -189,6 +193,8 @@
 		<Unit filename="src/modules/multinode/multinode_utils.cpp" />
 		<Unit filename="src/modules/multinode/multinode_utils.h" />
 		<Unit filename="src/modules/predictor/prdtypes.h" />
+		<Unit filename="src/modules/spread_trend/spread_trend.cpp" />
+		<Unit filename="src/modules/spread_trend/spread_trend.h" />
 		<Unit filename="src/utests/test_coint.cpp">
 			<Option target="test_coint" />
 		</Unit>

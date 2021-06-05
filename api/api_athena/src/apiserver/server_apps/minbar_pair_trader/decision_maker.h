@@ -22,6 +22,7 @@ class MinbarPairTrader;
 class DecisionMaker {
   protected:
     MinbarPairTrader* m_trader;
+
   public:
     DecisionMaker(MinbarPairTrader* p) : m_trader(p) {;}
 
@@ -33,5 +34,5 @@ class DecisionMaker {
 
     virtual bool isContinue() = 0;
 
-    virtual void finish() = 0;
+    virtual void finish(){;}
 };

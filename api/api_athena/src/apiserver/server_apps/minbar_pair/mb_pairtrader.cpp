@@ -346,7 +346,7 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 
     real64 spread = y - m_linregParam.c1*x;
 
-    real64 thd = m_cfg->getThresholdStd();
+    real64 thd = m_cfg->getLowThresholdStd();
 
     real64 dev_val = m_spreadStd/y_pv*y_pd;
     Log(LOG_INFO) << "std = $" + to_string(dev_val) + " (per unit volume)";

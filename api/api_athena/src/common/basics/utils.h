@@ -221,9 +221,10 @@ hurst(real64* v, int len);
  * Dump arbitrary number of vectors
  */
 inline
-void  dumpVectors_aux(std::ofstream& ofs, int) {
+void dumpVectors_aux(std::ofstream& ofs, int) {
     ofs<<"\n";
 }
+
 template <typename V, typename... T>
 void dumpVectors_aux(std::ofstream& ofs, int i, V& v, T&... args) {
     ofs << v[i] <<",";

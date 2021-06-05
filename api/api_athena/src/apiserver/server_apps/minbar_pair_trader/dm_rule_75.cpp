@@ -33,10 +33,6 @@ void
 Rule75::init() {
     auto& spreads = m_trader->getSpreads();
 
-    real64 pv = testADF(&spreads[0],spreads.size());
-
-    Log(LOG_INFO) << "p-value of stationarity of spreads: " + to_string(pv);
-
     m_median = gsl_stats_mean(&spreads[0],1,spreads.size());
     Log(LOG_INFO) << "Mean of spreads: " + to_string(m_median);
 

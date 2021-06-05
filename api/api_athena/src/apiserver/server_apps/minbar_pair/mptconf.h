@@ -45,8 +45,12 @@ public:
         return getKeyValue<int>(MPT_ROOT + "LR_LEN");
     }
 
-    real32 getThresholdStd() {
-        return getKeyValue<real32>(MPT_ROOT + "THRESHOLD_STD");
+    real32 getLowThresholdStd() {
+        return getKeyValue<real32>(MPT_ROOT + "LOW_THRESHOLD_STD");
+    }
+
+    real32 getHighThresholdStd() {
+        return getKeyValue<real32>(MPT_ROOT + "HIGH_THRESHOLD_STD");
     }
 
     real32 getCorrBaseline() {
