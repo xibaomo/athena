@@ -25,8 +25,8 @@ class MinbarPairTrader : public ServerBaseApp {
   protected:
     real32                  m_initBalance;
     MptConfig*              m_cfg;
-    std::vector<real32>     m_openX;
-    std::vector<real32>     m_openY;
+    std::vector<real64>     m_openX;
+    std::vector<real64>     m_openY;
     std::vector<real64>     m_spreads;
     size_t                  m_numPos;
     bool                    m_isRunning;
@@ -50,6 +50,8 @@ class MinbarPairTrader : public ServerBaseApp {
 
     void compSpreads();
     std::vector<real64>& getSpreads() { return m_spreads; }
+    std::vector<real64>& getOpenX() {return m_openX;}
+    std::vector<real64>& getOpenY() { return m_openY; }
 
     Message processMsg(Message& msg);
     Message procMsg_ASK_PAIR(Message& msg);

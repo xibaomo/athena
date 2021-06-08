@@ -19,11 +19,16 @@
 #include "spread_trend.h"
 #include "minbar_pair_trader/minbar_pair_trader.h"
 #include "basics/utils.h"
+#include "linreg/linreg.h"
+#include "linreg/roblinreg.h"
 using namespace std;
 using namespace athena;
 
 SpreadTrend::~SpreadTrend() {
     dumpVectors("cuscores.csv",m_cuScores);
+    dumpVectors("slopes.csv",m_slopes);
+
+    if(m_cfg) delete m_cfg;
 }
 void
 SpreadTrend::init() {
@@ -41,13 +46,45 @@ SpreadTrend::init() {
     m_cuScores.push_back(m_curCuScore);
 }
 
-FXAct
-SpreadTrend::getDecision() {
+void
+SpreadTrend::stats() {
     auto& spreads = m_trader->getSpreads();
     m_curCuScore += spreads.back() / m_std;
     Log(LOG_INFO) << "Current cuScore (std): " + to_string(m_curCuScore);
 
     m_cuScores.push_back(m_curCuScore);
+
+    auto& x = m_trader->getOpenX();
+    auto& y = m_trader->getOpenY();
+
+    size_t len = 500;
+    size_t start = x.size() - len;
+    //LRParam param = linreg(&x[start],&y[start],len);
+    RobLRParam param = robLinreg(&x[start],&y[start],len);
+    m_slopes.push_back(param.c1);
+}
+FXAct
+SpreadTrend::getDecision() {
+    stats();
+
+    int len = m_cfg->getSlopeLookback();
+    real64 slope_thd = m_cfg->getSlopeThreshold();
+
+    vector<real64> x(len);
+    iota(x.begin(),x.end(),0.f);
+    size_t s = m_cuScores.size()-len;
+    LRParam param = linreg(&x[0],&m_cuScores[s],len);
+
+    Log(LOG_INFO) << "cuScore trend slope: " + to_string(param.c1);
+
+//    if (param.c1 > slope_thd) {
+//        return FXAct::PLACE_BUY;
+//    }
+//
+//    if (param.c1 < -slope_thd) {
+//        return FXAct::PLACE_SELL;
+//    }
+
     return FXAct::NOACTION;
 }
 

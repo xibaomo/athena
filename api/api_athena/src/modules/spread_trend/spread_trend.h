@@ -18,18 +18,23 @@
 #pragma once
 
 #include "minbar_pair_trader/decision_maker.h"
-
+#include "spread_trend/spread_trend_conf.h"
 class SpreadTrend : public DecisionMaker {
 private:
+    SpreadTrendConfig* m_cfg;
     real64 m_std;
     real64 m_curCuScore;
     std::vector<real64> m_cuScores;
+    std::vector<real64> m_slopes;
 public:
-    SpreadTrend(MinbarPairTrader* p) : DecisionMaker(p) {;}
+    SpreadTrend(MinbarPairTrader* p) : DecisionMaker(p) {
+        m_cfg = new SpreadTrendConfig;
+    }
     ~SpreadTrend();
 
-    void init();
 
+    void stats();
+    void init();
 
     FXAct getDecision();
     bool isContinue();

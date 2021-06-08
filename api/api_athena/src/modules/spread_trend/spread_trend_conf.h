@@ -16,7 +16,21 @@
  * =====================================================================================
  */
 #pragma once
-#include "basics/baseconf.h"
+#include "conf/generalconf.h"
 
-class SpreadTrendConfig : public BaseConfig {
+const String SPREAD_TREND_ROOT = "SPREAD_TREND/";
+class SpreadTrendConfig {
+    GeneralConfig* m_cfg;
+public:
+    SpreadTrendConfig() {
+        m_cfg = &GeneralConfig::getInstance();
+    }
+
+    int getSlopeLookback() {
+        return m_cfg->getKeyValue<int>(SPREAD_TREND_ROOT + "SLOPE_LOOKBACK");
+    }
+
+    real64 getSlopeThreshold() {
+        return m_cfg->getKeyValue<real64>(SPREAD_TREND_ROOT + "SLOPE_THRESHOLD");
+    }
 };

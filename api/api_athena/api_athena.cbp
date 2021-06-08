@@ -195,6 +195,7 @@
 		<Unit filename="src/modules/predictor/prdtypes.h" />
 		<Unit filename="src/modules/spread_trend/spread_trend.cpp" />
 		<Unit filename="src/modules/spread_trend/spread_trend.h" />
+		<Unit filename="src/modules/spread_trend/spread_trend_conf.h" />
 		<Unit filename="src/utests/test_coint.cpp">
 			<Option target="test_coint" />
 		</Unit>
