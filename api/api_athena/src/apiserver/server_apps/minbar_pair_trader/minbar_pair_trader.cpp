@@ -21,7 +21,7 @@
 #include "basics/utils.h"
 #include "linreg/linreg.h"
 #include "dm_rule_75.h"
-#include "mean_reverse.h"
+#include "mean_revert/mean_revert.h"
 #include "spread_trend/spread_trend.h"
 using namespace std;
 using namespace athena;
@@ -32,8 +32,8 @@ MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg),m_isR
     m_initBalance = -1.;
     m_numPos = 0;
 
-    m_oracle = new SpreadTrend(this);
-    Log(LOG_INFO) << "Minbar pair trader created";
+    m_oracle = new MeanRevert(this);
+    Log(LOG_INFO) << "Minbar pair trader created with MeanRevert";
 }
 
 MinbarPairTrader::~MinbarPairTrader() {
@@ -41,6 +41,8 @@ MinbarPairTrader::~MinbarPairTrader() {
     dumpVectors("spreads.csv",m_spreads);
     if(m_oracle)
         delete m_oracle;
+
+    Log(LOG_INFO) << "c0 = " + to_string(m_linParam.c0) + ", c1 = " + to_string(m_linParam.c1);
 }
 
 Message
@@ -112,7 +114,7 @@ MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
 
     real32* pm = (real32*)msg.getData();
     for ( int i = 0; i < nbars; i++ ) {
-        m_openX.push_back(pm[0]);
+        m_openX.push_back(log(pm[0]));
         pm+=bar_size;
     }
 
@@ -133,7 +135,8 @@ MinbarPairTrader::compSpreads() {
         y[i] = m_openY[i];
     }
 
-    m_linParam = linreg(x,y,len);
+    //m_linParam = linreg(x,y,len);
+    m_linParam = robLinreg(x,y,len);
 
     Log(LOG_INFO) << "Liner regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1);
 
@@ -142,6 +145,9 @@ MinbarPairTrader::compSpreads() {
         m_spreads.push_back(tmp);
     }
 
+    real64 r2 = compR2(m_linParam,x,y,len);
+
+    Log(LOG_INFO) << "R2: " + to_string(r2);
     delete[] x;
     delete[] y;
 }
@@ -156,7 +162,7 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
 
     real32* pm = (real32*)msg.getData();
     for ( int i = 0; i < nbars; i++ ) {
-        m_openY.push_back(pm[0]);
+        m_openY.push_back(log(pm[0]));
         pm+=bar_size;
     }
 
@@ -187,8 +193,8 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     m_pairCount++;
     Message outmsg(sizeof(real32), 0);
     real32* pm = (real32*)msg.getData();
-    real64 x = pm[0];
-    real64 y = pm[1];
+    real64 x = log(pm[0]);
+    real64 y = log(pm[1]);
     real32 y_pv = pm[2];
     real32 y_pd = pm[3];
     m_openX.push_back(x);

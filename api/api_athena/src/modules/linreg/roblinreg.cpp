@@ -118,3 +118,4 @@ RobLRParam robLinreg(real64* sx, real64* sy, size_t len) {
     gsl_multifit_robust_free(work);
     return params;
 }
+

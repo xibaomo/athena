@@ -175,6 +175,8 @@
 		<Unit filename="src/modules/linreg/linreg.h" />
 		<Unit filename="src/modules/linreg/roblinreg.cpp" />
 		<Unit filename="src/modules/linreg/roblinreg.h" />
+		<Unit filename="src/modules/mean_revert/mean_revert.cpp" />
+		<Unit filename="src/modules/mean_revert/mean_revert.h" />
 		<Unit filename="src/modules/minbar_predictor/ma_pred/createMAPredictor.cpp" />
 		<Unit filename="src/modules/minbar_predictor/ma_pred/createMAPredictor.h" />
 		<Unit filename="src/modules/minbar_predictor/ma_pred/crosser/ma_crosser.cpp" />

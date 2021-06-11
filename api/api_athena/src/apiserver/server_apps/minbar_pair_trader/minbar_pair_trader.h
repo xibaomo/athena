@@ -20,6 +20,7 @@
 #include "server_apps/server_base_app/server_base_app.h"
 #include "mptconf.h"
 #include "linreg/linreg.h"
+#include "linreg/roblinreg.h"
 class DecisionMaker;
 class MinbarPairTrader : public ServerBaseApp {
   protected:
@@ -32,7 +33,7 @@ class MinbarPairTrader : public ServerBaseApp {
     bool                    m_isRunning;
     size_t                  m_pairCount;
 
-    LRParam       m_linParam;
+    RobLRParam       m_linParam;
 
     DecisionMaker* m_oracle;
 

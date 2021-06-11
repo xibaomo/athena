@@ -54,17 +54,4 @@ void linreg_est(LRParam& pm, real64 xp, real64* yp, real64* yp_err)
     gsl_fit_linear_est(xp,pm.c0,pm.c1,pm.cov00,pm.cov01,pm.cov11,yp,yp_err);
 }
 
-real64 compR2(LRParam& pm, real64* x, real64* y, int len)
-{
-    real64 ss_tot=0.;
-    real64 ss_res=0.;
-    real64 mean_y = gsl_stats_mean(y,1,len);
-    for (int i=0; i < len; i++) {
-        ss_tot += pow(y[i]-mean_y,2);
-        real64 err = pm.c0 + pm.c1*x[i] - y[i];
-        ss_res += pow(err,2);
-    }
-    real64 r2 = 1-ss_res/ss_tot;
 
-    return r2;
-}
