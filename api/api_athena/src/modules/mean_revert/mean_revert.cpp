@@ -30,14 +30,29 @@ MeanRevert::~MeanRevert() {
     Log(LOG_INFO) << oss.str();
 }
 
+real64
+MeanRevert::findMedianDev(const std::vector<real64>& spreads, const real64 mean) {
+    std::vector<real64> devs(spreads.size());
+
+    for(size_t i=0; i < spreads.size(); i++) {
+        devs[i] = abs(spreads[i]-mean);
+    }
+
+    std::sort(devs.begin(),devs.end());
+
+    return devs[devs.size()/2-1];
+}
+
 void
 MeanRevert::init() {
     auto& spreads = m_trader->getSpreads();
 
     real64 mean = gsl_stats_mean(&spreads[0],1,spreads.size());
 
-    m_std = gsl_stats_sd_m(&spreads[0],1,spreads.size(),mean);
-    Log(LOG_INFO) << "std of spreads: " + to_string(m_std);
+    real64 s = gsl_stats_sd_m(&spreads[0],1,spreads.size(),mean);
+    Log(LOG_INFO) << "std of spreads: " + to_string(s);
+    m_std = findMedianDev(spreads,mean);
+    Log(LOG_INFO) << "median deviation of spreads from its mean: " + to_string(m_std);
 }
 
 void

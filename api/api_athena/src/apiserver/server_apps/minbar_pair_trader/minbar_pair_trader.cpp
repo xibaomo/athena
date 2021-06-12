@@ -84,6 +84,7 @@ MinbarPairTrader::processMsg(Message& msg) {
         break;
     case FXAct::CLOSE_ALL_POS:
         Log(LOG_WARNING) << "Close all positions!";
+
         break;
     default:
         break;

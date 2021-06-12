@@ -30,6 +30,10 @@ public:
     ~MeanRevert();
     void init();
 
+    // find median of deviation from spread mean. use it as std;
+    // regular std may be extended too much if extreme cases happen.
+    real64 findMedianDev(const std::vector<real64>& spreads, const real64 mean);
+
     void stats();
     FXAct getDecision();
 
