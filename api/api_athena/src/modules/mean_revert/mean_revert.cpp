@@ -51,14 +51,14 @@ MeanRevert::init() {
 
     real64 s = gsl_stats_sd_m(&spreads[0],1,spreads.size(),mean);
     Log(LOG_INFO) << "std of spreads: " + to_string(s);
-    m_std = findMedianDev(spreads,mean);
-    Log(LOG_INFO) << "median deviation of spreads from its mean: " + to_string(m_std);
+    m_devUnit = findMedianDev(spreads,mean);
+    Log(LOG_INFO) << "median deviation of spreads from its mean: " + to_string(m_devUnit);
 }
 
 void
 MeanRevert::stats() {
     auto& spreads = m_trader->getSpreads();
-    real64 dev = spreads.back()/m_std;
+    real64 dev = spreads.back()/m_devUnit;
     m_devs.push_back(dev);
 
     Log(LOG_INFO) << "Current dev/std: " + to_string(dev);

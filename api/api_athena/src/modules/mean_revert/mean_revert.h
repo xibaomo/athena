@@ -21,7 +21,7 @@
 
 class MeanRevert : public DecisionMaker {
 private:
-    real64 m_std;
+    real64 m_devUnit; // unit of spread deviation from preset mean
     std::vector<real64> m_devs;
 
     size_t m_buys,m_sells,m_numclose;
