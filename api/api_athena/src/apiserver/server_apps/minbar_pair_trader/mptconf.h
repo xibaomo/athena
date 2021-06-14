@@ -68,5 +68,9 @@ public:
         return getKeyValue<real32>(MPT_ROOT + "STATIONARY_PV_LIMIT");
     }
 
+    int getSpreadMALookback() {
+        return getKeyValue<int>(MPT_ROOT + "SPREAD_MA_LOOKBACK");
+    }
+
 };
 

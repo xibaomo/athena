@@ -23,18 +23,19 @@
 class MeanRevert : public DecisionMaker {
 private:
     real64 m_devUnit; // unit of spread deviation from preset mean
-    std::vector<SpreadInfo> m_buyYDevs;
-    std::vector<SpreadInfo> m_sellYDevs;
+    std::vector<SpreadInfo> m_spreadDevs;
 
-    size_t m_buys,m_sells,m_numclose;
+    size_t m_buys, m_sells, m_numclose;
 public:
-    MeanRevert(MinbarPairTrader* p) : DecisionMaker(p),m_buys(0),m_sells(0),m_numclose(0) {;}
+    MeanRevert(MinbarPairTrader* p) : DecisionMaker(p), m_buys(0), m_sells(0), m_numclose(0) {;}
     ~MeanRevert();
     void init();
 
     // find median of deviation from spread mean. use it as std;
     // regular std may be extended too much if extreme cases happen.
     real64 findMedianDev(const std::vector<real64>& spreads, const real64 mean);
+
+    real64 compLatestSpreadMA();
 
     void stats();
 

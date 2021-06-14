@@ -24,7 +24,7 @@ using namespace std;
 using namespace athena;
 
 MeanRevert::~MeanRevert() {
-    //dumpVectors("devs.csv",m_buyYDevs,m_sellYDevs);
+    //dumpVectors("devs.csv",m_buyYDevs, m_sellYDevs);
     dumpDevs("devs.csv");
     ostringstream oss;
     oss << "Num buys: " << m_buys << ", sells: " << m_sells << ", close_all: " << m_numclose;
@@ -35,11 +35,11 @@ real64
 MeanRevert::findMedianDev(const std::vector<real64>& spreads, const real64 mean) {
     std::vector<real64> devs(spreads.size());
 
-    for(size_t i=0; i < spreads.size(); i++) {
+    for ( size_t i = 0; i < spreads.size(); i++ ) {
         devs[i] = abs(spreads[i]-mean);
     }
 
-    std::sort(devs.begin(),devs.end());
+    std::sort(devs.begin(), devs.end());
 
     return devs[devs.size()/2-1];
 }
@@ -48,30 +48,27 @@ void
 MeanRevert::init() {
     auto& spreads = m_trader->getSpreads();
 
-    real64 mean = gsl_stats_mean(&spreads[0],1,spreads.size());
+    real64 mean = gsl_stats_mean(&spreads[0], 1, spreads.size());
 
-    real64 s = gsl_stats_sd_m(&spreads[0],1,spreads.size(),mean);
+    real64 s = gsl_stats_sd_m(&spreads[0], 1, spreads.size(), mean);
     Log(LOG_INFO) << "std of spreads: " + to_string(s);
-    m_devUnit = findMedianDev(spreads,mean);
+
+    m_devUnit = findMedianDev(spreads, mean);
     Log(LOG_INFO) << "median deviation of spreads from its mean: " + to_string(m_devUnit);
 }
 
 void
 MeanRevert::stats() {
-    SpreadInfo buy_y_spread = m_trader->getLatestBuyYSpread();
+    SpreadInfo lsp = m_trader->getLatestSpread();
+    real64 ma = compLatestSpreadMA();
     SpreadInfo dev;
-    dev.create = buy_y_spread.create / m_devUnit;
-    dev.close  = buy_y_spread.close / m_devUnit;
-    m_buyYDevs.push_back(dev);
+    dev.buy = (lsp.buy-ma) / m_devUnit;
+    dev.sell = (lsp.sell-ma) / m_devUnit;
+    m_spreadDevs.push_back(dev);
 
-    Log(LOG_INFO) << "buy_y_spread  dev / devUnit: " + to_string(dev.create) + "," + to_string(dev.close);
-
-    SpreadInfo sell_y_spread = m_trader->getLatestSellYSpread();
-    dev.create = sell_y_spread.create / m_devUnit;
-    dev.close  = sell_y_spread.close  / m_devUnit;
-    m_sellYDevs.push_back(dev);
-
-    Log(LOG_INFO) << "sell_y_spread dev / devUnit: " + to_string(dev.create) + "," + to_string(dev.close);
+    ostringstream oss;
+    oss << "spread dev/devUnit: buy: " << dev.buy << ", sell: " << dev.sell;
+    Log(LOG_INFO) << oss.str();
 }
 
 FXAct
@@ -82,36 +79,36 @@ MeanRevert::getDecision() {
     real64 low_thd = cfg->getLowThresholdStd();
     real64 high_thd = cfg->getHighThresholdStd();
 
-    if (m_buyYDevs.back().create <= -high_thd) {
+    if ( m_spreadDevs.back().buy <= -high_thd ) {
         m_buys++;
         return FXAct::PLACE_BUY;
     }
 
-    if (m_sellYDevs.back().create >= high_thd) {
+    if ( m_spreadDevs.back().sell >= high_thd ) {
         m_sells++;
         return FXAct::PLACE_SELL;
     }
 
-    if (abs(m_buyYDevs.back().close) <= low_thd) {
+    if ( abs(m_spreadDevs.back().sell) <= low_thd ) {
         m_numclose++;
         return FXAct::CLOSE_BUY;
     }
 
-    if(abs(m_sellYDevs.back().close) <= low_thd) {
+    if ( abs(m_spreadDevs.back().buy) <= low_thd ) {
         m_numclose++;
         return FXAct::CLOSE_SELL;
     }
 
-    real64 old_dev = m_buyYDevs[m_buyYDevs.size()-2].close;
-    real64 new_dev = m_buyYDevs.back().close;
-    if(old_dev * new_dev < 0) {
+    real64 old_dev = m_spreadDevs[m_spreadDevs.size()-2].sell;
+    real64 new_dev = m_spreadDevs.back().sell;
+    if ( old_dev * new_dev < 0 ) {
         m_numclose++;
         return FXAct::CLOSE_BUY;
     }
 
-    old_dev = m_sellYDevs[m_sellYDevs.size()-2].close;
-    new_dev = m_sellYDevs.back().close;
-    if(old_dev * new_dev < 0) {
+    old_dev = m_spreadDevs[m_spreadDevs.size()-2].buy;
+    new_dev = m_spreadDevs.back().buy;
+    if ( old_dev * new_dev < 0 ) {
         m_numclose++;
         return FXAct::CLOSE_SELL;
     }
@@ -121,15 +118,23 @@ MeanRevert::getDecision() {
 
 void
 MeanRevert::dumpDevs(const String& fn) {
-    std::vector<real64> buy_y_spread_create;
-    std::vector<real64> buy_y_spread_close;
-    std::vector<real64> sell_y_spread_create;
-    std::vector<real64> sell_y_spread_close;
-    for(size_t i=0; i < m_buyYDevs.size();i++) {
-        buy_y_spread_create.push_back(m_buyYDevs[i].create);
-        buy_y_spread_close.push_back(m_buyYDevs[i].close);
-        sell_y_spread_create.push_back(m_sellYDevs[i].create);
-        sell_y_spread_close.push_back(m_sellYDevs[i].close);
+    std::vector<real64> buy_dev;
+    std::vector<real64> sell_dev;
+
+    for ( size_t i = 0; i < m_spreadDevs.size(); i++ ) {
+        buy_dev.push_back(m_spreadDevs[i].buy);
+        sell_dev.push_back(m_spreadDevs[i].sell);
     }
-    dumpVectors(fn,buy_y_spread_create,buy_y_spread_close,sell_y_spread_create,sell_y_spread_close);
+    dumpVectors(fn, buy_dev, sell_dev);
+}
+
+real64
+MeanRevert::compLatestSpreadMA() {
+    auto& spreads = m_trader->getSpreads();
+    int len = m_trader->getConfig()->getSpreadMALookback();
+
+    int start = spreads.size() - len;
+    start = start < 0 ? 0 : start;
+    real64 sum = std::accumulate(spreads.begin()+start, spreads.end(), 0.f);
+    return sum / len;
 }

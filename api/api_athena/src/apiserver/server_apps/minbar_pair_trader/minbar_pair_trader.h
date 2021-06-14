@@ -28,8 +28,8 @@ enum PosPairDir {
 };
 
 struct SpreadInfo {
-    real64 create;
-    real64 close;
+    real64 buy;
+    real64 sell;
 };
 class DecisionMaker;
 class MinbarPairTrader : public ServerBaseApp {
@@ -40,9 +40,8 @@ class MinbarPairTrader : public ServerBaseApp {
     std::vector<real64>     m_y_ask;
     std::vector<real64>     m_x_bid;
     std::vector<real64>     m_y_bid;
-    std::vector<real64>     m_spreads;
-    std::vector<SpreadInfo>     m_buy_y_spreads;
-    std::vector<SpreadInfo>     m_sell_y_spreads;
+    std::vector<real64>     m_spreads; // mid of buy and sell spreads
+    std::vector<SpreadInfo>     m_tradeSpreads; // from trading period
     size_t                  m_numPos;
     bool                    m_isRunning;
     size_t                  m_pairCount;
@@ -77,13 +76,13 @@ class MinbarPairTrader : public ServerBaseApp {
         return m_y_ask;
     }
 
-    SpreadInfo getLatestBuyYSpread() {
-        return m_buy_y_spreads.back();
+    SpreadInfo getLatestSpread() {
+        return m_tradeSpreads.back();
     }
 
-    SpreadInfo getLatestSellYSpread() {
-        return m_sell_y_spreads.back();
-    }
+    void dumpTradeSpreads();
+
+    std::vector<SpreadInfo>& getTradeSpreads() { return m_tradeSpreads; }
 
     PosPairDir getPosPairDir() { return m_posPairDirection; }
     real64 compSpread(real64 x, real64 y);

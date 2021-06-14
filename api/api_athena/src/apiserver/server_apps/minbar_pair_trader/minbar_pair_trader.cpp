@@ -27,7 +27,7 @@
 using namespace std;
 using namespace athena;
 
-MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg),m_isRunning(true),m_pairCount(0),m_oracle(nullptr) {
+MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg), m_isRunning(true), m_pairCount(0), m_oracle(nullptr) {
     m_cfg = &MptConfig::getInstance();
     m_cfg->loadConfig(cfg);
     m_initBalance = -1.;
@@ -38,14 +38,24 @@ MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg),m_isR
 }
 
 MinbarPairTrader::~MinbarPairTrader() {
-    dumpVectors("prices.csv",m_x_ask,m_y_ask);
+    dumpVectors("prices.csv",m_x_ask, m_y_ask);
     dumpVectors("spreads.csv",m_spreads);
-    if(m_oracle)
+    dumpTradeSpreads();
+    if ( m_oracle )
         delete m_oracle;
 
     Log(LOG_INFO) << "c0 = " + to_string(m_linParam.c0) + ", c1 = " + to_string(m_linParam.c1);
 }
 
+void
+MinbarPairTrader::dumpTradeSpreads() {
+    std::vector<real64> v1,v2;
+    for(auto& p : m_tradeSpreads) {
+        v1.push_back(p.buy);
+        v2.push_back(p.sell);
+    }
+    dumpVectors("trade_spreads.csv",v1,v2);
+}
 Message
 MinbarPairTrader::processMsg(Message& msg) {
     Message outmsg;
@@ -79,6 +89,12 @@ MinbarPairTrader::processMsg(Message& msg) {
         break;
     case FXAct::PLACE_SELL:
         Log(LOG_INFO) << "Action: sell Y";
+        break;
+    case FXAct::CLOSE_BUY:
+        Log(LOG_INFO) << "Action: close buy positions";
+        break;
+    case FXAct::CLOSE_SELL:
+        Log(LOG_INFO) << "Action: close sell positions";
         break;
     case FXAct::NOACTION:
         Log(LOG_INFO) << "No action";
@@ -132,22 +148,22 @@ MinbarPairTrader::compOldSpreads() {
     real64* x = new real64[len];
     real64* y = new real64[len];
 
-    for (size_t i=0; i< len; i++) {
+    for ( size_t i = 0; i < len; i++ ) {
         x[i] = m_x_ask[i];
         y[i] = m_y_ask[i];
     }
 
-    //m_linParam = linreg(x,y,len);
-    m_linParam = robLinreg(x,y,len);
+    //m_linParam = linreg(x, y, len);
+    m_linParam = robLinreg(x, y, len);
 
     Log(LOG_INFO) << "Liner regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1);
 
-    for(int i=0; i < len; i++) {
+    for ( int i = 0; i < len; i++ ) {
         real64 tmp = y[i] - (m_linParam.c1 * x[i] + m_linParam.c0);
         m_spreads.push_back(tmp);
     }
 
-    real64 r2 = compR2(m_linParam,x,y,len);
+    real64 r2 = compR2(m_linParam, x, y, len);
 
     Log(LOG_INFO) << "R2: " + to_string(r2);
     delete[] x;
@@ -178,7 +194,7 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
 
     compOldSpreads();
 
-    real64 pv = testADF(&m_spreads[0],m_spreads.size());
+    real64 pv = testADF(&m_spreads[0], m_spreads.size());
     Log(LOG_INFO) << "p-value of stationarity of spreads: " + to_string(pv);
 
     m_oracle->init();
@@ -187,7 +203,7 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     pm = (real32*)outmsg.getData();
     pm[0] = m_linParam.c1;
 
-    if (m_linParam.c1 > 0) {
+    if ( m_linParam.c1 > 0 ) {
         m_posPairDirection = OPPOSITE;
     } else {
         m_posPairDirection = SAME;
@@ -221,25 +237,21 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 
     switch(m_posPairDirection) {
     case SAME: {
-        SpreadInfo buy_y_spread;
-        buy_y_spread.create = compSpread(x_ask,y_ask);
-        buy_y_spread.close  = compSpread(x_bid,y_bid);
-        SpreadInfo sell_y_spread;
-        sell_y_spread.create = compSpread(x_bid,y_bid);
-        sell_y_spread.close  = compSpread(x_ask,y_ask);
-        m_buy_y_spreads.push_back(buy_y_spread);
-        m_sell_y_spreads.push_back(sell_y_spread);
+        SpreadInfo ts;
+        ts.buy   = compSpread(x_ask, y_ask);
+        ts.sell  = compSpread(x_bid, y_bid);
+
+        m_tradeSpreads.push_back(ts);
+        m_spreads.push_back((ts.buy+ts.sell)*.5f);
     }
         break;
     case OPPOSITE: {
-        SpreadInfo buy_y_spread;
-        buy_y_spread.create = compSpread(x_bid,y_ask);
-        buy_y_spread.close  = compSpread(x_ask,y_bid);
-        SpreadInfo sell_y_spread;
-        sell_y_spread.create = compSpread(x_ask,y_bid);
-        sell_y_spread.close  = compSpread(x_bid,y_ask);
-        m_buy_y_spreads.push_back(buy_y_spread);
-        m_sell_y_spreads.push_back(sell_y_spread);
+        SpreadInfo ts;
+        ts.buy  = compSpread(x_bid, y_ask);
+        ts.sell = compSpread(x_ask, y_bid);
+
+        m_tradeSpreads.push_back(ts);
+        m_spreads.push_back((ts.buy+ts.sell)*.5f);
     }
         break;
     default:
@@ -253,7 +265,7 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     pm[0] = m_linParam.c1;
 
     m_isRunning = m_oracle->isContinue();
-    if(!m_isRunning)
+    if ( !m_isRunning )
         outmsg.setAction(FXAct::NOACTION);
 
 #if 0
@@ -323,7 +335,6 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
         outmsg.setAction(FXAct::NOACTION);
     }
 #endif // 0
-
 
     return outmsg;
 }
