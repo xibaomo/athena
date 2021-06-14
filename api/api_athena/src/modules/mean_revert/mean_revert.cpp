@@ -24,7 +24,8 @@ using namespace std;
 using namespace athena;
 
 MeanRevert::~MeanRevert() {
-    dumpVectors("devs.csv",m_devs);
+    //dumpVectors("devs.csv",m_buyYDevs,m_sellYDevs);
+    dumpDevs("devs.csv");
     ostringstream oss;
     oss << "Num buys: " << m_buys << ", sells: " << m_sells << ", close_all: " << m_numclose;
     Log(LOG_INFO) << oss.str();
@@ -57,11 +58,20 @@ MeanRevert::init() {
 
 void
 MeanRevert::stats() {
-    auto& spreads = m_trader->getSpreads();
-    real64 dev = spreads.back()/m_devUnit;
-    m_devs.push_back(dev);
+    SpreadInfo buy_y_spread = m_trader->getLatestBuyYSpread();
+    SpreadInfo dev;
+    dev.create = buy_y_spread.create / m_devUnit;
+    dev.close  = buy_y_spread.close / m_devUnit;
+    m_buyYDevs.push_back(dev);
 
-    Log(LOG_INFO) << "Current dev/std: " + to_string(dev);
+    Log(LOG_INFO) << "buy_y_spread  dev / devUnit: " + to_string(dev.create) + "," + to_string(dev.close);
+
+    SpreadInfo sell_y_spread = m_trader->getLatestSellYSpread();
+    dev.create = sell_y_spread.create / m_devUnit;
+    dev.close  = sell_y_spread.close  / m_devUnit;
+    m_sellYDevs.push_back(dev);
+
+    Log(LOG_INFO) << "sell_y_spread dev / devUnit: " + to_string(dev.create) + "," + to_string(dev.close);
 }
 
 FXAct
@@ -72,27 +82,54 @@ MeanRevert::getDecision() {
     real64 low_thd = cfg->getLowThresholdStd();
     real64 high_thd = cfg->getHighThresholdStd();
 
-    real64 dev = m_devs.back();
-    if (dev >= high_thd) {
-        m_sells++;
-        return FXAct::PLACE_SELL;
-    }
-
-    if (dev <= -high_thd) {
+    if (m_buyYDevs.back().create <= -high_thd) {
         m_buys++;
         return FXAct::PLACE_BUY;
     }
 
-    if (abs(dev) <= low_thd) {
-        m_numclose++;
-        return FXAct::CLOSE_ALL_POS;
+    if (m_sellYDevs.back().create >= high_thd) {
+        m_sells++;
+        return FXAct::PLACE_SELL;
     }
 
-    real64 old_dev = m_devs[m_devs.size()-2];
-    if(old_dev * dev < 0) {
+    if (abs(m_buyYDevs.back().close) <= low_thd) {
         m_numclose++;
-        return FXAct::CLOSE_ALL_POS;
+        return FXAct::CLOSE_BUY;
+    }
+
+    if(abs(m_sellYDevs.back().close) <= low_thd) {
+        m_numclose++;
+        return FXAct::CLOSE_SELL;
+    }
+
+    real64 old_dev = m_buyYDevs[m_buyYDevs.size()-2].close;
+    real64 new_dev = m_buyYDevs.back().close;
+    if(old_dev * new_dev < 0) {
+        m_numclose++;
+        return FXAct::CLOSE_BUY;
+    }
+
+    old_dev = m_sellYDevs[m_sellYDevs.size()-2].close;
+    new_dev = m_sellYDevs.back().close;
+    if(old_dev * new_dev < 0) {
+        m_numclose++;
+        return FXAct::CLOSE_SELL;
     }
 
     return FXAct::NOACTION;
+}
+
+void
+MeanRevert::dumpDevs(const String& fn) {
+    std::vector<real64> buy_y_spread_create;
+    std::vector<real64> buy_y_spread_close;
+    std::vector<real64> sell_y_spread_create;
+    std::vector<real64> sell_y_spread_close;
+    for(size_t i=0; i < m_buyYDevs.size();i++) {
+        buy_y_spread_create.push_back(m_buyYDevs[i].create);
+        buy_y_spread_close.push_back(m_buyYDevs[i].close);
+        sell_y_spread_create.push_back(m_sellYDevs[i].create);
+        sell_y_spread_close.push_back(m_sellYDevs[i].close);
+    }
+    dumpVectors(fn,buy_y_spread_create,buy_y_spread_close,sell_y_spread_create,sell_y_spread_close);
 }

@@ -23,6 +23,7 @@
 #include "dm_rule_75.h"
 #include "mean_revert/mean_revert.h"
 #include "spread_trend/spread_trend.h"
+#include <sstream>
 using namespace std;
 using namespace athena;
 
@@ -37,7 +38,7 @@ MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg),m_isR
 }
 
 MinbarPairTrader::~MinbarPairTrader() {
-    dumpVectors("prices.csv",m_openX,m_openY);
+    dumpVectors("prices.csv",m_x_ask,m_y_ask);
     dumpVectors("spreads.csv",m_spreads);
     if(m_oracle)
         delete m_oracle;
@@ -115,25 +116,25 @@ MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
 
     real32* pm = (real32*)msg.getData();
     for ( int i = 0; i < nbars; i++ ) {
-        m_openX.push_back(log(pm[0]));
+        m_x_ask.push_back(log(pm[0]));
         pm+=bar_size;
     }
 
-    Log(LOG_INFO) << "History of X loaded: " + to_string(m_openX.size());
+    Log(LOG_INFO) << "History of X loaded: " + to_string(m_x_ask.size());
 
     Message out;
     return out;
 }
 
 void
-MinbarPairTrader::compSpreads() {
-    size_t len = m_openX.size();
+MinbarPairTrader::compOldSpreads() {
+    size_t len = m_x_ask.size();
     real64* x = new real64[len];
     real64* y = new real64[len];
 
     for (size_t i=0; i< len; i++) {
-        x[i] = m_openX[i];
-        y[i] = m_openY[i];
+        x[i] = m_x_ask[i];
+        y[i] = m_y_ask[i];
     }
 
     //m_linParam = linreg(x,y,len);
@@ -163,19 +164,19 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
 
     real32* pm = (real32*)msg.getData();
     for ( int i = 0; i < nbars; i++ ) {
-        m_openY.push_back(log(pm[0]));
+        m_y_ask.push_back(log(pm[0]));
         pm+=bar_size;
     }
 
-    Log(LOG_INFO) << "History of Y loaded: " + to_string(m_openY.size());
+    Log(LOG_INFO) << "History of Y loaded: " + to_string(m_y_ask.size());
 
-    if ( m_openX.size() != m_openY.size() )
+    if ( m_x_ask.size() != m_y_ask.size() )
         Log(LOG_FATAL) << "Inconsistent length of X & Y";
 
-    real64 corr = computePairCorr(m_openX, m_openY);
+    real64 corr = computePairCorr(m_x_ask, m_y_ask);
     Log(LOG_INFO) << "Correlation: " + to_string(corr);
 
-    compSpreads();
+    compOldSpreads();
 
     real64 pv = testADF(&m_spreads[0],m_spreads.size());
     Log(LOG_INFO) << "p-value of stationarity of spreads: " + to_string(pv);
@@ -185,32 +186,66 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     Message outmsg(msg.getAction(), sizeof(real32), 0);
     pm = (real32*)outmsg.getData();
     pm[0] = m_linParam.c1;
+
+    if (m_linParam.c1 > 0) {
+        m_posPairDirection = OPPOSITE;
+    } else {
+        m_posPairDirection = SAME;
+    }
     return outmsg;
+}
+
+real64
+MinbarPairTrader::compSpread(real64 x, real64 y) {
+    real64 err = y - (m_linParam.c0 + m_linParam.c1*x);
+    return err;
 }
 
 Message
 MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
-
     m_pairCount++;
     Message outmsg(sizeof(real32), 0);
     real32* pm = (real32*)msg.getData();
-    real64 x = log(pm[0]);
-    real64 y = log(pm[1]);
-    real32 y_pv = pm[2];
-    real32 y_pd = pm[3];
-    m_openX.push_back(x);
-    m_openY.push_back(y);
+    real64 x_ask = log(pm[0]);
+    real64 x_bid = log(pm[1]);
+    real64 y_ask = log(pm[2]);
+    real64 y_bid = log(pm[3]);
+    m_x_ask.push_back(x_ask);
+    m_x_bid.push_back(x_bid);
+    m_y_ask.push_back(y_ask);
+    m_y_bid.push_back(y_bid);
 
-    Log(LOG_INFO) << "\n\t\t\t" + to_string(m_pairCount) + "th pair arrives. x: " + to_string(x) + ", y: " +to_string(y);
+    ostringstream oss;
+    oss << "\n\t" << m_pairCount << "th pair arrives. x_ask: " << x_ask << ", x_bid: " << x_bid << ", y_ask: " << y_ask << ", y_bid: " << y_bid;
+    Log(LOG_INFO) << oss.str();
 
-//    if(!m_isRunning) {
-//        outmsg.setAction(FXAct::NOACTION);
-//        return outmsg;
-//    }
-
-    real64 err = y - (m_linParam.c1*x + m_linParam.c0);
-
-    m_spreads.push_back(err);
+    switch(m_posPairDirection) {
+    case SAME: {
+        SpreadInfo buy_y_spread;
+        buy_y_spread.create = compSpread(x_ask,y_ask);
+        buy_y_spread.close  = compSpread(x_bid,y_bid);
+        SpreadInfo sell_y_spread;
+        sell_y_spread.create = compSpread(x_bid,y_bid);
+        sell_y_spread.close  = compSpread(x_ask,y_ask);
+        m_buy_y_spreads.push_back(buy_y_spread);
+        m_sell_y_spreads.push_back(sell_y_spread);
+    }
+        break;
+    case OPPOSITE: {
+        SpreadInfo buy_y_spread;
+        buy_y_spread.create = compSpread(x_bid,y_ask);
+        buy_y_spread.close  = compSpread(x_ask,y_bid);
+        SpreadInfo sell_y_spread;
+        sell_y_spread.create = compSpread(x_ask,y_bid);
+        sell_y_spread.close  = compSpread(x_bid,y_ask);
+        m_buy_y_spreads.push_back(buy_y_spread);
+        m_sell_y_spreads.push_back(sell_y_spread);
+    }
+        break;
+    default:
+        Log(LOG_FATAL) << "unknown position pair directions";
+        break;
+    }
 
     FXAct act = m_oracle->getDecision();
     outmsg.setAction(act);
@@ -222,7 +257,7 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
         outmsg.setAction(FXAct::NOACTION);
 
 #if 0
-    dumpVectors("ticks.csv",m_openX, m_openY);
+    dumpVectors("ticks.csv",m_x_ask, m_y_ask);
 
     char* pc = (char*)msg.getChar() + sizeof(int)*2;
     int cb = msg.getCharBytes() - sizeof(int)*2;
@@ -232,10 +267,10 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     Log(LOG_INFO) << "Mt5 time: " + timestr + ", X: " + to_string(x)
                   + ", Y: " + to_string(y);
 
-    real64 corr = computePairCorr(m_openX, m_openY);
+    real64 corr = computePairCorr(m_x_ask, m_y_ask);
     Log(LOG_INFO) << "Correlation so far: " + to_string(corr);
 
-    linreg(m_openX.size()-1000);
+    linreg(m_x_ask.size()-1000);
 
     Log(LOG_INFO) << "R2 = " + to_string(m_currStatus["r2"]);
 

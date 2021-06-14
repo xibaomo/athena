@@ -18,11 +18,13 @@
 #pragma once
 
 #include "minbar_pair_trader/decision_maker.h"
+#include "minbar_pair_trader/minbar_pair_trader.h"
 
 class MeanRevert : public DecisionMaker {
 private:
     real64 m_devUnit; // unit of spread deviation from preset mean
-    std::vector<real64> m_devs;
+    std::vector<SpreadInfo> m_buyYDevs;
+    std::vector<SpreadInfo> m_sellYDevs;
 
     size_t m_buys,m_sells,m_numclose;
 public:
@@ -35,6 +37,8 @@ public:
     real64 findMedianDev(const std::vector<real64>& spreads, const real64 mean);
 
     void stats();
+
+    void dumpDevs(const String& fn);
     FXAct getDecision();
 
     bool isContinue() { return true; }

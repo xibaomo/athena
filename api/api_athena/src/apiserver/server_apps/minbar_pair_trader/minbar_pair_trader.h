@@ -21,17 +21,32 @@
 #include "mptconf.h"
 #include "linreg/linreg.h"
 #include "linreg/roblinreg.h"
+enum PosPairDir {
+    NONE,
+    SAME,
+    OPPOSITE
+};
+
+struct SpreadInfo {
+    real64 create;
+    real64 close;
+};
 class DecisionMaker;
 class MinbarPairTrader : public ServerBaseApp {
   protected:
     real32                  m_initBalance;
     MptConfig*              m_cfg;
-    std::vector<real64>     m_openX;
-    std::vector<real64>     m_openY;
+    std::vector<real64>     m_x_ask;
+    std::vector<real64>     m_y_ask;
+    std::vector<real64>     m_x_bid;
+    std::vector<real64>     m_y_bid;
     std::vector<real64>     m_spreads;
+    std::vector<SpreadInfo>     m_buy_y_spreads;
+    std::vector<SpreadInfo>     m_sell_y_spreads;
     size_t                  m_numPos;
     bool                    m_isRunning;
     size_t                  m_pairCount;
+    PosPairDir              m_posPairDirection;
 
     RobLRParam       m_linParam;
 
@@ -46,13 +61,32 @@ class MinbarPairTrader : public ServerBaseApp {
         return _ins;
     }
 
-    MptConfig* getConfig() { return m_cfg; }
+    MptConfig* getConfig() {
+        return m_cfg;
+    }
     void prepare() {;}
 
-    void compSpreads();
-    std::vector<real64>& getSpreads() { return m_spreads; }
-    std::vector<real64>& getOpenX() {return m_openX;}
-    std::vector<real64>& getOpenY() { return m_openY; }
+    void compOldSpreads();
+    std::vector<real64>& getSpreads() {
+        return m_spreads;
+    }
+    std::vector<real64>& getOpenX() {
+        return m_x_ask;
+    }
+    std::vector<real64>& getOpenY() {
+        return m_y_ask;
+    }
+
+    SpreadInfo getLatestBuyYSpread() {
+        return m_buy_y_spreads.back();
+    }
+
+    SpreadInfo getLatestSellYSpread() {
+        return m_sell_y_spreads.back();
+    }
+
+    PosPairDir getPosPairDir() { return m_posPairDirection; }
+    real64 compSpread(real64 x, real64 y);
 
     Message processMsg(Message& msg);
     Message procMsg_ASK_PAIR(Message& msg);
