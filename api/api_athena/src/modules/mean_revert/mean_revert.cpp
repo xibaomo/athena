@@ -29,6 +29,10 @@ MeanRevert::~MeanRevert() {
     ostringstream oss;
     oss << "Num buys: " << m_buys << ", sells: " << m_sells << ", close_all: " << m_numclose;
     Log(LOG_INFO) << oss.str();
+
+    ostringstream os;
+    os << "Dev range: buy: [" << m_lowBuyDev<<","<<m_highBuyDev<<"], sell: [" << m_lowSellDev << "," << m_highSellDev << "]";
+    Log(LOG_INFO) << os.str();
 }
 
 real64
@@ -60,11 +64,17 @@ MeanRevert::init() {
 void
 MeanRevert::stats() {
     SpreadInfo lsp = m_trader->getLatestSpread();
-    real64 ma = compLatestSpreadMA();
+    //real64 ma = compLatestSpreadMA();
+    real64 ma = compLatestSpreadMean();
     SpreadInfo dev;
     dev.buy = (lsp.buy-ma) / m_devUnit;
     dev.sell = (lsp.sell-ma) / m_devUnit;
     m_spreadDevs.push_back(dev);
+
+    if (dev.buy > m_highBuyDev) m_highBuyDev = dev.buy;
+    if (dev.buy < m_lowBuyDev)  m_lowBuyDev = dev.buy;
+    if (dev.sell > m_highSellDev) m_highSellDev = dev.sell;
+    if (dev.sell < m_lowSellDev)  m_lowSellDev = dev.sell;
 
     ostringstream oss;
     oss << "spread dev/devUnit: buy: " << dev.buy << ", sell: " << dev.sell;
@@ -137,4 +147,16 @@ MeanRevert::compLatestSpreadMA() {
     start = start < 0 ? 0 : start;
     real64 sum = std::accumulate(spreads.begin()+start, spreads.end(), 0.f);
     return sum / len;
+}
+
+real64
+MeanRevert::compLatestSpreadMean() {
+    auto& spreads = m_trader->getSpreads();
+    int len = m_spreadDevs.size()+1;
+    int start = spreads.size() - len;
+    start = start<0 ? 0 : start;
+
+    real64 s = std::accumulate(spreads.begin()+start,spreads.end(),0.f);
+
+    return s/len;
 }
