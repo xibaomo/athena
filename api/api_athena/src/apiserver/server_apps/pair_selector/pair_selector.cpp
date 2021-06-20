@@ -50,7 +50,10 @@ PairSelector::procMsg_SYM_HIST_OPEN(Message& msg)
 
     real32* pm = (real32*)msg.getData();
     std::vector<real32> v(pm,pm+len);
-    m_sym2hist[sym] = std::move(v);
+    auto& p = m_sym2hist[sym];
+    for(auto vv : v) {
+        p.push_back(log(vv));
+    }
 
     Message out;
     return out;

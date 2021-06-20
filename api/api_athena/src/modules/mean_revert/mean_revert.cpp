@@ -24,7 +24,7 @@ using namespace std;
 using namespace athena;
 
 MeanRevert::~MeanRevert() {
-    //dumpVectors("devs.csv",m_buyYDevs, m_sellYDevs);
+    dumpVectors("cuscore.csv",m_cuScores);
     dumpDevs("devs.csv");
     ostringstream oss;
     oss << "Num buys: " << m_buys << ", sells: " << m_sells << ", close_all: " << m_numclose;
@@ -58,7 +58,11 @@ MeanRevert::init() {
     Log(LOG_INFO) << "std of spreads: " + to_string(s);
 
     m_devUnit = findMedianDev(spreads, mean);
-    Log(LOG_INFO) << "median deviation of spreads from its mean: " + to_string(m_devUnit);
+    Log(LOG_INFO) << "median deviation (md) of spreads from its mean: " + to_string(m_devUnit);
+
+    real64 cuscore = std::accumulate(spreads.begin(),spreads.end(),0.f) / m_devUnit;
+    m_cuScores.push_back(cuscore);
+    Log(LOG_INFO) << "CuScore(md): " + to_string(cuscore);
 }
 
 void
@@ -79,6 +83,11 @@ MeanRevert::stats() {
     ostringstream oss;
     oss << "spread dev/devUnit: buy: " << dev.buy << ", sell: " << dev.sell;
     Log(LOG_INFO) << oss.str();
+
+    real64 cuscore = m_cuScores.back();
+    cuscore += m_trader->getSpreads().back() / m_devUnit;
+    Log(LOG_INFO) << "CuScore(md): " + to_string(cuscore);
+    m_cuScores.push_back(cuscore);
 }
 
 FXAct

@@ -29,6 +29,8 @@ private:
     real64 m_highSellDev, m_lowSellDev; // in unit of devUnit
 
     size_t m_buys, m_sells, m_numclose;
+
+    std::vector<real64> m_cuScores;
 public:
     MeanRevert(MinbarPairTrader* p) : DecisionMaker(p), m_buys(0), m_sells(0), m_numclose(0) {;}
     ~MeanRevert();

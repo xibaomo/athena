@@ -40,6 +40,8 @@ class MinbarPairTrader : public ServerBaseApp {
     std::vector<real64>     m_y_ask;
     std::vector<real64>     m_x_bid;
     std::vector<real64>     m_y_bid;
+    std::vector<real64>     m_mid_x;
+    std::vector<real64>     m_mid_y;
     std::vector<real64>     m_spreads; // mid of buy and sell spreads
     std::vector<SpreadInfo>     m_tradeSpreads; // from trading period
     size_t                  m_numPos;
@@ -48,6 +50,7 @@ class MinbarPairTrader : public ServerBaseApp {
     PosPairDir              m_posPairDirection;
 
     RobLRParam       m_linParam;
+    size_t           m_lookback;
 
     DecisionMaker* m_oracle;
 

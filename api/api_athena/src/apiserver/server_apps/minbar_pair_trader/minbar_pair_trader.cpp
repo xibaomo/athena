@@ -38,7 +38,7 @@ MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg), m_is
 }
 
 MinbarPairTrader::~MinbarPairTrader() {
-    dumpVectors("prices.csv",m_x_ask, m_y_ask);
+    dumpVectors("prices.csv",m_mid_x, m_mid_y);
     dumpVectors("spreads.csv",m_spreads);
     dumpTradeSpreads();
     if ( m_oracle )
@@ -132,11 +132,11 @@ MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
 
     real32* pm = (real32*)msg.getData();
     for ( int i = 0; i < nbars; i++ ) {
-        m_x_ask.push_back(log(pm[0]));
+        m_mid_x.push_back(log(pm[0]));
         pm+=bar_size;
     }
 
-    Log(LOG_INFO) << "History of X loaded: " + to_string(m_x_ask.size());
+    Log(LOG_INFO) << "History of X loaded: " + to_string(m_mid_x.size());
 
     Message out;
     return out;
@@ -144,13 +144,13 @@ MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
 
 void
 MinbarPairTrader::compOldSpreads() {
-    size_t len = m_x_ask.size();
+    size_t len = m_mid_x.size();
     real64* x = new real64[len];
     real64* y = new real64[len];
 
     for ( size_t i = 0; i < len; i++ ) {
-        x[i] = m_x_ask[i];
-        y[i] = m_y_ask[i];
+        x[i] = m_mid_x[i];
+        y[i] = m_mid_y[i];
     }
 
     //m_linParam = linreg(x, y, len);
@@ -180,16 +180,18 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
 
     real32* pm = (real32*)msg.getData();
     for ( int i = 0; i < nbars; i++ ) {
-        m_y_ask.push_back(log(pm[0]));
+        m_mid_y.push_back(log(pm[0]));
         pm+=bar_size;
     }
 
-    Log(LOG_INFO) << "History of Y loaded: " + to_string(m_y_ask.size());
+    Log(LOG_INFO) << "History of Y loaded: " + to_string(m_mid_y.size());
 
-    if ( m_x_ask.size() != m_y_ask.size() )
+    if ( m_mid_x.size() != m_mid_y.size() )
         Log(LOG_FATAL) << "Inconsistent length of X & Y";
 
-    real64 corr = computePairCorr(m_x_ask, m_y_ask);
+    m_lookback = m_mid_x.size();
+
+    real64 corr = computePairCorr(m_mid_x, m_mid_y);
     Log(LOG_INFO) << "Correlation: " + to_string(corr);
 
     compOldSpreads();
@@ -230,6 +232,11 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     m_x_bid.push_back(x_bid);
     m_y_ask.push_back(y_ask);
     m_y_bid.push_back(y_bid);
+    real64 midx,midy;
+    midx = (pm[0]+pm[1])*.5f;
+    midy = (pm[2]+pm[3])*.5f;
+    m_mid_x.push_back(log(midx));
+    m_mid_y.push_back(log(midy));
 
     ostringstream oss;
     oss << "\n\t" << m_pairCount << "th pair arrives. x_ask: " << x_ask << ", x_bid: " << x_bid << ", y_ask: " << y_ask << ", y_bid: " << y_bid;
@@ -267,6 +274,14 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     m_isRunning = m_oracle->isContinue();
     if ( !m_isRunning )
         outmsg.setAction(FXAct::NOACTION);
+
+    int len = m_lookback/2;
+    int start =  m_mid_x.size() - len;
+    real64 r2 = compR2(m_linParam,&m_mid_x[start],&m_mid_y[start],len);
+
+    ostringstream os;
+    os << "R2 of past " << len <<" pts: " << r2;
+    Log(LOG_INFO) << os.str();
 
 #if 0
     dumpVectors("ticks.csv",m_x_ask, m_y_ask);
