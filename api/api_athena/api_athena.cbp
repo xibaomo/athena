@@ -70,6 +70,7 @@
 			<Add option="-lboost_thread" />
 			<Add option="-lboost_system" />
 			<Add option="-lboost_filesystem" />
+			<Add option="-lboost_serialization" />
 			<Add option="-lyaml-cpp" />
 			<Add option="-lgsl" />
 			<Add option="-lgslcblas" />
