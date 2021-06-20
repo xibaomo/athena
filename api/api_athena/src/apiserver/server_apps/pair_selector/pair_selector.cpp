@@ -36,22 +36,19 @@ PairSelector::procMsg_ASK_PAIR(Message& msg)
 Message
 PairSelector::procMsg_SYM_HIST_OPEN(Message& msg)
 {
-    char* pc = (char*)msg.getChar();
-    size_t cb = msg.getCharBytes() - 2*sizeof(int);
-    String sym = String(pc + 2*sizeof(int),cb);
-    int len = msg.getDataBytes()/sizeof(real32);
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
+    String sym = pack.str_vec[0];
+
     Log(LOG_INFO) << "Received history: " + sym;
-    Log(LOG_INFO) << "History length: " + to_string(len);
+    Log(LOG_INFO) << "History length: " + to_string(pack.real32_vec.size());
 
     if (m_sym2hist.find(sym) != m_sym2hist.end()) {
         Log(LOG_ERROR) << "Duplicated symbol received: " + sym;
     }
 
-
-    real32* pm = (real32*)msg.getData();
-    std::vector<real32> v(pm,pm+len);
     auto& p = m_sym2hist[sym];
-    for(auto vv : v) {
+    for(auto vv : pack.real32_vec) {
         p.push_back(log(vv));
     }
 

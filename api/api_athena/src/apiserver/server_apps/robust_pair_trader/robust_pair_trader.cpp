@@ -84,11 +84,13 @@ Message
 RobustPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
     Log(LOG_INFO) << "X history arrives";
 
-    int* pc = (int*)msg.getChar();
-    int nbars = pc[0];
-    int bar_size = pc[1];
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
 
-    real32* pm = (real32*)msg.getData();
+    int nbars = pack.int32_vec[0];
+    int bar_size = pack.int32_vec[1];
+
+    real32* pm = &pack.real32_vec[0];
     for (int i=0; i < nbars; i++) {
         m_openX.push_back(pm[0]);
         pm+=bar_size;
@@ -104,11 +106,13 @@ Message
 RobustPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     Log(LOG_INFO) << "Y history arrives";
 
-    int* pc = (int*)msg.getChar();
-    int nbars = pc[0];
-    int bar_size = pc[1];
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
 
-    real32* pm = (real32*)msg.getData();
+    int nbars = pack.int32_vec[0];
+    int bar_size = pack.int32_vec[1];
+
+    real32* pm = &pack.real32_vec[0];
     for (int i=0; i < nbars; i++) {
         m_openY.push_back(pm[0]);
         pm+=bar_size;
@@ -200,7 +204,10 @@ Message
 RobustPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     // This function fits linear model with all past ticks even though they are outliers
     Message outmsg(sizeof(real32),0);
-    real32* pm = (real32*)msg.getData();
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
+
+    real32* pm = &pack.real32_vec[0];
     real64 x = pm[0];
     real64 y = pm[1];
     real32 y_pv = pm[2];

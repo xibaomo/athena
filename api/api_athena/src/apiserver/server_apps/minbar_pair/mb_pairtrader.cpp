@@ -92,20 +92,16 @@ MinBarPairTrader::procMsg_PAIR_POS_PLACED(Message& msg) {
 }
 Message
 MinBarPairTrader::procMsg_SYM_HIST_OPEN(Message& msg) {
-    char* pc = (char*)msg.getChar();
-    size_t cb = msg.getCharBytes() - 2*sizeof(int);
-    String sym = String(pc + 2*sizeof(int),cb);
-
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
+    String sym = pack.str_vec[0];
     Log(LOG_INFO) << "Received history: " + sym;
 
     if (m_sym2hist.find(sym) != m_sym2hist.end()) {
         Log(LOG_ERROR) << "Duplicated symbol received: " + sym;
     }
 
-    int len = msg.getDataBytes()/sizeof(real32);
-    real32* pm = (real32*)msg.getData();
-    std::vector<real32> v(pm,pm+len);
-    m_sym2hist[sym] = std::move(v);
+    m_sym2hist[sym] = std::move(pack.real32_vec);
 
     Message out;
     return out;
@@ -140,21 +136,17 @@ MinBarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
 }
 void
 MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::vector<real32>& openvec) {
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
 
-    int* pc = (int*)msg.getChar();
-    int histLen = pc[0];
+    int histLen = pack.int32_vec[0];
     if (histLen == 0) {
         Log(LOG_INFO) << "No min bars from mt5";
         return;
     }
 
-    int bar_size = NUM_MINBAR_FIELDS-1;
-
-    if (pc[1] != bar_size) {
-        Log(LOG_FATAL) << "Min bar size inconsistent. MT5: " +  to_string(pc[1])
-                       + ", local: " + to_string(bar_size);
-    }
-    real32* pm = (real32*) msg.getData();
+    int bar_size = pack.int32_vec[1];
+    real32* pm = &pack.real32_vec[0];
     int nbars = msg.getDataBytes()/sizeof(real32)/bar_size;
     if (nbars != histLen) {
         Log(LOG_FATAL) << "No. of min bars inconsistent";
@@ -306,7 +298,11 @@ MinBarPairTrader::compDistr(real64* data, int len, real64* mean_out, real64* sd_
 Message
 MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     Message outmsg(sizeof(real32),0);
-    real32* pm = (real32*)msg.getData();
+
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
+
+    real32* pm = &pack.real32_vec[0];
     m_openX.push_back(pm[0]);
     m_openY.push_back(pm[1]);
     real64 x = pm[0];
@@ -316,9 +312,7 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 
     //dumpVectors("open_price.csv",m_openX,m_openY);
 
-    char* pc = (char*)msg.getChar() + sizeof(int)*2;
-    int cb = msg.getCharBytes() - sizeof(int)*2;
-    String timeStr = String(pc,cb);
+    String timeStr = pack.str_vec[0];
 
     Log(LOG_INFO) <<"";
 

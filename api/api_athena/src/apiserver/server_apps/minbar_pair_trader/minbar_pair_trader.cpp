@@ -126,13 +126,16 @@ Message
 MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
     Log(LOG_INFO) << "X history arrives";
 
-    int* pc = (int*)msg.getChar();
-    int nbars = pc[0];
-    int bar_size = pc[1];
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
 
-    real32* pm = (real32*)msg.getData();
+    int nbars = pack.int32_vec[0];
+    int bar_size = pack.int32_vec[1];
+
+    auto& v = pack.real32_vec;
+    size_t pm = 0;
     for ( int i = 0; i < nbars; i++ ) {
-        m_mid_x.push_back(log(pm[0]));
+        m_mid_x.push_back(log(v[pm]));
         pm+=bar_size;
     }
 
@@ -174,13 +177,16 @@ Message
 MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     Log(LOG_INFO) << "Y history arrives";
 
-    int* pc = (int*)msg.getChar();
-    int nbars = pc[0];
-    int bar_size = pc[1];
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
 
-    real32* pm = (real32*)msg.getData();
+    int nbars = pack.int32_vec[0];
+    int bar_size = pack.int32_vec[1];
+
+    auto& v = pack.real32_vec;
+    size_t pm = 0;
     for ( int i = 0; i < nbars; i++ ) {
-        m_mid_y.push_back(log(pm[0]));
+        m_mid_y.push_back(log(v[pm]));
         pm+=bar_size;
     }
 
@@ -202,8 +208,8 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     m_oracle->init();
 
     Message outmsg(msg.getAction(), sizeof(real32), 0);
-    pm = (real32*)outmsg.getData();
-    pm[0] = m_linParam.c1;
+    real32* p = (real32*)outmsg.getData();
+    p[0] = m_linParam.c1;
 
     if ( m_linParam.c1 > 0 ) {
         m_posPairDirection = OPPOSITE;
@@ -223,7 +229,9 @@ Message
 MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     m_pairCount++;
     Message outmsg(sizeof(real32), 0);
-    real32* pm = (real32*)msg.getData();
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
+    auto& pm = pack.real32_vec;
     real64 x_ask = log(pm[0]);
     real64 x_bid = log(pm[1]);
     real64 y_ask = log(pm[2]);
@@ -268,8 +276,8 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 
     FXAct act = m_oracle->getDecision();
     outmsg.setAction(act);
-    pm = (real32*)outmsg.getData();
-    pm[0] = m_linParam.c1;
+    real32* p = (real32*)outmsg.getData();
+    p[0] = m_linParam.c1;
 
     m_isRunning = m_oracle->isContinue();
     if ( !m_isRunning )

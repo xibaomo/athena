@@ -171,12 +171,14 @@ ForexMinBarClassifier::procMsg_MINBAR(Message& msg)
 Message
 ForexMinBarClassifier::procMsg_HISTORY_MINBAR(Message& msg)
 {
-    int *pc = (int*)msg.getChar();
-    int histLen = pc[0];
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
+
+    int histLen = pack.int32_vec[0];
 
     if (histLen >0) {
-        int minbar_size = pc[1];
-        Real* pm = (Real*)msg.getData();
+        int minbar_size = pack.int32_vec[1];
+        Real* pm = &pack.real32_vec[0];
         CPyObject lst = PyList_New(histLen*minbar_size);
         for (int i=0; i < histLen*minbar_size; i++) {
             PyList_SetItem(lst,i,Py_BuildValue(REALFORMAT,pm[i]));

@@ -31,8 +31,8 @@
 #include "pyhelper.hpp"
 #include "minbar_predictor/mb_base/mb_base_pred.h"
 #include <gsl/gsl_statistics_double.h>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 namespace athena {
 
@@ -60,15 +60,15 @@ struct SerializePack {
 };
 inline
 std::string serialize(SerializePack& pack) {
-    std::stringstream ss;
-    boost::archive::binary_oarchive oa(ss);
+    std::ostringstream ss;
+    boost::archive::text_oarchive oa(ss);
     oa << pack;
     return ss.str();
 }
 inline void
 unserialize(const std::string& str, SerializePack& pack) {
     std::stringstream ss(str);
-    boost::archive::binary_iarchive ia(ss);
+    boost::archive::text_iarchive ia(ss);
     ia >> pack;
 }
 /*-----------------------------------------------------------------------------

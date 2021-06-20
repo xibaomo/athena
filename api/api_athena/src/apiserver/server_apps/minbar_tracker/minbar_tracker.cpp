@@ -99,21 +99,19 @@ MinBarTracker::procMsg_HISTORY_MINBAR(Message& msg)
 {
     Log(LOG_INFO) << "Loading min bars from MT5 ...";
 
-    int* pc = (int*)msg.getChar();
-    int histLen = pc[0];
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
+
+    int histLen = pack.int32_vec[0];
     if (histLen == 0) {
         Log(LOG_INFO) << "No min bars from mt5";
         Message out;
         return out;
     }
 
-    int bar_size = NUM_MINBAR_FIELDS-1;
+    int bar_size = pack.int32_vec[1];
 
-    if (pc[1] != bar_size) {
-        Log(LOG_FATAL) << "Min bar size inconsistent. MT5: " +  to_string(pc[1])
-         + ", local: " + to_string(bar_size);
-    }
-    real32* pm = (real32*) msg.getData();
+    real32* pm = &pack.real32_vec[0];
     int nbars = msg.getDataBytes()/sizeof(real32)/bar_size;
     if (nbars != histLen) {
         Log(LOG_FATAL) << "No. of min bars inconsistent";
