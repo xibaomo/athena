@@ -235,21 +235,26 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     Message outmsg(sizeof(real32), 0);
     SerializePack pack;
     unserialize(msg.getComment(),pack);
-    auto& pm = pack.real32_vec;
-    real64 x_ask = (pm[0]);
-    real64 x_bid = (pm[1]);
-    real64 y_ask = (pm[2]);
-    real64 y_bid = (pm[3]);
+
+    real64 x_ask = pack.real64_vec[0];
+    real64 x_bid = pack.real64_vec[1];
+    real64 ticksize_x = pack.real64_vec[2];
+    real64 tickval_x = pack.real64_vec[3];
+    real64 y_ask = pack.real64_vec1[0];
+    real64 y_bid = pack.real64_vec1[1];
+    real64 ticksize_y = pack.real64_vec1[2];
+    real64 tickval_y = pack.real64_vec1[3];
     m_x_ask.push_back(x_ask);
     m_x_bid.push_back(x_bid);
     m_y_ask.push_back(y_ask);
     m_y_bid.push_back(y_bid);
     real64 midx,midy;
-    midx = (pm[0]+pm[1])*.5f;
-    midy = (pm[2]+pm[3])*.5f;
+    midx = (x_ask+x_bid)*.5f;
+    midy = (y_ask+y_bid)*.5f;
     m_mid_x.push_back((midx));
     m_mid_y.push_back((midy));
 
+    Log(LOG_INFO) << "Mt5 time: " + pack.str_vec[0];
     ostringstream oss;
     oss << "\n\t" << m_pairCount << "th pair arrives. x_ask: " << x_ask << ", x_bid: " << x_bid << ", y_ask: " << y_ask << ", y_bid: " << y_bid;
     Log(LOG_INFO) << oss.str();
@@ -257,8 +262,8 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     switch(m_posPairDirection) {
     case SAME: {
         SpreadInfo ts;
-        ts.buy   = compSpread(x_ask/m_ticksize_x*m_tickval_x, y_ask/m_ticksize_y*m_tickval_y);
-        ts.sell  = compSpread(x_bid/m_ticksize_x*m_tickval_x, y_bid/m_ticksize_y*m_tickval_y);
+        ts.buy   = compSpread(x_ask/ticksize_x*tickval_x, y_ask/ticksize_y*tickval_y);
+        ts.sell  = compSpread(x_bid/ticksize_x*tickval_x, y_bid/ticksize_y*tickval_y);
 
         m_tradeSpreads.push_back(ts);
         m_spreads.push_back((ts.buy+ts.sell)*.5f);
@@ -266,8 +271,8 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
         break;
     case OPPOSITE: {
         SpreadInfo ts;
-        ts.buy  = compSpread(x_bid/m_ticksize_x*m_tickval_x, y_ask/m_ticksize_y*m_tickval_y);
-        ts.sell = compSpread(x_ask/m_ticksize_x*m_tickval_x, y_bid/m_ticksize_y*m_tickval_y);
+        ts.buy  = compSpread(x_bid/ticksize_x*tickval_x, y_ask/ticksize_y*tickval_y);
+        ts.sell = compSpread(x_ask/ticksize_x*tickval_x, y_bid/ticksize_y*tickval_y);
 
         m_tradeSpreads.push_back(ts);
         m_spreads.push_back((ts.buy+ts.sell)*.5f);
