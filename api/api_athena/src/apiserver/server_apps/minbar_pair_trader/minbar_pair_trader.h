@@ -44,6 +44,11 @@ class MinbarPairTrader : public ServerBaseApp {
     std::vector<real64>     m_mid_y;
     std::vector<real64>     m_spreads; // mid of buy and sell spreads
     std::vector<SpreadInfo>     m_tradeSpreads; // from trading period
+
+    real64 m_ticksize_x;
+    real64 m_tickval_x;
+    real64 m_ticksize_y;
+    real64 m_tickval_y;
     size_t                  m_numPos;
     bool                    m_isRunning;
     size_t                  m_pairCount;

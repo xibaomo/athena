@@ -133,9 +133,11 @@ MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
     int bar_size = pack.int32_vec[1];
 
     auto& v = pack.real32_vec;
+    m_ticksize_x = pack.real64_vec[0];
+    m_tickval_x  = pack.real64_vec[1];
     size_t pm = 0;
     for ( int i = 0; i < nbars; i++ ) {
-        m_mid_x.push_back(log(v[pm]));
+        m_mid_x.push_back(v[pm]);
         pm+=bar_size;
     }
 
@@ -152,8 +154,8 @@ MinbarPairTrader::compOldSpreads() {
     real64* y = new real64[len];
 
     for ( size_t i = 0; i < len; i++ ) {
-        x[i] = m_mid_x[i];
-        y[i] = m_mid_y[i];
+        x[i] = m_mid_x[i] / m_ticksize_x * m_tickval_x;
+        y[i] = m_mid_y[i] / m_ticksize_y * m_tickval_y; // convert to dollars
     }
 
     //m_linParam = linreg(x, y, len);
@@ -183,10 +185,12 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     int nbars = pack.int32_vec[0];
     int bar_size = pack.int32_vec[1];
 
+    m_ticksize_y = pack.real64_vec[0];
+    m_tickval_y  = pack.real64_vec[1];
     auto& v = pack.real32_vec;
     size_t pm = 0;
     for ( int i = 0; i < nbars; i++ ) {
-        m_mid_y.push_back(log(v[pm]));
+        m_mid_y.push_back(v[pm]);
         pm+=bar_size;
     }
 
@@ -253,8 +257,8 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     switch(m_posPairDirection) {
     case SAME: {
         SpreadInfo ts;
-        ts.buy   = compSpread(x_ask, y_ask);
-        ts.sell  = compSpread(x_bid, y_bid);
+        ts.buy   = compSpread(x_ask/m_ticksize_x*m_tickval_x, y_ask/m_ticksize_y*m_tickval_y);
+        ts.sell  = compSpread(x_bid/m_ticksize_x*m_tickval_x, y_bid/m_ticksize_y*m_tickval_y);
 
         m_tradeSpreads.push_back(ts);
         m_spreads.push_back((ts.buy+ts.sell)*.5f);
@@ -262,8 +266,8 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
         break;
     case OPPOSITE: {
         SpreadInfo ts;
-        ts.buy  = compSpread(x_bid, y_ask);
-        ts.sell = compSpread(x_ask, y_bid);
+        ts.buy  = compSpread(x_bid/m_ticksize_x*m_tickval_x, y_ask/m_ticksize_y*m_tickval_y);
+        ts.sell = compSpread(x_ask/m_ticksize_x*m_tickval_x, y_bid/m_ticksize_y*m_tickval_y);
 
         m_tradeSpreads.push_back(ts);
         m_spreads.push_back((ts.buy+ts.sell)*.5f);
