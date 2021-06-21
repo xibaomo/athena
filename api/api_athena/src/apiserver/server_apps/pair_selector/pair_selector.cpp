@@ -47,11 +47,7 @@ PairSelector::procMsg_SYM_HIST_OPEN(Message& msg)
         Log(LOG_ERROR) << "Duplicated symbol received: " + sym;
     }
 
-    auto& p = m_sym2hist[sym];
-    for(auto vv : pack.real32_vec) {
-        p.push_back(log(vv));
-    }
-
+    m_sym2hist[sym] = std::move(pack.real32_vec);
     Message out;
     return out;
 }

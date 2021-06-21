@@ -236,10 +236,10 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     SerializePack pack;
     unserialize(msg.getComment(),pack);
     auto& pm = pack.real32_vec;
-    real64 x_ask = log(pm[0]);
-    real64 x_bid = log(pm[1]);
-    real64 y_ask = log(pm[2]);
-    real64 y_bid = log(pm[3]);
+    real64 x_ask = (pm[0]);
+    real64 x_bid = (pm[1]);
+    real64 y_ask = (pm[2]);
+    real64 y_bid = (pm[3]);
     m_x_ask.push_back(x_ask);
     m_x_bid.push_back(x_bid);
     m_y_ask.push_back(y_ask);
@@ -247,8 +247,8 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     real64 midx,midy;
     midx = (pm[0]+pm[1])*.5f;
     midy = (pm[2]+pm[3])*.5f;
-    m_mid_x.push_back(log(midx));
-    m_mid_y.push_back(log(midy));
+    m_mid_x.push_back((midx));
+    m_mid_y.push_back((midy));
 
     ostringstream oss;
     oss << "\n\t" << m_pairCount << "th pair arrives. x_ask: " << x_ask << ", x_bid: " << x_bid << ", y_ask: " << y_ask << ", y_bid: " << y_bid;
