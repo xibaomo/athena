@@ -26,6 +26,8 @@ using namespace athena;
 MeanRevert::~MeanRevert() {
     dumpVectors("cuscore.csv",m_cuScores);
     dumpDevs("devs.csv");
+    dumpTradeSpreads();
+    dumpVectors("spreads.csv",m_spreads);
     ostringstream oss;
     oss << "Num buys: " << m_buys << ", sells: " << m_sells << ", close_all: " << m_numclose;
     Log(LOG_INFO) << oss.str();
@@ -49,29 +51,109 @@ MeanRevert::findMedianDev(const std::vector<real64>& spreads, const real64 mean)
 }
 
 void
-MeanRevert::init() {
-    auto& spreads = m_trader->getSpreads();
+MeanRevert::compOldSpreads() {
+    auto& vx = m_trader->getMidX();
+    auto& vy = m_trader->getMidY();
+    size_t len = vx.size();
+    real64* x = new real64[len];
+    real64* y = new real64[len];
 
-    real64 mean = gsl_stats_mean(&spreads[0], 1, spreads.size());
+    real64 tsz_x = m_trader->getTickSizeX();
+    real64 tsz_y = m_trader->getTickSizeY();
+    real64 tv_x  = m_trader->getTickValX();
+    real64 tv_y  = m_trader->getTickValY();
+
+    auto& mid_x = m_trader->getMidX();
+    auto& mid_y = m_trader->getMidY();
+    for ( size_t i = 0; i < len; i++ ) {
+        x[i] = mid_x[i] / tsz_x * tv_x;
+        y[i] = mid_y[i] / tsz_y * tv_y; // convert to dollars
+    }
+
+    m_linParam = linreg(x, y, len);
+    //m_linParam = robLinreg(x, y, len);
+
+    Log(LOG_INFO) << "Liner regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1);
+
+    for ( int i = 0; i < len; i++ ) {
+        real64 tmp = y[i] - (m_linParam.c1 * x[i] + m_linParam.c0);
+        m_spreads.push_back(tmp);
+    }
+
+    real64 r2 = compR2(m_linParam, x, y, len);
+
+    Log(LOG_INFO) << "R2: " + to_string(r2);
+    real64 pv = testADF(&m_spreads[0], m_spreads.size());
+    Log(LOG_INFO) << "p-value of stationarity of spreads: " + to_string(pv);
+
+    delete[] x;
+    delete[] y;
+}
+
+void
+MeanRevert::init() {
+    compOldSpreads();
+    real64 mean = gsl_stats_mean(&m_spreads[0], 1, m_spreads.size());
 
     Log(LOG_INFO) << "Mean of spreads: " + to_string(mean);
 
-    real64 s = gsl_stats_sd_m(&spreads[0], 1, spreads.size(), mean);
+    real64 s = gsl_stats_sd_m(&m_spreads[0], 1, m_spreads.size(), mean);
     Log(LOG_INFO) << "std of spreads: " + to_string(s);
 
     //m_devUnit = findMedianDev(spreads, mean);
     m_devUnit = 1.f;
     Log(LOG_INFO) << "median deviation (md) of spreads from its mean: " + to_string(m_devUnit);
 
-    real64 cuscore = std::accumulate(spreads.begin(),spreads.end(),0.f) / m_devUnit;
-    m_cuScores.push_back(cuscore);
-    Log(LOG_INFO) << "CuScore(md): " + to_string(cuscore);
+    if(m_linParam.c1 > 0) {
+        m_posPairDirection = OPPOSITE;
+    } else {
+        m_posPairDirection = SAME;
+    }
 }
+//======================== Decision for each pair =============================
+real64
+MeanRevert::compSpread(real64 x, real64 y) {
+    real64 err = y - (m_linParam.c0 + m_linParam.c1 * x);
+    return err;
+}
+void
+MeanRevert::compNewSpreads() {
+    real64 ts_x = m_trader->getTickSizeX();
+    real64 ts_y = m_trader->getTickSizeY();
+    real64 tv_x = m_trader->getTickValX();
+    real64 tv_y = m_trader->getTickValY();
 
+    real64 x_ask = m_trader->getAskX().back();
+    real64 y_ask = m_trader->getAskY().back();
+    real64 x_bid = m_trader->getBidX().back();
+    real64 y_bid = m_trader->getBidY().back();
+    switch(m_posPairDirection) {
+    case SAME: {
+        SpreadInfo ts;
+        ts.buy   = compSpread(x_ask/ts_x*tv_x, y_ask/ts_y*tv_y);
+        ts.sell  = compSpread(x_bid/ts_x*tv_x, y_bid/ts_y*tv_y);
+
+        m_tradeSpreads.push_back(ts);
+        m_spreads.push_back((ts.buy+ts.sell)*.5f);
+    }
+        break;
+    case OPPOSITE: {
+        SpreadInfo ts;
+        ts.buy  = compSpread(x_bid/ts_x*tv_x, y_ask/ts_y*tv_y);
+        ts.sell = compSpread(x_ask/ts_x*tv_x, y_bid/ts_y*ts_y);
+
+        m_tradeSpreads.push_back(ts);
+        m_spreads.push_back((ts.buy+ts.sell)*.5f);
+    }
+        break;
+    default:
+        Log(LOG_FATAL) << "unknown position pair directions";
+        break;
+    }
+}
 int
 MeanRevert::stats() {
-    SpreadInfo lsp = m_trader->getLatestSpread();
-    //real64 ma = compLatestSpreadMA();
+    SpreadInfo lsp = m_tradeSpreads.back();
 
     if(m_trader->getPairCount() < 300) return -1;
     if (m_trader->getPairCount()==300) m_curMean = compLatestSpreadMean(m_trader->getPairCount());
@@ -102,16 +184,17 @@ MeanRevert::stats() {
     oss << "spread dev/devUnit: buy: " << dev.buy << ", sell: " << dev.sell;
     Log(LOG_INFO) << oss.str();
 
-    real64 cuscore = m_cuScores.back();
-    cuscore += m_trader->getSpreads().back() / m_devUnit;
-    Log(LOG_INFO) << "CuScore(md): " + to_string(cuscore);
-    m_cuScores.push_back(cuscore);
+//    real64 cuscore = m_cuScores.back();
+//    cuscore += m_spreads.back() / m_devUnit;
+//    Log(LOG_INFO) << "CuScore(md): " + to_string(cuscore);
+//    m_cuScores.push_back(cuscore);
 
     return 0;
 }
 
 FXAct
 MeanRevert::getDecision() {
+    compNewSpreads();
     if(stats() < 0) return FXAct::NOACTION;
 
     MptConfig* cfg = m_trader->getConfig();
@@ -170,7 +253,7 @@ MeanRevert::dumpDevs(const String& fn) {
 
 real64
 MeanRevert::compLatestSpreadMA() {
-    auto& spreads = m_trader->getSpreads();
+    auto& spreads = m_spreads;
     int len = m_trader->getConfig()->getSpreadMALookback();
 
     int start = spreads.size() - len;
@@ -181,11 +264,21 @@ MeanRevert::compLatestSpreadMA() {
 
 real64
 MeanRevert::compLatestSpreadMean(size_t len) {
-    auto& spreads = m_trader->getSpreads();
+    auto& spreads = m_spreads;
     int start = spreads.size() - len;
     start = start<0 ? 0 : start;
 
     real64 s = std::accumulate(spreads.begin()+start,spreads.end(),0.f);
 
     return s/len;
+}
+
+void
+MeanRevert::dumpTradeSpreads() {
+    std::vector<real64> v1,v2;
+    for(auto& p : m_tradeSpreads) {
+        v1.push_back(p.buy);
+        v2.push_back(p.sell);
+    }
+    dumpVectors("trade_spreads.csv",v1,v2);
 }

@@ -15,7 +15,7 @@
  *
  * =====================================================================================
  */
-
+#if 0
 #include "spread_trend.h"
 #include "minbar_pair_trader/minbar_pair_trader.h"
 #include "basics/utils.h"
@@ -92,3 +92,4 @@ bool
 SpreadTrend::isContinue() {
     return true;
 }
+#endif // 0

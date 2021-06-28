@@ -15,7 +15,7 @@
  *
  * =====================================================================================
  */
-
+#if 0
 #include "dm_rule_75.h"
 #include "basics/utils.h"
 #include "minbar_pair_trader.h"
@@ -102,3 +102,4 @@ void
 Rule75::finish() {
     cout<<"rule 75 finish called"<<endl;
 }
+#endif // 0

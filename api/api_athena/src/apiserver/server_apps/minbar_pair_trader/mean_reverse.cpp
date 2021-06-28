@@ -15,7 +15,7 @@
  *
  * =====================================================================================
  */
-
+#if 0
 #include "mean_reverse.h"
 #include "basics/utils.h"
 #include "minbar_pair_trader.h"
@@ -107,3 +107,4 @@ MeanReverse::isContinue() {
 
     return true;
 }
+#endif // 0

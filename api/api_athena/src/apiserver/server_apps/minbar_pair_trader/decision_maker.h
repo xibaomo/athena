@@ -30,6 +30,8 @@ class DecisionMaker {
 
     virtual ~DecisionMaker() {;}
 
+    virtual real64 getSlope() { return 0.f; }
+
     virtual FXAct getDecision() = 0;
 
     virtual bool isContinue() = 0;
