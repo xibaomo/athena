@@ -22,45 +22,46 @@
 #include "linreg/linreg.h"
 class MeanRevert : public DecisionMaker {
     enum PosPairDir {
-    NONE,
-    SAME,
-    OPPOSITE
+        NONE,
+        SAME,
+        OPPOSITE
     };
     struct SpreadInfo {
         real64 buy;
         real64 sell;
     };
-private:
-    real64 m_devUnit; // unit of spread deviation from preset mean
+  private:
+    real64                  m_devUnit; // unit of spread deviation from preset mean
     std::vector<SpreadInfo> m_spreadDevs;
 
-    real64 m_highBuyDev, m_lowBuyDev; // in unit of devUnit
-    real64 m_highSellDev, m_lowSellDev; // in unit of devUnit
+    real64                  m_highBuyDev, m_lowBuyDev; // in unit of devUnit
+    real64                  m_highSellDev, m_lowSellDev; // in unit of devUnit
 
-    size_t m_buys, m_sells, m_numclose;
+    size_t                  m_buys, m_sells, m_numclose;
 
     PosPairDir              m_posPairDirection;
 
-    LRParam m_linParam;
+    LRParam                 m_linParam;
     std::vector<real64>     m_spreads;
     std::vector<SpreadInfo> m_tradeSpreads;
 
-    real64 m_curMean;
-    bool   m_isUpdateMean;
+    real64                  m_curMean;
+    bool                    m_isUpdateMean;
 
-    std::vector<real64> m_cuScores;
-public:
-    MeanRevert(MinbarPairTrader* p) : DecisionMaker(p), m_buys(0), m_sells(0), m_numclose(0), m_isUpdateMean(false){;}
+    std::vector<real64>     m_cuScores;
+  public:
+    MeanRevert(MinbarPairTrader* p) : DecisionMaker(p), m_buys(0), m_sells(0), m_numclose(0), m_isUpdateMean(false) {;}
     ~MeanRevert();
     void init();
 
     real64 getSlope() { return m_linParam.c1; }
+
     // find median of deviation from spread mean. use it as std;
     // regular std may be extended too much if extreme cases happen.
     real64 findMedianDev(const std::vector<real64>& spreads, const real64 mean);
 
     void compOldSpreads(); // compute spreads of old history
-    void compNewSpreads(); // compute the latest buy,sell,mid spreads
+    void compNewSpreads(); // compute the latest buy, sell, mid spreads
 
     real64 compLatestSpreadMA();
 
