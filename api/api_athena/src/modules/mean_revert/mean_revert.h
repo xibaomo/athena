@@ -46,11 +46,10 @@ class MeanRevert : public DecisionMaker {
     std::vector<SpreadInfo> m_tradeSpreads;
 
     real64                  m_curMean;
-    bool                    m_isUpdateMean;
 
     std::vector<real64>     m_cuScores;
   public:
-    MeanRevert(MinbarPairTrader* p) : DecisionMaker(p), m_buys(0), m_sells(0), m_numclose(0), m_isUpdateMean(false) {;}
+    MeanRevert(MinbarPairTrader* p) : DecisionMaker(p), m_buys(0), m_sells(0), m_numclose(0){;}
     ~MeanRevert();
     void init();
 
@@ -64,6 +63,8 @@ class MeanRevert : public DecisionMaker {
     void compNewSpreads(); // compute the latest buy, sell, mid spreads
 
     real64 compLatestSpreadMA();
+
+    void updateModel(int hist_len);
 
     // mean value insofar
     real64 compLatestSpreadMean(size_t);

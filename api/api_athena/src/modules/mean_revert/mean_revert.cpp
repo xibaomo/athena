@@ -51,10 +51,10 @@ MeanRevert::findMedianDev(const std::vector<real64>& spreads, const real64 mean)
 }
 
 void
-MeanRevert::compOldSpreads() {
+MeanRevert::updateModel(int len) {
     auto& vx = m_trader->getMidX();
     auto& vy = m_trader->getMidY();
-    size_t len = vx.size();
+    size_t start = vx.size() - len;
     real64* x = new real64[len];
     real64* y = new real64[len];
 
@@ -65,7 +65,7 @@ MeanRevert::compOldSpreads() {
 
     auto& mid_x = m_trader->getMidX();
     auto& mid_y = m_trader->getMidY();
-    for ( size_t i = 0; i < len; i++ ) {
+    for ( size_t i = start; i < start+len; i++ ) {
         x[i] = mid_x[i] / tsz_x * tv_x;
         y[i] = mid_y[i] / tsz_y * tv_y; // convert to dollars
     }
@@ -75,23 +75,39 @@ MeanRevert::compOldSpreads() {
 
     Log(LOG_INFO) << "Liner regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1);
 
-    for ( int i = 0; i < len; i++ ) {
-        real64 tmp = y[i] - (m_linParam.c1 * x[i] + m_linParam.c0);
-        m_spreads.push_back(tmp);
-    }
-
     real64 r2 = compR2(m_linParam, x, y, len);
 
     Log(LOG_INFO) << "R2: " + to_string(r2);
-    real64 pv = testADF(&m_spreads[0], m_spreads.size());
-    Log(LOG_INFO) << "p-value of stationarity of spreads: " + to_string(pv);
+
 
     delete[] x;
     delete[] y;
 }
+void
+MeanRevert::compOldSpreads() {
+    real64 ts_x = m_trader->getTickSizeX();
+    real64 ts_y = m_trader->getTickSizeY();
+    real64 tv_x  = m_trader->getTickValX();
+    real64 tv_y  = m_trader->getTickValY();
+
+    auto& mid_x = m_trader->getMidX();
+    auto& mid_y = m_trader->getMidY();
+    for ( size_t i = 0; i < mid_x.size(); i++ ) {
+        real64 x = mid_x[i]/ts_x*tv_x;
+        real64 y = mid_y[i]/ts_y*tv_y;
+        real64 tmp = y - (m_linParam.c1 * x + m_linParam.c0);
+        m_spreads.push_back(tmp);
+    }
+
+    real64 pv = testADF(&m_spreads[0], m_spreads.size());
+    Log(LOG_INFO) << "p-value of stationarity of spreads: " + to_string(pv);
+}
 
 void
 MeanRevert::init() {
+    int len = m_trader->getMidX().size();
+    updateModel(len);
+
     compOldSpreads();
     real64 mean = gsl_stats_mean(&m_spreads[0], 1, m_spreads.size());
 
@@ -136,7 +152,7 @@ MeanRevert::compNewSpreads() {
         m_tradeSpreads.push_back(ts);
         m_spreads.push_back((ts.buy+ts.sell)*.5f);
     }
-        break;
+    break;
     case OPPOSITE: {
         SpreadInfo ts;
         ts.buy  = compSpread(x_bid/ts_x*tv_x, y_ask/ts_y*tv_y);
@@ -145,7 +161,7 @@ MeanRevert::compNewSpreads() {
         m_tradeSpreads.push_back(ts);
         m_spreads.push_back((ts.buy+ts.sell)*.5f);
     }
-        break;
+    break;
     default:
         Log(LOG_FATAL) << "unknown position pair directions";
         break;
