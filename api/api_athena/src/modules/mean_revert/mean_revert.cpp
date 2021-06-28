@@ -167,16 +167,10 @@ MeanRevert::compNewSpreads() {
         break;
     }
 }
-int
+
+void
 MeanRevert::stats() {
     SpreadInfo lsp = m_tradeSpreads.back();
-
-    if(m_trader->getPairCount() < 300) return -1;
-    if (m_trader->getPairCount()==300) m_curMean = compLatestSpreadMean(m_trader->getPairCount());
-    if (m_trader->getCurNumPos()==0) { // if there is no positions, update spread mean
-        m_curMean = compLatestSpreadMean(m_trader->getPairCount());
-        Log(LOG_INFO) << "Spread mean updated: " + to_string(m_curMean);
-    }
 
     Log(LOG_INFO) << "Current mean: " + to_string(m_curMean);
 
@@ -205,13 +199,18 @@ MeanRevert::stats() {
 //    Log(LOG_INFO) << "CuScore(md): " + to_string(cuscore);
 //    m_cuScores.push_back(cuscore);
 
-    return 0;
 }
 
 FXAct
 MeanRevert::getDecision() {
+    if(m_trader->getPairCount() < 300) return FXAct::NOACTION;
+    if (m_trader->getPairCount()==300) m_curMean = compLatestSpreadMean(m_trader->getPairCount());
+    if (m_trader->getCurNumPos()==0) { // if there is no positions, update spread mean
+        m_curMean = compLatestSpreadMean(m_trader->getPairCount());
+        Log(LOG_INFO) << "Spread mean updated: " + to_string(m_curMean);
+    }
     compNewSpreads();
-    if(stats() < 0) return FXAct::NOACTION;
+    stats();
 
     MptConfig* cfg = m_trader->getConfig();
 
