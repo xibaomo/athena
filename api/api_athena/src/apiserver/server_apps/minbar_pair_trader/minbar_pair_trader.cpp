@@ -27,11 +27,10 @@
 using namespace std;
 using namespace athena;
 
-MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg), m_isRunning(true), m_pairCount(0), m_oracle(nullptr) {
+MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg), m_curNumPos(0), m_isRunning(true), m_pairCount(0), m_oracle(nullptr) {
     m_cfg = &MptConfig::getInstance();
     m_cfg->loadConfig(cfg);
     m_initBalance = -1.;
-    m_numPos = 0;
 
     m_oracle = new MeanRevert(this);
     Log(LOG_INFO) << "Minbar pair trader created with MeanRevert";
@@ -72,12 +71,6 @@ MinbarPairTrader::processMsg(Message& msg) {
         break;
     case FXAct::PAIR_MIN_OPEN:
         outmsg = procMsg_PAIR_MIN_OPEN(msg);
-        break;
-    case FXAct::NUM_POS:
-        outmsg = procMsg_noreply(msg, [this](Message& msg) {
-            real32* pm = (real32*)msg.getData();
-            m_numPos = pm[0];
-        });
         break;
     default:
         break;
@@ -158,8 +151,8 @@ MinbarPairTrader::compOldSpreads() {
         y[i] = m_mid_y[i] / m_ticksize_y * m_tickval_y; // convert to dollars
     }
 
-    //m_linParam = linreg(x, y, len);
-    m_linParam = robLinreg(x, y, len);
+    m_linParam = linreg(x, y, len);
+    //m_linParam = robLinreg(x, y, len);
 
     Log(LOG_INFO) << "Liner regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1);
 
@@ -254,10 +247,13 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     m_mid_x.push_back((midx));
     m_mid_y.push_back((midy));
 
+    m_curNumPos = pack.int32_vec[0];
+
     Log(LOG_INFO) << "Mt5 time: " + pack.str_vec[0];
     ostringstream oss;
     oss << "\n\t" << m_pairCount << "th pair arrives. x_ask: " << x_ask << ", x_bid: " << x_bid << ", y_ask: " << y_ask << ", y_bid: " << y_bid;
     Log(LOG_INFO) << oss.str();
+    Log(LOG_INFO) << "tick val: x: " + to_string(tickval_x) + ", y: " + to_string(tickval_y);
 
     switch(m_posPairDirection) {
     case SAME: {
@@ -291,14 +287,14 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     m_isRunning = m_oracle->isContinue();
     if ( !m_isRunning )
         outmsg.setAction(FXAct::NOACTION);
-
-    int len = m_lookback/2;
-    int start =  m_mid_x.size() - len;
-    real64 r2 = compR2(m_linParam,&m_mid_x[start],&m_mid_y[start],len);
-
-    ostringstream os;
-    os << "R2 of past " << len <<" pts: " << r2;
-    Log(LOG_INFO) << os.str();
+//
+//    int len = m_lookback/2;
+//    int start =  m_mid_x.size() - len;
+//    real64 r2 = compR2(m_linParam,&m_mid_x[start],&m_mid_y[start],len);
+//
+//    ostringstream os;
+//    os << "R2 of past " << len <<" pts: " << r2;
+//    Log(LOG_INFO) << os.str();
 
 #if 0
     dumpVectors("ticks.csv",m_x_ask, m_y_ask);

@@ -54,10 +54,13 @@ MeanRevert::init() {
 
     real64 mean = gsl_stats_mean(&spreads[0], 1, spreads.size());
 
+    Log(LOG_INFO) << "Mean of spreads: " + to_string(mean);
+
     real64 s = gsl_stats_sd_m(&spreads[0], 1, spreads.size(), mean);
     Log(LOG_INFO) << "std of spreads: " + to_string(s);
 
-    m_devUnit = findMedianDev(spreads, mean);
+    //m_devUnit = findMedianDev(spreads, mean);
+    m_devUnit = 1.f;
     Log(LOG_INFO) << "median deviation (md) of spreads from its mean: " + to_string(m_devUnit);
 
     real64 cuscore = std::accumulate(spreads.begin(),spreads.end(),0.f) / m_devUnit;
@@ -65,11 +68,22 @@ MeanRevert::init() {
     Log(LOG_INFO) << "CuScore(md): " + to_string(cuscore);
 }
 
-void
+int
 MeanRevert::stats() {
     SpreadInfo lsp = m_trader->getLatestSpread();
     //real64 ma = compLatestSpreadMA();
-    real64 ma = compLatestSpreadMean();
+
+    if(m_trader->getPairCount() < 300) return -1;
+    if (m_trader->getPairCount()==300) m_curMean = compLatestSpreadMean(m_trader->getPairCount());
+    if (m_trader->getCurNumPos()==0) { // if there is no positions, update spread mean
+        m_curMean = compLatestSpreadMean(m_trader->getPairCount());
+        Log(LOG_INFO) << "Spread mean updated: " + to_string(m_curMean);
+    }
+
+    Log(LOG_INFO) << "Current mean: " + to_string(m_curMean);
+
+    real64 ma = m_curMean;
+
     SpreadInfo dev;
     dev.buy = (lsp.buy-ma) / m_devUnit;
     dev.sell = (lsp.sell-ma) / m_devUnit;
@@ -80,6 +94,10 @@ MeanRevert::stats() {
     if (dev.sell > m_highSellDev) m_highSellDev = dev.sell;
     if (dev.sell < m_lowSellDev)  m_lowSellDev = dev.sell;
 
+    ostringstream os;
+    os << "Spread buy: " << lsp.buy << ", sell: " << lsp.sell;
+    Log(LOG_INFO) << os.str();
+
     ostringstream oss;
     oss << "spread dev/devUnit: buy: " << dev.buy << ", sell: " << dev.sell;
     Log(LOG_INFO) << oss.str();
@@ -88,11 +106,14 @@ MeanRevert::stats() {
     cuscore += m_trader->getSpreads().back() / m_devUnit;
     Log(LOG_INFO) << "CuScore(md): " + to_string(cuscore);
     m_cuScores.push_back(cuscore);
+
+    return 0;
 }
 
 FXAct
 MeanRevert::getDecision() {
-    stats();
+    if(stats() < 0) return FXAct::NOACTION;
+
     MptConfig* cfg = m_trader->getConfig();
 
     real64 low_thd = cfg->getLowThresholdStd();
@@ -159,9 +180,8 @@ MeanRevert::compLatestSpreadMA() {
 }
 
 real64
-MeanRevert::compLatestSpreadMean() {
+MeanRevert::compLatestSpreadMean(size_t len) {
     auto& spreads = m_trader->getSpreads();
-    int len = m_spreadDevs.size()+1;
     int start = spreads.size() - len;
     start = start<0 ? 0 : start;
 

@@ -49,12 +49,12 @@ class MinbarPairTrader : public ServerBaseApp {
     real64 m_tickval_x;
     real64 m_ticksize_y;
     real64 m_tickval_y;
-    size_t                  m_numPos;
+    int                     m_curNumPos;
     bool                    m_isRunning;
     size_t                  m_pairCount;
     PosPairDir              m_posPairDirection;
 
-    RobLRParam       m_linParam;
+    LRParam          m_linParam;
     size_t           m_lookback;
 
     DecisionMaker* m_oracle;
@@ -88,12 +88,16 @@ class MinbarPairTrader : public ServerBaseApp {
         return m_tradeSpreads.back();
     }
 
+    size_t getPairCount() { return m_pairCount; }
+
     void dumpTradeSpreads();
 
     std::vector<SpreadInfo>& getTradeSpreads() { return m_tradeSpreads; }
 
     PosPairDir getPosPairDir() { return m_posPairDirection; }
     real64 compSpread(real64 x, real64 y);
+
+    int getCurNumPos() const { return m_curNumPos;}
 
     Message processMsg(Message& msg);
     Message procMsg_ASK_PAIR(Message& msg);

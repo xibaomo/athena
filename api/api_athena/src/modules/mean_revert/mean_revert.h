@@ -30,9 +30,12 @@ private:
 
     size_t m_buys, m_sells, m_numclose;
 
+    real64 m_curMean;
+    bool   m_isUpdateMean;
+
     std::vector<real64> m_cuScores;
 public:
-    MeanRevert(MinbarPairTrader* p) : DecisionMaker(p), m_buys(0), m_sells(0), m_numclose(0) {;}
+    MeanRevert(MinbarPairTrader* p) : DecisionMaker(p), m_buys(0), m_sells(0), m_numclose(0), m_isUpdateMean(false){;}
     ~MeanRevert();
     void init();
 
@@ -43,9 +46,10 @@ public:
     real64 compLatestSpreadMA();
 
     // mean value insofar
-    real64 compLatestSpreadMean();
+    real64 compLatestSpreadMean(size_t);
 
-    void stats();
+    // -1 means not time to do stats
+    int stats();
 
     void dumpDevs(const String& fn);
     FXAct getDecision();
