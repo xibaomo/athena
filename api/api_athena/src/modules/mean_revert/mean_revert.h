@@ -69,7 +69,7 @@ class MeanRevert : public DecisionMaker {
     // mean value insofar
     real64 compLatestSpreadMean(size_t);
 
-    void stats();
+    void compDevFromMean();
 
     real64 compSpread(real64 x, real64 y);
 
