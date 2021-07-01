@@ -21,10 +21,11 @@
 class MinbarPairTrader;
 class DecisionMaker {
   protected:
+    int m_lookback;
     MinbarPairTrader* m_trader;
 
   public:
-    DecisionMaker(MinbarPairTrader* p) : m_trader(p) {;}
+    DecisionMaker(MinbarPairTrader* p) : m_lookback(-1),m_trader(p) {;}
 
     virtual void init() = 0;
 
@@ -37,4 +38,6 @@ class DecisionMaker {
     virtual bool isContinue() = 0;
 
     virtual void finish(){;}
+
+    void setLookback(int lookback) { m_lookback = lookback; }
 };

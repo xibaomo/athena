@@ -155,6 +155,7 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     Log(LOG_INFO) << "Correlation: " + to_string(corr);
 
     m_oracle->init();
+    m_oracle->setLookback(m_mid_x.size());
 
     Message outmsg(msg.getAction(), sizeof(real32), 0);
     real32* p = (real32*)outmsg.getData();
@@ -195,6 +196,7 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     oss << "\n\t" << m_pairCount << "th pair arrives. x_ask: " << x_ask << ", x_bid: " << x_bid << ", y_ask: " << y_ask << ", y_bid: " << y_bid;
     Log(LOG_INFO) << oss.str();
     Log(LOG_INFO) << "tick val: x: " + to_string(m_tickval_x) + ", y: " + to_string(m_tickval_y);
+    Log(LOG_INFO) << "Num of positions: " + to_string(m_curNumPos);
 
     FXAct act = m_oracle->getDecision();
 

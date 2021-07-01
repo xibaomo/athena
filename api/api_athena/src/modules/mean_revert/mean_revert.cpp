@@ -65,15 +65,16 @@ MeanRevert::updateModel(int len) {
 
     auto& mid_x = m_trader->getMidX();
     auto& mid_y = m_trader->getMidY();
+    int k=0;
     for ( size_t i = start; i < start+len; i++ ) {
-        x[i] = mid_x[i] / tsz_x * tv_x;
-        y[i] = mid_y[i] / tsz_y * tv_y; // convert to dollars
+        x[k] = mid_x[i] / tsz_x * tv_x;
+        y[k++] = mid_y[i] / tsz_y * tv_y; // convert to dollars
     }
 
-    m_linParam = linreg(x, y, len);
-    //m_linParam = robLinreg(x, y, len);
+    //m_linParam = linreg(x, y, len);
+    m_linParam = robLinreg(x, y, len);
 
-    Log(LOG_INFO) << "Liner regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1);
+    Log(LOG_INFO) << "Linear regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1);
 
     real64 r2 = compR2(m_linParam, x, y, len);
 
@@ -203,13 +204,16 @@ MeanRevert::compDevFromMean() {
 
 FXAct
 MeanRevert::getDecision() {
+    //updateModel(m_lookback);
+
     compNewSpreads();
-    if(m_trader->getPairCount() < 300) return FXAct::NOACTION;
-    if (m_trader->getPairCount()==300) m_curMean = compLatestSpreadMean(m_trader->getPairCount());
-    if (m_trader->getCurNumPos()==0) { // if there is no positions, update spread mean
-        m_curMean = compLatestSpreadMean(m_trader->getPairCount());
-        Log(LOG_INFO) << "Spread mean updated: " + to_string(m_curMean);
-    }
+    m_curMean = compLatestSpreadMean(m_trader->getPairCount());
+//    if(m_trader->getPairCount() < 300) return FXAct::NOACTION;
+//    if (m_trader->getPairCount()==300) m_curMean = compLatestSpreadMean(m_trader->getPairCount());
+//    if (m_trader->getCurNumPos()==0) { // if there is no positions, update spread mean
+//        m_curMean = compLatestSpreadMean(m_trader->getPairCount());
+//        Log(LOG_INFO) << "Spread mean updated: " + to_string(m_curMean);
+//    }
 
     compDevFromMean();
 
