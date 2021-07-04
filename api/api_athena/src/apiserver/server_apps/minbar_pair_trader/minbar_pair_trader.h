@@ -33,6 +33,8 @@ class MinbarPairTrader : public ServerBaseApp {
     std::vector<real64> m_y_bid;
     std::vector<real64> m_mid_x;
     std::vector<real64> m_mid_y;
+    std::vector<real64> m_assetX;
+    std::vector<real64> m_assetY;
 
     real64              m_ticksize_x;
     real64              m_tickval_x;

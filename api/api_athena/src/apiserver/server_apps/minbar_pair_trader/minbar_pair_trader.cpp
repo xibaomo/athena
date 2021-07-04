@@ -38,6 +38,7 @@ MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg), m_cu
 
 MinbarPairTrader::~MinbarPairTrader() {
     dumpVectors("prices.csv",m_mid_x, m_mid_y);
+    dumpVectors("assets.csv",m_assetX,m_assetY);
 
     if ( m_oracle )
         delete m_oracle;
@@ -118,6 +119,7 @@ MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
     size_t pm = 0;
     for ( int i = 0; i < nbars; i++ ) {
         m_mid_x.push_back(v[pm]);
+        m_assetX.push_back(v[pm]/m_ticksize_x*m_tickval_x);
         pm+=bar_size;
     }
 
@@ -143,6 +145,7 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     size_t pm = 0;
     for ( int i = 0; i < nbars; i++ ) {
         m_mid_y.push_back(v[pm]);
+        m_assetY.push_back(v[pm]/m_ticksize_y*m_tickval_y);
         pm+=bar_size;
     }
 
@@ -188,6 +191,8 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     midy = (y_ask+y_bid)*.5f;
     m_mid_x.push_back((midx));
     m_mid_y.push_back((midy));
+    m_assetX.push_back(midx/m_ticksize_x*m_tickval_x);
+    m_assetY.push_back(midy/m_ticksize_y*m_tickval_y);
 
     m_curNumPos = pack.int32_vec[0];
 
@@ -197,6 +202,7 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     Log(LOG_INFO) << oss.str();
     Log(LOG_INFO) << "tick val: x: " + to_string(m_tickval_x) + ", y: " + to_string(m_tickval_y);
     Log(LOG_INFO) << "Num of positions: " + to_string(m_curNumPos);
+    Log(LOG_INFO) << "Num of take-profit: " + to_string(pack.int32_vec[1]) + ", stop-loss: " + to_string(pack.int32_vec[2]);
 
     FXAct act = m_oracle->getDecision();
 

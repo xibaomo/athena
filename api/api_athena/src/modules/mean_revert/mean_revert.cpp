@@ -35,6 +35,9 @@ MeanRevert::~MeanRevert() {
     ostringstream os;
     os << "Dev range: buy: [" << m_lowBuyDev<<","<<m_highBuyDev<<"], sell: [" << m_lowSellDev << "," << m_highSellDev << "]";
     Log(LOG_INFO) << os.str();
+
+    Log(LOG_INFO) << "Linear regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1);
+
 }
 
 real64
@@ -205,6 +208,7 @@ MeanRevert::compDevFromMean() {
 FXAct
 MeanRevert::getDecision() {
     //updateModel(m_lookback);
+    if(m_trader->getPairCount()>1440) return FXAct::NOACTION;
 
     compNewSpreads();
     m_curMean = compLatestSpreadMean(m_trader->getPairCount());
