@@ -212,12 +212,9 @@ MeanRevert::getDecision() {
 
     compNewSpreads();
     m_curMean = compLatestSpreadMean(m_trader->getPairCount());
-//    if(m_trader->getPairCount() < 300) return FXAct::NOACTION;
-//    if (m_trader->getPairCount()==300) m_curMean = compLatestSpreadMean(m_trader->getPairCount());
-//    if (m_trader->getCurNumPos()==0) { // if there is no positions, update spread mean
-//        m_curMean = compLatestSpreadMean(m_trader->getPairCount());
-//        Log(LOG_INFO) << "Spread mean updated: " + to_string(m_curMean);
-//    }
+
+    real64 r2 = compR2(m_linParam,&m_trader->getAssetX()[0],&m_trader->getAssetY()[0],m_trader->getAssetX().size() );
+    Log(LOG_INFO) << "R2: " + to_string(r2);
 
     compDevFromMean();
 

@@ -61,15 +61,18 @@ class MinbarPairTrader : public ServerBaseApp {
     std::vector<real64>& getMidX() { return m_mid_x; }
     std::vector<real64>& getMidY() { return m_mid_y; }
 
-    std::vector<real64> getAskX()  { return m_x_ask; }
-    std::vector<real64> getAskY()  { return m_y_ask; }
-    std::vector<real64> getBidX()  { return m_x_bid; }
-    std::vector<real64> getBidY()  { return m_y_bid; }
+    std::vector<real64>& getAskX()  { return m_x_ask; }
+    std::vector<real64>& getAskY()  { return m_y_ask; }
+    std::vector<real64>& getBidX()  { return m_x_bid; }
+    std::vector<real64>& getBidY()  { return m_y_bid; }
+    std::vector<real64>& getAssetX() { return m_assetX; }
+    std::vector<real64>& getAssetY() { return m_assetY; }
 
     real64 getTickSizeX()          { return m_ticksize_x; }
     real64 getTickSizeY()          { return m_ticksize_y; }
     real64 getTickValX()           { return m_tickval_x; }
     real64 getTickValY()           { return m_tickval_y; }
+
 
     size_t getPairCount()          { return m_pairCount; }
 
