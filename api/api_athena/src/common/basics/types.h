@@ -48,6 +48,7 @@ enum AppType {
     APP_MULTINODE_TRADER = 5,
     APP_PREDICTOR,
     APP_TICKCLASSIFIER,
+    APP_PAIR_LABELER, // 8
 };
 
 // MinBar predictor

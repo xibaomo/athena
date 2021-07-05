@@ -157,8 +157,10 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     real64 corr = computePairCorr(m_mid_x, m_mid_y);
     Log(LOG_INFO) << "Correlation: " + to_string(corr);
 
+
     m_oracle->init();
     m_oracle->setLookback(m_mid_x.size());
+
 
     Message outmsg(msg.getAction(), sizeof(real32), 0);
     real32* p = (real32*)outmsg.getData();

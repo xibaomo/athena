@@ -78,10 +78,10 @@ class MinbarPairTrader : public ServerBaseApp {
 
     int getCurNumPos() const       { return m_curNumPos; }
 
-    Message processMsg(Message& msg);
+    virtual Message processMsg(Message& msg);
     Message procMsg_ASK_PAIR(Message& msg);
     Message procMsg_PAIR_HIST_X(Message& msg);
     Message procMsg_PAIR_HIST_Y(Message& msg);
-    Message procMsg_PAIR_MIN_OPEN(Message& msg);
+    virtual Message procMsg_PAIR_MIN_OPEN(Message& msg);
 };
 

@@ -79,4 +79,6 @@ class MeanRevert : public DecisionMaker {
     bool isContinue() { return true; }
 
     void dumpTradeSpreads();
+
+    std::vector<SpreadInfo>& getTradeSpreads() { return m_tradeSpreads; }
 };
