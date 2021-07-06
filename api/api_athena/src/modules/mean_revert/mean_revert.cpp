@@ -104,6 +104,7 @@ MeanRevert::compOldSpreads() {
     }
 
     real64 pv = testADF(&m_spreads[0], m_spreads.size());
+    //real64 pv = 0.f;
     Log(LOG_INFO) << "p-value of stationarity of spreads: " + to_string(pv);
 }
 

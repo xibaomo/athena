@@ -94,7 +94,7 @@ getStringFromPyobject(CPyObject& pyobj)
         throw runtime_error("Failed to get string from pyobject");
     }
 
-    const char* cp = PyString_AsString(objrepr);
+    const char* cp = PyBytes_AsString(objrepr);
     Py_XDECREF(objrepr);
 
     String s = String(cp);
@@ -109,9 +109,9 @@ getIntFromPyobject(CPyObject& pyobj)
         throw runtime_error("Failed to get string from pyobject");
     }
 
-    const char* cp = PyString_AsString(objrepr);
+    const char* cp = PyBytes_AsString(objrepr);
 
-    if (!cp) throw runtime_error("Get Null from PyString_AsString");
+    if (!cp) throw runtime_error("Get Null from PyBytes_AsString");
     int p = stoi(String(cp));
     Py_XDECREF(objrepr);
     return p;
@@ -198,8 +198,8 @@ static void import_numpy()
 //    a++;
 //    PyRunner& pyrun = PyRunner::getInstance();
 //    (void)pyrun;
-    if(PyArray_API==NULL)
-        import_array();
+//    if(PyArray_API==NULL)
+//        import_array();
 }
 bool
 test_coint(std::vector<real32>& v1, std::vector<real32>& v2, real32 pval)
@@ -232,7 +232,7 @@ test_coint(std::vector<real32>& v1, std::vector<real32>& v2, real32 pval)
 
     CPyObject res = pyrun.runAthenaPyFunc("coint","coint_verify",args);
 
-    if (PyInt_AsLong(res) == 1) {
+    if (PyLong_AsLong(res) == 1) {
         return true;
     }
 
@@ -279,7 +279,7 @@ __test_coint(std::vector<real32>& v1, std::vector<real32>& v2)
 
     CPyObject res = PyObject_CallObject(func,args);
 
-    if (PyInt_AsLong(res) == 1) {
+    if (PyLong_AsLong(res) == 1) {
         return true;
     }
 
@@ -294,15 +294,16 @@ __test_coint(std::vector<real32>& v1, std::vector<real32>& v2)
 real64
 testADF(real64* v, int len)
 {
-    CPyObject lx = PyList_New(len);
+    PyObject* lx = PyList_New(len);
     for(int i=0; i < len; i++) {
         PyList_SetItem(lx,i,Py_BuildValue("d",v[i]));
     }
-    CPyObject args = Py_BuildValue("(O)",lx.getObject());
-
-    CPyObject res = PyRunner::getInstance().runAthenaPyFunc("coint","test_adf",args);
-
+    PyObject* args = Py_BuildValue("(O)",lx);
+//
+    PyObject* res = PyRunner::getInstance().runAthenaPyFunc("coint","test_adf",args);
+//
     return PyFloat_AsDouble(res);
+
 }
 
 real64

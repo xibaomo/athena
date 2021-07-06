@@ -168,7 +168,8 @@ ForexTickClassifier::procMsg_TICK(Message& msg)
     if ( !objrepr )
         Log(LOG_ERROR) << "Failed to get prediction from python";
 
-    const char* cp = PyString_AsString(objrepr);
+    const char* cp = PyBytes_AsString(objrepr);
+    cp = strdup(cp);
 
     Log(LOG_INFO) << "Prediction: " + String(cp);
     int pred = stoi(String(cp));

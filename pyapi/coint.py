@@ -11,20 +11,20 @@ def coint_verify(list_x, list_y, pval) :
 
     af = adfuller(np.diff(x))
     if af[1] > 0.01:
-        print "diff(x) is not steady, p value = %f" % af[1]
+        print( "diff(x) is not steady, p value = %f" % af[1])
         return 0
     af = adfuller(np.diff(y))
     if af[1] > 0.01:
-        print "diff(y) is not steady, p value = %f" % af[1]
+        print ("diff(y) is not steady, p value = %f" % af[1])
         return 0
 
-    print "p-val threshold = %f" % pval
+    print ("p-val threshold = %f" % pval)
     c = coint(x, y)
     if c[1] > pval:
-        print "cointegration test fails. p value = %f" % c[1]
+        print ("cointegration test fails. p value = %f" % c[1])
         return 0
 
-    print "========= cointegration passed, p-val: %f" % c[1]
+    print ("========= cointegration passed, p-val: %f" % c[1])
     return 1
 
 def test_adf(list_x):
@@ -41,8 +41,8 @@ def hurst(ts_list):
     return poly[0]*2.
 
 def test_test(lx, ly):
-    print lx.shape
-    print ly.shape
+    print (lx.shape)
+    print (ly.shape)
 
 if __name__ == "__main__":
 
@@ -50,4 +50,4 @@ if __name__ == "__main__":
     lx=[random.uniform(1, 10) for i in range(100)]
     ly=[random.uniform(1, 10) for i in range(100)]
 
-    print coint_verify(lx, ly)
+    print (coint_verify(lx, ly, 0.02))

@@ -20,7 +20,7 @@ String _getModelFile(String qmdlFile)
 
     CPyObject val = PyObject_CallFunction(pFunc, "ss", "EXTERNAL_MODEL/MODEL_PATH",qmdlFile.c_str());
 
-    auto v = String(PyString_AsString(val));
+    auto v = String(PyBytes_AsString(val));
     return v;
 }
 

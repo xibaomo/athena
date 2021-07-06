@@ -4,7 +4,7 @@ using namespace std;
 using namespace athena;
 static void import_numpy()
 {
-    import_array();
+    //import_array();
 }
 PyRunner::PyRunner()
 {
@@ -14,19 +14,20 @@ PyRunner::PyRunner()
     PyEnviron::getInstance().appendSysPath(modulePath);
 }
 
-CPyObject
-PyRunner::runAthenaPyFunc(const String& modName, const String& funcName, CPyObject& args)
+PyObject*
+PyRunner::runAthenaPyFunc(const String& modName, const String& funcName, PyObject* args)
 {
-    CPyObject mod = PyImport_ImportModule(modName.c_str());
+    //PyObject* mod = PyImport_Import(PyUnicode_FromString(modName.c_str()));
+    PyObject* mod = PyImport_ImportModule(modName.c_str());
     if (!mod)
         Log(LOG_FATAL) << "Failed to import module: " + modName;
 
-    CPyObject func = PyObject_GetAttrString(mod.getObject(),funcName.c_str());
+    PyObject* func = PyObject_GetAttrString(mod,funcName.c_str());
     if(!func)
         Log(LOG_FATAL) << "Failed to find py function: " + funcName;
 
 
-    CPyObject res = PyObject_CallObject(func.getObject(),args.getObject());
+    PyObject* res = PyObject_CallObject(func,args);
 
     return res;
 }

@@ -36,7 +36,7 @@ public:
         return _ins;
     }
 
-    CPyObject runAthenaPyFunc(const String& modName, const String& funcName, CPyObject& args);
+    PyObject* runAthenaPyFunc(const String& modName, const String& funcName, PyObject* args);
 };
 
 #endif   /* ----- #ifndef _COMMON_PYRUNNER_PYRUNNER_H_  ----- */

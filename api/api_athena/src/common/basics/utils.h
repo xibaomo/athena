@@ -254,7 +254,7 @@ void dumpVectors_aux(std::ofstream& ofs, int) {
 
 template <typename V, typename... T>
 void dumpVectors_aux(std::ofstream& ofs, int i, V& v, T&... args) {
-    ofs << v[i] <<",";
+    ofs << std::setprecision(10)<<v[i] <<",";
     dumpVectors_aux(ofs,i,args...);
 }
 

@@ -56,8 +56,8 @@
 			<Add directory="src/common" />
 			<Add directory="src/modules" />
 			<Add directory="/tools/include" />
-			<Add directory="/tools/lib/python2.7/site-packages/numpy/core/include" />
-			<Add directory="/tools/include/python2.7" />
+			<Add directory="/tools/lib/python3.8/site-packages/numpy/core/include" />
+			<Add directory="/tools/include/python3.8" />
 			<Add directory="src/apiserver/server_apps" />
 		</Compiler>
 		<Linker>
@@ -75,7 +75,7 @@
 			<Add option="-lgsl" />
 			<Add option="-lgslcblas" />
 			<Add option="-Wl,-Bdynamic" />
-			<Add option="-lpython2.7" />
+			<Add option="-lpython3.8" />
 			<Add option="-lpthread" />
 		</Linker>
 		<Unit filename="main.cpp">
@@ -129,6 +129,8 @@
 		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.h" />
 		<Unit filename="src/apiserver/server_apps/multinode_trader/multinode_trader.cpp" />
 		<Unit filename="src/apiserver/server_apps/multinode_trader/multinode_trader.h" />
+		<Unit filename="src/apiserver/server_apps/pair_labeler/pair_labeler.cpp" />
+		<Unit filename="src/apiserver/server_apps/pair_labeler/pair_labeler.h" />
 		<Unit filename="src/apiserver/server_apps/pair_selector/pair_select_conf.h" />
 		<Unit filename="src/apiserver/server_apps/pair_selector/pair_selector.cpp" />
 		<Unit filename="src/apiserver/server_apps/pair_selector/pair_selector.h" />

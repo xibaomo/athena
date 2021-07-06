@@ -16,7 +16,7 @@
 
 #ifndef  pyhelper_INC
 #define  pyhelper_INC
-#include <python2.7/Python.h>
+#include <python3.8/Python.h>
 #include <numpy/arrayobject.h>
 #include <iostream>
 #include <string>
@@ -35,7 +35,7 @@ private:
     }
 public:
     ~PyEnviron() {
-        Py_Finalize();
+        //Py_Finalize();
     }
 
     static PyEnviron& getInstance() {
@@ -50,28 +50,6 @@ public:
         PyRun_SimpleString(cmd.c_str());
 
         m_addedModulePaths.insert(modulePath);
-    }
-};
-
-class CPyInstance {
-public:
-    CPyInstance(const std::string& module_path="./") {
-        Py_Initialize();
-        PyRun_SimpleString("import sys");
-        std::string cmd = "sys.path.append(\'" + module_path + "\')";
-        PyRun_SimpleString(cmd.c_str());
-    }
-    ~CPyInstance() {
-        Py_Finalize();
-    }
-
-    static CPyInstance& getInstance() {
-        static CPyInstance _ins;
-        return _ins;
-    }
-    void appendSysPath(const std::string& modulePath) {
-        std::string cmd = "sys.path.append(\'"+modulePath + "\')";
-        PyRun_SimpleString(cmd.c_str());
     }
 };
 

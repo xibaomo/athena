@@ -22,6 +22,7 @@ using namespace std;
 int main(int argc, char** argv)
 {
 
+    PyEnviron::getInstance();
     Log(LOG_INFO) << "Athena api-server starts";
 
     // argv[1] is config file
