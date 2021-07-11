@@ -27,7 +27,8 @@
 using namespace std;
 using namespace athena;
 
-MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg), m_curNumPos(0), m_isRunning(true), m_pairCount(0), m_oracle(nullptr) {
+MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg), m_curNumPos(0), m_isRunning(true), m_pairCount(0), m_maxProfit(-1.f),
+                                                        m_avgProfit(-1.f),m_oracle(nullptr) {
     m_cfg = &MptConfig::getInstance();
     m_cfg->loadConfig(cfg);
     m_initBalance = -1.;
@@ -42,6 +43,8 @@ MinbarPairTrader::~MinbarPairTrader() {
 
     if ( m_oracle )
         delete m_oracle;
+
+    Log(LOG_INFO) << "Max profit: " + to_string(m_maxProfit) + ", max avg/pos: " + to_string(m_avgProfit);
 }
 
 Message
@@ -60,6 +63,12 @@ MinbarPairTrader::processMsg(Message& msg) {
         break;
     case FXAct::PAIR_MIN_OPEN:
         outmsg = procMsg_PAIR_MIN_OPEN(msg);
+        break;
+    case FXAct::ACCOUNT_BALANCE:
+        outmsg = procMsg_noreply(msg,[&](Message& msg) {
+            real64* pm = (real64*)msg.getData();
+            Log(LOG_INFO) << "Account balance: " + to_string(pm[0]);
+        });
         break;
     default:
         break;
@@ -205,6 +214,12 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     Log(LOG_INFO) << "tick val: x: " + to_string(m_tickval_x) + ", y: " + to_string(m_tickval_y);
     Log(LOG_INFO) << "Num of positions: " + to_string(m_curNumPos);
     Log(LOG_INFO) << "Num of take-profit: " + to_string(pack.int32_vec[1]) + ", stop-loss: " + to_string(pack.int32_vec[2]);
+
+    real64 profit= pack.real64_vec1[4];
+    real64 avg_profit = profit / m_curNumPos;
+    Log(LOG_INFO) << "Current profit: " + to_string(profit) + ", avg/pos: " + to_string(avg_profit);
+    if (m_maxProfit < profit) { m_maxProfit = profit;}
+    if (m_avgProfit < avg_profit) { m_avgProfit = avg_profit; }
 
     FXAct act = m_oracle->getDecision();
 

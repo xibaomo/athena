@@ -44,6 +44,8 @@ class MinbarPairTrader : public ServerBaseApp {
     bool                m_isRunning;
     size_t              m_pairCount;
 
+    real64              m_maxProfit;
+    real64              m_avgProfit;
     DecisionMaker*      m_oracle;
 
     MinbarPairTrader(const String& cfg);
