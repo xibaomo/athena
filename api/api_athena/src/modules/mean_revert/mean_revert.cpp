@@ -81,8 +81,7 @@ MeanRevert::updateModel(int len) {
 
     real64 r2 = compR2(m_linParam, x, y, len);
 
-    Log(LOG_INFO) << "R2: " + to_string(r2);
-
+    Log(LOG_INFO) << "Past " + to_string(len) + " pts R2: " + to_string(r2);
 
     delete[] x;
     delete[] y;
@@ -199,23 +198,14 @@ MeanRevert::compDevFromMean() {
     oss << "spread dev/devUnit: buy: " << dev.buy << ", sell: " << dev.sell;
     Log(LOG_INFO) << oss.str();
 
-//    real64 cuscore = m_cuScores.back();
-//    cuscore += m_spreads.back() / m_devUnit;
-//    Log(LOG_INFO) << "CuScore(md): " + to_string(cuscore);
-//    m_cuScores.push_back(cuscore);
-
 }
 
 FXAct
 MeanRevert::getDecision() {
-    //updateModel(m_lookback);
-    if(m_trader->getPairCount()>1440) return FXAct::NOACTION;
+    updateModel(m_lookback);
 
     compNewSpreads();
-    m_curMean = compLatestSpreadMean(m_trader->getPairCount());
-
-    real64 r2 = compR2(m_linParam,&m_trader->getAssetX()[0],&m_trader->getAssetY()[0],m_trader->getAssetX().size() );
-    Log(LOG_INFO) << "R2: " + to_string(r2);
+    m_curMean = compLatestSpreadMean(m_lookback);
 
     compDevFromMean();
 
@@ -286,11 +276,16 @@ MeanRevert::compLatestSpreadMA() {
 
 real64
 MeanRevert::compLatestSpreadMean(size_t len) {
-    auto& spreads = m_spreads;
-    int start = spreads.size() - len;
-    start = start<0 ? 0 : start;
+    auto& asset_x = m_trader->getAssetX();
+    auto& asset_y = m_trader->getAssetY();
+    vector<real64> spreads(len);
 
-    real64 s = std::accumulate(spreads.begin()+start,spreads.end(),0.f);
+    int start = asset_x.size() - len;
+    for(int i=0; i< len; i++) {
+        spreads[i] = asset_y[start+i] - (m_linParam.c0 + m_linParam.c1*asset_x[start+i]);
+    }
+
+    real64 s = std::accumulate(spreads.begin(),spreads.end(),0.f);
 
     return s/len;
 }

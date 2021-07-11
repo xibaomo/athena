@@ -249,7 +249,7 @@ Messenger::listenOnce(Message& msg)
         int clntsock;
         if ( (clntsock = accept(m_hostSock, NULL,
                         NULL))<0) {
-            Log(LOG_FATAL) << "Failed to ccept connection";
+            Log(LOG_FATAL) << "Failed to accept connection";
         }
         drainSocket(clntsock);
         hangup(clntsock);
