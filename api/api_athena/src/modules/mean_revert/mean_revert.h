@@ -41,7 +41,7 @@ class MeanRevert : public DecisionMaker {
 
     PosPairDir              m_posPairDirection;
 
-    RobLRParam                 m_linParam;
+    LRParam                 m_linParam;
     std::vector<real64>     m_spreads;
     std::vector<SpreadInfo> m_tradeSpreads;
 

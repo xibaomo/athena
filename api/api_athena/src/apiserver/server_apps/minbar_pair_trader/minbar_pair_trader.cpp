@@ -40,6 +40,7 @@ MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg), m_cu
 MinbarPairTrader::~MinbarPairTrader() {
     dumpVectors("prices.csv",m_mid_x, m_mid_y);
     dumpVectors("assets.csv",m_assetX,m_assetY);
+    dumpVectors("trade_assets.csv",m_assetX_buy,m_assetX_sell,m_assetY_buy,m_assetY_sell);
 
     if ( m_oracle )
         delete m_oracle;
@@ -204,6 +205,11 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     m_mid_y.push_back((midy));
     m_assetX.push_back(midx/m_ticksize_x*m_tickval_x);
     m_assetY.push_back(midy/m_ticksize_y*m_tickval_y);
+
+    m_assetX_buy.push_back(x_ask/m_ticksize_x*m_tickval_x);
+    m_assetX_sell.push_back(x_bid/m_ticksize_x*m_tickval_x);
+    m_assetY_buy.push_back(y_ask/m_ticksize_y*m_tickval_y);
+    m_assetY_sell.push_back(y_bid/m_ticksize_y*m_tickval_y);
 
     m_curNumPos = pack.int32_vec[0];
 

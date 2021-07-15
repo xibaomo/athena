@@ -197,6 +197,8 @@
 		<Unit filename="src/modules/minbar_predictor/mbpconf.h" />
 		<Unit filename="src/modules/multinode/multinode_utils.cpp" />
 		<Unit filename="src/modules/multinode/multinode_utils.h" />
+		<Unit filename="src/modules/pair_asset_meanrevert/pair_asset_meanrevert.cpp" />
+		<Unit filename="src/modules/pair_asset_meanrevert/pair_asset_meanrevert.h" />
 		<Unit filename="src/modules/predictor/prdtypes.h" />
 		<Unit filename="src/modules/spread_trend/spread_trend.cpp" />
 		<Unit filename="src/modules/spread_trend/spread_trend.h" />

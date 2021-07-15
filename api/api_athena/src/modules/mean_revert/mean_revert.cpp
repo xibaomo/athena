@@ -74,8 +74,8 @@ MeanRevert::updateModel(int len) {
         y[k++] = mid_y[i] / tsz_y * tv_y; // convert to dollars
     }
 
-    //m_linParam = linreg(x, y, len);
-    m_linParam = robLinreg(x, y, len);
+    m_linParam = linreg(x, y, len);
+    //m_linParam = robLinreg(x, y, len);
 
     Log(LOG_INFO) << "Linear regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1);
 
