@@ -1,0 +1,36 @@
+GENERAL: 
+    # Application type: 0 - min bar tracker
+    #                   1 - min bar classifier - rf model
+    #                   2 - min bar pair trader
+    APPLICATION: 2
+
+    # Log level: 0 - LOG_FATAL
+    #            1 - LOG_ERROR
+    #            2 - LOG_WARNING
+    #            3 - LOG_INFO
+    #            4 - LOG_VERBOSE
+    #            5 - LOG_DEBUG
+    LOG_LEVEL: 3
+    PORT: 8888
+
+########################################################
+#################### App configs #######################
+########################################################
+
+# ------------- MINBAR_PAIR_TRADER -----------------
+MINBAR_PAIR_TRADER:
+    #PAIR_SYM_X: AUDJPY
+    #PAIR_SYM_Y: CADJPY
+    PAIR_SYM_X: USDDKK
+    PAIR_SYM_Y: EURUSD
+
+    STATIONARY_CHECK_LOOKBACK: 500
+    STATIONARY_PV_LIMIT: 0.08
+
+    LOW_THRESHOLD_STD: .1  # in unit of std
+    HIGH_THRESHOLD_STD: 1
+
+    SPREAD_MA_LOOKBACK: 144
+    CORR_BSL: 0.8
+    R2_BSL: 0.8
+
