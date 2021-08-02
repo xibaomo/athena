@@ -3,6 +3,7 @@
 #include "basics/utils.h"
 #include "histogram/histogram.h"
 #include <fstream>
+#include <numeric>
 using namespace std;
 using namespace athena;
 Message

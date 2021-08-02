@@ -2,6 +2,7 @@
 #include "fx_action/fx_action.h"
 #include "basics/csv_parser.h"
 #include <fstream>
+#include <numeric>
 using namespace std;
 using namespace athena;
 

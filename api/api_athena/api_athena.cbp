@@ -47,6 +47,7 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-std=c++14" />
 			<Add option="-g" />
 			<Add option="-std=c++0x" />
 			<Add option="-fexceptions" />
@@ -62,6 +63,8 @@
 		</Compiler>
 		<Linker>
 			<Add option="-O2" />
+			<Add option="-static-libstdc++" />
+			<Add option="-static-libgcc" />
 			<Add option="-L/tools/lib" />
 			<Add option="-Wl,-Bstatic" />
 			<Add option="-lboost_date_time" />

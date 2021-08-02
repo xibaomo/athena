@@ -20,6 +20,7 @@
 #include "minbar_pair_trader/minbar_pair_trader.h"
 #include "basics/utils.h"
 #include <sstream>
+#include <numeric>
 using namespace std;
 using namespace athena;
 

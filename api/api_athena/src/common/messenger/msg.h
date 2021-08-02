@@ -28,7 +28,7 @@ typedef unsigned int ActionType;
 typedef int TagType;
 typedef size_t SizeType;
 
-enum class MsgAct {
+enum MsgAct {
     GET_READY = 0,
     NORMAL_EXIT = 1,
     ERROR_EXIT,
