@@ -33,6 +33,8 @@ class DecisionMaker {
 
     virtual real64 getSlope() { return 0.f; }
 
+    virtual void getBestLots(real64& lotx, real64& loty) {lotx=0.f;loty=0.f;}
+
     virtual FXAct getDecision() = 0;
 
     virtual bool isContinue() = 0;

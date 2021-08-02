@@ -276,8 +276,8 @@ MeanRevert::compLatestSpreadMA() {
 
 real64
 MeanRevert::compLatestSpreadMean(size_t len) {
-    auto& asset_x = m_trader->getAssetX();
-    auto& asset_y = m_trader->getAssetY();
+    auto& asset_x = m_trader->getAssetX_mid();
+    auto& asset_y = m_trader->getAssetY_mid();
     vector<real64> spreads(len);
 
     int start = asset_x.size() - len;

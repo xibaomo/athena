@@ -33,8 +33,8 @@ class MinbarPairTrader : public ServerBaseApp {
     std::vector<real64> m_y_bid;
     std::vector<real64> m_mid_x;
     std::vector<real64> m_mid_y;
-    std::vector<real64> m_assetX;
-    std::vector<real64> m_assetY;
+    std::vector<real64> m_assetX_mid;
+    std::vector<real64> m_assetY_mid;
     std::vector<real64> m_assetX_buy;
     std::vector<real64> m_assetX_sell;
     std::vector<real64> m_assetY_buy;
@@ -71,8 +71,13 @@ class MinbarPairTrader : public ServerBaseApp {
     std::vector<real64>& getAskY()  { return m_y_ask; }
     std::vector<real64>& getBidX()  { return m_x_bid; }
     std::vector<real64>& getBidY()  { return m_y_bid; }
-    std::vector<real64>& getAssetX() { return m_assetX; }
-    std::vector<real64>& getAssetY() { return m_assetY; }
+    std::vector<real64>& getAssetX_mid() { return m_assetX_mid; }
+    std::vector<real64>& getAssetY_mid() { return m_assetY_mid; }
+    std::vector<real64>& getAssetX_sell() { return m_assetX_sell; }
+    std::vector<real64>& getAssetY_sell() { return m_assetY_sell; }
+    std::vector<real64>& getAssetX_buy() { return m_assetX_buy; }
+    std::vector<real64>& getAssetY_buy() { return m_assetY_buy; }
+
 
     real64 getTickSizeX()          { return m_ticksize_x; }
     real64 getTickSizeY()          { return m_ticksize_y; }
@@ -88,6 +93,7 @@ class MinbarPairTrader : public ServerBaseApp {
     Message procMsg_ASK_PAIR(Message& msg);
     Message procMsg_PAIR_HIST_X(Message& msg);
     Message procMsg_PAIR_HIST_Y(Message& msg);
+    Message procMsg_GOT_LOTS(Message& msg);
     virtual Message procMsg_PAIR_MIN_OPEN(Message& msg);
 };
 

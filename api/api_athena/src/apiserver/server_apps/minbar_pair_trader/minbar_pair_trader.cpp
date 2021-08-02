@@ -23,6 +23,7 @@
 #include "dm_rule_75.h"
 #include "mean_revert/mean_revert.h"
 #include "spread_trend/spread_trend.h"
+#include "pair_asset_meanrevert/pair_asset_meanrevert.h"
 #include <sstream>
 using namespace std;
 using namespace athena;
@@ -33,13 +34,13 @@ MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg), m_cu
     m_cfg->loadConfig(cfg);
     m_initBalance = -1.;
 
-    m_oracle = new MeanRevert(this);
-    Log(LOG_INFO) << "Minbar pair trader created with MeanRevert";
+    m_oracle = new PairAssetMeanRevert(this);
+    Log(LOG_INFO) << "Minbar pair trader created.";
 }
 
 MinbarPairTrader::~MinbarPairTrader() {
     dumpVectors("prices.csv",m_mid_x, m_mid_y);
-    dumpVectors("assets.csv",m_assetX,m_assetY);
+    dumpVectors("assets.csv",m_assetX_mid,m_assetY_mid);
     dumpVectors("trade_assets.csv",m_assetX_buy,m_assetX_sell,m_assetY_buy,m_assetY_sell);
 
     if ( m_oracle )
@@ -71,6 +72,10 @@ MinbarPairTrader::processMsg(Message& msg) {
             Log(LOG_INFO) << "Account balance: " + to_string(pm[0]);
         });
         break;
+    case FXAct::GET_LOTS:
+        outmsg = procMsg_GOT_LOTS(msg);
+        break;
+
     default:
         break;
     }
@@ -129,7 +134,7 @@ MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
     size_t pm = 0;
     for ( int i = 0; i < nbars; i++ ) {
         m_mid_x.push_back(v[pm]);
-        m_assetX.push_back(v[pm]/m_ticksize_x*m_tickval_x);
+        m_assetX_mid.push_back(v[pm]/m_ticksize_x*m_tickval_x);
         pm+=bar_size;
     }
 
@@ -155,7 +160,7 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     size_t pm = 0;
     for ( int i = 0; i < nbars; i++ ) {
         m_mid_y.push_back(v[pm]);
-        m_assetY.push_back(v[pm]/m_ticksize_y*m_tickval_y);
+        m_assetY_mid.push_back(v[pm]/m_ticksize_y*m_tickval_y);
         pm+=bar_size;
     }
 
@@ -203,8 +208,8 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     midy = (y_ask+y_bid)*.5f;
     m_mid_x.push_back((midx));
     m_mid_y.push_back((midy));
-    m_assetX.push_back(midx/m_ticksize_x*m_tickval_x);
-    m_assetY.push_back(midy/m_ticksize_y*m_tickval_y);
+    m_assetX_mid.push_back(midx/m_ticksize_x*m_tickval_x);
+    m_assetY_mid.push_back(midy/m_ticksize_y*m_tickval_y);
 
     m_assetX_buy.push_back(x_ask/m_ticksize_x*m_tickval_x);
     m_assetX_sell.push_back(x_bid/m_ticksize_x*m_tickval_x);
@@ -236,6 +241,20 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     m_isRunning = m_oracle->isContinue();
     if ( !m_isRunning )
         outmsg.setAction(FXAct::NOACTION);
+
+    return outmsg;
+}
+
+Message
+MinbarPairTrader::procMsg_GOT_LOTS(Message& msg) {
+    real64 lx,ly;
+    Message outmsg(sizeof(real64)*2);
+    real64* pm = (real64*)outmsg.getData();
+
+    m_oracle->getBestLots(lx,ly);
+    pm[0] = lx;
+    pm[1] = ly;
+    outmsg.setAction(FXAct::GET_LOTS);
 
     return outmsg;
 }
