@@ -30,7 +30,7 @@ ServerPredictor::prepare()
 void
 ServerPredictor::loadAllFilters()
 {
-    m_fxSymbol = getYamlValue("PREDICTION/SYMBOL");
+    //m_fxSymbol = getYamlValue("PREDICTION/SYMBOL");
 
     loadFilterSet(m_fxSymbol,"buy");
     loadFilterSet(m_fxSymbol,"sell");
@@ -40,15 +40,15 @@ ServerPredictor::loadAllFilters()
 void
 ServerPredictor::loadFilterSet(const String& symbol, const String& pos_type)
 {
-    int numFilters = stoi(getYamlValue("PREDICTION/NUM_FILTERS"));
-    for (int i = 0; i< numFilters; i++) {
-        String mf = symbol + "_" + pos_type + "_" + to_string(i+1) + ".flt";
-        loadEngine((EngineType)0, (EngineCoreType)2,mf);
-        if(pos_type == "buy")
-            m_buyEngines.push_back(m_engine);
-        if (pos_type == "sell")
-            m_sellEngines.push_back(m_engine);
-    }
+//    int numFilters = stoi(getYamlValue("PREDICTION/NUM_FILTERS"));
+//    for (int i = 0; i< numFilters; i++) {
+//        String mf = symbol + "_" + pos_type + "_" + to_string(i+1) + ".flt";
+//        loadEngine((EngineType)0, (EngineCoreType)2,mf);
+//        if(pos_type == "buy")
+//            m_buyEngines.push_back(m_engine);
+//        if (pos_type == "sell")
+//            m_sellEngines.push_back(m_engine);
+//    }
 }
 
 void

@@ -24,19 +24,19 @@ ForexTickClassifier::prepare()
 {
     loadPythonModules();
 
-    String mf = getYamlValue("PREDICTION/BUY_MODEL");
-    loadFilter(m_buyPredictor, mf);
+    //String mf = getYamlValue("PREDICTION/BUY_MODEL");
+    //loadFilter(m_buyPredictor, mf);
 
-    mf = getYamlValue("PREDICTION/SELL_MODEL");
-    loadFilter(m_sellPredictor, mf);
+//    mf = getYamlValue("PREDICTION/SELL_MODEL");
+//    loadFilter(m_sellPredictor, mf);
 
-    int fp = stoi(getYamlValue("PREDICTION/BUY_FAST_PERIOD"));
-    int sp = stoi(getYamlValue("PREDICTION/BUY_SLOW_PERIOD"));
-    configPredictor(m_buyPredictor, fp, sp);
-
-    fp = stoi(getYamlValue("PREDICTION/SELL_FAST_PERIOD"));
-    sp = stoi(getYamlValue("PREDICTION/SELL_SLOW_PERIOD"));
-    configPredictor(m_sellPredictor, fp, sp);
+//    int fp = stoi(getYamlValue("PREDICTION/BUY_FAST_PERIOD"));
+//    int sp = stoi(getYamlValue("PREDICTION/BUY_SLOW_PERIOD"));
+//    configPredictor(m_buyPredictor, fp, sp);
+//
+//    fp = stoi(getYamlValue("PREDICTION/SELL_FAST_PERIOD"));
+//    sp = stoi(getYamlValue("PREDICTION/SELL_SLOW_PERIOD"));
+//    configPredictor(m_sellPredictor, fp, sp);
 }
 
 void
@@ -79,11 +79,11 @@ ForexTickClassifier::configPredictor(CPyObject& predictor, int fastPeriod, int s
     PyObject_CallMethod(predictor, "setPeriods","(OO)",arg1.getObject(), arg2.getObject());
 
     // set feature names
-    String featureNames = getYamlValue("PREDICTION/FEATURE_LIST");
-    CPyObject arg = Py_BuildValue("s",featureNames.c_str());
-    PyObject_CallMethod(predictor, "setFeatureNames","(O)",arg.getObject());
-
-    PyObject_CallMethod(predictor, "showFeatureCalculator",NULL);
+//    String featureNames = getYamlValue("PREDICTION/FEATURE_LIST");
+//    CPyObject arg = Py_BuildValue("s",featureNames.c_str());
+//    PyObject_CallMethod(predictor, "setFeatureNames","(O)",arg.getObject());
+//
+//    PyObject_CallMethod(predictor, "showFeatureCalculator",NULL);
 }
 
 Message

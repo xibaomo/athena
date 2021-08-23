@@ -62,7 +62,6 @@
 			<Add directory="src/apiserver/server_apps" />
 		</Compiler>
 		<Linker>
-			<Add option="-O2" />
 			<Add option="-static-libstdc++" />
 			<Add option="-static-libgcc" />
 			<Add option="-L/tools/lib" />

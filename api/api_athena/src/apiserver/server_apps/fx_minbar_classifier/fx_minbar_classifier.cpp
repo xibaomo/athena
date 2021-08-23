@@ -24,17 +24,17 @@ ForexMinBarClassifier::prepare()
 {
     loadPythonModule();
 
-    String mf = getYamlValue("PREDICTION/BUY_MODEL");
-    loadFilter(m_buyPredictor,mf);
+    //String mf = getYamlValue("PREDICTION/BUY_MODEL");
+    //loadFilter(m_buyPredictor,mf);
 
-    int lookback = stoi(getYamlValue("PREDICTION/LOOKBACK"));
-    int malookback = stoi(getYamlValue("PREDICTION/MA_LOOKBACK"));
-    configPredictor(m_buyPredictor,lookback,malookback);
+//    int lookback = stoi(getYamlValue("PREDICTION/LOOKBACK"));
+//    int malookback = stoi(getYamlValue("PREDICTION/MA_LOOKBACK"));
+//    configPredictor(m_buyPredictor,lookback,malookback);
 
-    String barFile = getYamlValue("PREDICTION/HISTORY_BAR_FILE");
-    m_histBarFile = barFile;
-    CPyObject pyBarFile = Py_BuildValue("s",barFile.c_str());
-    m_pyLatestMinbar = PyObject_CallMethod(m_buyPredictor,"loadHistoryBarFile","(O)",pyBarFile.getObject());
+//    String barFile = getYamlValue("PREDICTION/HISTORY_BAR_FILE");
+//    m_histBarFile = barFile;
+//    CPyObject pyBarFile = Py_BuildValue("s",barFile.c_str());
+//    m_pyLatestMinbar = PyObject_CallMethod(m_buyPredictor,"loadHistoryBarFile","(O)",pyBarFile.getObject());
 
     Log(LOG_INFO) << "First loading history file, latest bar time: " + getStringFromPyobject(m_pyLatestMinbar);
 
@@ -50,9 +50,9 @@ ForexMinBarClassifier::configPredictor(CPyObject& predictor,int lookback, int ma
     PyObject_CallMethod(predictor,"setMALookback","(O)",arg1.getObject());
 
     // set feature names
-    String featureNames = getYamlValue("PREDICTION/FEATURE_LIST");
-    CPyObject ag = Py_BuildValue("s",featureNames.c_str());
-    PyObject_CallMethod(predictor,"setFeatureNames","(O)",ag.getObject());
+//    String featureNames = getYamlValue("PREDICTION/FEATURE_LIST");
+//    CPyObject ag = Py_BuildValue("s",featureNames.c_str());
+//    PyObject_CallMethod(predictor,"setFeatureNames","(O)",ag.getObject());
 
 }
 

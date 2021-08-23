@@ -33,7 +33,7 @@ protected:
     String      m_fxSymbol;
 
     ForexTickClassifier(const String& configFile) : ServerBaseApp(configFile) {
-        m_fxSymbol = getYamlValue("PREDICTION/SYMBOL");
+        //m_fxSymbol = getYamlValue("PREDICTION/SYMBOL");
         Log(LOG_INFO) << "Forex classifier created. Symbol: " + m_fxSymbol;
     }
 public:

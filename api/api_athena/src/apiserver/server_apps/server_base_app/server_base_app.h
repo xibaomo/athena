@@ -36,9 +36,9 @@ enum class EngineCoreType {
 class ServerBaseApp : public App {
 protected:
     String m_configFile;
-    String m_yamlParser;
+    //String m_yamlParser;
     ServerBaseApp(const String& configFile) : m_configFile(configFile) {
-        m_yamlParser = String(getenv("ATHENA_INSTALL")) + "/api/release/scripts/yaml_parser.py ";
+        //m_yamlParser = String(getenv("ATHENA_INSTALL")) + "/api/release/scripts/yaml_parser.py ";
     }
 
 public:
@@ -52,11 +52,11 @@ public:
 
     virtual Message processMsg(Message& msg) { BASE_METHOD_WARN; return Message();}
 
-    String getYamlValue(const String& key) {
-        String cmd = m_yamlParser + key + " " + m_configFile;
-        String val = athena::execSysCall_block(cmd);
-        return val;
-    }
+//    String getYamlValue(const String& key) {
+//        String cmd = m_yamlParser + key + " " + m_configFile;
+//        String val = athena::execSysCall_block(cmd);
+//        return val;
+//    }
 
     template <typename Fn>
     Message procMsg_noreply(Message& msg, const Fn& fn) {

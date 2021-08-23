@@ -214,6 +214,10 @@ PairAssetMeanRevert::appendAssets() {
     default:
         break;
     }
+
+    ostringstream oss; oss <<fixed; oss.precision(2);
+    oss << "Total assets. buy: " << m_totalAssets_buy.back() << ", sell: " << m_totalAssets_sell.back() << ", mid: " << m_totalAssets_mid.back();
+    Log(LOG_INFO) << oss.str();
 }
 
 void

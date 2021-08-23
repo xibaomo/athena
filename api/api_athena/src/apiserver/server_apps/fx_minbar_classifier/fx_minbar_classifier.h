@@ -34,7 +34,7 @@ protected:
     String      m_histBarFile;
 
     ForexMinBarClassifier(const String& configFile) : ServerBaseApp(configFile) {
-        m_fxSymbol =  getYamlValue("PREDICTION/SYMBOL");
+        //m_fxSymbol =  getYamlValue("PREDICTION/SYMBOL");
         Log(LOG_INFO) << "Forex minbar classifier created. Symbol: " + m_fxSymbol;
     }
 public:
