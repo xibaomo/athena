@@ -370,7 +370,7 @@ TFModel::loadModel(const std::string& pbfile)
 }
 
 void
-TFModel::predict(const float* input, const std::vector<int64_t>& dims)
+TFModel::predict_singleInput(const float* input, const std::vector<int64_t>& dims)
 {
     auto tfstat = TF_NewStatus();
 
@@ -399,6 +399,23 @@ TFModel::predict(const float* input, const std::vector<int64_t>& dims)
     CHECK_TF_STATUS(TF_SessionRun);
 
     TF_DeleteStatus(tfstat);
+}
+std::vector<std::vector<float>>
+TFModel::predict(const float* input, int nInputs, const std::vector<int64_t>& dims) {
+    auto shape = getOutputShape();
+    int len_output = std::accumulate(shape.begin(), shape.end(), 1, multiplies<int>());
+    int nElems = std::accumulate(dims.begin(), dims.end(), 1, multiplies<int64_t>());
+
+    vector<vector<float>> vv;
+    for(int i=0; i < nInputs; i++) {
+        const float* data = input + i*nElems;
+        predict_singleInput(data,dims);
+        float* pred = getPredictedResult();
+        vector<float> v(pred,pred+len_output);
+        vv.push_back(std::move(v));
+    }
+
+    return vv;
 }
 
 

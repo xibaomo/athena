@@ -84,12 +84,18 @@ public:
     void setInputNodeName(const std::string& inputName);
     void setOutputNodeName(const std::string& outputName);
 
-    void predict(const float* input, const std::vector<int64_t>& dims);
+    void predict_singleInput(const float* input, const std::vector<int64_t>& dims);
 
+    // dims[0] is number of inputs, dims[1:] is dimension of single input
+    std::vector<std::vector<float>> predict(const float* input, int nInputs,
+                                            const std::vector<int64_t>& dims);
     TF_Tensor* getOutputTensor() { return m_output_tensor; }
 
-    std::vector<int64_t> getOutputShape() {
-        return getTensorShape(m_graph,m_output_op);
+    std::vector<int> getOutputShape() {
+        std::vector<int64_t> vv = getTensorShape(m_graph,m_output_op);
+        std::vector<int> v;
+        v.assign(vv.begin()+1,vv.end());
+        return v;
     }
 
     float* getPredictedResult() {
