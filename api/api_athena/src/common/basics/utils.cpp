@@ -302,7 +302,13 @@ testADF(real64* v, int len)
 //
     PyObject* res = PyRunner::getInstance().runAthenaPyFunc("coint","test_adf",args);
 //
-    return PyFloat_AsDouble(res);
+    double r =  PyFloat_AsDouble(res);
+
+    Py_DECREF(lx);
+    Py_DECREF(args);
+    Py_DECREF(res);
+
+    return r;
 
 }
 

@@ -29,5 +29,8 @@ PyRunner::runAthenaPyFunc(const String& modName, const String& funcName, PyObjec
 
     PyObject* res = PyObject_CallObject(func,args);
 
+    Py_DECREF(mod);
+    Py_DECREF(func);
+
     return res;
 }
