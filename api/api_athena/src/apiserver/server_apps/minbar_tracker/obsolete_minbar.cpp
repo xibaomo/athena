@@ -1,4 +1,4 @@
-#include "minbar_tracker.h"
+#include "obsolete_minbar_tracker/obsolete_minbar.h"
 #include "fx_action/fx_action.h"
 #include "basics/csv_parser.h"
 #include <fstream>
@@ -6,13 +6,13 @@
 using namespace std;
 using namespace athena;
 
-MinBarTracker::~MinBarTracker()
+Obsolete_minbar_tracker::~Obsolete_minbar_tracker()
 {
     dumpActions();
 }
 
 void
-MinBarTracker::dumpActions()
+Obsolete_minbar_tracker::dumpActions()
 {
     ofstream ofs("actions.csv");
     ofs << "time,action"<<endl;
@@ -23,18 +23,18 @@ MinBarTracker::dumpActions()
 }
 
 void
-MinBarTracker::prepare()
+Obsolete_minbar_tracker::prepare()
 {
     loadMinBarFromFile(m_mbtCfg->getHistoryMinBarFile());
 }
 
 Message
-MinBarTracker::processMsg(Message& msg)
+Obsolete_minbar_tracker::processMsg(Message& msg)
 {
     Message msgnew;
     FXAct action = (FXAct)msg.getAction();
     switch(action) {
-    case FXAct::MINBAR:
+    case FXAct::NEW_MINBAR:
         msgnew = procMsg_MINBAR(msg);
         break;
     case FXAct::HISTORY_MINBAR:
@@ -74,7 +74,7 @@ MinBarTracker::processMsg(Message& msg)
 }
 
 Message
-MinBarTracker::procMsg_MINBAR(Message& msg)
+Obsolete_minbar_tracker::procMsg_MINBAR(Message& msg)
 {
     String timestr = msg.getComment();
     Log(LOG_INFO) << "New min bar arrives: " + timestr + " + 00:01";
@@ -96,7 +96,7 @@ MinBarTracker::procMsg_MINBAR(Message& msg)
 }
 
 Message
-MinBarTracker::procMsg_HISTORY_MINBAR(Message& msg)
+Obsolete_minbar_tracker::procMsg_HISTORY_MINBAR(Message& msg)
 {
     Log(LOG_INFO) << "Loading min bars from MT5 ...";
 
@@ -147,7 +147,7 @@ MinBarTracker::procMsg_HISTORY_MINBAR(Message& msg)
 
 
 Message
-MinBarTracker::procMsg_INIT_TIME(Message& msg)
+Obsolete_minbar_tracker::procMsg_INIT_TIME(Message& msg)
 {
     String initTime = msg.getComment();
     Log(LOG_INFO) << "MT5 latest bar: " + initTime;
@@ -173,7 +173,7 @@ MinBarTracker::procMsg_INIT_TIME(Message& msg)
 }
 
 void
-MinBarTracker::loadMinBarFromFile(const String& barFile)
+Obsolete_minbar_tracker::loadMinBarFromFile(const String& barFile)
 {
     io::CSVReader<NUM_MINBAR_FIELDS> in(barFile);
     in.read_header(io::ignore_extra_column,"TIME","OPEN","HIGH","LOW","CLOSE","TICKVOL");

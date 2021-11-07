@@ -240,41 +240,6 @@
 			<Option target="gsl_hist" />
 			<Option target="test_coint" />
 		</Unit>
-		<Unit filename="src/apiserver/server_apps/minbar_tracker/create_mbp.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-			<Option target="gsl_hist" />
-			<Option target="test_coint" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/minbar_tracker/create_mbp.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-			<Option target="gsl_hist" />
-			<Option target="test_coint" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/minbar_tracker/mbtconf.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-			<Option target="gsl_hist" />
-			<Option target="test_coint" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.cpp">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-			<Option target="gsl_hist" />
-			<Option target="test_coint" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.h">
-			<Option target="Release" />
-			<Option target="api_server" />
-			<Option target="test_server" />
-			<Option target="gsl_hist" />
-			<Option target="test_coint" />
-		</Unit>
 		<Unit filename="src/apiserver/server_apps/multinode_trader/multinode_trader.cpp">
 			<Option target="Release" />
 			<Option target="api_server" />
@@ -288,6 +253,21 @@
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
 			<Option target="test_coint" />
+		</Unit>
+		<Unit filename="src/apiserver/server_apps/obsolete_minbar_tracker/create_mbp.cpp">
+			<Option target="api_server" />
+		</Unit>
+		<Unit filename="src/apiserver/server_apps/obsolete_minbar_tracker/create_mbp.h">
+			<Option target="api_server" />
+		</Unit>
+		<Unit filename="src/apiserver/server_apps/obsolete_minbar_tracker/mbtconf.h">
+			<Option target="api_server" />
+		</Unit>
+		<Unit filename="src/apiserver/server_apps/obsolete_minbar_tracker/obsolete_minbar.cpp">
+			<Option target="api_server" />
+		</Unit>
+		<Unit filename="src/apiserver/server_apps/obsolete_minbar_tracker/obsolete_minbar.h">
+			<Option target="api_server" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/pair_labeler/pair_labeler.cpp">
 			<Option target="Release" />

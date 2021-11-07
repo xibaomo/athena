@@ -1,8 +1,34 @@
-#pragma once
+/*
+ * =====================================================================================
+ *
+ *       Filename:  minbar_tracker.h
+ *
+ *    Description:
+ *
+ *        Version:  1.0
+ *        Created:  04/19/2019 12:53:17 AM
+ *       Revision:  none
+ *       Compiler:  gcc
+ *
+ *         Author:  YOUR NAME (),
+ *   Organization:
+ *
+ * =====================================================================================
+ */
+
+#ifndef  _SERVER_MINBAR_TRACKER_H_
+#define  _SERVER_MINBAR_TRACKER_H_
+
 #include "server_apps/server_base_app/server_base_app.h"
 #include "minbar_predictor/mb_base/mb_base_pred.h"
 #include "create_mbp.h"
 #include "mbtconf.h"
+
+struct ActionRecord {
+    String timestr;
+    int action;
+    ActionRecord(String& ts, int ac) : timestr(ts),action(ac){;}
+};
 
 class Obsolete_minbar_tracker : public ServerBaseApp {
 protected:
@@ -42,5 +68,6 @@ public:
     Message procMsg_HISTORY_MINBAR(Message& msg);
     Message procMsg_INIT_TIME(Message& msg);
     Message procMsg_MINBAR(Message& msg);
+
 };
 #endif   /* ----- #ifndef _SERVER_MINBAR_TRACKER_H_  ----- */

@@ -44,8 +44,8 @@ MINBAR_PAIR_TRADER:
     CORR_BSL: 0.8
     R2_BSL: 0.8
 
-# ------------- MINBAR_TRACKER -------------------
-MINBAR_TRACKER:
+# ------------- OBSOLETE_MINBAR -------------------
+OBSOLETE_MINBAR:
     HISTORY_BAR_FILE: EURUSD_labeled.csv
     PREDICTOR_TYPE: 0 #  0 - MA predictor
 
@@ -63,4 +63,9 @@ MA_PREDICTOR:
         SHORT_LOOKBACK: 10
         TURN_POINT_EXPIRY: 10
         STARTOFF_GAP: 5.e-5
+
+# ------------- MINBAR TRACKER -------------------
+MINBAR_TRACKER:
+    FEATURE_CONFIG: feature.yaml
+    PREDICTOR: pred.py
 
