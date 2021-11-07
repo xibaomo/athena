@@ -66,6 +66,6 @@ MA_PREDICTOR:
 
 # ------------- MINBAR TRACKER -------------------
 MINBAR_TRACKER:
-    FEATURE_CONFIG: feature.yaml
-    PREDICTOR: pred.py
+    FEATURE_CONFIG_FILE: feature.yaml
+    PREDICTOR_FILE: pred.py
 

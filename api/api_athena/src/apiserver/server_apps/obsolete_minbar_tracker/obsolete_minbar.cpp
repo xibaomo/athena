@@ -5,6 +5,7 @@
 #include <numeric>
 using namespace std;
 using namespace athena;
+#if 0
 
 Obsolete_minbar_tracker::~Obsolete_minbar_tracker()
 {
@@ -189,3 +190,5 @@ Obsolete_minbar_tracker::loadMinBarFromFile(const String& barFile)
 
     Log(LOG_INFO) << "Latest min bar in history: " + m_allMinBars.back().time;
 }
+
+#endif // 0

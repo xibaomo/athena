@@ -173,6 +173,15 @@ getFileStem(const String& fp)
     return s.string();
 }
 
+String
+getFileExt(const String& fp)
+{
+    boost::filesystem::path p(fp.c_str());
+    boost::filesystem::path s = p.extension();
+
+    return s.string();
+}
+
 void getPythonFunction(const String& modFile, const String& funcName,CPyObject& func)
 {
     String mod_folder = getFileFolder(modFile);

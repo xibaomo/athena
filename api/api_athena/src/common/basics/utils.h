@@ -184,6 +184,8 @@ String getFileFolder(const String& fp);
 
 String getFileStem(const String& fp);
 
+String getFileExt(const String& fp);
+
 void getPythonFunction(const String& modFile, const String& funcName,CPyObject& func);
 
 template <typename T>

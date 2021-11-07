@@ -42,8 +42,7 @@ create_server_app(AppType type, const String& configFile)
             app = &PairSelector::getInstance(configFile);
             break;
         case AppType::APP_MINBAR_TRACKER:
-            app = &Obsolete_minbar_tracker::getInstance(configFile);
-            Log(LOG_INFO) << "Min bar tracker created";
+            app = &MinbarTracker::getInstance(configFile);
             break;
         case AppType::APP_MINBAR_PAIRTRADER:
             app = &MinbarPairTrader::getInstance(configFile);

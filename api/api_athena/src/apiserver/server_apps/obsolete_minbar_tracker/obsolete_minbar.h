@@ -16,13 +16,12 @@
  * =====================================================================================
  */
 
-#ifndef  _SERVER_MINBAR_TRACKER_H_
-#define  _SERVER_MINBAR_TRACKER_H_
+#ifndef  _SERVER_OBSOLETE_MINBAR_TRACKER_H_
+#define  _SERVER_OBSOLETE_MINBAR_TRACKER_H_
 
 #include "server_apps/server_base_app/server_base_app.h"
 #include "minbar_predictor/mb_base/mb_base_pred.h"
-#include "create_mbp.h"
-#include "mbtconf.h"
+#if 0
 
 struct ActionRecord {
     String timestr;
@@ -70,4 +69,7 @@ public:
     Message procMsg_MINBAR(Message& msg);
 
 };
+
+#endif // 0
+
 #endif   /* ----- #ifndef _SERVER_MINBAR_TRACKER_H_  ----- */

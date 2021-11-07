@@ -24,9 +24,9 @@
 
 const String MBT_ROOT = "MINBAR_TRACKER/";
 class MbtConfig : public BaseConfig {
-protected:
-    MbtConfig() {;}
+
 public:
+    MbtConfig() {;}
     virtual ~MbtConfig() {;}
 
     static MbtConfig& getInstance() {

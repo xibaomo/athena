@@ -4,7 +4,8 @@
 #include "create_mbp.h"
 #include "mbtconf.h"
 
-class Obsolete_minbar_tracker : public ServerBaseApp {
+class MinbarTracker : public ServerBaseApp
+{
 protected:
 
     MinBarBasePredictor* m_predictor;
@@ -12,35 +13,30 @@ protected:
 
     std::vector<MinBar> m_allMinBars;
 
-    std::vector<ActionRecord> m_actions;
-
-    std::vector<real32> m_revenue;
-    std::vector<real32> m_loss;
-
-    real32 m_lowestProfit = 1.e6;
-
-    Obsolete_minbar_tracker(const String& cfgFile) : m_predictor(nullptr), m_mbtCfg(nullptr), ServerBaseApp(cfgFile){
-        m_mbtCfg = &MbtConfig::getInstance();
-        m_mbtCfg->loadConfig(cfgFile);
-        m_predictor = createMBPredictor(m_mbtCfg->getMinBarPredictorType(), cfgFile);
-        m_predictor->loadAllMinBars(&m_allMinBars);
+    MinbarTracker(const String& cf) : m_predictor(nullptr), m_mbtCfg(nullptr), ServerBaseApp(cf)
+    {
+        m_mbtCfg = new MbtConfig();
+        m_mbtCfg->loadConfig(cf);
+        m_predictor = createMBPredictor(m_mbtCfg->getPredictorFile());
     }
 public:
-    virtual ~Obsolete_minbar_tracker();
-    static Obsolete_minbar_tracker& getInstance(const String& cf) {
-        static Obsolete_minbar_tracker _ins(cf);
+    virtual ~MinbarTracker()
+    {
+        if (m_mbtCfg)
+            delete m_mbtCfg;
+        if (m_predictor)
+            delete m_predictor;
+    }
+    static MinbarTracker& getInstance(const String& cf)
+    {
+        static MinbarTracker _ins(cf);
         return _ins;
     }
 
-    void dumpActions();
-    void prepare();
-
-    void loadMinBarFromFile(const String& barFile);
-
     Message processMsg(Message& msg);
 
-    Message procMsg_HISTORY_MINBAR(Message& msg);
-    Message procMsg_INIT_TIME(Message& msg);
-    Message procMsg_MINBAR(Message& msg);
+//    Message procMsg_HISTORY_MINBAR(Message& msg);
+//    Message procMsg_INIT_TIME(Message& msg);
+//    Message procMsg_MINBAR(Message& msg);
 };
-#endif   /* ----- #ifndef _SERVER_MINBAR_TRACKER_H_  ----- */
+

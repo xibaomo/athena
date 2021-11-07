@@ -25,21 +25,17 @@
 const String MBT_ROOT = "MINBAR_TRACKER/";
 class MbtConfig : public BaseConfig {
 protected:
-    MbtConfig() {;}
+
 public:
+    MbtConfig() {;}
     virtual ~MbtConfig() {;}
 
-    static MbtConfig& getInstance() {
-        static MbtConfig _ins;
-        return _ins;
+    String getPredictorFile() {
+        return getKeyValue<String>(MBT_ROOT + "PREDICTOR_FILE");
     }
 
-    MBP_Type getMinBarPredictorType() {
-        return (MBP_Type)getKeyValue<int>(MBT_ROOT + "PREDICTOR_TYPE");
-    }
-
-    String getHistoryMinBarFile() {
-        return getKeyValue<String>(MBT_ROOT + "HISTORY_BAR_FILE");
+    String getFeatureConfigFile() {
+        return getKeyValue<String>(MBT_ROOT + "FEATURE_CONFIG_FILE");
     }
 };
 #endif   /* ----- #fndef _MIN_BAR_CONFIG_H_  ----- */

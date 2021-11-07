@@ -6,18 +6,6 @@
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="Release">
-				<Option output="release/bin/api_athena" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Release/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-O2" />
-				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
-			</Target>
 			<Target title="api_server">
 				<Option output="release/bin/api_server" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
@@ -48,7 +36,7 @@
 			</Target>
 		</Build>
 		<VirtualTargets>
-			<Add alias="all" targets="Release;api_server;test_server;test_coint;tfpred;" />
+			<Add alias="all" targets="api_server;test_server;test_coint;tfpred;" />
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
@@ -89,25 +77,21 @@
 			<Add option="-ltensorflow" />
 		</Linker>
 		<Unit filename="main.cpp">
-			<Option target="Release" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="src/apiclient/client_apps/client_base_app/client_base_app.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 		</Unit>
 		<Unit filename="src/apiclient/client_apps/client_base_app/client_base_app.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 		</Unit>
 		<Unit filename="src/apiclient/client_apps/client_predictor/client_predictor.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 		</Unit>
 		<Unit filename="src/apiclient/client_apps/client_predictor/client_predictor.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 		</Unit>
@@ -115,153 +99,124 @@
 			<Option target="api_server" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/create_svr_app.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/create_svr_app.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/fx_minbar_classifier/fx_minbar_classifier.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/fx_minbar_classifier/fx_minbar_classifier.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/fx_tick_classifier/fx_tick_classifier.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/minbar_pair/mb_pairtrader.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/minbar_pair/mb_pairtrader.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/minbar_pair/mptconf.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/decision_maker.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/decision_maker.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/dm_rule_75.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/dm_rule_75.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/mean_reverse.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/mean_reverse.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/minbar_pair_trader.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/minbar_pair_trader.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/minbar_pair_trader/mptconf.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
+		</Unit>
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/create_mbp.cpp">
+			<Option target="api_server" />
+			<Option target="test_server" />
+		</Unit>
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/create_mbp.h">
+			<Option target="api_server" />
+			<Option target="test_server" />
+		</Unit>
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/mbtconf.h">
+			<Option target="api_server" />
+			<Option target="test_server" />
+		</Unit>
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.cpp">
+			<Option target="api_server" />
+			<Option target="test_server" />
+		</Unit>
+		<Unit filename="src/apiserver/server_apps/minbar_tracker/minbar_tracker.h">
+			<Option target="api_server" />
+			<Option target="test_server" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/multinode_trader/multinode_trader.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/multinode_trader/multinode_trader.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/obsolete_minbar_tracker/create_mbp.cpp">
-			<Option target="api_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/obsolete_minbar_tracker/create_mbp.h">
-			<Option target="api_server" />
-		</Unit>
-		<Unit filename="src/apiserver/server_apps/obsolete_minbar_tracker/mbtconf.h">
-			<Option target="api_server" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/obsolete_minbar_tracker/obsolete_minbar.cpp">
 			<Option target="api_server" />
@@ -270,423 +225,305 @@
 			<Option target="api_server" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/pair_labeler/pair_labeler.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/pair_labeler/pair_labeler.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/pair_selector/pair_select_conf.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/pair_selector/pair_selector.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/pair_selector/pair_selector.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/robust_pair_trader/robust_pair_trader.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/robust_pair_trader/robust_pair_trader.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/robust_pair_trader/rptconf.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/server_base_app/server_base_app.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/server_predictor/server_predictor.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/server_apps/server_predictor/server_predictor.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/apiserver/test_server/main.cpp">
 			<Option target="test_server" />
 		</Unit>
 		<Unit filename="src/c_api/athena_c_api.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 		</Unit>
 		<Unit filename="src/c_api/athena_c_api.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 		</Unit>
 		<Unit filename="src/common/app_base/app_base.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/basics/baseconf.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/basics/csv_parser.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/basics/log.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/basics/log.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/basics/mtqueue.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/basics/types.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/basics/utils.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/basics/utils.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/conf/generalconf.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/histogram/histogram.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/messenger/messenger.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/messenger/messenger.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/messenger/msg.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/messenger/sockutils.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/messenger/sockutils.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/pyhelper.hpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/pyrunner/pyrunner.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/common/pyrunner/pyrunner.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/fx_action/fx_action.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/linreg/linreg.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/linreg/linreg.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/linreg/roblinreg.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/linreg/roblinreg.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/mean_revert/mean_revert.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/mean_revert/mean_revert.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/ma_pred/createMAPredictor.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/ma_pred/createMAPredictor.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/ma_pred/crosser/ma_crosser.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/ma_pred/crosser/ma_crosser.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/ma_pred/crosser/mcconf.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/ma_pred/grad_hunter/ma_grad_hunter.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/ma_pred/grad_hunter/ma_grad_hunter.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/ma_pred/grad_hunter/mghconf.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_cal/ma_cal.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_cal/ma_cal.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_cal/ma_lwma.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/ma_pred/ma_pred_base/ma_pred_base.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/ma_pred/mpconf.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/mb_base/mb_base_pred.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/minbar_predictor/mbpconf.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/multinode/multinode_utils.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/multinode/multinode_utils.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/pair_asset_meanrevert/pair_asset_meanrevert.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/pair_asset_meanrevert/pair_asset_meanrevert.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/predictor/prdtypes.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/predictor/tf23_wrapper.cpp">
 			<Option target="api_server" />
@@ -697,28 +534,22 @@
 			<Option target="tfpred" />
 		</Unit>
 		<Unit filename="src/modules/spread_trend/spread_trend.cpp">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/spread_trend/spread_trend.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/modules/spread_trend/spread_trend_conf.h">
-			<Option target="Release" />
 			<Option target="api_server" />
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
-			<Option target="test_coint" />
 		</Unit>
 		<Unit filename="src/utests/test_coint.cpp">
-			<Option target="test_coint" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="src/utests/test_gsl_hist.cpp">
 			<Option target="gsl_hist" />
