@@ -18,21 +18,25 @@
 
 #include "create_mbp.h"
 #include "mbtconf.h"
-#include "minbar_predictor/ma_pred/createMAPredictor.h"
 #include "basics/utils.h"
+#include "minbar_predictor/py_pred/py_pred.h"
 using namespace std;
 using namespace athena;
 
 MinBarBasePredictor*
-createMBPredictor( const String& pf)
+createMBPredictor(int type)
 {
     MinBarBasePredictor* p (nullptr);
-
-    String ext = getFileExt(pf);
-    if (ext == ".py"){
-        p = nullptr;
-    } else {
-        Log(LOG_FATAL) << "Predictor file not supported: " + pf;
+    switch(type) {
+    case 0:
+        p = new MinbarPyPredictor();
+        break;
+    case 1:
+        Log(LOG_FATAL) << "Customized python predictor not supported";
+        break;
+    default:
+        Log(LOG_FATAL) << "Predictor type not supported: " + to_string(type);
+        break;
     }
 
     return p;

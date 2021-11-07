@@ -22,6 +22,6 @@
 #include "minbar_predictor/mb_base/mb_base_pred.h"
 
 MinBarBasePredictor*
-createMBPredictor(const String& pf);
+createMBPredictor(int pred_type);
 
 #endif   /* ----- #ifndef _MIN_BAR_CREATE_H_  ----- */

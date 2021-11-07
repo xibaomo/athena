@@ -30,12 +30,9 @@ public:
     MbtConfig() {;}
     virtual ~MbtConfig() {;}
 
-    String getPredictorFile() {
-        return getKeyValue<String>(MBT_ROOT + "PREDICTOR_FILE");
+    int getPredictorType() {
+        return getKeyValue<int>(MBT_ROOT + "PREDICTOR_TYPE");
     }
 
-    String getFeatureConfigFile() {
-        return getKeyValue<String>(MBT_ROOT + "FEATURE_CONFIG_FILE");
-    }
 };
 #endif   /* ----- #fndef _MIN_BAR_CONFIG_H_  ----- */

@@ -17,7 +17,7 @@ protected:
     {
         m_mbtCfg = new MbtConfig();
         m_mbtCfg->loadConfig(cf);
-        m_predictor = createMBPredictor(m_mbtCfg->getPredictorFile());
+        m_predictor = createMBPredictor(m_mbtCfg->getPredictorType());
     }
 public:
     virtual ~MinbarTracker()

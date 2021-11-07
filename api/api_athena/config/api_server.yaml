@@ -66,6 +66,11 @@ MA_PREDICTOR:
 
 # ------------- MINBAR TRACKER -------------------
 MINBAR_TRACKER:
-    FEATURE_CONFIG_FILE: feature.yaml
-    PREDICTOR_FILE: pred.py
+    PREDICTOR_TYPE: 0 # 0 - built-in ML python, 1 - customized python script
+
+    # built-in ML python
+    BUILTIN_ML: 
+        MODEL_FILE: model.pkl
+        SCALER_FILE: scaler.pkl
+        FEATURE_CONFIG_FILE: fex.yaml
 
