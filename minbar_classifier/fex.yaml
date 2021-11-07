@@ -1,0 +1,29 @@
+LABELING:
+    POSITION_LIFETIME: 5 #days
+    RETURN_THRESHOLD: 0.003
+TRAINING:
+    TEST_SIZE: 480
+
+    #dump files
+    SCALER_FILE: scaler
+    MODEL_FILE: mf
+FEATURES:
+    BASICS:
+        LOOKBACK: 3
+    VOLATILITY:
+        LOOKBACK: 2
+    MA_MISC: 
+        LOOKBACK: 6
+        LONG_LOOKBACK: 12
+    KAMA:
+        LOOKBACK: 3
+        LONG_LOOKBACK: 9
+    BBANDS:
+        LOOKBACK: 48
+    MACD:
+        LOOKBACK: -48
+        LONG_LOOKBACK: 96
+    WMA: 
+        LOOKBACK: -3
+        LONG_LOOKBACK: 24
+
