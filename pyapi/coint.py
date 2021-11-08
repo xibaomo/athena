@@ -41,8 +41,8 @@ def hurst(ts_list):
     return poly[0]*2.
 
 def test_test(lx, ly):
-    print (lx.shape)
-    print (ly.shape)
+    print (lx)
+    print (ly)
 
 if __name__ == "__main__":
 

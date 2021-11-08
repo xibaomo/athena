@@ -37,6 +37,8 @@ public:
 
     virtual void prepare() = 0;
 
+    virtual void appendMinbar(const MinBar& mb){BASE_METHOD_WARN;}
+
     virtual FXAct predict(real64 new_open) = 0;
 };
 #endif   /* ----- #ifndef _MINBAR_BASE_PREDICTOR_H_  ----- */

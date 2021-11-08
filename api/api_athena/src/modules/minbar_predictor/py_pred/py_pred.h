@@ -16,11 +16,12 @@ public:
     void setPredictorFile(const String& pf) override;
 
     void prepare();
+    void appendMinbar(const MinBar& mb) override;
     FXAct predict(real64 new_open);
 
     /////////////////// internal function /////////////////////
     void loadMinbarsToPredictor();
-    void addMinbarToPredictor(const MinBar& mb);
+
 
 };
 

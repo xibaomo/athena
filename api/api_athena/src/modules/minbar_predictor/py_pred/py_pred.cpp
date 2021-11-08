@@ -79,7 +79,7 @@ MinbarPyPredictor::loadMinbarsToPredictor()
 }
 
 void
-MinbarPyPredictor::addMinbarToPredictor(const MinBar& mb)
+MinbarPyPredictor::appendMinbar(const MinBar& mb)
 {
     PyObject* func = PyObject_GetAttrString(m_mod,"appendMinbar");
     if(!func)
