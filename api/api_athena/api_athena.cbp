@@ -76,9 +76,6 @@
 			<Add option="-L/tools/software/tensorflow/current/lib" />
 			<Add option="-ltensorflow" />
 		</Linker>
-		<Unit filename="main.cpp">
-			<Option target="&lt;{~None~}&gt;" />
-		</Unit>
 		<Unit filename="src/apiclient/client_apps/client_base_app/client_base_app.cpp">
 			<Option target="api_server" />
 			<Option target="test_server" />
@@ -495,10 +492,13 @@
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
 		</Unit>
-		<Unit filename="src/modules/minbar_predictor/mbpconf.h">
+		<Unit filename="src/modules/minbar_predictor/py_pred/py_pred.cpp">
 			<Option target="api_server" />
 			<Option target="test_server" />
-			<Option target="gsl_hist" />
+		</Unit>
+		<Unit filename="src/modules/minbar_predictor/py_pred/py_pred.h">
+			<Option target="api_server" />
+			<Option target="test_server" />
 		</Unit>
 		<Unit filename="src/modules/multinode/multinode_utils.cpp">
 			<Option target="api_server" />

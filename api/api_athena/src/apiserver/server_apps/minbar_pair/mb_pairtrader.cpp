@@ -154,7 +154,8 @@ MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::
     }
 
     for (int i = 0; i < nbars; i++) {
-        v.emplace_back("unknown_time",pm[0],pm[1],pm[2],pm[3],pm[4]);
+        MinBar mb{"unknown","unknown",pm[0],pm[1],pm[2],pm[3],pm[4]};
+        v.emplace_back(mb);
         openvec.push_back(v.back().open);
         pm+=bar_size;
     }

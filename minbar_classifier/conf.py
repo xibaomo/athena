@@ -12,3 +12,9 @@ class MasterConf(object):
     def getTestSize(self):
         return self.yamlDict['TRAINING']['TEST_SIZE']
 
+    def getScalerFile(self):
+        return self.yamlDict['TRAINING']['SCALER_FILE']
+
+    def getModelFile(self):
+        return self.yamlDict['TRAINING']['MODEL_FILE']
+

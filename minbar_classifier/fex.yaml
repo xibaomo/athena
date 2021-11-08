@@ -5,8 +5,8 @@ TRAINING:
     TEST_SIZE: 480
 
     #dump files
-    SCALER_FILE: scaler
-    MODEL_FILE: mf
+    SCALER_FILE: scaler.pkl
+    MODEL_FILE: model.pkl
 FEATURES:
     BASICS:
         LOOKBACK: 3

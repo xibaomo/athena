@@ -20,6 +20,7 @@ from logger import *
 from prediction import *
 from basics import *
 from conf import *
+import pickle
 
 def loadcsv(fn):
     df = pd.read_csv(fn, sep='\t')
@@ -109,6 +110,8 @@ if __name__ == '__main__':
     x_train, y_train, x_test, y_test,scaler = split_dataset(fm,used_labels,test_size)
 
     model = train_model(x_train, y_train)
+    pickle.dump(model,open(config.getModelFile(),'wb'))
+    pickle.dump(scaler,open(config.getScalerFile(),'wb'))
 
     if test_size == 0:
         sys.exit(0)

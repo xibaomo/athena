@@ -33,8 +33,10 @@ public:
         m_allMinBars = bars;
     }
 
+    virtual void setPredictorFile(const String& pf) {BASE_METHOD_WARN;}
+
     virtual void prepare() = 0;
 
-    virtual FXAct predict() = 0;
+    virtual FXAct predict(real64 new_open) = 0;
 };
 #endif   /* ----- #ifndef _MINBAR_BASE_PREDICTOR_H_  ----- */

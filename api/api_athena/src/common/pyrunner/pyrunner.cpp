@@ -12,6 +12,9 @@ PyRunner::PyRunner()
     String modulePath = athenaHome + "/pyapi";
 
     PyEnviron::getInstance().appendSysPath(modulePath);
+
+    modulePath = athenaHome + "/minbar_classifier";
+    PyEnviron::getInstance().appendSysPath(modulePath);
 }
 
 PyObject*
