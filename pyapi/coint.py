@@ -44,6 +44,9 @@ def test_test(lx, ly):
     print (lx)
     print (ly)
 
+def test_arg(x):
+    print(x)
+
 if __name__ == "__main__":
 
     import random

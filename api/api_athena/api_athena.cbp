@@ -422,6 +422,12 @@
 			<Option target="test_server" />
 			<Option target="gsl_hist" />
 		</Unit>
+		<Unit filename="src/modules/minbar_predictor/builtin_ml/builtin_ml.cpp">
+			<Option target="api_server" />
+		</Unit>
+		<Unit filename="src/modules/minbar_predictor/builtin_ml/builtin_ml.h">
+			<Option target="api_server" />
+		</Unit>
 		<Unit filename="src/modules/minbar_predictor/ma_pred/createMAPredictor.cpp">
 			<Option target="api_server" />
 			<Option target="test_server" />

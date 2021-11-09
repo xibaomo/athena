@@ -70,9 +70,7 @@ MINBAR_TRACKER:
 
     # built-in ML python
     BUILTIN_ML: 
-        MODEL_FILE: model.pkl
-        SCALER_FILE: scaler.pkl
-        FEATURE_CONFIG_FILE: fex.yaml
+        CONFIG_FILE: fex.yaml
     CUSTOM_PY:
         PY_FILE: pred.py
 

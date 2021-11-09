@@ -34,5 +34,13 @@ public:
         return getKeyValue<int>(MBT_ROOT + "PREDICTOR_TYPE");
     }
 
+    String getBMLConfigFile() {
+        return getKeyValue<String>(MBT_ROOT + "BUILTIN_ML/CONFIG_FILE");
+    }
+
+    String getCustomPyFile() {
+        return getKeyValue<String>(MBT_ROOT + "CUSTOM_PY/PY_FILE");
+    }
+
 };
 #endif   /* ----- #fndef _MIN_BAR_CONFIG_H_  ----- */

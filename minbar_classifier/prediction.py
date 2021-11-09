@@ -1,6 +1,5 @@
 """
 This file is not intended for training
-It's used by c calling
 """
 import pandas as pd
 from basics import *

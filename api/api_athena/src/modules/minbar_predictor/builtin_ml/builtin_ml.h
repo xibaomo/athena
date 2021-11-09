@@ -3,27 +3,21 @@
 #include "minbar_predictor/py_pred/py_pred.h"
 #include "minbar_tracker/mbtconf.h"
 
-class BMLConfig {
-protected:
-    const String BMLROOT = "MINBAR_TRACKER/BUILTIN_ML/";
-    MbtConfig* m_cfg;
-public:
-    BMLConfig(MbtConfig* cfg) : m_cfg(cfg) {;}
-
-    String getModelFile() {
-        return m_cfg->getKeyValue<String>(BMLROOT + "MODEL_FILE");
-    }
-};
-
 class BuiltinMLPredictor : public MinBarBasePredictor {
 private:
-    BMLConfig* m_cfg;
+    String m_predConfigFile;
+    PyObject* m_mod;
     MinbarPyPredictor m_pyPredictor;
 public:
-    BuiltinMLPredictor(MbtConfig* cfg) : m_cfg(cfg) {;}
-    ~BuiltinMLPredictor()  = default;
+    BuiltinMLPredictor(MbtConfig* cfg);
+    ~BuiltinMLPredictor() {
+        if(m_mod) Py_DECREF(m_mod);
+    }
 
+    void loadConfig();
+    ///////////////// public api ////////////////////
     void prepare() override {
+        loadConfig();
         m_pyPredictor.loadAllMinBars(m_allMinBars);
         m_pyPredictor.prepare();
     }
