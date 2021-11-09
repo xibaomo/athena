@@ -73,4 +73,6 @@ MINBAR_TRACKER:
         MODEL_FILE: model.pkl
         SCALER_FILE: scaler.pkl
         FEATURE_CONFIG_FILE: fex.yaml
+    CUSTOM_PY:
+        PY_FILE: pred.py
 
