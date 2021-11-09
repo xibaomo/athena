@@ -29,7 +29,6 @@ class PredictConfig(object):
     def getScalerFile(self):
         return self.yamlDict['TRAINING']['SCALER_FILE']
 
-pc = None
 def loadConfig(cf):
     global CONFIG_FILE
     CONFIG_FILE = cf
@@ -54,7 +53,8 @@ def init(dates, tms, opens, highs, lows, closes, tkvs):
     df = createDataFrame(dates,tms,opens,highs,lows,closes,tkvs)
 
 def appendMinbar(dt,tm,op,hp,lp,cp,tkv):
-    appendEntryToDataFrame(df,dt,tm,op,hp,lp,cp,tkv)
+    global df
+    df = appendEntryToDataFrame(df,dt,tm,op,hp,lp,cp,tkv)
 
 def predict(new_open):
     tmpdf = df
@@ -76,15 +76,19 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: %s <sym>.csv <fex>.yaml" % sys.argv[0])
         sys.exit(-1)
-    df = pd.read_csv(sys.argv[1],sep='\t')
-    last = df.iloc[-1,:]
-    df = df.iloc[:-1,:]
-    N = len(df)+1-1
+    tdf = pd.read_csv(sys.argv[1],sep='\t')
+    last = tdf.iloc[-1,:]
+    tdf = tdf.iloc[:-1,:]
+    N = len(tdf)+1-1
     time_id = [N-20,N-16,N-12,N-8,N-4,N]
 
     loadConfig(sys.argv[2])
+    init(tdf['<DATE>'],tdf['<TIME>'],tdf["<OPEN>"],tdf['<HIGH>'],tdf['<LOW>'],tdf['<CLOSE>'],tdf['<TICKVOL>'])
     setHourTimeID(time_id)
     setDateTime(last["<DATE>"],last["<TIME>"])
     pred = predict(last['<OPEN>'])
-
     print(pred)
+
+    print(df.shape)
+    appendMinbar(last['<DATE>'],last['<TIME>'],last['<OPEN>'],last['<HIGH>'],last['<LOW>'],last['<CLOSE>'],last['<TICKVOL>'])
+    print(df.shape)
