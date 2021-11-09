@@ -42,11 +42,6 @@ def setHourTimeID(time_id):
     global HOUR_TIME_ID
     HOUR_TIME_ID= time_id
 
-def setDateTime(date_str,time_str):
-    global DATE_STR
-    DATE_STR = date_str
-    global TIME_STR
-    TIME_STR = time_str
 ############ required API for custom py predictor #####################
 def init(dates, tms, opens, highs, lows, closes, tkvs):
     global df
@@ -85,7 +80,6 @@ if __name__ == "__main__":
     loadConfig(sys.argv[2])
     init(tdf['<DATE>'],tdf['<TIME>'],tdf["<OPEN>"],tdf['<HIGH>'],tdf['<LOW>'],tdf['<CLOSE>'],tdf['<TICKVOL>'])
     setHourTimeID(time_id)
-    setDateTime(last["<DATE>"],last["<TIME>"])
     pred = predict(last['<OPEN>'])
     print(pred)
 

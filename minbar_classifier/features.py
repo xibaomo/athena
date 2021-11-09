@@ -155,10 +155,10 @@ def basic_features_training(prices,tv,tm,lookback):
         fm[i, 1] = np.std(past)
         fm[i, 2] = np.mean(tvp)
         fm[i, 3] = np.std(tvp)
-        fm[i, 4] = tm[i + lookback].hour
+        fm[i, 4] = tm[i + lookback - 1].hour
 
-    print("feature dim: ", fm.shape)
-    print("actual labels: ", len(label))
+    # print("feature dim: ", fm.shape)
+    # print("actual labels: ", len(label))
 
     return fm
 

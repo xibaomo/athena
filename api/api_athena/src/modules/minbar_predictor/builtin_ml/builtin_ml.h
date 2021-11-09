@@ -8,6 +8,8 @@ private:
     String m_predConfigFile;
     PyObject* m_mod;
     MinbarPyPredictor m_pyPredictor;
+
+    std::vector<int> m_hourTimeID;
 public:
     BuiltinMLPredictor(MbtConfig* cfg);
     ~BuiltinMLPredictor() {
@@ -15,6 +17,8 @@ public:
     }
 
     void loadConfig();
+    void setHourTimeID();
+    void pushHourID(const MinBar& mb);
     ///////////////// public api ////////////////////
     void prepare() override {
         loadConfig();
@@ -22,10 +26,14 @@ public:
         m_pyPredictor.prepare();
     }
     void appendMinbar(const MinBar& mb) override {
+        m_allMinBars->push_back(mb);
+        pushHourID(mb);
+
         m_pyPredictor.appendMinbar(mb);
     }
 
     FXAct predict(real64 new_open) override {
+        setHourTimeID();
         return m_pyPredictor.predict(new_open);
     }
 };
