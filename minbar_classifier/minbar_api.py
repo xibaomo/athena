@@ -44,18 +44,26 @@ def setHourTimeID(time_id):
 
 ############ required API for custom py predictor #####################
 def init(dates, tms, opens, highs, lows, closes, tkvs):
-    global df
+    global df,HOUR_TIME_ID
     df = createDataFrame(dates,tms,opens,highs,lows,closes,tkvs)
+    for i in range(len(df)):
+        tm = pd.to_datetime(df.loc[i,'<TIME>'])
+        if tm.minute < 2:
+            HOUR_TIME_ID.append(i)
 
 def appendMinbar(dt,tm,op,hp,lp,cp,tkv):
     global df
     df = appendEntryToDataFrame(df,dt,tm,op,hp,lp,cp,tkv)
+    t = pd.to_datetime(tm)
+    if t.minute < 2:
+        HOUR_TIME_ID.append(len(df)-1)
 
 def predict(new_open):
-    tmpdf = df
-    tmpdf = appendEntryToDataFrame(tmpdf,DATE_STR,TIME_STR,new_open,0.,0.,0.,0)
+    tmpdf = appendEntryToDataFrame(df,DATE_STR,TIME_STR,new_open,0.,0.,0.,0)
     # pdb.set_trace()
-    fm,_,_ = prepare_features(CONFIG_FILE, tmpdf, HOUR_TIME_ID)
+    time_id = HOUR_TIME_ID.copy()
+    time_id.append(len(tmpdf)-1)
+    fm,_,_ = prepare_features(CONFIG_FILE, tmpdf, time_id)
 
     fm = scaler.transform(fm)
     y = model.predict(fm)

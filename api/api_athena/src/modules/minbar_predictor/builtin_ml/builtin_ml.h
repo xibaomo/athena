@@ -17,8 +17,6 @@ public:
     }
 
     void loadConfig();
-    void setHourTimeID();
-    void pushHourID(const MinBar& mb);
     ///////////////// public api ////////////////////
     void prepare() override {
         loadConfig();
@@ -27,13 +25,11 @@ public:
     }
     void appendMinbar(const MinBar& mb) override {
         m_allMinBars->push_back(mb);
-        pushHourID(mb);
 
         m_pyPredictor.appendMinbar(mb);
     }
 
     FXAct predict(real64 new_open) override {
-        setHourTimeID();
         return m_pyPredictor.predict(new_open);
     }
 };
