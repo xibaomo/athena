@@ -51,20 +51,14 @@ enum AppType {
     APP_PAIR_LABELER, // 8
 };
 
-// MinBar predictor
-enum class MBP_Type : int {
-    MA_PRED = 0,
-    ML_EACH_MB
-};
-
 #define NUM_MINBAR_FIELDS 7
 struct MinBar {
     String date;
     String time;
-    real32 open;
-    real32 high;
-    real32  low;
-    real32 close;
-    real32  tickvol;
+    real64 open;
+    real64 high;
+    real64  low;
+    real64 close;
+    real64  tickvol;
 };
 #endif   /* ----- #ifndef _BASICS_TYPES_H_  ----- */

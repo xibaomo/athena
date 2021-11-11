@@ -17,7 +17,7 @@ protected:
     {
         m_mbtCfg = new MbtConfig();
         m_mbtCfg->loadConfig(cf);
-        m_predictor = createMBPredictor(m_mbtCfg->getPredictorType());
+        m_predictor = createMBPredictor(m_mbtCfg->getPredictorType(),m_mbtCfg);
         m_predictor->loadAllMinBars(&m_allMinBars);
     }
 public:
@@ -38,6 +38,6 @@ public:
 
     Message procMsg_HISTORY_MINBAR(Message& msg);
 //    Message procMsg_INIT_TIME(Message& msg);
-//    Message procMsg_MINBAR(Message& msg);
+    Message procMsg_NEW_MINBAR(Message& msg);
 };
 

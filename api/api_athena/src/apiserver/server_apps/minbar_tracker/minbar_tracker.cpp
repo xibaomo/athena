@@ -1,4 +1,5 @@
 #include "minbar_tracker.h"
+#include "basics/utils.h"
 using namespace std;
 using namespace athena;
 
@@ -10,6 +11,9 @@ MinbarTracker::processMsg(Message& msg) {
     switch(act) {
     case FXAct::HISTORY_MINBAR:
         outmsg = procMsg_HISTORY_MINBAR(msg);
+        break;
+    case FXAct::NEW_MINBAR:
+        outmsg = procMsg_NEW_MINBAR(msg);
         break;
     default:
         Log(LOG_FATAL) << "Action not recognized: " + to_string((int)act);
@@ -61,4 +65,18 @@ MinbarTracker::procMsg_HISTORY_MINBAR(Message& msg) {
     }
 
     m_predictor->prepare();
+}
+
+Message
+MinbarTracker::procMsg_NEW_MINBAR(Message& msg) {
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
+    String dt = pack.str_vec[0];
+    String tm = pack.str_vec[1];
+    auto& v = pack.real64_vec;
+    MinBar mb{dt,tm,v[0],v[1],v[2],v[3],v[4]};
+    m_allMinBars.push_back(mb);
+    m_predictor->appendMinbar(mb);
+    Message outmsg;
+    return outmsg;
 }

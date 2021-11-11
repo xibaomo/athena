@@ -16,11 +16,9 @@
  * =====================================================================================
  */
 
-#ifndef  _MIN_BAR_CONFIG_H_
-#define  _MIN_BAR_CONFIG_H_
+#pragma once
 
 #include "basics/baseconf.h"
-#include "create_mbp.h"
 
 const String MBT_ROOT = "MINBAR_TRACKER/";
 class MbtConfig : public BaseConfig {
@@ -43,4 +41,3 @@ public:
     }
 
 };
-#endif   /* ----- #fndef _MIN_BAR_CONFIG_H_  ----- */

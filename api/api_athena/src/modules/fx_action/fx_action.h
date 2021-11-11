@@ -3,7 +3,7 @@
 #include "messenger/msg.h"
 
 enum class FXAct {
-    HISTORY = MsgAct::NUM_ACTIONS,
+    HISTORY = (int)MsgAct::NUM_ACTIONS,
     HISTORY_MINBAR,
     //CHECKIN,
     TICK,

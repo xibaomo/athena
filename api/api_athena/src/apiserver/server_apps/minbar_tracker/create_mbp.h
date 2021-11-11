@@ -20,8 +20,9 @@
 #define  _MIN_BAR_CREATE_H_
 #include "basics/types.h"
 #include "minbar_predictor/mb_base/mb_base_pred.h"
+#include "minbar_tracker/mbtconf.h"
 
 MinBarBasePredictor*
-createMBPredictor(int pred_type);
+createMBPredictor(int pred_type,MbtConfig* cfg);
 
 #endif   /* ----- #ifndef _MIN_BAR_CREATE_H_  ----- */

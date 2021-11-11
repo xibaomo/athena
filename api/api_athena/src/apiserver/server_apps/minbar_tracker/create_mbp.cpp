@@ -19,17 +19,17 @@
 #include "create_mbp.h"
 #include "mbtconf.h"
 #include "basics/utils.h"
-#include "minbar_predictor/py_pred/py_pred.h"
+#include "minbar_predictor/builtin_ml/builtin_ml.h"
 using namespace std;
 using namespace athena;
 
 MinBarBasePredictor*
-createMBPredictor(int type)
+createMBPredictor(int type,MbtConfig* cfg)
 {
     MinBarBasePredictor* p (nullptr);
     switch(type) {
     case 0:
-        p = new MinbarPyPredictor();
+        p = new BuiltinMLPredictor(cfg);
         break;
     case 1:
         Log(LOG_FATAL) << "Customized python predictor not supported";

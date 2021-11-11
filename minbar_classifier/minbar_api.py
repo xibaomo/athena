@@ -38,10 +38,6 @@ def loadConfig(cf):
     global scaler
     scaler= pickle.load(open(pc.getScalerFile(),'rb'))
 
-def setHourTimeID(time_id):
-    global HOUR_TIME_ID
-    HOUR_TIME_ID= time_id
-
 ############ required API for custom py predictor #####################
 def init(dates, tms, opens, highs, lows, closes, tkvs):
     global df,HOUR_TIME_ID
@@ -59,11 +55,12 @@ def appendMinbar(dt,tm,op,hp,lp,cp,tkv):
         HOUR_TIME_ID.append(len(df)-1)
 
 def predict(new_open):
+    global df,HOUR_TIME_ID
     tmpdf = appendEntryToDataFrame(df,DATE_STR,TIME_STR,new_open,0.,0.,0.,0)
     # pdb.set_trace()
     time_id = HOUR_TIME_ID.copy()
     time_id.append(len(tmpdf)-1)
-    fm,_,_ = prepare_features(CONFIG_FILE, tmpdf, time_id)
+    fm,_,_ = prepare_features(CONFIG_FILE, tmpdf, time_id[-10:])
 
     fm = scaler.transform(fm)
     y = model.predict(fm)
@@ -87,7 +84,6 @@ if __name__ == "__main__":
 
     loadConfig(sys.argv[2])
     init(tdf['<DATE>'],tdf['<TIME>'],tdf["<OPEN>"],tdf['<HIGH>'],tdf['<LOW>'],tdf['<CLOSE>'],tdf['<TICKVOL>'])
-    setHourTimeID(time_id)
     pred = predict(last['<OPEN>'])
     print(pred)
 
