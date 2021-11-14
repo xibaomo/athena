@@ -74,7 +74,8 @@ def eval_model(model, x_test, y_test):
     #### blind trade: buy,sell,buy,sell,...
     blind_trade = np.ones(len(y_test))
     for i in range(len(blind_trade)):
-        if i % 2==1:
+        # if i % 2==1:
+        if np.random.random() > 0.5:
             blind_trade[i] = Action.BUY
         else:
             blind_trade[i] = Action.SELL
