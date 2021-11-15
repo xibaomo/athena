@@ -26,6 +26,16 @@
 				<Option type="0" />
 				<Option compiler="gcc" />
 			</Target>
+			<Target title="test_import">
+				<Option output="release/bin/test_import" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="release/bin" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-std=c++14" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
 		</Build>
 		<VirtualTargets>
 			<Add alias="all" targets="api_server;test_coint;tfpred;" />
@@ -63,8 +73,6 @@
 			<Add option="-Wl,-Bdynamic" />
 			<Add option="-lpython3.8" />
 			<Add option="-lpthread" />
-			<Add option="-L/tools/software/tensorflow/current/lib" />
-			<Add option="-ltensorflow" />
 		</Linker>
 		<Unit filename="src/apiclient/client_apps/client_base_app/client_base_app.cpp">
 			<Option target="api_server" />
@@ -431,14 +439,6 @@
 			<Option target="api_server" />
 			<Option target="gsl_hist" />
 		</Unit>
-		<Unit filename="src/modules/predictor/tf23_wrapper.cpp">
-			<Option target="api_server" />
-			<Option target="tfpred" />
-		</Unit>
-		<Unit filename="src/modules/predictor/tf23_wrapper.h">
-			<Option target="api_server" />
-			<Option target="tfpred" />
-		</Unit>
 		<Unit filename="src/modules/spread_trend/spread_trend.cpp">
 			<Option target="api_server" />
 			<Option target="gsl_hist" />
@@ -456,6 +456,9 @@
 		</Unit>
 		<Unit filename="src/utests/test_gsl_hist.cpp">
 			<Option target="gsl_hist" />
+		</Unit>
+		<Unit filename="src/utests/test_import.cpp">
+			<Option target="test_import" />
 		</Unit>
 		<Unit filename="src/utests/tfpred.cpp">
 			<Option target="tfpred" />
