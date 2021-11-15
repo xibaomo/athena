@@ -1,5 +1,6 @@
 #include "minbar_tracker.h"
 #include "basics/utils.h"
+#include <sstream>
 using namespace std;
 using namespace athena;
 
@@ -14,6 +15,12 @@ MinbarTracker::processMsg(Message& msg) {
         break;
     case FXAct::NEW_MINBAR:
         outmsg = procMsg_NEW_MINBAR(msg);
+        break;
+    case FXAct::REGISTER_POS:
+        outmsg = procMsg_REGISTER_POS(msg);
+        break;
+    case FXAct::CLOSE_POS_INFO:
+        outmsg = procMsg_CLOSED_POS_INFO(msg);
         break;
     default:
         Log(LOG_FATAL) << "Action not recognized: " + to_string((int)act);
@@ -36,8 +43,8 @@ MinbarTracker::procMsg_HISTORY_MINBAR(Message& msg) {
 
     int bar_size = pack.int32_vec[1];
 
-    real32* pm = &pack.real32_vec[0];
-    int nbars = msg.getDataBytes()/sizeof(real32)/bar_size;
+    real64* pm = &pack.real64_vec[0];
+    int nbars = msg.getDataBytes()/sizeof(real64)/bar_size;
     if (nbars != histLen) {
         Log(LOG_FATAL) << "No. of min bars inconsistent";
     }
@@ -71,12 +78,90 @@ Message
 MinbarTracker::procMsg_NEW_MINBAR(Message& msg) {
     SerializePack pack;
     unserialize(msg.getComment(),pack);
-    String dt = pack.str_vec[0];
-    String tm = pack.str_vec[1];
+    String time_str = pack.str_vec[0];
+    auto tmp = splitString(time_str," ");
     auto& v = pack.real64_vec;
-    MinBar mb{dt,tm,v[0],v[1],v[2],v[3],v[4]};
+    MinBar mb{tmp[0],tmp[1],v[0],v[1],v[2],v[3],v[4]};
     m_allMinBars.push_back(mb);
+    m_predictor->appendMinbar(mb);
+
+    stringstream iss; iss << mb.date << " "
+                      << mb.time << " "
+                      << mb.open << " "
+                      << mb.high << " "
+                      << mb.low  << " "
+                      << mb.close <<" "
+                      << mb.tickvol;
+    Log(LOG_INFO) << "New minbar: " + iss.str();
+
     m_predictor->appendMinbar(mb);
     Message outmsg;
     return outmsg;
+}
+
+Message
+MinbarTracker::procMsg_REGISTER_POS(Message& msg) {
+    unsigned long *pm = (unsigned long*)msg.getData();
+    String tm = msg.getComment();
+    if (m_tk2pos.find(pm[0]) != m_tk2pos.end()) {
+        Log(LOG_ERROR) << "Position already registered: " + to_string(pm[0]);
+    }
+    PosInfo pf;
+    pf.open_time = tm;
+    m_tk2pos[pm[0]] = pf;
+    Log(LOG_INFO) << "Position registered: " + tm + " " + to_string(pm[0]);
+
+    Message outmsg;
+    return outmsg;
+}
+
+Message
+MinbarTracker::procMsg_CLOSED_POS_INFO(Message& msg) {
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
+
+    unsigned long tk = pack.ulong_vec[0];
+    String tm = pack.str_vec[0];
+    real64 profit = pack.real64_vec[0];
+
+    if (m_tk2pos.find(tk) == m_tk2pos.end()) {
+        Log(LOG_ERROR) << "Ticket not registered: " + to_string(tk);
+    }
+    m_tk2pos[tk].close_time = tm;
+    m_tk2pos[tk].profit = profit;
+
+    Message outmsg;
+    return outmsg;
+}
+
+Message
+MinbarTracker::procMsg_REQUEST_ACTION(Message& msg){
+    real64* pm = (real64*)msg.getData();
+    FXAct act = m_predictor->predict(pm[0]);
+
+    Message outmsg(1);
+    outmsg.setAction(act);
+    return outmsg;
+}
+
+void
+MinbarTracker::finish() {
+    dumpPosInfo();
+}
+
+void
+MinbarTracker::dumpPosInfo(){
+    vector<String> start_times;
+    vector<String> end_times;
+    vector<real64> profits;
+    vector<int> lifetimes;
+    vector<unsigned long> tks;
+    for(auto iter : m_tk2pos){
+        tks.push_back(iter.first);
+        start_times.push_back(iter.second.open_time);
+        end_times.push_back(iter.second.close_time);
+        profits.push_back(iter.second.profit);
+        lifetimes.push_back(iter.second.lifetime());
+    }
+    dumpVectors("pos_info.csv",tks,start_times,end_times,lifetimes,profits);
 }

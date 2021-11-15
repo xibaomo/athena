@@ -10,9 +10,6 @@
 				<Option output="release/bin/api_server" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-g" />
-				</Compiler>
 			</Target>
 			<Target title="gsl_hist">
 				<Option output="release/bin/test_gsl_hist" prefix_auto="1" extension_auto="1" />
@@ -51,8 +48,6 @@
 			<Add directory="/tools/software/tensorflow/current/include" />
 		</Compiler>
 		<Linker>
-			<Add option="-static-libstdc++" />
-			<Add option="-static-libgcc" />
 			<Add option="-L/tools/lib" />
 			<Add option="-Wl,-Bstatic" />
 			<Add option="-lboost_date_time" />

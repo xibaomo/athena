@@ -3,12 +3,17 @@
 using namespace boost::posix_time;
 using namespace std;
 
-BuiltinMLPredictor::BuiltinMLPredictor(MbtConfig* cfg){
-    m_predConfigFile = cfg->getKeyValue<String>("MINBAR_TRACKER/BUILTIN_ML/CONFIG_FILE");
-    m_mod = PyImport_ImportModule("minbar_api");
+BuiltinMLPredictor::BuiltinMLPredictor() : m_mod(nullptr){
+    String modulePath = String(getenv("ATHENA_HOME")) + "/minbar_classifier";
+    PyEnviron::getInstance().appendSysPath(modulePath);
+    Log(LOG_INFO) << "Python module path appended: " + modulePath;
+    String modName = "minbar_api";
+    m_mod = PyImport_ImportModule(modName.c_str());
     if(!m_mod) {
         Log(LOG_FATAL) << "Cannot import module: minbar_api";
     }
+    String path = String(getenv("ATHENA_HOME")) + "/minbar_classifier";
+    m_pyPredictor.setPredictorFile(path,"minbar_api");
 }
 
 void

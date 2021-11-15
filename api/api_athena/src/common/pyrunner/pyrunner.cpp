@@ -12,9 +12,11 @@ PyRunner::PyRunner()
     String modulePath = athenaHome + "/pyapi";
 
     PyEnviron::getInstance().appendSysPath(modulePath);
+    Log(LOG_INFO) << "Added to python path: " + modulePath;
 
-    modulePath = athenaHome + "/minbar_classifier";
-    PyEnviron::getInstance().appendSysPath(modulePath);
+//    modulePath = athenaHome + "/minbar_classifier";
+//    PyEnviron::getInstance().appendSysPath(modulePath);
+//    Log(LOG_INFO) << "Added to python path: " + modulePath;
 }
 
 PyObject*

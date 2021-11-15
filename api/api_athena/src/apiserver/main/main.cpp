@@ -16,13 +16,15 @@
 #include "server_apps/create_svr_app.h"
 #include "basics/log.h"
 #include "conf/generalconf.h"
+#include "pyrunner/pyrunner.h"
 #include <iostream>
 using namespace std;
 
 int main(int argc, char** argv)
 {
 
-    PyEnviron::getInstance();
+    //PyRunner::getInstance();
+    PyEnviron::getInstance().appendSysPath("/home/naopc/dev/athena/minbar_classifier");
     Log(LOG_INFO) << "Athena api-server starts";
 
     // argv[1] is config file

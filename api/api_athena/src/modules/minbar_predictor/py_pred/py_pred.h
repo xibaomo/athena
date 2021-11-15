@@ -13,7 +13,7 @@ public:
         }
     }
 
-    void setPredictorFile(const String& pf) override;
+    void setPredictorFile(const String& path, const String& pf) override;
 
     void prepare();
     void appendMinbar(const MinBar& mb) override;

@@ -33,7 +33,7 @@ public:
         m_allMinBars = bars;
     }
 
-    virtual void setPredictorFile(const String& pf) {BASE_METHOD_WARN;}
+    virtual void setPredictorFile(const String& path, const String& pf) {BASE_METHOD_WARN;}
 
     virtual void prepare() = 0;
 

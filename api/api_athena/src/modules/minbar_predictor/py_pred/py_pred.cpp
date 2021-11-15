@@ -24,9 +24,8 @@ MinbarPyPredictor::MinbarPyPredictor(): m_mod(nullptr)
 }
 
 void
-MinbarPyPredictor::setPredictorFile(const String& pf)
+MinbarPyPredictor::setPredictorFile(const String& path,const String& pf)
 {
-    String path = getFileFolder(pf);
     Log(LOG_INFO) << "Predictor folder: " + path;
     PyEnviron::getInstance().appendSysPath(path);
 

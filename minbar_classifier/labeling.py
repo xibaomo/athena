@@ -73,21 +73,29 @@ def later_change_label(df,THD_RET,POS_LIFE):
     prices = df[OPEN_KEY].values
     rx = np.diff(np.log(prices))
     for i in range(len(time_id)):
-        tid = time_id[i] #index to tm
+        tid = time_id[i] #index to df
         t0 = tm[tid]     # position time
-        ret = 0.
+        # ret = 0.
         id = tid
-        while id < len(rx):
+        p0 = df[OPEN_KEY][id]
+        while id < len(df):
             t = tm[id]
             if (t-t0).seconds > POS_LIFE:
                 break
-            ret+=rx[id]
-            if (ret > THD_RET):
+            # ret+=rx[id]
+            ret_high = df[HIGH_KEY][id]/p0-1
+            ret_low  = df[LOW_KEY][id]/p0 - 1
+            if ret_high >= THD_RET and ret_low <= -THD_RET:
+                Log(LOG_INFO) << "Run into a big bar " + df[DATE_KEY][id] + " " + df[TIME_KEY][id]
+                labels[i] = Action.NO_ACTION
+                break
+            if ret_high >= THD_RET:
                 labels[i] = Action.BUY
                 break
-            if (ret < -THD_RET):
+            if ret_low <= -THD_RET:
                 labels[i] = Action.SELL
                 break
+
             id+=1
 
     Log(LOG_INFO) << "All data size: %d"%len(time_id)

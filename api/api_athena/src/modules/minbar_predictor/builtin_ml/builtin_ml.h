@@ -11,13 +11,16 @@ private:
 
     std::vector<int> m_hourTimeID;
 public:
-    BuiltinMLPredictor(MbtConfig* cfg);
+    BuiltinMLPredictor();
     ~BuiltinMLPredictor() {
         if(m_mod) Py_DECREF(m_mod);
     }
 
     void loadConfig();
     ///////////////// public api ////////////////////
+    void setPredictorFile(const String& path, const String& pf) override {
+        m_predConfigFile = pf;
+    }
     void prepare() override {
         loadConfig();
         m_pyPredictor.loadAllMinBars(m_allMinBars);

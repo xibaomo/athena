@@ -29,7 +29,8 @@ using namespace std;
 using namespace athena;
 
 MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg), m_curNumPos(0), m_isRunning(true), m_pairCount(0), m_maxProfit(-1.f),
-                                                        m_avgProfit(-1.f),m_oracle(nullptr) {
+    m_avgProfit(-1.f),m_oracle(nullptr)
+{
     m_cfg = &MptConfig::getInstance();
     m_cfg->loadConfig(cfg);
     m_initBalance = -1.;
@@ -38,7 +39,8 @@ MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg), m_cu
     Log(LOG_INFO) << "Minbar pair trader created.";
 }
 
-MinbarPairTrader::~MinbarPairTrader() {
+MinbarPairTrader::~MinbarPairTrader()
+{
     dumpVectors("prices.csv",m_mid_x, m_mid_y);
     dumpVectors("assets.csv",m_assetX_mid,m_assetY_mid);
     dumpVectors("trade_assets.csv",m_assetX_buy,m_assetX_sell,m_assetY_buy,m_assetY_sell);
@@ -50,10 +52,12 @@ MinbarPairTrader::~MinbarPairTrader() {
 }
 
 Message
-MinbarPairTrader::processMsg(Message& msg) {
+MinbarPairTrader::processMsg(Message& msg)
+{
     Message outmsg;
     FXAct action = (FXAct)msg.getAction();
-    switch(action) {
+    switch(action)
+    {
     case FXAct::ASK_PAIR:
         outmsg = procMsg_ASK_PAIR(msg);
         break;
@@ -67,7 +71,8 @@ MinbarPairTrader::processMsg(Message& msg) {
         outmsg = procMsg_PAIR_MIN_OPEN(msg);
         break;
     case FXAct::ACCOUNT_BALANCE:
-        outmsg = procMsg_noreply(msg,[&](Message& msg) {
+        outmsg = procMsg_noreply(msg,[&](Message& msg)
+        {
             real64* pm = (real64*)msg.getData();
             Log(LOG_INFO) << "Account balance: " + to_string(pm[0]);
         });
@@ -80,7 +85,8 @@ MinbarPairTrader::processMsg(Message& msg) {
         break;
     }
 
-    switch((FXAct)outmsg.getAction()) {
+    switch((FXAct)outmsg.getAction())
+    {
     case FXAct::PLACE_BUY:
         Log(LOG_INFO) << "Action: buy Y";
         break;
@@ -107,7 +113,8 @@ MinbarPairTrader::processMsg(Message& msg) {
 }
 
 Message
-MinbarPairTrader::procMsg_ASK_PAIR(Message& msg) {
+MinbarPairTrader::procMsg_ASK_PAIR(Message& msg)
+{
     String s1 = m_cfg->getSymX();
     String s2 = m_cfg->getSymY();
     String st = s1 + ":" + s2;
@@ -119,7 +126,8 @@ MinbarPairTrader::procMsg_ASK_PAIR(Message& msg) {
 }
 
 Message
-MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
+MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg)
+{
     Log(LOG_INFO) << "X history arrives";
 
     SerializePack pack;
@@ -132,7 +140,8 @@ MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
     m_ticksize_x = pack.real64_vec[0];
     m_tickval_x  = pack.real64_vec[1];
     size_t pm = 0;
-    for ( int i = 0; i < nbars; i++ ) {
+    for ( int i = 0; i < nbars; i++ )
+    {
         m_mid_x.push_back(v[pm]);
         m_assetX_mid.push_back(v[pm]/m_ticksize_x*m_tickval_x);
         pm+=bar_size;
@@ -145,7 +154,8 @@ MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
 }
 
 Message
-MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
+MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg)
+{
     Log(LOG_INFO) << "Y history arrives";
 
     SerializePack pack;
@@ -158,7 +168,8 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     m_tickval_y  = pack.real64_vec[1];
     auto& v = pack.real32_vec;
     size_t pm = 0;
-    for ( int i = 0; i < nbars; i++ ) {
+    for ( int i = 0; i < nbars; i++ )
+    {
         m_mid_y.push_back(v[pm]);
         m_assetY_mid.push_back(v[pm]/m_ticksize_y*m_tickval_y);
         pm+=bar_size;
@@ -185,7 +196,8 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
 }
 
 Message
-MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
+MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
+{
     m_pairCount++;
     Message outmsg(sizeof(real32), 0);
     SerializePack pack;
@@ -229,8 +241,14 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     real64 profit= pack.real64_vec1[4];
     real64 avg_profit = profit / m_curNumPos;
     Log(LOG_INFO) << "Current profit: " + to_string(profit) + ", avg/pos: " + to_string(avg_profit);
-    if (m_maxProfit < profit) { m_maxProfit = profit;}
-    if (m_avgProfit < avg_profit) { m_avgProfit = avg_profit; }
+    if (m_maxProfit < profit)
+    {
+        m_maxProfit = profit;
+    }
+    if (m_avgProfit < avg_profit)
+    {
+        m_avgProfit = avg_profit;
+    }
 
     FXAct act = m_oracle->getDecision();
 
@@ -246,7 +264,8 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 }
 
 Message
-MinbarPairTrader::procMsg_GOT_LOTS(Message& msg) {
+MinbarPairTrader::procMsg_GOT_LOTS(Message& msg)
+{
     real64 lx,ly;
     Message outmsg(sizeof(real64)*2);
     real64* pm = (real64*)outmsg.getData();

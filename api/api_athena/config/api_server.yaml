@@ -4,7 +4,7 @@ GENERAL:
     #                   2 - min bar pair trader
     #                   3 - pair selector
     #                   4 - robust pair trader
-    APPLICATION: 4
+    APPLICATION: 0
 
     # Log level: 0 - LOG_FATAL
     #            1 - LOG_ERROR
