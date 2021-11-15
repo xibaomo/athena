@@ -22,6 +22,9 @@ MinbarTracker::processMsg(Message& msg) {
     case FXAct::CLOSE_POS_INFO:
         outmsg = procMsg_CLOSED_POS_INFO(msg);
         break;
+    case FXAct::REQUEST_ACT:
+        outmsg = procMsg_REQUEST_ACT(msg);
+        break;
     default:
         Log(LOG_FATAL) << "Action not recognized: " + to_string((int)act);
         break;
@@ -135,7 +138,7 @@ MinbarTracker::procMsg_CLOSED_POS_INFO(Message& msg) {
 }
 
 Message
-MinbarTracker::procMsg_REQUEST_ACTION(Message& msg){
+MinbarTracker::procMsg_REQUEST_ACT(Message& msg){
     real64* pm = (real64*)msg.getData();
     FXAct act = m_predictor->predict(pm[0]);
 

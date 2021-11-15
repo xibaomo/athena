@@ -71,6 +71,6 @@ public:
     Message procMsg_NEW_MINBAR(Message& msg);
     Message procMsg_REGISTER_POS(Message& msg);
     Message procMsg_CLOSED_POS_INFO(Message& msg);
-    Message procMsg_REQUEST_ACTION(Message& msg);
+    Message procMsg_REQUEST_ACT(Message& msg);
 };
 
