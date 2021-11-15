@@ -30,11 +30,8 @@ MinbarPyPredictor::setPredictorFile(const String& path,const String& pf)
     PyEnviron::getInstance().appendSysPath(path);
 
     String modName = getFileStem(pf);
-    Log(LOG_INFO) << "module name: " + modName;
 
-    m_mod = PyImport_ImportModule(modName.c_str());
-    if (!m_mod)
-        Log(LOG_FATAL) << "Failed to import module: " + modName;
+    m_mod = PyRunner::getInstance().importModule(modName);
 }
 
 void

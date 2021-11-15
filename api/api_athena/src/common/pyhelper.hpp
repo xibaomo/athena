@@ -50,17 +50,6 @@ public:
         PyRun_SimpleString(cmd.c_str());
 
         m_addedModulePaths.insert(modulePath);
-
-        cmd = "print(sys.path)";
-        PyRun_SimpleString(cmd.c_str());
-
-        cmd = "import minbar_api";
-        PyRun_SimpleString(cmd.c_str());
-
-        cmd = "print('--------')";
-        PyRun_SimpleString(cmd.c_str());
-        cmd = "print(dir())";
-        PyRun_SimpleString(cmd.c_str());
     }
 };
 

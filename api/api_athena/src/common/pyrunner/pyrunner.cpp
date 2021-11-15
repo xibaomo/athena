@@ -39,3 +39,16 @@ PyRunner::runAthenaPyFunc(const String& modName, const String& funcName, PyObjec
 
     return res;
 }
+
+PyObject*
+PyRunner::importModule(const String& modName) {
+    if (m_addModules.find(modName)!=m_addModules.end())
+        return m_addModules[modName];
+
+    PyObject* mod = PyImport_ImportModule(modName.c_str());
+    if (!mod)
+        Log(LOG_FATAL) << "Failed to import module: " + modName;
+
+    m_addModules[modName] = mod;
+    return mod;
+}

@@ -59,6 +59,8 @@ public:
         return _ins;
     }
 
+    void prepare() {;}
+
     void finish();
     void dumpPosInfo();
 

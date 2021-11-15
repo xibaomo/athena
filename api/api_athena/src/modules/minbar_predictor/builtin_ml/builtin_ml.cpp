@@ -1,5 +1,6 @@
 #include "builtin_ml.h"
 #include "boost/date_time/posix_time/posix_time.hpp"
+#include "pyrunner/pyrunner.h"
 using namespace boost::posix_time;
 using namespace std;
 
@@ -8,12 +9,12 @@ BuiltinMLPredictor::BuiltinMLPredictor() : m_mod(nullptr){
     PyEnviron::getInstance().appendSysPath(modulePath);
     Log(LOG_INFO) << "Python module path appended: " + modulePath;
     String modName = "minbar_api";
-    m_mod = PyImport_ImportModule(modName.c_str());
+    m_mod = PyRunner::getInstance().importModule(modName);
     if(!m_mod) {
         Log(LOG_FATAL) << "Cannot import module: minbar_api";
     }
-    String path = String(getenv("ATHENA_HOME")) + "/minbar_classifier";
-    m_pyPredictor.setPredictorFile(path,"minbar_api");
+
+    m_pyPredictor.setPredictorFile(modulePath,modName);
 }
 
 void

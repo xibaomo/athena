@@ -460,9 +460,6 @@
 		<Unit filename="src/utests/test_import.cpp">
 			<Option target="test_import" />
 		</Unit>
-		<Unit filename="src/utests/tfpred.cpp">
-			<Option target="tfpred" />
-		</Unit>
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>

@@ -25,8 +25,10 @@
 #include "pyhelper.hpp"
 #include "basics/types.h"
 #include "basics/log.h"
+#include <map>
 class PyRunner {
 protected:
+    std::map<String,PyObject*> m_addModules;
     PyRunner();
 public:
     virtual ~PyRunner(){}
@@ -36,6 +38,7 @@ public:
         return _ins;
     }
 
+    PyObject* importModule(const String& mod);
     PyObject* runAthenaPyFunc(const String& modName, const String& funcName, PyObject* args);
 };
 
