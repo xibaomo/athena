@@ -37,9 +37,11 @@ def loadConfig(cf):
     model = pickle.load(open(pc.getModelFile(), 'rb'))
     global scaler
     scaler = pickle.load(open(pc.getScalerFile(), 'rb'))
+    print("model and scaler files are loaded")
 
 ############ required API for custom py predictor #####################
 def init(dates, tms, opens, highs, lows, closes, tkvs):
+    print("init() in minbar_api")
     global df, HOUR_TIME_ID
     df = createDataFrame(dates, tms, opens, highs, lows, closes, tkvs)
     for i in range(len(df)):

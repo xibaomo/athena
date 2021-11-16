@@ -51,8 +51,8 @@ MinbarPyPredictor::loadMinbarsToPredictor()
     PyObject* tk = PyList_New(len);
     for (size_t i = 0; i < len; i++)
     {
-        PyList_SetItem(date_list,i,Py_BuildValue("s",(*m_allMinBars)[i].date));
-        PyList_SetItem(time_list,i,Py_BuildValue("s",(*m_allMinBars)[i].time));
+        PyList_SetItem(date_list,i,Py_BuildValue("s",(*m_allMinBars)[i].date.c_str()));
+        PyList_SetItem(time_list,i,Py_BuildValue("s",(*m_allMinBars)[i].time.c_str()));
         PyList_SetItem(op,i,Py_BuildValue("d",(*m_allMinBars)[i].open));
         PyList_SetItem(hp,i,Py_BuildValue("d",(*m_allMinBars)[i].high));
         PyList_SetItem(lp,i,Py_BuildValue("d",(*m_allMinBars)[i].low));
@@ -81,8 +81,8 @@ MinbarPyPredictor::appendMinbar(const MinBar& mb)
     if(!func)
         Log(LOG_FATAL) << "Failed to find py function: appendMinbar";
 
-    PyObject* date = Py_BuildValue("s",mb.date);
-    PyObject* time = Py_BuildValue("s",mb.time);
+    PyObject* date = Py_BuildValue("s",mb.date.c_str());
+    PyObject* time = Py_BuildValue("s",mb.time.c_str());
     PyObject* op = Py_BuildValue("d",mb.open);
     PyObject* hp = Py_BuildValue("d",mb.high);
     PyObject* lp = Py_BuildValue("d",mb.low);

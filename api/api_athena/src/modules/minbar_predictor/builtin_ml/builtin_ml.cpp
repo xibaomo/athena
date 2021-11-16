@@ -15,6 +15,8 @@ BuiltinMLPredictor::BuiltinMLPredictor() : m_mod(nullptr){
     }
 
     m_pyPredictor.setPredictorFile(modulePath,modName);
+
+    Log(LOG_INFO) << "Built-in ML predictor created";
 }
 
 void

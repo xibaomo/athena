@@ -37,8 +37,8 @@ MinbarTracker::procMsg_HISTORY_MINBAR(Message& msg) {
     SerializePack pack;
     unserialize(msg.getComment(),pack);
 
-    int histLen = pack.int32_vec[0];
-    if (histLen == 0) {
+    int nbars = pack.int32_vec[0];
+    if (nbars == 0) {
         Log(LOG_INFO) << "No min bars from mt5";
         Message out;
         return out;
@@ -47,10 +47,6 @@ MinbarTracker::procMsg_HISTORY_MINBAR(Message& msg) {
     int bar_size = pack.int32_vec[1];
 
     real64* pm = &pack.real64_vec[0];
-    int nbars = msg.getDataBytes()/sizeof(real64)/bar_size;
-    if (nbars != histLen) {
-        Log(LOG_FATAL) << "No. of min bars inconsistent";
-    }
 
     for (int i = 0; i < nbars; i++) {
         MinBar mb{"unknown","unknown",pm[0],pm[1],pm[2],pm[3],pm[4]};
@@ -75,6 +71,9 @@ MinbarTracker::procMsg_HISTORY_MINBAR(Message& msg) {
     }
 
     m_predictor->prepare();
+
+    Message outmsg;
+    return outmsg;
 }
 
 Message
