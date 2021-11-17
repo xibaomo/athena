@@ -32,7 +32,7 @@ class MinbarTracker : public ServerBaseApp
 {
 protected:
 
-    std::map<mt5_ulong,PosInfo> m_tk2pos;
+    std::map<mt5ulong,PosInfo> m_tk2pos;
     MinBarBasePredictor* m_predictor;
     MbtConfig* m_mbtCfg;
 

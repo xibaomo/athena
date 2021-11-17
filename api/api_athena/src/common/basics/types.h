@@ -30,7 +30,7 @@ using String = std::string;
 typedef float real32;
 typedef double real64;
 typedef int int32;
-typedef uint64_t mt5_ulong;
+typedef uint64_t mt5ulong;
 
 #ifdef __USE_64_BIT
 typedef double Real;

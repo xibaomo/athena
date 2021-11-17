@@ -103,15 +103,15 @@ MinbarTracker::procMsg_NEW_MINBAR(Message& msg) {
 
 Message
 MinbarTracker::procMsg_REGISTER_POS(Message& msg) {
-    mt5_ulong *pm = (mt5_ulong*)msg.getData();
+    mt5ulong *pm = (mt5ulong*)msg.getData();
     String tm = msg.getComment();
     if (m_tk2pos.find(pm[0]) != m_tk2pos.end()) {
-        Log(LOG_ERROR) << "Position already registered: " <<pm[0] <<std::endl;
+        Log(LOG_ERROR) << "Position already registered: " << pm[0] <<std::endl;
     }
     PosInfo pf;
     pf.open_time = tm;
     m_tk2pos[pm[0]] = pf;
-    Log(LOG_INFO) << "Position registered: " << tm << " " << pm[0] <<std::endl;
+    Log(LOG_INFO) << "Position registered:  " << tm << ", ticket: " << pm[0] <<std::endl;
 
     Message outmsg;
     return outmsg;
@@ -122,7 +122,7 @@ MinbarTracker::procMsg_CLOSED_POS_INFO(Message& msg) {
     SerializePack pack;
     unserialize(msg.getComment(),pack);
 
-    unsigned long tk = pack.ulong_vec[0];
+    mt5ulong tk = pack.mt5ulong_vec[0];
     String tm = pack.str_vec[0];
     real64 profit = pack.real64_vec[0];
 
@@ -131,6 +131,8 @@ MinbarTracker::procMsg_CLOSED_POS_INFO(Message& msg) {
     }
     m_tk2pos[tk].close_time = tm;
     m_tk2pos[tk].profit = profit;
+
+    Log(LOG_INFO) << "Position closed: " << m_tk2pos[tk].close_time << ", profit: " << profit << endl;
 
     Message outmsg;
     return outmsg;
