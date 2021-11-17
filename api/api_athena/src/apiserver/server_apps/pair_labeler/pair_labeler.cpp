@@ -24,7 +24,7 @@ using namespace athena;
 
 PairLabeler::~PairLabeler() {
     MeanRevert* oracle = dynamic_cast<MeanRevert*>(m_oracle);
-    if (!oracle) Log(LOG_FATAL) << "not MeanRevert";
+    if (!oracle) Log(LOG_FATAL) << "not MeanRevert" <<std::endl;
 
     auto& ts = oracle->getTradeSpreads();
     std::vector<real64> bs,ss;

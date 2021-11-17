@@ -46,7 +46,7 @@ ClientBaseApp::wakeupServer(AppType atp)
 
     system(cmd.c_str());
 
-    Log(LOG_INFO) << "Launched api server. Waiting for response ...";
+    Log(LOG_INFO) << "Launched api server. Waiting for response ..." <<std::endl;
 
     Message msg;
     while ( m_msger->listenOnce(msg)>=0 ) {
@@ -54,7 +54,7 @@ ClientBaseApp::wakeupServer(AppType atp)
             case MsgAct::GET_READY:
                 break;
             case MsgAct::CHECK_IN:
-                Log(LOG_INFO) << "Api server checked in";
+                Log(LOG_INFO) << "Api server checked in" <<std::endl;
                 m_serverHostPort = msg.getComment();
                 return;
                 break;

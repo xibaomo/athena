@@ -47,10 +47,10 @@ Obsolete_minbar_tracker::processMsg(Message& msg)
     case FXAct::PROFIT:
         msgnew = procMsg_noreply(msg,[this](Message& m){
         real32* pm = (real32*)m.getData();
-        Log(LOG_INFO) << "Total profit of current positions: " + to_string(pm[0]);
+        Log(LOG_INFO) << "Total profit of current positions: " + to_string(pm[0]) <<std::endl;
         if (pm[0] < m_lowestProfit) m_lowestProfit = pm[0];
 
-        Log(LOG_INFO) << "Lowest profit: " + to_string(m_lowestProfit);
+        Log(LOG_INFO) << "Lowest profit: " + to_string(m_lowestProfit) <<std::endl;
                                  });
         break;
 
@@ -62,9 +62,9 @@ Obsolete_minbar_tracker::processMsg(Message& msg)
 
         real32 rev = std::accumulate(m_revenue.begin(),m_revenue.end(),0.);
         real32 loss = std::accumulate(m_loss.begin(),m_loss.end(),0.);
-        Log(LOG_INFO) << "Earn: " + to_string(rev);
-        Log(LOG_INFO) << "Loss: " + to_string(loss);
-        Log(LOG_INFO) << "Net profit: " + to_string(rev + loss);
+        Log(LOG_INFO) << "Earn: " + to_string(rev) <<std::endl;
+        Log(LOG_INFO) << "Loss: " + to_string(loss) <<std::endl;
+        Log(LOG_INFO) << "Net profit: " + to_string(rev + loss) <<std::endl;
                                  });
         break;
     default:
@@ -78,7 +78,7 @@ Message
 Obsolete_minbar_tracker::procMsg_MINBAR(Message& msg)
 {
     String timestr = msg.getComment();
-    Log(LOG_INFO) << "New min bar arrives: " + timestr + " + 00:01";
+    Log(LOG_INFO) << "New min bar arrives: " + timestr + " + 00:01" <<std::endl;
 
     real32* pm = (real32*)msg.getData();
 
@@ -88,7 +88,7 @@ Obsolete_minbar_tracker::procMsg_MINBAR(Message& msg)
 
     FXAct action = m_predictor->predict();
 
-    Log(LOG_INFO) << "Prediction: " + to_string((int)action);
+    Log(LOG_INFO) << "Prediction: " + to_string((int)action) <<std::endl;
     Message out;
     out.setAction(action);
 
@@ -99,14 +99,14 @@ Obsolete_minbar_tracker::procMsg_MINBAR(Message& msg)
 Message
 Obsolete_minbar_tracker::procMsg_HISTORY_MINBAR(Message& msg)
 {
-    Log(LOG_INFO) << "Loading min bars from MT5 ...";
+    Log(LOG_INFO) << "Loading min bars from MT5 ..." <<std::endl;
 
     SerializePack pack;
     unserialize(msg.getComment(),pack);
 
     int histLen = pack.int32_vec[0];
     if (histLen == 0) {
-        Log(LOG_INFO) << "No min bars from mt5";
+        Log(LOG_INFO) << "No min bars from mt5" <<std::endl;
         Message out;
         return out;
     }
@@ -116,7 +116,7 @@ Obsolete_minbar_tracker::procMsg_HISTORY_MINBAR(Message& msg)
     real32* pm = &pack.real32_vec[0];
     int nbars = msg.getDataBytes()/sizeof(real32)/bar_size;
     if (nbars != histLen) {
-        Log(LOG_FATAL) << "No. of min bars inconsistent";
+        Log(LOG_FATAL) << "No. of min bars inconsistent" <<std::endl;
     }
 
     for (int i = 0; i < nbars; i++) {
@@ -124,17 +124,17 @@ Obsolete_minbar_tracker::procMsg_HISTORY_MINBAR(Message& msg)
         pm+=bar_size;
     }
 
-    Log(LOG_INFO) << "Min bars from MT5 loaded: " + to_string(nbars);
-    Log(LOG_INFO) << "Total history min bars: " + to_string(m_allMinBars.size());
+    Log(LOG_INFO) << "Min bars from MT5 loaded: " + to_string(nbars) <<std::endl;
+    Log(LOG_INFO) << "Total history min bars: " + to_string(m_allMinBars.size()) <<std::endl;
 
     //display last 5 min bars
     int nb = 5;
-    Log(LOG_INFO) << "Oldest 5 min bars";
+    Log(LOG_INFO) << "Oldest 5 min bars" <<std::endl;
     for (int i = m_allMinBars.size() - nbars; i < m_allMinBars.size() -  nbars + nb; i++) {
         auto& mb = m_allMinBars[i];
         showMinBar(mb);
     }
-    Log(LOG_INFO) << "Latest 5 min bars: ";
+    Log(LOG_INFO) << "Latest 5 min bars: " <<std::endl;
     for (int i=m_allMinBars.size()-nb; i < (int)m_allMinBars.size(); i++) {
         auto& mb = m_allMinBars[i];
         showMinBar(mb);
@@ -151,7 +151,7 @@ Message
 Obsolete_minbar_tracker::procMsg_INIT_TIME(Message& msg)
 {
     String initTime = msg.getComment();
-    Log(LOG_INFO) << "MT5 latest bar: " + initTime;
+    Log(LOG_INFO) << "MT5 latest bar: " + initTime <<std::endl;
 
     String latestBarTime =  m_allMinBars.back().time;
     auto diffTime = getTimeDiffInMin(initTime,latestBarTime);
@@ -168,7 +168,7 @@ Obsolete_minbar_tracker::procMsg_INIT_TIME(Message& msg)
     int* pm = (int*)out.getData();
     pm[0] =  histLen;
     out.setAction(FXAct::REQUEST_HISTORY_MINBAR);
-    Log(LOG_INFO) << "Request client to send history min bars: " + to_string(histLen);
+    Log(LOG_INFO) << "Request client to send history min bars: " + to_string(histLen) <<std::endl;
 
     return out;
 }
@@ -186,9 +186,9 @@ Obsolete_minbar_tracker::loadMinBarFromFile(const String& barFile)
     }
 
     m_allMinBars.pop_back(); // drop the last min bar, which is normally incomplete
-    Log(LOG_INFO) << "History min bars loaded from file: " + to_string(m_allMinBars.size());
+    Log(LOG_INFO) << "History min bars loaded from file: " + to_string(m_allMinBars.size()) <<std::endl;
 
-    Log(LOG_INFO) << "Latest min bar in history: " + m_allMinBars.back().time;
+    Log(LOG_INFO) << "Latest min bar in history: " + m_allMinBars.back().time <<std::endl;
 }
 
 #endif // 0

@@ -26,7 +26,7 @@ using namespace athena;
 Rule75::~Rule75() {
     dumpVectors("devs.csv",m_deviations);
 
-    Log(LOG_INFO) << "Num buys: " + to_string(m_numBuys) + ", num sells: " + to_string(m_numSells);
+    Log(LOG_INFO) << "Num buys: " + to_string(m_numBuys) + ", num sells: " + to_string(m_numSells) <<std::endl;
 }
 
 void
@@ -34,13 +34,13 @@ Rule75::init() {
     auto& spreads = m_trader->getSpreads();
 
     m_median = gsl_stats_mean(&spreads[0],1,spreads.size());
-    Log(LOG_INFO) << "Mean of spreads: " + to_string(m_median);
+    Log(LOG_INFO) << "Mean of spreads: " + to_string(m_median) <<std::endl;
 
     m_std = gsl_stats_sd_m(&spreads[0],1,spreads.size(),m_median);
-    Log(LOG_INFO) << "std of spreads: " + to_string(m_std);
+    Log(LOG_INFO) << "std of spreads: " + to_string(m_std) <<std::endl;
 
 //    m_median = gsl_stats_median(&spreads[0],1,spreads.size());
-//    Log(LOG_INFO) << "Median of spreads: " + to_string(m_median);
+//    Log(LOG_INFO) << "Median of spreads: " + to_string(m_median) <<std::endl;
 }
 void
 Rule75::stats() {
@@ -52,7 +52,7 @@ Rule75::stats() {
     real64 mean = gsl_stats_mean(&spreads[start],1,len);
 
     real64 mean_shift = (mean-m_median) / m_std;
-    Log(LOG_INFO) << "Mean shift (in std) of latest " + to_string(len) + " spreads: " + to_string(mean_shift);
+    Log(LOG_INFO) << "Mean shift (in std) of latest " + to_string(len) + " spreads: " + to_string(mean_shift) <<std::endl;
 }
 FXAct
 Rule75::getDecision()
@@ -62,15 +62,15 @@ Rule75::getDecision()
 
     real64 cur = spreads.back();
     real64 dev = (cur-m_median)/m_std;
-    Log(LOG_INFO) << "Latest error (std) relative to original mean: " + to_string(dev);
+    Log(LOG_INFO) << "Latest error (std) relative to original mean: " + to_string(dev) <<std::endl;
     m_deviations.push_back(dev);
 
     if(cur > m_median) {
-        Log(LOG_INFO) << "Current error higher than median";
+        Log(LOG_INFO) << "Current error higher than median" <<std::endl;
         m_numSells++;
         return FXAct::PLACE_SELL;
     } else if (cur < m_median) {
-        Log(LOG_INFO) << "Current error lower than median";
+        Log(LOG_INFO) << "Current error lower than median" <<std::endl;
         m_numBuys++;
         return FXAct::PLACE_BUY;
     } else {
@@ -88,10 +88,10 @@ Rule75::isContinue() {
     size_t start = spreads.size() - len;
     real64 pv = testADF(&spreads[start],len);
 
-    Log(LOG_INFO) << "p-value of ADF test of latest " + to_string(len) + " spreads: " + to_string(pv);
+    Log(LOG_INFO) << "p-value of ADF test of latest " + to_string(len) + " spreads: " + to_string(pv) <<std::endl;
 
     if(pv > cfg->getStationaryPVLimit()) {
-        Log(LOG_WARNING) << "Spreads become non-stationary. Model fails!";
+        Log(LOG_WARNING) << "Spreads become non-stationary. Model fails!" <<std::endl;
         return false;
     }
 

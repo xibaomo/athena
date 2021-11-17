@@ -35,13 +35,13 @@ SpreadTrend::init() {
     auto& spreads = m_trader->getSpreads();
 
     real64 mean = gsl_stats_mean(&spreads[0],1,spreads.size());
-    Log(LOG_INFO) << "Mean of spreads: " + to_string(mean);
+    Log(LOG_INFO) << "Mean of spreads: " + to_string(mean) <<std::endl;
 
     m_std = gsl_stats_sd_m(&spreads[0],1,spreads.size(),mean);
-    Log(LOG_INFO) << "std of spreads: " + to_string(m_std);
+    Log(LOG_INFO) << "std of spreads: " + to_string(m_std) <<std::endl;
 
     m_curCuScore = std::accumulate(spreads.begin(),spreads.end(),0.f) / m_std;
-    Log(LOG_INFO) << "Base cuScore (std): " + to_string(m_curCuScore);
+    Log(LOG_INFO) << "Base cuScore (std): " + to_string(m_curCuScore) <<std::endl;
 
     m_cuScores.push_back(m_curCuScore);
 }
@@ -50,7 +50,7 @@ void
 SpreadTrend::stats() {
     auto& spreads = m_trader->getSpreads();
     m_curCuScore += spreads.back() / m_std;
-    Log(LOG_INFO) << "Current cuScore (std): " + to_string(m_curCuScore);
+    Log(LOG_INFO) << "Current cuScore (std): " + to_string(m_curCuScore) <<std::endl;
 
     m_cuScores.push_back(m_curCuScore);
 
@@ -75,7 +75,7 @@ SpreadTrend::getDecision() {
     size_t s = m_cuScores.size()-len;
     LRParam param = linreg(&x[0],&m_cuScores[s],len);
 
-    Log(LOG_INFO) << "cuScore trend slope: " + to_string(param.c1);
+    Log(LOG_INFO) << "cuScore trend slope: " + to_string(param.c1) <<std::endl;
 
 //    if (param.c1 > slope_thd) {
 //        return FXAct::PLACE_BUY;

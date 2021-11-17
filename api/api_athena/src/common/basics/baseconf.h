@@ -19,7 +19,7 @@ public:
             m_cfgFile = cfgFile;
             m_allConfig = YAML::LoadFile(cfgFile);
         } else {
-            Log(LOG_FATAL) << "Yaml file already loaded. Overwrite not supported: " + m_cfgFile;
+            Log(LOG_FATAL) << "Yaml file already loaded. Overwrite not supported: " + m_cfgFile <<std::endl;
         }
     }
 
@@ -35,7 +35,7 @@ T
 YamlConfig::getKeyValue(const String& keys)
 {
     if (m_allConfig.IsNull()) {
-        Log(LOG_FATAL) << "No yaml file loaded";
+        Log(LOG_FATAL) << "No yaml file loaded" <<std::endl;
     }
 
     auto v = athena::splitString(keys,"/");
@@ -44,7 +44,7 @@ YamlConfig::getKeyValue(const String& keys)
         String& key = v[i];
         const auto& node = (*p)[key];
         if (!node) {
-            Log(LOG_FATAL) << "Key not found: " + key;
+            Log(LOG_FATAL) << "Key not found: " + key <<std::endl;
         }
         p = &node;
         if (i == v.size()-1) {

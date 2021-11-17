@@ -27,7 +27,7 @@ protected:
     std::vector<int> m_pairLabels;
 
     PairLabeler(const String& cf) : MinbarPairTrader(cf) {
-        Log(LOG_INFO) << "Pair labeler app created";
+        Log(LOG_INFO) << "Pair labeler app created" <<std::endl;
     }
 public:
     ~PairLabeler();

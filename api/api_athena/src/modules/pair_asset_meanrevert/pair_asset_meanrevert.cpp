@@ -34,14 +34,14 @@ using namespace std;
 using namespace athena;
 
 PairAssetMeanRevert::~PairAssetMeanRevert() {
-    Log(LOG_INFO) << "Num of buys: " + to_string(m_buys) + ", sells: " + to_string(m_sells);
+    Log(LOG_INFO) << "Num of buys: " + to_string(m_buys) + ", sells: " + to_string(m_sells) <<std::endl;
 
     dumpVectors("buysell_totalassets.csv",m_totalAssets_buy,m_totalAssets_sell);
     dumpVectors("all_totalassets.csv",m_totalAssets_mid);
 
     ostringstream os;
     os << "Dev range: buy: [" << m_lowBuyDev<<","<<m_highBuyDev<<"], sell: [" << m_lowSellDev << "," << m_highSellDev << "]";
-    Log(LOG_INFO) << os.str();
+    Log(LOG_INFO) << os.str() <<std::endl;
 
 }
 #if 0
@@ -98,7 +98,7 @@ std::tuple<real64,real64> minimize_ratio_cost(real64 x0, real64 y0, real64 targe
         if(status==GSL_SUCCESS) {
             ostringstream oss;
             oss << "Minimum found: " << s->f << " at (" << gsl_vector_get(s->x,0) << "," << gsl_vector_get(s->x,1)<<")";
-            Log(LOG_INFO) << oss.str();
+            Log(LOG_INFO) << oss.str() <<std::endl;
         }
     } while(status==GSL_CONTINUE && iter <500);
 
@@ -109,7 +109,7 @@ std::tuple<real64,real64> minimize_ratio_cost(real64 x0, real64 y0, real64 targe
 
     ostringstream oss;
     oss << "lot_x: " << xp << ", lot_y: " << yp << ", lot_x/log_y = " << xp/yp;
-    Log(LOG_INFO) << oss.str();
+    Log(LOG_INFO) << oss.str() <<std::endl;
     gsl_vector_free(x);
     gsl_multimin_fdfminimizer_free(s);
 
@@ -123,7 +123,7 @@ PairAssetMeanRevert::findBestLots(real64 lotx0, real64 loty0) {
 
     LRParam param = linreg(&asset_x[0],&asset_y[0],asset_x.size());
 
-    Log(LOG_INFO) << "Linear reg: c0: " + to_string(param.c0) + ", c1: " + to_string(param.c1);
+    Log(LOG_INFO) << "Linear reg: c0: " + to_string(param.c0) + ", c1: " + to_string(param.c1) <<std::endl;
 
     //auto pm = minimize_ratio_cost(lotx0,loty0,1.f/abs(param.c1));
 
@@ -142,12 +142,12 @@ PairAssetMeanRevert::init() {
     createTotalAssets();
 
     real64 pv = testADF(&m_totalAssets_mid[0],m_totalAssets_mid.size());
-    Log(LOG_INFO) << "Total asset stationary p-value: " + to_string(pv);
+    Log(LOG_INFO) << "Total asset stationary p-value: " + to_string(pv) <<std::endl;
 
     if(pv < STATIONARY_PV) m_stationaryState = YES;
 
     m_curMean = std::accumulate(m_totalAssets_mid.begin(),m_totalAssets_mid.end(),0.f) / (real64)m_totalAssets_mid.size();
-    Log(LOG_INFO) << "Initial mean of total assets: " + to_string(m_curMean);
+    Log(LOG_INFO) << "Initial mean of total assets: " + to_string(m_curMean) <<std::endl;
 
 }
 void
@@ -167,10 +167,10 @@ PairAssetMeanRevert::compDevFromMean() {
     int start = m_totalAssets_mid.size() - std_len;
     m_devUnit = gsl_stats_sd(&m_totalAssets_mid[start],1,std_len);
 
-    Log(LOG_INFO) << "std of past " + to_string(std_len) + ": " + to_string(m_devUnit);
+    Log(LOG_INFO) << "std of past " + to_string(std_len) + ": " + to_string(m_devUnit) <<std::endl;
 
     m_curMean = std::accumulate(m_totalAssets_mid.begin()+start,m_totalAssets_mid.end(),0.f) / (real64)m_lookback;
-    Log(LOG_INFO) << "Mean updated: " + to_string(m_curMean);
+    Log(LOG_INFO) << "Mean updated: " + to_string(m_curMean) <<std::endl;
 
     DevInfo dev;
     dev.buy = (m_totalAssets_buy.back() - m_curMean) / m_devUnit;
@@ -183,7 +183,7 @@ PairAssetMeanRevert::compDevFromMean() {
     if (dev.sell > m_highSellDev) m_highSellDev = dev.sell;
     if (dev.sell < m_lowSellDev)  m_lowSellDev = dev.sell;
 
-    Log(LOG_INFO) << "Deviation from mean (std unit), buy: " + to_string(dev.buy) + ", sell: " + to_string(dev.sell);
+    Log(LOG_INFO) << "Deviation from mean (std unit), buy: " + to_string(dev.buy) + ", sell: " + to_string(dev.sell) <<std::endl;
 }
 
 void
@@ -217,14 +217,14 @@ PairAssetMeanRevert::appendAssets() {
 
     ostringstream oss; oss <<fixed; oss.precision(2);
     oss << "Total assets. buy: " << m_totalAssets_buy.back() << ", sell: " << m_totalAssets_sell.back() << ", mid: " << m_totalAssets_mid.back();
-    Log(LOG_INFO) << oss.str();
+    Log(LOG_INFO) << oss.str() <<std::endl;
 }
 
 void
 PairAssetMeanRevert::checkStationaryState() {
     int start = m_totalAssets_mid.size() - m_lookback;
     real64 pv = testADF(&m_totalAssets_mid[start],m_lookback);
-    Log(LOG_INFO) << "Past " + to_string(m_lookback) + " total asset stationary p-value: " + to_string(pv);
+    Log(LOG_INFO) << "Past " + to_string(m_lookback) + " total asset stationary p-value: " + to_string(pv) <<std::endl;
     if (pv > STATIONARY_PV)
         m_stationaryState = NO;
     else
@@ -281,7 +281,7 @@ PairAssetMeanRevert::decision_non_stationary() {
 
     real64 corr = gsl_stats_correlation(&x[0],1,&m_totalAssets_mid[start],1,m_lookback);
 
-    Log(LOG_INFO) << "Corr of total assets vs time: " + to_string(corr);
+    Log(LOG_INFO) << "Corr of total assets vs time: " + to_string(corr) <<std::endl;
 
     if (corr >= CORR_LIMIT) {
         m_buys++;

@@ -31,6 +31,7 @@
 #include <boost/log/utility/setup/console.hpp>
 #include <unordered_map>
 #include <typeinfo>
+#include <sstream>
 #include "types.h"
 
 #define BASE_METHOD_WARN Log(LOG_FATAL) << "Should be implemented in concrete class"
@@ -40,7 +41,8 @@ namespace src = boost::log::sources;
 namespace sinks = boost::log::sinks;
 namespace keywords = boost::log::keywords;
 
-enum LogLevel {
+enum LogLevel
+{
     LOG_FATAL = 0,
     LOG_ERROR,
     LOG_WARNING,
@@ -91,7 +93,10 @@ public:
         logging::core::get()->set_filter(logging::trivial::severity >= loglvl);
     }
 
-    LogLevel getLogLevel() { return m_setLevel; }
+    LogLevel getLogLevel()
+    {
+        return m_setLevel;
+    }
 
     void setCurLogLevel(LogLevel lvl)
     {
@@ -106,7 +111,7 @@ public:
 //                                     (::boost::log::keywords::severity = loglvl)) << msg << std::endl;
 //        BOOST_LOG_SEV(m_lg, loglvl) << msg;
         BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(), \
-                (::boost::log::keywords::severity = loglvl)) << msg;
+                                     (::boost::log::keywords::severity = loglvl)) << msg;
         if ( m_curLevel == LogLevel::LOG_FATAL )
             exit(1);
         return *this;
@@ -115,6 +120,7 @@ public:
 
 class Logger
 {
+    std::stringstream m_curContent;
 public:
 
     Logger(LogLevel lvl)
@@ -129,7 +135,8 @@ public:
         logger.setLogLevel(lvl);
     }
 
-    static int getLogLevel() {
+    static int getLogLevel()
+    {
         auto& logger = LogStream::getInstance();
         return (int)logger.getLogLevel();
     }
@@ -137,8 +144,16 @@ public:
     template <typename T>
     Logger& operator << (const T& msg)
     {
+        m_curContent<<msg;
+        return *this;
+    }
+    // handle std::endl, which is a function
+    Logger& operator<<( std::ostream&(*f)(std::ostream&) )
+    {
+        m_curContent<<'\n';
         auto& logger = LogStream::getInstance();
-        logger << msg;
+        logger << m_curContent.str();
+        m_curContent.str("");
         return *this;
     }
 };

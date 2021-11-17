@@ -44,7 +44,7 @@ Messenger::createTCPSocket()
     int sock;
 
     if ( (sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP))<0 ) {
-        Log(LOG_FATAL) << "Falied to create a tcp socket";
+        Log(LOG_FATAL) << "Falied to create a tcp socket" <<std::endl;
     }
     keepSockAlive(sock);
 
@@ -57,7 +57,7 @@ Messenger::keepSockAlive(int sock)
     int optval = 1;
     socklen_t optlen = sizeof(optval);
     if ( setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0 ) {
-        Log(LOG_FATAL) << "Failed to set socket to keep alive";
+        Log(LOG_FATAL) << "Failed to set socket to keep alive" <<std::endl;
     }
     return;
 }
@@ -67,7 +67,7 @@ Messenger::bindSocketToPort(bool isGenPort)
 {
     if ( !isGenPort ) {
         // use m_port
-        Log(LOG_FATAL) << "Not supported";
+        Log(LOG_FATAL) << "Not supported" <<std::endl;
     }
 
     //m_port = getpid();
@@ -79,10 +79,10 @@ Messenger::bindSocketToPort(bool isGenPort)
         m_addr.sin_addr.s_addr = htonl(INADDR_ANY);
         m_addr.sin_port = htons(m_port);
         if ( bind(m_hostSock, (struct sockaddr *)&m_addr, sizeof(m_addr))>=0 ) {
-            Log(LOG_INFO) << "Bind successful. Port: " << m_port;
+            Log(LOG_INFO) << "Bind successful. Port: " << m_port <<std::endl;
             break;
         }
-        Log(LOG_VERBOSE) << "Tried port: " << m_port;
+        Log(LOG_VERBOSE) << "Tried port: " << m_port <<std::endl;
         //m_port++;
     }
 }
@@ -91,7 +91,7 @@ void
 Messenger::enableListenSocket(int sock, int backlog)
 {
     if ( listen(sock, backlog)<0 ) {
-        Log(LOG_FATAL) << "Failed to enable listening on socket";
+        Log(LOG_FATAL) << "Failed to enable listening on socket" <<std::endl;
     }
 }
 
@@ -102,7 +102,7 @@ Messenger::getBufferSize()
     socklen_t size = sizeof(int);
     int err = getsockopt(m_hostSock, SOL_SOCKET, SO_RCVBUF, (char*)&sockbufsize, &size);
     if ( err ) {
-        Log(LOG_FATAL) << "Cannot obtain socket buffer size: " << sockbufsize;
+        Log(LOG_FATAL) << "Cannot obtain socket buffer size: " << sockbufsize <<std::endl;
     }
 
     return sockbufsize;
@@ -163,7 +163,7 @@ Messenger::readMsgFromSocket(int sock, char* buffer, int& valread, char* readBuf
                     return nullptr;
                 }
             } else {
-                Log(LOG_FATAL) << "One connection allows only one msg";
+                Log(LOG_FATAL) << "One connection allows only one msg" <<std::endl;
             }
         }
     }
@@ -187,7 +187,7 @@ Messenger::acceptReadConn()
         int clntsock;
         if ( (clntsock = accept(m_hostSock, (struct sockaddr*)&clntAddr,
                         (socklen_t*)&addrlen))<0) {
-            Log(LOG_FATAL) << "Failed to ccept connection";
+            Log(LOG_FATAL) << "Failed to ccept connection" <<std::endl;
         }
         drainSocket(clntsock);
         hangup(clntsock);
@@ -229,7 +229,7 @@ Messenger::sendAMsgToAddr(Message& msg, SockAddr& addr)
     connectSockAddr(sock, &addr);
     sockSend(msg, sock);
     close(sock);
-    Log(LOG_DEBUG) << "msg sent. socket closed";
+    Log(LOG_DEBUG) << "msg sent. socket closed" <<std::endl;
 }
 
 void
@@ -249,7 +249,7 @@ Messenger::listenOnce(Message& msg)
         int clntsock;
         if ( (clntsock = accept(m_hostSock, NULL,
                         NULL))<0) {
-            Log(LOG_FATAL) << "Failed to accept connection";
+            Log(LOG_FATAL) << "Failed to accept connection" <<std::endl;
         }
         drainSocket(clntsock);
         hangup(clntsock);
@@ -264,7 +264,7 @@ Messenger::listenOnce(Message& msg)
         return 1;
     }
 
-    Log(LOG_DEBUG) << "Listened once";
+    Log(LOG_DEBUG) << "Listened once" <<std::endl;
     return 0;
 }
 

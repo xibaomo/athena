@@ -105,12 +105,12 @@ class NonBlockSysCall {
 //        int d = fileno(m_fh);
 //        ssize_t r = read(d, m_buffer, 1024);
 //        if ( r == -1 && errno == EAGAIN ) {
-//            //Log(LOG_VERBOSE) << m_cmd + " not finished";
+//            //Log(LOG_VERBOSE) << m_cmd + " not finished" <<std::endl;
 //            return false;
 //        } else if (r > 0) {
 //            return true;
 //        } else
-//            Log(LOG_ERROR) << "Pipe closed";
+//            Log(LOG_ERROR) << "Pipe closed" <<std::endl;
 //        return false;
 //    }
 

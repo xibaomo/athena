@@ -77,14 +77,14 @@ MAHunter::predict(real64 new_open)
     int id = ma_aux.size() - 2;
     int offset = id - tp;
 
-    Log(LOG_INFO) << "Nearest turn point: " + to_string(offset);
+    Log(LOG_INFO) << "Nearest turn point: " + to_string(offset) <<std::endl;
 
     if (offset > m_config->getTurnPointOffset())
         return FXAct::NOACTION;
 
     real64 slope = (ma_aux[id+1]-ma_aux[id-1])/2.;
     real64 fos    = m_config->getFireOffSlope();
-    Log(LOG_INFO) << "Slope (1e6) = " + to_string(slope*1e6);
+    Log(LOG_INFO) << "Slope (1e6) = " + to_string(slope*1e6) <<std::endl;
 
     if (slope >= fos)
         return FXAct::PLACE_BUY;
@@ -111,7 +111,7 @@ MAHunter::findNearestTurnPoint(vector<real64>& curve)
     }
 
     if (id == -1) {
-        Log(LOG_ERROR) << "Failed to find turn point";
+        Log(LOG_ERROR) << "Failed to find turn point" <<std::endl;
     }
     return id;
 }

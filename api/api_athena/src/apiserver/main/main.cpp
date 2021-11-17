@@ -25,11 +25,11 @@ int main(int argc, char** argv)
 
     //PyRunner::getInstance();
     PyEnviron::getInstance().appendSysPath("/home/naopc/dev/athena/minbar_classifier");
-    Log(LOG_INFO) << "Athena api-server starts";
+    Log(LOG_INFO) << "Athena api-server starts" <<std::endl;
 
     // argv[1] is config file
     if (argc < 2)
-        Log(LOG_FATAL) << "Usage: api_server <yaml_file>";
+        Log(LOG_FATAL) << "Usage: api_server <yaml_file>" <<std::endl;
 
     GeneralConfig* cfg = &GeneralConfig::getInstance();
     cfg->loadConfig(String(argv[1]));
@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 
     app->finish();
 
-    Log(LOG_INFO) << "Athena api-server exits normally.";
+    Log(LOG_INFO) << "Athena api-server exits normally." <<std::endl;
 
     return 0;
 }

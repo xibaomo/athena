@@ -126,11 +126,11 @@ public:
 
     {
         if ( !other.m_own )
-            Log(LOG_FATAL) << "Cannot transfer ownership if not own it";
+            Log(LOG_FATAL) << "Cannot transfer ownership if not own it" <<std::endl;
 
         if ( !other.m_entireMsg ) {
             m_entireMsg = nullptr;
-            Log(LOG_FATAL) << "Null msg cannot be moved";
+            Log(LOG_FATAL) << "Null msg cannot be moved" <<std::endl;
         }
 
         else {
@@ -145,7 +145,7 @@ public:
     Message& operator=(Message&& other)
     {
         if ( !other.m_own )
-            Log(LOG_FATAL) << "Cannot transfer ownership if not own it";
+            Log(LOG_FATAL) << "Cannot transfer ownership if not own it" <<std::endl;
 
         if ( m_own && m_entireMsg )
             free(m_entireMsg);

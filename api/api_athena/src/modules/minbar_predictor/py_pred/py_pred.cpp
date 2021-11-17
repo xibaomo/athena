@@ -26,7 +26,7 @@ MinbarPyPredictor::MinbarPyPredictor(): m_mod(nullptr)
 void
 MinbarPyPredictor::setPredictorFile(const String& path,const String& pf)
 {
-    Log(LOG_INFO) << "Predictor folder: " + path;
+    Log(LOG_INFO) << "Predictor folder: " + path <<std::endl;
     PyEnviron::getInstance().appendSysPath(path);
 
     String modName = getFileStem(pf);
@@ -39,7 +39,7 @@ MinbarPyPredictor::loadMinbarsToPredictor()
 {
     PyObject* init_func = PyObject_GetAttrString(m_mod,"init");
     if(!init_func)
-        Log(LOG_FATAL) << "Failed to find py function: init";
+        Log(LOG_FATAL) << "Failed to find py function: init" <<std::endl;
 
     size_t len =  m_allMinBars->size();
     PyObject* date_list = PyList_New(len);
@@ -79,7 +79,7 @@ MinbarPyPredictor::appendMinbar(const MinBar& mb)
 {
     PyObject* func = PyObject_GetAttrString(m_mod,"appendMinbar");
     if(!func)
-        Log(LOG_FATAL) << "Failed to find py function: appendMinbar";
+        Log(LOG_FATAL) << "Failed to find py function: appendMinbar" <<std::endl;
 
     PyObject* date = Py_BuildValue("s",mb.date.c_str());
     PyObject* time = Py_BuildValue("s",mb.time.c_str());
@@ -114,7 +114,7 @@ FXAct
 MinbarPyPredictor::predict(real64 new_open) {
     PyObject* func = PyObject_GetAttrString(m_mod,"predict");
     if(!func)
-        Log(LOG_FATAL) << "Failed to find py function: predict";
+        Log(LOG_FATAL) << "Failed to find py function: predict" <<std::endl;
 
     PyObject* np = Py_BuildValue("d",new_open);
     PyObject* args = Py_BuildValue("(O)",np);

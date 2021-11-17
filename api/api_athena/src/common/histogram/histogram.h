@@ -51,10 +51,10 @@ std::vector<size_t> histogram(std::vector<T>& data, std::vector<T>& bins)
     for ( auto& v : data ) {
         int idx = bisec_search_bin(v, bins);
         if ( idx < 0 ) {
-            Log(LOG_FATAL) << "Failed to find bin containing " + std::to_string(v);
+            Log(LOG_FATAL) << "Failed to find bin containing " + std::to_string(v) <<std::endl;
         }
         if (idx >= contents.size())
-            Log(LOG_FATAL) << "Exceed scope of bins";
+            Log(LOG_FATAL) << "Exceed scope of bins" <<std::endl;
 
         contents[idx]++;
     }

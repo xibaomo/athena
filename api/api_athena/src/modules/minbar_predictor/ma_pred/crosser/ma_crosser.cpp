@@ -26,7 +26,7 @@ MACrosser::MACrosser(const String& cf, MACalculator* cal): MABasePredictor(cal),
     m_config = &MACrosserConfig::getInstance();
     m_config->loadConfig(cf);
 
-    Log(LOG_INFO) << "MA crosser created";
+    Log(LOG_INFO) << "MA crosser created" <<std::endl;
 }
 
 MACrosser::~MACrosser()

@@ -37,11 +37,11 @@ createMBPredictor(int type,MbtConfig* cfg)
     }
     case 1: {
         p = new MinbarPyPredictor();
-        Log(LOG_FATAL) << "Customized python predictor not supported";
+        Log(LOG_FATAL) << "Customized python predictor not supported" <<std::endl;
         break;
     }
     default:
-        Log(LOG_FATAL) << "Predictor type not supported: " + to_string(type);
+        Log(LOG_FATAL) << "Predictor type not supported: " + to_string(type) <<std::endl;
         break;
     }
 

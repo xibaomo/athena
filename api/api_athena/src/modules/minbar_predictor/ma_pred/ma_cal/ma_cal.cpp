@@ -8,7 +8,7 @@ MACalculator* createMACalculator(MA_TYPE mt)
         mc = &MA_lwma::getInstance();
         break;
     default:
-        Log(LOG_FATAL) << "MA type not supported";
+        Log(LOG_FATAL) << "MA type not supported" <<std::endl;
         break;
     }
 

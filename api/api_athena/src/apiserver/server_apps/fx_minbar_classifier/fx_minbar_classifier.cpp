@@ -36,7 +36,7 @@ ForexMinBarClassifier::prepare()
 //    CPyObject pyBarFile = Py_BuildValue("s",barFile.c_str());
 //    m_pyLatestMinbar = PyObject_CallMethod(m_buyPredictor,"loadHistoryBarFile","(O)",pyBarFile.getObject());
 
-    Log(LOG_INFO) << "First loading history file, latest bar time: " + getStringFromPyobject(m_pyLatestMinbar);
+    Log(LOG_INFO) << "First loading history file, latest bar time: " + getStringFromPyobject(m_pyLatestMinbar) <<std::endl;
 
 }
 
@@ -62,7 +62,7 @@ ForexMinBarClassifier::loadFilter(CPyObject& predictor, const String& modelFile)
     CPyObject arg = Py_BuildValue("s",modelFile.c_str());
     PyObject_CallMethod(predictor, "loadAModel","(O)",arg.getObject());
 
-    Log(LOG_INFO) << "Model loaded: " + modelFile;
+    Log(LOG_INFO) << "Model loaded: " + modelFile <<std::endl;
 }
 
 void
@@ -73,17 +73,17 @@ ForexMinBarClassifier::loadPythonModule()
     PyEnviron::getInstance().appendSysPath(modulePath);
     m_predictorModule = PyImport_ImportModule("forex_minbar_predictor");
     if (!m_predictorModule) {
-        Log(LOG_FATAL) << "Failed to import module: forex_minbar_predictor";
+        Log(LOG_FATAL) << "Failed to import module: forex_minbar_predictor" <<std::endl;
     }
 
     CPyObject predictorClass = PyObject_GetAttrString(m_predictorModule,"ForexMinBarPredictor");
     if (!predictorClass) {
-        Log(LOG_FATAL) << "Failed to get class: ForexMinBarPredictor";
+        Log(LOG_FATAL) << "Failed to get class: ForexMinBarPredictor" <<std::endl;
     }
 
     m_buyPredictor = PyObject_CallObject(predictorClass,NULL);
     if (!m_buyPredictor) {
-        Log(LOG_FATAL) << "Failed to create python buy predictor";
+        Log(LOG_FATAL) << "Failed to create python buy predictor" <<std::endl;
     }
 
 }
@@ -113,9 +113,9 @@ ForexMinBarClassifier::processMsg(Message& msg)
 Message
 ForexMinBarClassifier::procMsg_CHECKIN(Message& msg)
 {
-    Log(LOG_INFO) << "Client checks in";
+    Log(LOG_INFO) << "Client checks in" <<std::endl;
     if ( !compareStringNoCase(m_fxSymbol, msg.getComment()) ) {
-        Log(LOG_FATAL) << "Received symbol is inconsistent with model files";
+        Log(LOG_FATAL) << "Received symbol is inconsistent with model files" <<std::endl;
     }
 
     Message msgnew;
@@ -125,7 +125,7 @@ ForexMinBarClassifier::procMsg_CHECKIN(Message& msg)
 Message
 ForexMinBarClassifier::procMsg_MINBAR(Message& msg)
 {
-    Log(LOG_INFO) << "New min bar arrives: " + msg.getComment() + " + 00:05 ";
+    Log(LOG_INFO) << "New min bar arrives: " + msg.getComment() + " + 00:05 " <<std::endl;
     Real* pm = (Real*)msg.getData();
 
     Log(LOG_INFO) << to_string(pm[0]) + " "
@@ -151,16 +151,16 @@ ForexMinBarClassifier::procMsg_MINBAR(Message& msg)
                                  pytime.getObject());
 
     if (!pypred) {
-        Log(LOG_FATAL) << "Buy prediction failed";
+        Log(LOG_FATAL) << "Buy prediction failed" <<std::endl;
     }
     int buy_pred = getIntFromPyobject(pypred);
 
     if (buy_pred == 0) {
         action = (ActionType)FXAct::PLACE_BUY;
-        Log(LOG_INFO) << "Place buy position";
+        Log(LOG_INFO) << "Place buy position" <<std::endl;
     } else {
         action = (ActionType)FXAct::NOACTION;
-        Log(LOG_INFO) << "No action";
+        Log(LOG_INFO) << "No action" <<std::endl;
     }
     Message msgnew;
     msgnew.setAction(action);
@@ -189,12 +189,12 @@ ForexMinBarClassifier::procMsg_HISTORY_MINBAR(Message& msg)
                             lst.getObject(),
                             pylookback.getObject(),
                             pyminbarsize.getObject());
-        Log(LOG_INFO) << "Buy predictor loads history min bars. History length: " + to_string(histLen);
+        Log(LOG_INFO) << "Buy predictor loads history min bars. History length: " + to_string(histLen) <<std::endl;
     } else {
-        Log(LOG_INFO) << "No min bars from mt5, predicting unlabeled bars in history ...";
+        Log(LOG_INFO) << "No min bars from mt5, predicting unlabeled bars in history ..." <<std::endl;
         PyObject_CallMethod(m_buyPredictor,"predictHistoryMinBars",NULL);
 
-        Log(LOG_INFO) << "All history bars are labeled";
+        Log(LOG_INFO) << "All history bars are labeled" <<std::endl;
     }
 
 
@@ -206,7 +206,7 @@ Message
 ForexMinBarClassifier::procMsg_INIT_TIME(Message& msg)
 {
     String initTime = msg.getComment();
-    Log(LOG_INFO) << "MT5 latest bar: " + initTime;
+    Log(LOG_INFO) << "MT5 latest bar: " + initTime <<std::endl;
 
     String latestMinBar;
     CPyObject pyLatestMinbar;
@@ -228,14 +228,14 @@ ForexMinBarClassifier::procMsg_INIT_TIME(Message& msg)
     }
 
 //    latestMinBar = convertTimeString(latestMinBar,"%Y.%m.%d %H:%M");
-//    Log(LOG_INFO) << "Converted latest min bar: " + latestMinBar;
+//    Log(LOG_INFO) << "Converted latest min bar: " + latestMinBar <<std::endl;
 
     Message msgnew(sizeof(int),latestMinBar.size());
     msgnew.setComment(latestMinBar);
     int* pm = (int*)msgnew.getData();
     pm[0] = histLen;
     msgnew.setAction(FXAct::REQUEST_HISTORY_MINBAR);
-    Log(LOG_INFO) << "Request client to send history min bars: " + to_string(histLen);
+    Log(LOG_INFO) << "Request client to send history min bars: " + to_string(histLen) <<std::endl;
 
     return msgnew;
 }

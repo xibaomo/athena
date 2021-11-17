@@ -15,10 +15,10 @@ MinBarPairTrader::processMsg(Message& msg) {
         outmsg = procMsg_ASK_PAIR(msg);
         break;
     case FXAct::PAIR_HIST_X:
-        Log(LOG_INFO) << "X min bars arrive";
+        Log(LOG_INFO) << "X min bars arrive" <<std::endl;
         outmsg = procMsg_noreply(msg,[this](Message& msg) {
             loadHistoryFromMsg(msg,m_minbarX,m_openX);
-            Log(LOG_INFO) << "Min bar X loaded";
+            Log(LOG_INFO) << "Min bar X loaded" <<std::endl;
         });
         break;
     case FXAct::PAIR_HIST_Y: {
@@ -44,13 +44,13 @@ MinBarPairTrader::processMsg(Message& msg) {
 
     switch((FXAct)outmsg.getAction()) {
     case FXAct::PLACE_BUY:
-        Log(LOG_INFO) << "Action: buy Y";
+        Log(LOG_INFO) << "Action: buy Y" <<std::endl;
         break;
     case FXAct::PLACE_SELL:
-        Log(LOG_INFO) << "Action: sell Y";
+        Log(LOG_INFO) << "Action: sell Y" <<std::endl;
         break;
     case FXAct::NOACTION:
-        Log(LOG_INFO) << "No action";
+        Log(LOG_INFO) << "No action" <<std::endl;
         break;
     default:
         break;
@@ -71,7 +71,7 @@ MinBarPairTrader::procMsg_PAIR_POS_CLOSED(Message& msg) {
         key = v[1] + "/" + v[0];
     }
     if (m_pairTracker.find(key) == m_pairTracker.end()) {
-        Log(LOG_ERROR) << "Cannot find the pair: " + key;
+        Log(LOG_ERROR) << "Cannot find the pair: " + key <<std::endl;
         return outmsg;
     }
 
@@ -96,10 +96,10 @@ MinBarPairTrader::procMsg_SYM_HIST_OPEN(Message& msg) {
     SerializePack pack;
     unserialize(msg.getComment(),pack);
     String sym = pack.str_vec[0];
-    Log(LOG_INFO) << "Received history: " + sym;
+    Log(LOG_INFO) << "Received history: " + sym <<std::endl;
 
     if (m_sym2hist.find(sym) != m_sym2hist.end()) {
-        Log(LOG_ERROR) << "Duplicated symbol received: " + sym;
+        Log(LOG_ERROR) << "Duplicated symbol received: " + sym <<std::endl;
     }
 
     m_sym2hist[sym] = std::move(pack.real32_vec);
@@ -109,18 +109,18 @@ MinBarPairTrader::procMsg_SYM_HIST_OPEN(Message& msg) {
 }
 Message
 MinBarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
-    Log(LOG_INFO) << "Y min bars arrive";
+    Log(LOG_INFO) << "Y min bars arrive" <<std::endl;
 
     loadHistoryFromMsg(msg,m_minbarY,m_openY);
-    Log(LOG_INFO) << "Min bar Y loaded";
+    Log(LOG_INFO) << "Min bar Y loaded" <<std::endl;
 
 
     if (m_minbarX.size() != m_minbarY.size()) {
-        Log(LOG_FATAL) << "Inconsistent length of X & Y";
+        Log(LOG_FATAL) << "Inconsistent length of X & Y" <<std::endl;
     }
 
     real64 corr = computePairCorr(m_openX,m_openY);
-    Log(LOG_INFO) << "Correlation: " + to_string(corr);
+    Log(LOG_INFO) << "Correlation: " + to_string(corr) <<std::endl;
 
     linearReg(m_openX.size()-5000);
 
@@ -142,7 +142,7 @@ MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::
 
     int histLen = pack.int32_vec[0];
     if (histLen == 0) {
-        Log(LOG_INFO) << "No min bars from mt5";
+        Log(LOG_INFO) << "No min bars from mt5" <<std::endl;
         return;
     }
 
@@ -150,7 +150,7 @@ MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::
     real32* pm = &pack.real32_vec[0];
     int nbars = msg.getDataBytes()/sizeof(real32)/bar_size;
     if (nbars != histLen) {
-        Log(LOG_FATAL) << "No. of min bars inconsistent";
+        Log(LOG_FATAL) << "No. of min bars inconsistent" <<std::endl;
     }
 
     for (int i = 0; i < nbars; i++) {
@@ -160,7 +160,7 @@ MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::
         pm+=bar_size;
     }
 
-    Log(LOG_INFO) << "History min bars loaded: " + to_string(v.size());
+    Log(LOG_INFO) << "History min bars loaded: " + to_string(v.size()) <<std::endl;
 
 }
 
@@ -207,7 +207,7 @@ MinBarPairTrader::linearReg(int start) {
         ss_res += pow(err,2);
     }
     real64 r2 = 1-ss_res/ss_tot;
-    Log(LOG_INFO) << "R2 = " + to_string(r2);
+    Log(LOG_INFO) << "R2 = " + to_string(r2) <<std::endl;
 
     compDistr(spread,len,&m_spreadMean,&m_spreadStd);
 
@@ -221,7 +221,7 @@ MinBarPairTrader::linearReg(int start) {
         if (pv > m_maxStatPValue) m_maxStatPValue = pv;
 
         m_currStatus["statPV"] = pv;
-        Log(LOG_INFO) << "p-value of non-stationarity of spread: " + to_string(pv);
+        Log(LOG_INFO) << "p-value of non-stationarity of spread: " + to_string(pv) <<std::endl;
     }
 
     m_currStatus["profit"] = 0;
@@ -237,7 +237,7 @@ MinBarPairTrader::linearReg(int start) {
 //    }
 //    ofs.close();
 //
-//    Log(LOG_INFO) << "spread dumped to spread.csv";
+//    Log(LOG_INFO) << "spread dumped to spread.csv" <<std::endl;
     delete[] x;
     delete[] y;
     delete[] spread;
@@ -254,7 +254,7 @@ MinBarPairTrader::compDistr(real64* data, int len, real64* mean_out, real64* sd_
     if(mean_out)    *mean_out=mean;
     if(sd_out)      *sd_out=sd;
 
-    Log(LOG_INFO) << "Spread mean: " + to_string(mean) + ", std: " + to_string(sd);
+    Log(LOG_INFO) << "Spread mean: " + to_string(mean) + ", std: " + to_string(sd) <<std::endl;
     Log(LOG_INFO) << "Max deviation/std: " + to_string((minsp-mean)/sd) + ", "
                   + to_string((maxsp-mean)/sd);
 
@@ -274,24 +274,24 @@ MinBarPairTrader::compDistr(real64* data, int len, real64* mean_out, real64* sd_
         real64 rs = mean+s*sd;
         real64 ls = mean-(s+1)*sd;
         if (rs> bins.back()) {
-            Log(LOG_INFO) << to_string(s+1) + "std exceeds max";
+            Log(LOG_INFO) << to_string(s+1) + "std exceeds max" <<std::endl;
             break;
         }
         if (ls < bins[0]) {
-            Log(LOG_INFO) << to_string(s+1) + "std exceeds min";
+            Log(LOG_INFO) << to_string(s+1) + "std exceeds min" <<std::endl;
             break;
         }
         String srs = to_string(rs);
         String sls = to_string(ls);
         if (bin2count.find(srs)==bin2count.end())
-            Log(LOG_FATAL) << "Fail to find right std: " + srs;
+            Log(LOG_FATAL) << "Fail to find right std: " + srs <<std::endl;
         if (bin2count.find(sls)==bin2count.end())
-            Log(LOG_FATAL) << "Fail to find left std: " + sls;
+            Log(LOG_FATAL) << "Fail to find left std: " + sls <<std::endl;
 
         sn += bin2count[srs] + bin2count[sls];
         real64 rat = (real64)sn/sum;
         String msg = "[-" + to_string(s+1) + "," + to_string(s+1) + "]std: " + to_string(rat);
-        Log(LOG_INFO) << msg;
+        Log(LOG_INFO) << msg <<std::endl;
 
         s++;
     }
@@ -316,16 +316,16 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 
     String timeStr = pack.str_vec[0];
 
-    Log(LOG_INFO) <<"";
+    Log(LOG_INFO) <<"" <<std::endl;
 
     Log(LOG_INFO) << "Mt5 time: " + timeStr + ", X: " + to_string(x)
                   + ", Y: " + to_string(y);
 
     real64 corr = computePairCorr(m_openX,m_openY);
-    Log(LOG_INFO) << "Correlation so far: " + to_string(corr);
+    Log(LOG_INFO) << "Correlation so far: " + to_string(corr) <<std::endl;
     if (fabs(corr) < m_cfg->getCorrBaseline()) {
         outmsg.setAction(FXAct::NOACTION);
-        Log(LOG_ERROR) << "Correlation lower than threshold";
+        Log(LOG_ERROR) << "Correlation lower than threshold" <<std::endl;
         return outmsg;
     }
 
@@ -338,17 +338,17 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 
     m_currStatus["rms"] = m_currStatus["rms"] / y_pv*y_pd;
 
-    Log(LOG_INFO) << "rms = $" + to_string(m_currStatus["rms"]) + " (per unit volume)";
+    Log(LOG_INFO) << "rms = $" + to_string(m_currStatus["rms"]) + " (per unit volume)" <<std::endl;
 
     real64 spread = y - m_linregParam.c1*x;
 
     real64 thd = m_cfg->getLowThresholdStd();
 
     real64 dev_val = m_spreadStd/y_pv*y_pd;
-    Log(LOG_INFO) << "std = $" + to_string(dev_val) + " (per unit volume)";
+    Log(LOG_INFO) << "std = $" + to_string(dev_val) + " (per unit volume)" <<std::endl;
 
     real64 fac = (spread - m_spreadMean)/m_spreadStd;
-    Log(LOG_INFO) << " ====== err/std: " + to_string(fac) + " ======";
+    Log(LOG_INFO) << " ====== err/std: " + to_string(fac) + " ======" <<std::endl;
 
     m_currStatus["err"] = fac;
     m_currStatus["spread"] = spread;
@@ -382,8 +382,8 @@ MinBarPairTrader::finish() {
 
     dumpStatus();
 
-    Log(LOG_INFO) << "Stationary check lookback: " + to_string(m_cfg->getStationaryCheckLookback());
-    Log(LOG_INFO) << "Max stationary p-value: " + to_string(m_maxStatPValue);
+    Log(LOG_INFO) << "Stationary check lookback: " + to_string(m_cfg->getStationaryCheckLookback()) <<std::endl;
+    Log(LOG_INFO) << "Max stationary p-value: " + to_string(m_maxStatPValue) <<std::endl;
 }
 
 void

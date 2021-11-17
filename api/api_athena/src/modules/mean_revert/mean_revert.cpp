@@ -31,13 +31,13 @@ MeanRevert::~MeanRevert() {
     dumpVectors("spreads.csv",m_spreads);
     ostringstream oss;
     oss << "Num buys: " << m_buys << ", sells: " << m_sells << ", close_all: " << m_numclose;
-    Log(LOG_INFO) << oss.str();
+    Log(LOG_INFO) << oss.str() <<std::endl;
 
     ostringstream os;
     os << "Dev range: buy: [" << m_lowBuyDev<<","<<m_highBuyDev<<"], sell: [" << m_lowSellDev << "," << m_highSellDev << "]";
-    Log(LOG_INFO) << os.str();
+    Log(LOG_INFO) << os.str() <<std::endl;
 
-    Log(LOG_INFO) << "Linear regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1);
+    Log(LOG_INFO) << "Linear regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1) <<std::endl;
 
 }
 
@@ -78,11 +78,11 @@ MeanRevert::updateModel(int len) {
     m_linParam = linreg(x, y, len);
     //m_linParam = robLinreg(x, y, len);
 
-    Log(LOG_INFO) << "Linear regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1);
+    Log(LOG_INFO) << "Linear regression done. c0: " + to_string(m_linParam.c0) + ", c1: " + to_string(m_linParam.c1) <<std::endl;
 
     real64 r2 = compR2(m_linParam, x, y, len);
 
-    Log(LOG_INFO) << "Past " + to_string(len) + " pts R2: " + to_string(r2);
+    Log(LOG_INFO) << "Past " + to_string(len) + " pts R2: " + to_string(r2) <<std::endl;
 
     delete[] x;
     delete[] y;
@@ -105,7 +105,7 @@ MeanRevert::compOldSpreads() {
 
     real64 pv = testADF(&m_spreads[0], m_spreads.size());
     //real64 pv = 0.f;
-    Log(LOG_INFO) << "p-value of stationarity of spreads: " + to_string(pv);
+    Log(LOG_INFO) << "p-value of stationarity of spreads: " + to_string(pv) <<std::endl;
 }
 
 void
@@ -116,14 +116,14 @@ MeanRevert::init() {
     compOldSpreads();
     real64 mean = gsl_stats_mean(&m_spreads[0], 1, m_spreads.size());
 
-    Log(LOG_INFO) << "Mean of spreads: " + to_string(mean);
+    Log(LOG_INFO) << "Mean of spreads: " + to_string(mean) <<std::endl;
 
     real64 s = gsl_stats_sd_m(&m_spreads[0], 1, m_spreads.size(), mean);
-    Log(LOG_INFO) << "std of spreads: " + to_string(s);
+    Log(LOG_INFO) << "std of spreads: " + to_string(s) <<std::endl;
 
     //m_devUnit = findMedianDev(spreads, mean);
     m_devUnit = 1.f;
-    Log(LOG_INFO) << "median deviation (md) of spreads from its mean: " + to_string(m_devUnit);
+    Log(LOG_INFO) << "median deviation (md) of spreads from its mean: " + to_string(m_devUnit) <<std::endl;
 
     if(m_linParam.c1 > 0) {
         m_posPairDirection = OPPOSITE;
@@ -168,7 +168,7 @@ MeanRevert::compNewSpreads() {
     }
     break;
     default:
-        Log(LOG_FATAL) << "unknown position pair directions";
+        Log(LOG_FATAL) << "unknown position pair directions" <<std::endl;
         break;
     }
 }
@@ -177,7 +177,7 @@ void
 MeanRevert::compDevFromMean() {
     SpreadInfo lsp = m_tradeSpreads.back();
 
-    Log(LOG_INFO) << "Current mean: " + to_string(m_curMean);
+    Log(LOG_INFO) << "Current mean: " + to_string(m_curMean) <<std::endl;
 
     real64 ma = m_curMean;
 
@@ -193,11 +193,11 @@ MeanRevert::compDevFromMean() {
 
     ostringstream os;
     os << "Spread buy: " << lsp.buy << ", sell: " << lsp.sell;
-    Log(LOG_INFO) << os.str();
+    Log(LOG_INFO) << os.str() <<std::endl;
 
     ostringstream oss;
     oss << "spread dev/devUnit: buy: " << dev.buy << ", sell: " << dev.sell;
-    Log(LOG_INFO) << oss.str();
+    Log(LOG_INFO) << oss.str() <<std::endl;
 
 }
 

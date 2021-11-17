@@ -7,16 +7,16 @@ using namespace std;
 BuiltinMLPredictor::BuiltinMLPredictor() : m_mod(nullptr){
     String modulePath = String(getenv("ATHENA_HOME")) + "/minbar_classifier";
     PyEnviron::getInstance().appendSysPath(modulePath);
-    Log(LOG_INFO) << "Python module path appended: " + modulePath;
+    Log(LOG_INFO) << "Python module path appended: " + modulePath <<std::endl;
     String modName = "minbar_api";
     m_mod = PyRunner::getInstance().importModule(modName);
     if(!m_mod) {
-        Log(LOG_FATAL) << "Cannot import module: minbar_api";
+        Log(LOG_FATAL) << "Cannot import module: minbar_api" <<std::endl;
     }
 
     m_pyPredictor.setPredictorFile(modulePath,modName);
 
-    Log(LOG_INFO) << "Built-in ML predictor created";
+    Log(LOG_INFO) << "Built-in ML predictor created" <<std::endl;
 }
 
 void
@@ -25,7 +25,7 @@ BuiltinMLPredictor::loadConfig() {
 
     PyObject* func = PyObject_GetAttrString(m_mod,"loadConfig");
     if(!func)
-        Log(LOG_FATAL) << "Failed to find py function: loadConfig";
+        Log(LOG_FATAL) << "Failed to find py function: loadConfig" <<std::endl;
 
     PyObject* args = Py_BuildValue("(O)",str);
     PyObject_CallObject(func,args);

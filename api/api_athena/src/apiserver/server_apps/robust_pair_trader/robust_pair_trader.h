@@ -44,7 +44,7 @@ protected:
         m_initBalance = -1.;
         m_numPos= 0;
         m_numOutliers = 0;
-        Log(LOG_INFO) << "Robust pair trader created";
+        Log(LOG_INFO) << "Robust pair trader created" <<std::endl;
         }
 public:
     virtual ~RobustPairTrader() {;}

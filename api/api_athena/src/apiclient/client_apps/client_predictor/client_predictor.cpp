@@ -38,7 +38,7 @@ ClientPredictor::sendEngineConfig(const String& modelfile)
     msg.setComment(modelfile);
     m_msger->sendAMsgToHostPort(msg, m_serverHostPort);
 
-    Log(LOG_INFO) << "Model file sent to api server: " + modelfile;
+    Log(LOG_INFO) << "Model file sent to api server: " + modelfile <<std::endl;
 }
 
 void
@@ -59,7 +59,7 @@ ClientPredictor::sendFeatures(Real* fm, const Uint rows, const Uint cols)
 
     waitResult();
 
-    Log(LOG_VERBOSE) << "Prediction done";
+    Log(LOG_VERBOSE) << "Prediction done" <<std::endl;
 }
 
 void

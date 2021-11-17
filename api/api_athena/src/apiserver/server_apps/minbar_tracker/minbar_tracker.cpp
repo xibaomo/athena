@@ -26,7 +26,7 @@ MinbarTracker::processMsg(Message& msg) {
         outmsg = procMsg_REQUEST_ACT(msg);
         break;
     default:
-        Log(LOG_FATAL) << "Action not recognized: " + to_string((int)act);
+        Log(LOG_FATAL) << "Action not recognized: " + to_string((int)act) <<std::endl;
         break;
     }
     return outmsg;
@@ -39,7 +39,7 @@ MinbarTracker::procMsg_HISTORY_MINBAR(Message& msg) {
 
     int nbars = pack.int32_vec[0];
     if (nbars == 0) {
-        Log(LOG_INFO) << "No min bars from mt5";
+        Log(LOG_INFO) << "No min bars from mt5" <<std::endl;
         Message out;
         return out;
     }
@@ -54,17 +54,17 @@ MinbarTracker::procMsg_HISTORY_MINBAR(Message& msg) {
         pm+=bar_size;
     }
 
-    Log(LOG_INFO) << "Min bars from MT5 loaded: " + to_string(nbars);
-    Log(LOG_INFO) << "Total history min bars: " + to_string(m_allMinBars.size());
+    Log(LOG_INFO) << "Min bars from MT5 loaded: " + to_string(nbars) <<std::endl;
+    Log(LOG_INFO) << "Total history min bars: " + to_string(m_allMinBars.size()) <<std::endl;
 
     //display last 5 min bars
     int nb = 5;
-    Log(LOG_INFO) << "Oldest 5 min bars";
+    Log(LOG_INFO) << "Oldest 5 min bars" <<std::endl;
     for (int i = m_allMinBars.size() - nbars; i < m_allMinBars.size() -  nbars + nb; i++) {
         auto& mb = m_allMinBars[i];
         showMinBar(mb);
     }
-    Log(LOG_INFO) << "Latest 5 min bars: ";
+    Log(LOG_INFO) << "Latest 5 min bars: " <<std::endl;
     for (int i=m_allMinBars.size()-nb; i < (int)m_allMinBars.size(); i++) {
         auto& mb = m_allMinBars[i];
         showMinBar(mb);
@@ -94,7 +94,7 @@ MinbarTracker::procMsg_NEW_MINBAR(Message& msg) {
                       << mb.low  << " "
                       << mb.close <<" "
                       << mb.tickvol;
-    Log(LOG_INFO) << "New minbar: " + iss.str();
+    Log(LOG_INFO) << "New minbar: " + iss.str() <<std::endl;
 
     m_predictor->appendMinbar(mb);
     Message outmsg;
@@ -106,12 +106,12 @@ MinbarTracker::procMsg_REGISTER_POS(Message& msg) {
     unsigned long *pm = (unsigned long*)msg.getData();
     String tm = msg.getComment();
     if (m_tk2pos.find(pm[0]) != m_tk2pos.end()) {
-        Log(LOG_ERROR) << "Position already registered: " + to_string(pm[0]);
+        Log(LOG_ERROR) << "Position already registered: " + to_string(pm[0]) <<std::endl;
     }
     PosInfo pf;
     pf.open_time = tm;
     m_tk2pos[pm[0]] = pf;
-    Log(LOG_INFO) << "Position registered: " + tm + " " + to_string(pm[0]);
+    Log(LOG_INFO) << "Position registered: " + tm + " " + to_string(pm[0]) <<std::endl;
 
     Message outmsg;
     return outmsg;
@@ -127,7 +127,7 @@ MinbarTracker::procMsg_CLOSED_POS_INFO(Message& msg) {
     real64 profit = pack.real64_vec[0];
 
     if (m_tk2pos.find(tk) == m_tk2pos.end()) {
-        Log(LOG_ERROR) << "Ticket not registered: " + to_string(tk);
+        Log(LOG_ERROR) << "Ticket not registered: " + to_string(tk) <<std::endl;
     }
     m_tk2pos[tk].close_time = tm;
     m_tk2pos[tk].profit = profit;

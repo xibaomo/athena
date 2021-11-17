@@ -36,7 +36,7 @@ MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg), m_cu
     m_initBalance = -1.;
 
     m_oracle = new PairAssetMeanRevert(this);
-    Log(LOG_INFO) << "Minbar pair trader created.";
+    Log(LOG_INFO) << "Minbar pair trader created." <<std::endl;
 }
 
 MinbarPairTrader::~MinbarPairTrader()
@@ -48,7 +48,7 @@ MinbarPairTrader::~MinbarPairTrader()
     if ( m_oracle )
         delete m_oracle;
 
-    Log(LOG_INFO) << "Max profit: " + to_string(m_maxProfit) + ", max avg/pos: " + to_string(m_avgProfit);
+    Log(LOG_INFO) << "Max profit: " + to_string(m_maxProfit) + ", max avg/pos: " + to_string(m_avgProfit) <<std::endl;
 }
 
 Message
@@ -74,7 +74,7 @@ MinbarPairTrader::processMsg(Message& msg)
         outmsg = procMsg_noreply(msg,[&](Message& msg)
         {
             real64* pm = (real64*)msg.getData();
-            Log(LOG_INFO) << "Account balance: " + to_string(pm[0]);
+            Log(LOG_INFO) << "Account balance: " + to_string(pm[0]) <<std::endl;
         });
         break;
     case FXAct::GET_LOTS:
@@ -88,22 +88,22 @@ MinbarPairTrader::processMsg(Message& msg)
     switch((FXAct)outmsg.getAction())
     {
     case FXAct::PLACE_BUY:
-        Log(LOG_INFO) << "Action: buy Y";
+        Log(LOG_INFO) << "Action: buy Y" <<std::endl;
         break;
     case FXAct::PLACE_SELL:
-        Log(LOG_INFO) << "Action: sell Y";
+        Log(LOG_INFO) << "Action: sell Y" <<std::endl;
         break;
     case FXAct::CLOSE_BUY:
-        Log(LOG_INFO) << "Action: close buy positions";
+        Log(LOG_INFO) << "Action: close buy positions" <<std::endl;
         break;
     case FXAct::CLOSE_SELL:
-        Log(LOG_INFO) << "Action: close sell positions";
+        Log(LOG_INFO) << "Action: close sell positions" <<std::endl;
         break;
     case FXAct::NOACTION:
-        Log(LOG_INFO) << "No action";
+        Log(LOG_INFO) << "No action" <<std::endl;
         break;
     case FXAct::CLOSE_ALL_POS:
-        Log(LOG_WARNING) << "Close all positions!";
+        Log(LOG_WARNING) << "Close all positions!" <<std::endl;
         break;
     default:
         break;
@@ -121,14 +121,14 @@ MinbarPairTrader::procMsg_ASK_PAIR(Message& msg)
     Message outmsg(FXAct::ASK_PAIR, 0, st.size());
     outmsg.setComment(st);
 
-    Log(LOG_INFO) << "Sym pair: " + s1 + "," + s2;
+    Log(LOG_INFO) << "Sym pair: " + s1 + "," + s2 <<std::endl;
     return outmsg;
 }
 
 Message
 MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg)
 {
-    Log(LOG_INFO) << "X history arrives";
+    Log(LOG_INFO) << "X history arrives" <<std::endl;
 
     SerializePack pack;
     unserialize(msg.getComment(), pack);
@@ -147,7 +147,7 @@ MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg)
         pm+=bar_size;
     }
 
-    Log(LOG_INFO) << "History of X loaded: " + to_string(m_mid_x.size());
+    Log(LOG_INFO) << "History of X loaded: " + to_string(m_mid_x.size()) <<std::endl;
 
     Message out;
     return out;
@@ -156,7 +156,7 @@ MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg)
 Message
 MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg)
 {
-    Log(LOG_INFO) << "Y history arrives";
+    Log(LOG_INFO) << "Y history arrives" <<std::endl;
 
     SerializePack pack;
     unserialize(msg.getComment(), pack);
@@ -175,13 +175,13 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg)
         pm+=bar_size;
     }
 
-    Log(LOG_INFO) << "History of Y loaded: " + to_string(m_mid_y.size());
+    Log(LOG_INFO) << "History of Y loaded: " + to_string(m_mid_y.size()) <<std::endl;
 
     if ( m_mid_x.size() != m_mid_y.size() )
-        Log(LOG_FATAL) << "Inconsistent length of X & Y";
+        Log(LOG_FATAL) << "Inconsistent length of X & Y" <<std::endl;
 
     real64 corr = computePairCorr(m_mid_x, m_mid_y);
-    Log(LOG_INFO) << "Correlation: " + to_string(corr);
+    Log(LOG_INFO) << "Correlation: " + to_string(corr) <<std::endl;
 
 
     m_oracle->init();
@@ -230,17 +230,17 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
 
     m_curNumPos = pack.int32_vec[0];
 
-    Log(LOG_INFO) << "Mt5 time: " + pack.str_vec[0];
+    Log(LOG_INFO) << "Mt5 time: " + pack.str_vec[0] <<std::endl;
     ostringstream oss;
     oss << "\n\t" << m_pairCount << "th pair arrives. x_ask: " << x_ask << ", x_bid: " << x_bid << ", y_ask: " << y_ask << ", y_bid: " << y_bid;
-    Log(LOG_INFO) << oss.str();
-    Log(LOG_INFO) << "tick val: x: " + to_string(m_tickval_x) + ", y: " + to_string(m_tickval_y);
-    Log(LOG_INFO) << "Num of positions: " + to_string(m_curNumPos);
-    Log(LOG_INFO) << "Num of take-profit: " + to_string(pack.int32_vec[1]) + ", stop-loss: " + to_string(pack.int32_vec[2]);
+    Log(LOG_INFO) << oss.str() <<std::endl;
+    Log(LOG_INFO) << "tick val: x: " + to_string(m_tickval_x) + ", y: " + to_string(m_tickval_y) <<std::endl;
+    Log(LOG_INFO) << "Num of positions: " + to_string(m_curNumPos) <<std::endl;
+    Log(LOG_INFO) << "Num of take-profit: " + to_string(pack.int32_vec[1]) + ", stop-loss: " + to_string(pack.int32_vec[2]) <<std::endl;
 
     real64 profit= pack.real64_vec1[4];
     real64 avg_profit = profit / m_curNumPos;
-    Log(LOG_INFO) << "Current profit: " + to_string(profit) + ", avg/pos: " + to_string(avg_profit);
+    Log(LOG_INFO) << "Current profit: " + to_string(profit) + ", avg/pos: " + to_string(avg_profit) <<std::endl;
     if (m_maxProfit < profit)
     {
         m_maxProfit = profit;

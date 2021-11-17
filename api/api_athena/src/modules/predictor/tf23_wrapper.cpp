@@ -3,7 +3,7 @@
 #include <fstream>
 #include <numeric>
 
-#define CHECK_TF_STATUS(func_name) if(TF_GetCode(tfstat)!=TF_OK){Log(LOG_FATAL) << "TF status fails: " + string("func_name");}
+#define CHECK_TF_STATUS(func_name) if(TF_GetCode(tfstat)!=TF_OK){Log(LOG_FATAL) << "TF status fails: " + string("func_name") <<std::endl;}
 using namespace std;
 
 static void deallocateBuffer(void* data, size_t)
@@ -16,7 +16,7 @@ static TF_Buffer* readBufferFromFile(const char* file)
     std::ifstream f(file,std::ios::binary);
     if(f.fail() || !f.is_open())
     {
-        Log(LOG_FATAL) << "Cannot open file: " + string(file);
+        Log(LOG_FATAL) << "Cannot open file: " + string(file) <<std::endl;
         return nullptr;
     }
     if(f.seekg(0,std::ios::end).fail())
@@ -37,7 +37,7 @@ static TF_Buffer* readBufferFromFile(const char* file)
     char* data = (char*)malloc(fsize);
     if(f.read(data,fsize).fail())
     {
-        Log(LOG_FATAL) << "Fail to read file: " + string(file);
+        Log(LOG_FATAL) << "Fail to read file: " + string(file) <<std::endl;
         return nullptr;
     }
 
@@ -112,7 +112,7 @@ TFModel::loadGraph(const char* graph_file, const char* checkpoint_prefix)
     TF_Buffer* buf = readBufferFromFile(graph_file);
     if(!buf)
     {
-        Log(LOG_FATAL) << "Fail to read graph file: " + string(graph_file);
+        Log(LOG_FATAL) << "Fail to read graph file: " + string(graph_file) <<std::endl;
     }
 
     auto tfstat = TF_NewStatus();
@@ -132,7 +132,7 @@ TFModel::loadGraph(const char* graph_file, const char* checkpoint_prefix)
 
     if(TF_GetCode(tfstat)!=TF_OK)
     {
-        Log(LOG_FATAL) << "Fail to load graph from buffer";
+        Log(LOG_FATAL) << "Fail to load graph from buffer" <<std::endl;
     }
 
     if(!checkpoint_prefix) return;
@@ -141,7 +141,7 @@ TFModel::loadGraph(const char* graph_file, const char* checkpoint_prefix)
     auto checkpoint_tensor = scalarStringTensor(checkpoint_prefix,tfstat);
     if(TF_GetCode(tfstat)!=TF_OK)
     {
-        Log(LOG_FATAL) << "Fail to create checkpoint tensor";
+        Log(LOG_FATAL) << "Fail to create checkpoint tensor" <<std::endl;
     }
 
     auto input = TF_Output{TF_GraphOperationByName(m_graph,"save/Const"),0};
@@ -159,7 +159,7 @@ TFModel::loadGraph(const char* graph_file, const char* checkpoint_prefix)
 
     if(TF_GetCode(tfstat)!=TF_OK)
     {
-        Log(LOG_FATAL) << "TF_SessionRun fails";
+        Log(LOG_FATAL) << "TF_SessionRun fails" <<std::endl;
     }
 
     if(session)
@@ -176,7 +176,7 @@ TF_Tensor* TFModel::createTensor(TF_DataType data_type,
     auto tensor_data = TF_TensorData(tensor);
     if(!tensor_data)
     {
-        Log(LOG_FATAL) << "Fail to create tensor data";
+        Log(LOG_FATAL) << "Fail to create tensor data" <<std::endl;
     }
 
     len = std::min(len,TF_TensorByteSize(tensor));
@@ -350,7 +350,7 @@ TFModel::setInputNodeName(const std::string& inputName)
     m_input_op = TF_Output{TF_GraphOperationByName(m_graph,m_input_op_name.c_str()),0};
 
     if(!m_input_op.oper)
-        Log(LOG_FATAL) << "Cannot init input_op";
+        Log(LOG_FATAL) << "Cannot init input_op" <<std::endl;
 }
 
 void
@@ -360,7 +360,7 @@ TFModel::setOutputNodeName(const std::string& outputName)
     m_output_op = TF_Output{TF_GraphOperationByName(m_graph,m_output_op_name.c_str()),0};
 
     if(!m_output_op.oper)
-        Log(LOG_FATAL) << "Cannot init output_op";
+        Log(LOG_FATAL) << "Cannot init output_op" <<std::endl;
 }
 
 void

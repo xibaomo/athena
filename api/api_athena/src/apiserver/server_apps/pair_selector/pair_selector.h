@@ -38,7 +38,7 @@ protected:
         m_cfg = &PairSelectConfig::getInstance();
         m_cfg->loadConfig(cf);
 
-        Log(LOG_INFO) << "Pair selector created";
+        Log(LOG_INFO) << "Pair selector created" <<std::endl;
     }
 public:
     virtual ~PairSelector() {;}

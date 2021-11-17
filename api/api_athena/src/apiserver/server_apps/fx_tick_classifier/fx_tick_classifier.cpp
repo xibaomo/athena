@@ -47,19 +47,19 @@ ForexTickClassifier::loadPythonModules()
     PyEnviron::getInstance().appendSysPath(modulePath);
     m_predictorModule = PyImport_ImportModule("forex_tick_predictor");
     if ( !m_predictorModule ) {
-        Log(LOG_FATAL) << "Failed to import forex_tick_predictor";
+        Log(LOG_FATAL) << "Failed to import forex_tick_predictor" <<std::endl;
     }
 
     CPyObject predictorClass = PyObject_GetAttrString(m_predictorModule, "ForexTickPredictor");
     if ( !predictorClass )
-        Log(LOG_FATAL) << "Failed to get predictor class";
+        Log(LOG_FATAL) << "Failed to get predictor class" <<std::endl;
 
     m_buyPredictor = PyObject_CallObject(predictorClass, NULL);
     if ( !m_buyPredictor )
-        Log(LOG_FATAL) << "Failed to create python buy predictor";
+        Log(LOG_FATAL) << "Failed to create python buy predictor" <<std::endl;
     m_sellPredictor = PyObject_CallObject(predictorClass, NULL);
     if ( !m_sellPredictor )
-        Log(LOG_FATAL) << "Failed to create python sell predictor";
+        Log(LOG_FATAL) << "Failed to create python sell predictor" <<std::endl;
 }
 
 void
@@ -109,9 +109,9 @@ ForexTickClassifier::processMsg(Message& msg)
 Message
 ForexTickClassifier::procMsg_CHECKIN(Message& msg)
 {
-    Log(LOG_INFO) << "Client checks in";
+    Log(LOG_INFO) << "Client checks in" <<std::endl;
     if ( !compareStringNoCase(m_fxSymbol, msg.getComment()) )
-        Log(LOG_FATAL) << "Received symbol is inconsistent with model files";
+        Log(LOG_FATAL) << "Received symbol is inconsistent with model files" <<std::endl;
 
     Message msgnew;
     return msgnew;
@@ -120,7 +120,7 @@ ForexTickClassifier::procMsg_CHECKIN(Message& msg)
 Message
 ForexTickClassifier::procMsg_HISTORY(Message& msg)
 {
-    Log(LOG_INFO) << "Msg of history data received";
+    Log(LOG_INFO) << "Msg of history data received" <<std::endl;
 
     int len = msg.getDataBytes()/sizeof(Real);
     CPyObject lst = PyList_New(len);
@@ -133,10 +133,10 @@ ForexTickClassifier::procMsg_HISTORY(Message& msg)
     } else if (msg.getComment() == "sell") {
         PyObject_CallMethod(m_sellPredictor, (char*)"loadTicks","(O)",lst.getObject());
     } else {
-        Log(LOG_ERROR) << "Unexpected position type: " + msg.getComment();
+        Log(LOG_ERROR) << "Unexpected position type: " + msg.getComment() <<std::endl;
     }
 
-    Log(LOG_INFO) << "History data loaded";
+    Log(LOG_INFO) << "History data loaded" <<std::endl;
     Message msgnew;
     return msgnew;
 }
@@ -144,7 +144,7 @@ ForexTickClassifier::procMsg_HISTORY(Message& msg)
 Message
 ForexTickClassifier::procMsg_TICK(Message& msg)
 {
-    Log(LOG_DEBUG) << "New tick arrives";
+    Log(LOG_DEBUG) << "New tick arrives" <<std::endl;
     Real *pm = (Real*)msg.getData();
     Real tick = pm[0];
 
@@ -154,32 +154,32 @@ ForexTickClassifier::procMsg_TICK(Message& msg)
     if ( msg.getComment() == "buy" ) {
         pypred = PyObject_CallMethod(m_buyPredictor, "classifyATick","(O)",pytick.getObject());
         action = (ActionType)FXAct::PLACE_BUY;
-        Log(LOG_DEBUG) << "Buy tick arrives";
+        Log(LOG_DEBUG) << "Buy tick arrives" <<std::endl;
     } else if (msg.getComment() == "sell") {
         pypred = PyObject_CallMethod(m_sellPredictor, "classifyATick","(O)",pytick.getObject());
         action = (ActionType)FXAct::PLACE_SELL;
-        Log(LOG_DEBUG) << "Sell tick arrives";
+        Log(LOG_DEBUG) << "Sell tick arrives" <<std::endl;
     } else {
-        Log(LOG_ERROR) << "Unexpected position type: " + msg.getComment();
+        Log(LOG_ERROR) << "Unexpected position type: " + msg.getComment() <<std::endl;
         pypred = Py_BuildValue("i",1);
     }
 
     PyObject* objrepr = PyObject_Repr(pypred.getObject());
     if ( !objrepr )
-        Log(LOG_ERROR) << "Failed to get prediction from python";
+        Log(LOG_ERROR) << "Failed to get prediction from python" <<std::endl;
 
     const char* cp = PyBytes_AsString(objrepr);
     cp = strdup(cp);
 
-    Log(LOG_INFO) << "Prediction: " + String(cp);
+    Log(LOG_INFO) << "Prediction: " + String(cp) <<std::endl;
     int pred = stoi(String(cp));
     Py_XDECREF(objrepr);
     if ( pred == 1 )
         action = (ActionType)FXAct::NOACTION;
     else if(pred == 0)
-        Log(LOG_INFO) << "Good to open position";
+        Log(LOG_INFO) << "Good to open position" <<std::endl;
         else
-            Log(LOG_FATAL) << "Unrecognized prediction";
+            Log(LOG_FATAL) << "Unrecognized prediction" <<std::endl;
 
     Message msgnew;
     msgnew.setAction(action);

@@ -40,11 +40,11 @@ PairSelector::procMsg_SYM_HIST_OPEN(Message& msg)
     unserialize(msg.getComment(),pack);
     String sym = pack.str_vec[0];
 
-    Log(LOG_INFO) << "Received history: " + sym;
-    Log(LOG_INFO) << "History length: " + to_string(pack.real32_vec.size());
+    Log(LOG_INFO) << "Received history: " + sym <<std::endl;
+    Log(LOG_INFO) << "History length: " + to_string(pack.real32_vec.size()) <<std::endl;
 
     if (m_sym2hist.find(sym) != m_sym2hist.end()) {
-        Log(LOG_ERROR) << "Duplicated symbol received: " + sym;
+        Log(LOG_ERROR) << "Duplicated symbol received: " + sym <<std::endl;
     }
 
     m_sym2hist[sym] = std::move(pack.real32_vec);
@@ -55,7 +55,7 @@ PairSelector::procMsg_SYM_HIST_OPEN(Message& msg)
 void
 PairSelector::selectTopCorr()
 {
-    Log(LOG_INFO) << "Total symbols received: " + to_string(m_sym2hist.size());
+    Log(LOG_INFO) << "Total symbols received: " + to_string(m_sym2hist.size()) <<std::endl;
     vector<String> keys;
     for(const auto& kv : m_sym2hist) {
         keys.push_back(kv.first);
@@ -75,7 +75,7 @@ PairSelector::selectTopCorr()
             auto corr = computePairCorr(v1,v2);
             if (fabs(corr) > m_cfg->getCorrBaseline()) {
                 std::cout<<std::endl;
-                Log(LOG_INFO) << "Testing cointegration: " +  keys[i] + " vs " + keys[j];
+                Log(LOG_INFO) << "Testing cointegration: " +  keys[i] + " vs " + keys[j] <<std::endl;
                 real32 pv = m_cfg->getCoIntPVal();
                 if (!test_coint(v1,v2,pv)) {
                     continue;
@@ -86,14 +86,14 @@ PairSelector::selectTopCorr()
 
                 LRParam pm = ordLinreg(v1,v2);
                 if (pm.c0 > 0.)
-                    Log(LOG_INFO) << "Top corr pair: " + keys[i] + " , " + keys[j] + ": " +to_string(corr);
+                    Log(LOG_INFO) << "Top corr pair: " + keys[i] + " , " + keys[j] + ": " +to_string(corr) <<std::endl;
                 else
-                    Log(LOG_INFO) << "Top corr pair: " + keys[j] + " , " + keys[i] + ": " +to_string(corr);
+                    Log(LOG_INFO) << "Top corr pair: " + keys[j] + " , " + keys[i] + ": " +to_string(corr) <<std::endl;
 
-                Log(LOG_INFO) << "R2 = " + to_string(pm.r2);
+                Log(LOG_INFO) << "R2 = " + to_string(pm.r2) <<std::endl;
             }
         }
     }
 
-    Log(LOG_INFO) << "Inspected pairs: " + to_string(k);
+    Log(LOG_INFO) << "Inspected pairs: " + to_string(k) <<std::endl;
 }

@@ -56,19 +56,19 @@ MultinodeTrader::procMsg_ALL_SYM_OPEN(Message& msg)
 
     addDummyNode(m_symGraph,m_currencies);
 
-    Log(LOG_INFO) << "Received currencies: " + to_string(m_currencies.size());
+    Log(LOG_INFO) << "Received currencies: " + to_string(m_currencies.size()) <<std::endl;
 
     vector<int> cycle = bellmanford(m_symGraph,m_currencies.size());
     if (cycle.empty()) {
-        //Log(LOG_INFO) << "No negative-weight cycle found";
+        //Log(LOG_INFO) << "No negative-weight cycle found" <<std::endl;
     } else {
-        Log(LOG_INFO) << "Arbitrage loop found:";
+        Log(LOG_INFO) << "Arbitrage loop found:" <<std::endl;
         String loop;
         for(auto c: cycle) {
             loop+=m_currencies[c] + "-->";
         }
         loop.erase(loop.size()-3,3);
-        Log(LOG_INFO) << loop;
+        Log(LOG_INFO) << loop <<std::endl;
     }
 
     Message out;

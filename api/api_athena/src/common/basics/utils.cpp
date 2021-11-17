@@ -189,13 +189,13 @@ void getPythonFunction(const String& modFile, const String& funcName,CPyObject& 
     String mod_name = getFileStem(modFile);
     CPyObject mod = PyImport_ImportModule(mod_name.c_str());
     if (!mod) {
-        Log(LOG_FATAL) << "Failed to import module: " + modFile;
+        Log(LOG_FATAL) << "Failed to import module: " + modFile <<std::endl;
     }
 
     func = PyObject_GetAttrString(mod.getObject(), funcName.c_str());
 
     if (!func || !PyCallable_Check(func)) {
-        Log(LOG_FATAL) << "Failed to get function or it's not callable: " + funcName;
+        Log(LOG_FATAL) << "Failed to get function or it's not callable: " + funcName <<std::endl;
     }
 
 }
@@ -265,11 +265,11 @@ __test_coint(std::vector<real32>& v1, std::vector<real32>& v2)
 
     PyObject* mod = PyImport_ImportModule(modName.c_str());
     if (!mod)
-        Log(LOG_FATAL) << "Failed to import module: " + modName;
+        Log(LOG_FATAL) << "Failed to import module: " + modName <<std::endl;
 
     CPyObject func = PyObject_GetAttrString(mod,funcName.c_str());
     if(!func)
-        Log(LOG_FATAL) << "Failed to find py function: " + funcName;
+        Log(LOG_FATAL) << "Failed to find py function: " + funcName <<std::endl;
     npy_intp dims[1];
     dims[0] = v1.size();
 

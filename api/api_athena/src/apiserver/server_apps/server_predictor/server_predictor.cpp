@@ -69,7 +69,7 @@ ServerPredictor::loadPythonModule()
     m_engineCoreMod = PyImport_ImportModule("mlengine_core");
 
     if ( !m_engineCoreMod ) {
-        Log(LOG_FATAL) << "Failed to import module of engine core";
+        Log(LOG_FATAL) << "Failed to import module of engine core" <<std::endl;
     }
 }
 
@@ -79,14 +79,14 @@ ServerPredictor::loadEngine(EngineType et, EngineCoreType ect, const String& mf)
     // create engine core
     CPyObject coreClass = PyObject_GetAttrString(m_engineCoreMod, "MLEngineCore");
     if ( !coreClass ) {
-        Log(LOG_ERROR) << "Failed to get engine core class";
+        Log(LOG_ERROR) << "Failed to get engine core class" <<std::endl;
         return;
     }
 
     // m_engineCore = PyInstance_New(coreClass.getObject(), NULL, NULL);
     m_engineCore = PyObject_CallObject(coreClass, NULL);
     if ( !m_engineCore ) {
-        Log(LOG_ERROR) << "Failed to create engine core";
+        Log(LOG_ERROR) << "Failed to create engine core" <<std::endl;
         return;
     }
 
@@ -95,19 +95,19 @@ ServerPredictor::loadEngine(EngineType et, EngineCoreType ect, const String& mf)
     PyObject_CallMethod(m_engineCore, "loadModel","(OO)",arg1.getObject(),
             arg2.getObject());
 
-    Log(LOG_INFO) << "ML engine core created from " + mf;
+    Log(LOG_INFO) << "ML engine core created from " + mf <<std::endl;
     PyObject_CallMethod(m_engineCore, "showEstimator",NULL);
 
     // create engine
     CPyObject engClass = PyObject_GetAttrString(m_mlEngMod, "Regressor");
     if ( !engClass ) {
-        Log(LOG_ERROR) << "Failed to get engine class";
+        Log(LOG_ERROR) << "Failed to get engine class" <<std::endl;
         return;
     }
 
     m_engine = PyObject_CallObject(engClass, NULL);
     if ( !m_engine ) {
-        Log(LOG_ERROR) << "Failed to create ML engine";
+        Log(LOG_ERROR) << "Failed to create ML engine" <<std::endl;
         return;
     }
 
@@ -138,13 +138,13 @@ ServerPredictor::predict(Real* featureMatrix, const Uint rows, const Uint cols)
     CPyObject preds = PyObject_CallMethod(m_engine, (char*)"getPredictedTargets",NULL);
 
     if ( !preds ) {
-        Log(LOG_FATAL) << "Failed to get result from python";
+        Log(LOG_FATAL) << "Failed to get result from python" <<std::endl;
     }
 
     PyArrayObject* np_res = reinterpret_cast<PyArrayObject*>(preds.getObject());
     Uint len = np_res->dimensions[0];
     if ( len != rows ) {
-        Log(LOG_FATAL) << "Returned prediction size inconsistent with sent samples";
+        Log(LOG_FATAL) << "Returned prediction size inconsistent with sent samples" <<std::endl;
         return;
     }
 
@@ -177,9 +177,9 @@ ServerPredictor::processMsg(Message& msg)
 Message
 ServerPredictor::procMsg_CHECKIN(Message& msg)
 {
-    Log(LOG_INFO) << "Client checks in";
+    Log(LOG_INFO) << "Client checks in" <<std::endl;
     if (!compareStringNoCase(m_fxSymbol,msg.getComment()))
-        Log(LOG_FATAL) << "Received symbol is inconsistent with model files";
+        Log(LOG_FATAL) << "Received symbol is inconsistent with model files" <<std::endl;
 
     Message msgnew;
     return msgnew;
@@ -188,7 +188,7 @@ ServerPredictor::procMsg_CHECKIN(Message& msg)
 Message
 ServerPredictor::procMsg_HISTORY(Message& msg)
 {
-    Log(LOG_INFO) << "Msg of history data received";
+    Log(LOG_INFO) << "Msg of history data received" <<std::endl;
     int len = msg.getDataBytes() / sizeof(Real);
     if (msg.getComment() == "buy") {
         m_buyTicks.resize(len);
@@ -197,7 +197,7 @@ ServerPredictor::procMsg_HISTORY(Message& msg)
         m_sellTicks.resize(len);
         memcpy(&m_sellTicks[0],msg.getData(),msg.getDataBytes());
     } else {
-        Log(LOG_FATAL) << "Unknown position type: " + msg.getComment();
+        Log(LOG_FATAL) << "Unknown position type: " + msg.getComment() <<std::endl;
     }
 
     Message msgnew;
@@ -207,7 +207,7 @@ ServerPredictor::procMsg_HISTORY(Message& msg)
 Message
 ServerPredictor::procMsg_TICK(Message& msg)
 {
-    Log(LOG_INFO) << "New tick arrives";
+    Log(LOG_INFO) << "New tick arrives" <<std::endl;
     Message msgnew;
 
 

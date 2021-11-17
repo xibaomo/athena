@@ -40,7 +40,7 @@ createMAPredictor(const String& cf)
             mp = &MACrosser::getInstance(cf,macal);
             break;
         default:
-            Log(LOG_FATAL) << "MA predictor type not supported";
+            Log(LOG_FATAL) << "MA predictor type not supported" <<std::endl;
             break;
     }
 

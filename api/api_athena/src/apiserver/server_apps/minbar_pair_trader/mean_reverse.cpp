@@ -25,7 +25,7 @@ using namespace athena;
 MeanReverse::~MeanReverse() {
     dumpVectors("devs.csv",m_devs);
     dumpVectors("mean_shift.csv",m_meanShift);
-    Log(LOG_INFO) << "Min dev/std: " + to_string(m_minDev) + ", max dev/std: " + to_string(m_maxDev);
+    Log(LOG_INFO) << "Min dev/std: " + to_string(m_minDev) + ", max dev/std: " + to_string(m_maxDev) <<std::endl;
 }
 
 void
@@ -33,11 +33,11 @@ MeanReverse::init() {
     auto& spreads = m_trader->getSpreads();
 
     m_curMean = gsl_stats_mean(&spreads[0],1,spreads.size());
-    Log(LOG_INFO) << "Mean of spreads: " + to_string(m_curMean);
+    Log(LOG_INFO) << "Mean of spreads: " + to_string(m_curMean) <<std::endl;
     m_orgMean = m_curMean;
 
     m_curStd = gsl_stats_sd_m(&spreads[0],1,spreads.size(),m_curMean);
-    Log(LOG_INFO) << "std of spreads: " + to_string(m_curStd);
+    Log(LOG_INFO) << "std of spreads: " + to_string(m_curStd) <<std::endl;
 }
 
 void
@@ -50,7 +50,7 @@ MeanReverse::stats() {
     m_curMean = gsl_stats_mean(&spreads[start],1,len-1); // rule out the latest spread
 
     real64 ms = (m_curMean-m_orgMean)/m_curStd;
-    Log(LOG_INFO) << "Mean shift (std) w.r.t original mean: " + to_string(ms);
+    Log(LOG_INFO) << "Mean shift (std) w.r.t original mean: " + to_string(ms) <<std::endl;
     m_meanShift.push_back(ms);
 
     real64 dev = (spreads.back() - m_curMean)/m_curStd;
@@ -62,7 +62,7 @@ MeanReverse::stats() {
     if(abs(dev) < m_minDev)
         m_minDev = dev;
 
-    Log(LOG_INFO) << "dev/std: " + to_string(dev);
+    Log(LOG_INFO) << "dev/std: " + to_string(dev) <<std::endl;
 }
 
 FXAct
@@ -98,10 +98,10 @@ MeanReverse::isContinue() {
     size_t start = spreads.size() - len;
     real64 pv = testADF(&spreads[start],len);
 
-    Log(LOG_INFO) << "p-value of ADF test of latest " + to_string(len) + " spreads: " + to_string(pv);
+    Log(LOG_INFO) << "p-value of ADF test of latest " + to_string(len) + " spreads: " + to_string(pv) <<std::endl;
 
     if(pv > cfg->getStationaryPVLimit()) {
-        Log(LOG_WARNING) << "Spreads become non-stationary. Model fails!";
+        Log(LOG_WARNING) << "Spreads become non-stationary. Model fails!" <<std::endl;
         return false;
     }
 

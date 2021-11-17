@@ -74,7 +74,7 @@ public:
     {
         int res = send(sock, (char*)msg.getHead(), (int)msg.getMsgSize(),0);
         if (res < 0) {
-            Log(LOG_FATAL) << "Send failed.";
+            Log(LOG_FATAL) << "Send failed." <<std::endl;
             return;
         }
     }

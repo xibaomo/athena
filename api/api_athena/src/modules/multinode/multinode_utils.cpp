@@ -70,7 +70,7 @@ vector<int> bellmanford(vector<Edge>& edges, int N) {
         }
     }
     if ( x == -1 ) {
-        Log(LOG_INFO) << "No negative cycle found";
+        Log(LOG_INFO) << "No negative cycle found" <<std::endl;
 
     } else {
         for ( int i = 0; i < N; i++ )

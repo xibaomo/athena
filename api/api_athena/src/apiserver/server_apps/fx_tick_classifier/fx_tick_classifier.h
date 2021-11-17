@@ -34,7 +34,7 @@ protected:
 
     ForexTickClassifier(const String& configFile) : ServerBaseApp(configFile) {
         //m_fxSymbol = getYamlValue("PREDICTION/SYMBOL");
-        Log(LOG_INFO) << "Forex classifier created. Symbol: " + m_fxSymbol;
+        Log(LOG_INFO) << "Forex classifier created. Symbol: " + m_fxSymbol <<std::endl;
     }
 public:
     virtual ~ForexTickClassifier() {;}
