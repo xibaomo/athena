@@ -102,7 +102,8 @@ if __name__ == '__main__':
     labels,time_id = later_change_label(df,config.getReturnThreshold(),config.getPosLifeSec())
     test_size = config.getTestSize()
     Log(LOG_INFO) << "Test size: %d" % test_size
-    fm,used_time_id,lookback = prepare_features(cf, df, time_id)
+    fexconf = FexConfig(cf)
+    fm,used_time_id,lookback = prepare_features(fexconf, df, time_id)
     used_labels = labels[lookback:]
     tid_s = used_time_id[-test_size]
     tid_e = used_time_id[-1]

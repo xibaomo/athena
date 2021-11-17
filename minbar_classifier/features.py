@@ -162,10 +162,10 @@ def basic_features_training(prices,tv,tm,lookback):
 
     return fm
 
-def prepare_features(conf_file, df, time_id):
+def prepare_features(fexconf, df, time_id):
     s = np.log(df[HIGH_KEY] / df[LOW_KEY])
     df[STD_KEY] = s  # volatility of each bar
-    fexconf = FexConfig(conf_file)
+    #fexconf = FexConfig(conf_file)
 
     prices = df[OPEN_KEY].values[time_id]
     tv = df[TICKVOL_KEY].values[time_id]

@@ -18,6 +18,7 @@ TIME_STR = ""
 model = None
 scaler = MinMaxScaler()
 df = pd.DataFrame()
+FEXCONF = None
 
 class PredictConfig(object):
     def __init__(self, config_file):
@@ -37,6 +38,8 @@ def loadConfig(cf):
     model = pickle.load(open(pc.getModelFile(), 'rb'))
     global scaler
     scaler = pickle.load(open(pc.getScalerFile(), 'rb'))
+    global FEXCONF
+    FEXCONF = FexConfig(cf)
     print("model and scaler files are loaded")
 
 ############ required API for custom py predictor #####################
@@ -62,7 +65,7 @@ def predict(new_open):
     # pdb.set_trace()
     time_id = HOUR_TIME_ID.copy()
     time_id.append(len(tmpdf)-1)
-    fm, _, _ = prepare_features(CONFIG_FILE, tmpdf, time_id[-10:])
+    fm, _, _ = prepare_features(FEXCONF, tmpdf, time_id[-10:])
 
     fm = scaler.transform(fm)
     y = model.predict(fm)

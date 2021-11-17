@@ -86,7 +86,7 @@ def later_change_label(df,THD_RET,POS_LIFE):
             ret_high = df[HIGH_KEY][id]/p0-1
             ret_low  = df[LOW_KEY][id]/p0 - 1
             if ret_high >= THD_RET and ret_low <= -THD_RET:
-                Log(LOG_INFO) << "Run into a big bar " + df[DATE_KEY][id] + " " + df[TIME_KEY][id]
+                Log(LOG_DEBUG) << "Run into a big bar " + df[DATE_KEY][id] + " " + df[TIME_KEY][id]
                 labels[i] = Action.NO_ACTION
                 break
             if ret_high >= THD_RET:
