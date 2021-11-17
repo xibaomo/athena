@@ -103,15 +103,15 @@ MinbarTracker::procMsg_NEW_MINBAR(Message& msg) {
 
 Message
 MinbarTracker::procMsg_REGISTER_POS(Message& msg) {
-    unsigned long *pm = (unsigned long*)msg.getData();
+    mt5_ulong *pm = (mt5_ulong*)msg.getData();
     String tm = msg.getComment();
     if (m_tk2pos.find(pm[0]) != m_tk2pos.end()) {
-        Log(LOG_ERROR) << "Position already registered: " + to_string(pm[0]) <<std::endl;
+        Log(LOG_ERROR) << "Position already registered: " <<pm[0] <<std::endl;
     }
     PosInfo pf;
     pf.open_time = tm;
     m_tk2pos[pm[0]] = pf;
-    Log(LOG_INFO) << "Position registered: " + tm + " " + to_string(pm[0]) <<std::endl;
+    Log(LOG_INFO) << "Position registered: " << tm << " " << pm[0] <<std::endl;
 
     Message outmsg;
     return outmsg;

@@ -19,6 +19,7 @@
 #ifndef  _BASICS_TYPES_H_
 #define  _BASICS_TYPES_H_
 #include <string>
+#include <stdint.h>
 
 #define ONE_MS 1
 #define ONE_HUNDRED_MS 100
@@ -29,6 +30,7 @@ using String = std::string;
 typedef float real32;
 typedef double real64;
 typedef int int32;
+typedef uint64_t mt5_ulong;
 
 #ifdef __USE_64_BIT
 typedef double Real;

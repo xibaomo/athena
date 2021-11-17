@@ -112,6 +112,7 @@ MinbarPyPredictor::prepare()
 
 FXAct
 MinbarPyPredictor::predict(real64 new_open) {
+    Log(LOG_INFO) << "New request arrives, price: " << new_open << ", predicting ..." << endl;
     PyObject* func = PyObject_GetAttrString(m_mod,"predict");
     if(!func)
         Log(LOG_FATAL) << "Failed to find py function: predict" <<std::endl;
@@ -124,8 +125,10 @@ MinbarPyPredictor::predict(real64 new_open) {
     int  r =  (int)PyLong_AsLong(res);
     switch(r) {
     case 1:
+        Log(LOG_INFO) << "Decision: buy" << endl;
         return FXAct::PLACE_BUY;
     case 2:
+        Log(LOG_INFO) << "Decision: sell" << endl;
         return FXAct::PLACE_SELL;
     }
     return FXAct::NOACTION;
