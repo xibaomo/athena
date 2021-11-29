@@ -38,7 +38,10 @@ protected:
 
     std::vector<MinBar> m_allMinBars;
 
-    MinbarTracker(const String& cf) : m_predictor(nullptr), m_mbtCfg(nullptr), ServerBaseApp(cf)
+    size_t m_numOpenPos;
+    size_t m_numClosePos;
+
+    MinbarTracker(const String& cf) : m_predictor(nullptr), m_mbtCfg(nullptr), m_numOpenPos(0),m_numClosePos(0),ServerBaseApp(cf)
     {
         m_mbtCfg = new MbtConfig();
         m_mbtCfg->loadConfig(cf);

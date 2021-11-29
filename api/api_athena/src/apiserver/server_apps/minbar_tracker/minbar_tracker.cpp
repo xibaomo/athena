@@ -103,6 +103,7 @@ MinbarTracker::procMsg_NEW_MINBAR(Message& msg) {
 
 Message
 MinbarTracker::procMsg_REGISTER_POS(Message& msg) {
+    m_numOpenPos++;
     mt5ulong *pm = (mt5ulong*)msg.getData();
     String tm = msg.getComment();
     if (m_tk2pos.find(pm[0]) != m_tk2pos.end()) {
@@ -119,6 +120,7 @@ MinbarTracker::procMsg_REGISTER_POS(Message& msg) {
 
 Message
 MinbarTracker::procMsg_CLOSED_POS_INFO(Message& msg) {
+    m_numClosePos++;
     SerializePack pack;
     unserialize(msg.getComment(),pack);
 
@@ -132,7 +134,7 @@ MinbarTracker::procMsg_CLOSED_POS_INFO(Message& msg) {
     m_tk2pos[tk].close_time = tm;
     m_tk2pos[tk].profit = profit;
 
-    Log(LOG_INFO) << "Position closed: " << m_tk2pos[tk].close_time << ", profit: " << profit << endl;
+    Log(LOG_INFO) << "Position closed: " << tm << ", profit: " << profit << endl;
 
     Message outmsg;
     return outmsg;
@@ -150,6 +152,7 @@ MinbarTracker::procMsg_REQUEST_ACT(Message& msg){
 
 void
 MinbarTracker::finish() {
+    Log(LOG_INFO) << "opened pos: " << m_numOpenPos << ", closed pos: " << m_numClosePos << endl;
     dumpPosInfo();
 }
 
