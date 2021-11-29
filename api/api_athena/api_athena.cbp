@@ -291,17 +291,15 @@
 			<Option target="api_server" />
 			<Option target="gsl_hist" />
 		</Unit>
-		<Unit filename="src/common/messenger/messenger.cpp">
-			<Option target="api_server" />
-			<Option target="gsl_hist" />
-		</Unit>
-		<Unit filename="src/common/messenger/messenger.h">
-			<Option target="api_server" />
-			<Option target="gsl_hist" />
-		</Unit>
 		<Unit filename="src/common/messenger/msg.h">
 			<Option target="api_server" />
 			<Option target="gsl_hist" />
+		</Unit>
+		<Unit filename="src/common/messenger/msger_short.cpp">
+			<Option target="api_server" />
+		</Unit>
+		<Unit filename="src/common/messenger/msger_short.h">
+			<Option target="api_server" />
 		</Unit>
 		<Unit filename="src/common/messenger/sockutils.cpp">
 			<Option target="api_server" />

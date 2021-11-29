@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-#include "messenger.h"
+#include "msger_short.h"
 #include "sockutils.h"
 #include "basics/utils.h"
 #include "basics/log.h"
@@ -25,9 +25,8 @@
 using namespace std;
 using namespace athena;
 
-Messenger::Messenger() : m_hostSock(-1), m_port(-1),
-    m_bufferSize(-1), m_isListening(false)
-{
+MsgerShort::MsgerShort() : m_hostSock(-1), m_port(-1), m_curSock(-1),
+    m_bufferSize(-1), m_isListening(false) {
     m_port = GeneralConfig::getInstance().getPort();
 
     m_hostSock = createTCPSocket();
@@ -38,8 +37,7 @@ Messenger::Messenger() : m_hostSock(-1), m_port(-1),
 }
 
 int
-Messenger::createTCPSocket()
-{
+MsgerShort::createTCPSocket() {
     boost::mutex::scoped_lock lock(m_mutex);
     int sock;
 
@@ -52,8 +50,7 @@ Messenger::createTCPSocket()
 }
 
 void
-Messenger::keepSockAlive(int sock)
-{
+MsgerShort::keepSockAlive(int sock) {
     int optval = 1;
     socklen_t optlen = sizeof(optval);
     if ( setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen) < 0 ) {
@@ -63,8 +60,7 @@ Messenger::keepSockAlive(int sock)
 }
 
 void
-Messenger::bindSocketToPort(bool isGenPort)
-{
+MsgerShort::bindSocketToPort(bool isGenPort) {
     if ( !isGenPort ) {
         // use m_port
         Log(LOG_FATAL) << "Not supported" <<std::endl;
@@ -72,7 +68,7 @@ Messenger::bindSocketToPort(bool isGenPort)
 
     //m_port = getpid();
     while ( 1 ) {
-            //m_port = 8888;
+        //m_port = 8888;
         //m_port = m_port%(MAXPORTNUM-MINPORTNUM) + MINPORTNUM;
         memset((char*)&m_addr, 0, sizeof(m_addr));
         m_addr.sin_family = AF_INET;
@@ -88,16 +84,14 @@ Messenger::bindSocketToPort(bool isGenPort)
 }
 
 void
-Messenger::enableListenSocket(int sock, int backlog)
-{
+MsgerShort::enableListenSocket(int sock, int backlog) {
     if ( listen(sock, backlog)<0 ) {
         Log(LOG_FATAL) << "Failed to enable listening on socket" <<std::endl;
     }
 }
 
 int
-Messenger::getBufferSize()
-{
+MsgerShort::getBufferSize() {
     int sockbufsize = 0;
     socklen_t size = sizeof(int);
     int err = getsockopt(m_hostSock, SOL_SOCKET, SO_RCVBUF, (char*)&sockbufsize, &size);
@@ -109,8 +103,7 @@ Messenger::getBufferSize()
 }
 
 void
-Messenger::drainSocket(int sock)
-{
+MsgerShort::drainSocket(int sock) {
     char* buffer = new char[m_bufferSize];
     memset(buffer, 0, m_bufferSize);
 
@@ -126,8 +119,7 @@ Messenger::drainSocket(int sock)
 }
 
 char*
-Messenger::readMsgFromSocket(int sock, char* buffer, int& valread, char* readBuffer)
-{
+MsgerShort::readMsgFromSocket(int sock, char* buffer, int& valread, char* readBuffer) {
     char* pb = buffer;
     size_t msgSize = *((size_t*)pb);
     Message msg;
@@ -172,8 +164,7 @@ Messenger::readMsgFromSocket(int sock, char* buffer, int& valread, char* readBuf
 }
 
 void
-Messenger::acceptReadConn()
-{
+MsgerShort::acceptReadConn() {
     SockAddr clntAddr;
     socklen_t addrlen = sizeof(clntAddr);
     while ( m_isListening ) {
@@ -186,7 +177,7 @@ Messenger::acceptReadConn()
         // a new connection comes in
         int clntsock;
         if ( (clntsock = accept(m_hostSock, (struct sockaddr*)&clntAddr,
-                        (socklen_t*)&addrlen))<0) {
+                                (socklen_t*)&addrlen))<0) {
             Log(LOG_FATAL) << "Failed to ccept connection" <<std::endl;
         }
         drainSocket(clntsock);
@@ -198,14 +189,12 @@ Messenger::acceptReadConn()
 }
 
 void
-Messenger::hangup(int sock)
-{
+MsgerShort::hangup(int sock) {
     send(sock, HANGUP.c_str(), HANGUP.size(), 0);
 }
 
 void
-Messenger::sockSend(Message& msg, int sock)
-{
+MsgerShort::sockSend(Message& msg, int sock) {
     char* pc = (char*) msg.getHead();
     int remain = (int)msg.getMsgSize();
     while ( remain > 0 ) {
@@ -223,8 +212,7 @@ Messenger::sockSend(Message& msg, int sock)
 }
 
 void
-Messenger::sendAMsgToAddr(Message& msg, SockAddr& addr)
-{
+MsgerShort::sendAMsgToAddr(Message& msg, SockAddr& addr) {
     int sock = createTCPSocket();
     connectSockAddr(sock, &addr);
     sockSend(msg, sock);
@@ -233,8 +221,7 @@ Messenger::sendAMsgToAddr(Message& msg, SockAddr& addr)
 }
 
 void
-Messenger::sendAMsgToHostPort(Message& msg, const String& hostPort)
-{
+MsgerShort::sendAMsgToHostPort(Message& msg, const String& hostPort) {
     SockAddr addr;
     vector<String> s = splitString(hostPort, ":");
     createSockAddr(&addr, s[0], stoi(s[1]));
@@ -242,21 +229,25 @@ Messenger::sendAMsgToHostPort(Message& msg, const String& hostPort)
 }
 
 int
-Messenger::listenOnce(Message& msg)
-{
-    bool rt = checkSockReadable(m_hostSock, 1);
+MsgerShort::listenOnce(Message& msg) {
+    bool rt = checkSockReadable(m_hostSock, 1000);
     if ( rt ) {
         int clntsock;
         if ( (clntsock = accept(m_hostSock, NULL,
-                        NULL))<0) {
+                                NULL))<0) {
             Log(LOG_FATAL) << "Failed to accept connection" <<std::endl;
         }
+        m_curSock = clntsock;
         drainSocket(clntsock);
-        hangup(clntsock);
-        close(clntsock);
 
         msg = std::move(m_msgBox.front());
         m_msgBox.pop();
+        if (!msg.isQuery()) {
+            hangup(clntsock);
+            //Log(LOG_INFO) << "Ask the other to hang up" << std::endl;
+            close(clntsock);
+        }
+
         MsgAct action = (MsgAct)msg.getAction();
         if ( action == MsgAct::NORMAL_EXIT )
             return -1;
@@ -269,8 +260,7 @@ Messenger::listenOnce(Message& msg)
 }
 
 void
-Messenger::waitConfirm(int sock)
-{
+MsgerShort::waitConfirm(int sock) {
     const int LEN = HANGUP.size();
     char buffer[LEN];
     while ( 1 ) {

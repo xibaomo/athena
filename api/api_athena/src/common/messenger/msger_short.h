@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  messenger.h
+ *       Filename:  msger_short.h
  *
  *    Description:
  *
@@ -30,14 +30,16 @@
 #include "basics/mtqueue.h"
 const Uint MAXPORTNUM = 8899; //65536;
 const Uint MINPORTNUM = 8800; //1024;
-const String HANGUP = "hangup";
+const String HANGUP = "ROGER_THAT";
 typedef struct sockaddr_in SockAddr;
 
-class Messenger {
+class MsgerShort {
 protected:
     int m_hostSock; // bind to port, used for listen
                     // to connect, create a new socket in situ
     int m_port;
+
+    int m_curSock;
 
     SockAddr m_addr;
 
@@ -49,13 +51,13 @@ protected:
 
     boost::mutex m_mutex;
 
-    Messenger();
+    MsgerShort();
 
 public:
-    virtual ~Messenger() {;}
+    virtual ~MsgerShort() {;}
 
-    static Messenger& getInstance() {
-        static Messenger _instance;
+    static MsgerShort& getInstance() {
+        static MsgerShort _instance;
         return _instance;
     }
 
@@ -70,12 +72,26 @@ public:
 
     void shutdownConnection(int sock) { shutdown(sock,SHUT_WR); }
 
-    void writeSocket(int sock, Message& msg)
+    int getCurSock() { return m_curSock; }
+
+    void writeSocket(Message& msg)
     {
-        int res = send(sock, (char*)msg.getHead(), (int)msg.getMsgSize(),0);
+        int res = send(m_curSock, (char*)msg.getHead(), (int)msg.getMsgSize(),0);
         if (res < 0) {
-            Log(LOG_FATAL) << "Send failed." <<std::endl;
+            Log(LOG_FATAL) << "Send failed. socket: " << m_curSock << std::endl;
             return;
+        }
+    }
+
+    void sendToPartner(Message& msg) {
+        writeSocket(msg);
+        char buf[16];
+        int res = recv(m_curSock,buf,16,0);
+        if (res == 0) {
+            close(m_curSock);
+            m_curSock = -1;
+        } else {
+            Log(LOG_FATAL) << "Unexpected msg received: " << res <<std::endl;
         }
     }
 
@@ -144,4 +160,6 @@ public:
      */
     void waitConfirm(int sock);
 };
+
+typedef MsgerShort Messenger;
 #endif   /* ----- #ifndef _BASIC_MESSENGER_H_  ----- */

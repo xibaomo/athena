@@ -17,7 +17,7 @@
 #define  _CLIENT_BASE_APP_H_
 
 #include "app_base/app_base.h"
-#include "messenger/messenger.h"
+#include "messenger/msger_short.h"
 class ClientBaseApp : public App {
 protected:
     ClientBaseApp();

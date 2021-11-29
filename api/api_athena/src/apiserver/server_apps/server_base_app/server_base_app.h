@@ -21,7 +21,7 @@
 
 #include "app_base/app_base.h"
 #include "basics/types.h"
-#include "messenger/messenger.h"
+#include "messenger/msger_short.h"
 #include "basics/utils.h"
 enum class EngineType {
     CLASSIFIER = 0,
