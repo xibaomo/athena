@@ -28,7 +28,7 @@ typedef unsigned int ActionType;
 typedef int TagType;
 typedef size_t SizeType;
 
-enum MsgAct {
+enum class MsgAct {
     GET_READY = 0,
     NORMAL_EXIT = 1,
     ERROR_EXIT,
@@ -49,8 +49,11 @@ enum MsgAct {
 ****************************************************************************************/
 
 class Message {
+    enum {
+        HAS_ACK = 0,
+        NO_ACK
+    };
 protected:
-
     Uchar      *m_entireMsg;    // pointer to start of the entire Msg
 
     bool        m_own;
@@ -77,6 +80,8 @@ public:
 
         setAction(MsgAct::GET_READY);
         m_own = true;
+
+        setAck();
     }
     Message(const size_t dataBytes = 0, const size_t charBytes = 0) : m_entireMsg(nullptr)
     {
@@ -91,7 +96,7 @@ public:
     }
 
     template <typename T>
-    Message(T action, const String& cmt) {
+    Message (T action, const String& cmt) {
         init(0,cmt.size());
         setAction((ActionType)action);
         setComment(cmt);
@@ -126,11 +131,11 @@ public:
 
     {
         if ( !other.m_own )
-            Log(LOG_FATAL) << "Cannot transfer ownership if not own it" <<std::endl;
+            std::cerr << "Cannot transfer ownership if not own it" << std::endl;
 
         if ( !other.m_entireMsg ) {
             m_entireMsg = nullptr;
-            Log(LOG_FATAL) << "Null msg cannot be moved" <<std::endl;
+            std::cerr << "Null msg cannot be moved" << std::endl;
         }
 
         else {
@@ -145,7 +150,7 @@ public:
     Message& operator=(Message&& other)
     {
         if ( !other.m_own )
-            Log(LOG_FATAL) << "Cannot transfer ownership if not own it" <<std::endl;
+            std::cerr << "Cannot transfer ownership if not own it" << std::endl;
 
         if ( m_own && m_entireMsg )
             free(m_entireMsg);
@@ -355,6 +360,16 @@ public:
     {
         TagType *p = getTagPtr();
         *p = tag;
+    }
+
+    void setNoAck() {
+        setTag((TagType)NO_ACK);
+    }
+    void setAck() {
+        setTag((TagType)HAS_ACK);
+    }
+    bool isAck() {
+        return (int)getTagVal() == (int)HAS_ACK;
     }
 };
 
