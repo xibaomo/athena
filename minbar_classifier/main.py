@@ -86,7 +86,15 @@ def eval_model(model, x_test, y_test):
     # perm_importance = permutation_importance(model, x_test, y_test)
     # Log(LOG_INFO) << "importance: "+ str(perm_importance.importances_mean)
 
+def dumpTestSet(df,used_time_id,test_size):
+    dff = pd.DataFrame()
+    tid_s = len(used_time_id) - test_size
+    for i in range(tid_s,len(used_time_id)):
+        tid = used_time_id[i]
+        dff = dff.append(df.loc[tid])
+    dff.reset_index(drop=True)
 
+    dff.to_csv("test_set.csv",index=False)
 if __name__ == '__main__':
     Log.setlogLevel(LOG_INFO)
 
@@ -109,6 +117,7 @@ if __name__ == '__main__':
     tid_e = used_time_id[-1]
     Log(LOG_INFO) << "start date of test: " + df[DATE_KEY][tid_s] + " " + df[TIME_KEY][tid_s]
     Log(LOG_INFO) << "end   date of test: " + df[DATE_KEY][tid_e] + " " + df[TIME_KEY][tid_e]
+    dumpTestSet(df,used_time_id,test_size)
     x_train, y_train, x_test, y_test,scaler = split_dataset(fm,used_labels,test_size)
 
     model = train_model(x_train, y_train)

@@ -63,7 +63,7 @@ def later_change_label(df,THD_RET,POS_LIFE):
     Log(LOG_INFO) << "Labeling with return threshold: %f, position lifetime: %d days" % (THD_RET,POS_LIFE/3600/24)
     tm = getTimeStamps(df)
 
-    tmp = (tm.minute == 0) & (tm.second == 0) # on hour sharp, [true,false,...]
+    tmp = (tm.minute == 15) & (tm.second == 0) # on one quarter, [true,false,...]
     time_id = [id for id in range(len(tmp)) if tmp[id]] #index to entire df
     time_id = time_id[120:] #make some room for lookback
 

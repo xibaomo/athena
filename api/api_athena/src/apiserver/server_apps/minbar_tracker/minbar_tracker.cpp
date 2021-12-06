@@ -1,6 +1,7 @@
 #include "minbar_tracker.h"
 #include "basics/utils.h"
 #include <sstream>
+#include <numeric>
 using namespace std;
 using namespace athena;
 
@@ -97,6 +98,7 @@ MinbarTracker::procMsg_NEW_MINBAR(Message& msg) {
     Log(LOG_INFO) << "New minbar: " + iss.str() <<std::endl;
 
     m_predictor->appendMinbar(mb);
+
     Message outmsg;
     return outmsg;
 }
@@ -170,5 +172,36 @@ MinbarTracker::dumpPosInfo(){
         profits.push_back(iter.second.profit);
         lifetimes.push_back(iter.second.lifetime());
     }
-    dumpVectors("pos_info.csv",tks,start_times,end_times,lifetimes,profits);
+
+    // sort against starting time
+    vector<int> dts;
+    bt::ptime t0(bt::time_from_string(start_times[0]));
+    for (auto s : start_times) {
+        bt::ptime t(bt::time_from_string(s));
+        auto dt = t - t0;
+        dts.push_back(dt.total_seconds());
+    }
+
+    vector<int> ids(dts.size());
+    std::iota(ids.begin(),ids.end(),0);
+    std::sort(ids.begin(),ids.end(),[&](int i, int j){
+              return dts[i] < dts[j];});
+
+    auto dts_aux = dts;
+    auto tks_aux = tks;
+    auto st_aux = start_times;
+    auto et_aux = end_times;
+    auto lf_aux = lifetimes;
+    auto pf_aux = profits;
+    for(size_t i=0;i < ids.size();i++) {
+        auto id = ids[i];
+        dts_aux[i] = dts[id];
+        tks_aux[i] = tks[id];
+        st_aux[i]  = start_times[id];
+        et_aux[i]  = end_times[id];
+        lf_aux[i] = lifetimes[id];
+        pf_aux[i] = profits[id];
+    }
+
+    dumpVectors("pos_info.csv",tks_aux,st_aux,et_aux,lf_aux,pf_aux);
 }
