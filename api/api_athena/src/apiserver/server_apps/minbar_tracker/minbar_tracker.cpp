@@ -122,7 +122,7 @@ MinbarTracker::procMsg_REGISTER_POS(Message& msg) {
 
 Message
 MinbarTracker::procMsg_CLOSED_POS_INFO(Message& msg) {
-    m_numClosePos++;
+
     SerializePack pack;
     unserialize(msg.getComment(),pack);
 
@@ -133,10 +133,18 @@ MinbarTracker::procMsg_CLOSED_POS_INFO(Message& msg) {
     if (m_tk2pos.find(tk) == m_tk2pos.end()) {
         Log(LOG_ERROR) << "Ticket not registered: " + to_string(tk) <<std::endl;
     }
-    m_tk2pos[tk].close_time = tm;
-    m_tk2pos[tk].profit = profit;
 
-    Log(LOG_INFO) << "Position closed: " << tm << ", profit: " << profit << endl;
+    auto& pos = m_tk2pos[tk];
+    if (!pos.close_time.empty()) {
+        Message outmsg;
+        return outmsg;
+    }
+    m_numClosePos++;
+    pos.close_time = tm;
+    pos.profit = profit;
+
+    Log(LOG_INFO) << "Position closed. Start time: " << pos.open_time
+                  << ", close time: " << pos.close_time << ", profit: " << profit << endl;
 
     Message outmsg;
     return outmsg;
