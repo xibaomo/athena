@@ -201,6 +201,7 @@ MinbarTracker::dumpPosInfo(){
     auto et_aux = end_times;
     auto lf_aux = lifetimes;
     auto pf_aux = profits;
+    vector<int> guess(ids.size());
     for(size_t i=0;i < ids.size();i++) {
         auto id = ids[i];
         dts_aux[i] = dts[id];
@@ -209,7 +210,11 @@ MinbarTracker::dumpPosInfo(){
         et_aux[i]  = end_times[id];
         lf_aux[i] = lifetimes[id];
         pf_aux[i] = profits[id];
+        guess[i] = pf_aux[i]>0? 1 : -1;
     }
 
-    dumpVectors("pos_info.csv",tks_aux,st_aux,et_aux,lf_aux,pf_aux);
+    real64 profit = std::accumulate(pf_aux.begin(),pf_aux.end(),0.f);
+    Log(LOG_INFO) << "Total profit: " << profit << endl;
+
+    dumpVectors("pos_info.csv",tks_aux,st_aux,et_aux,lf_aux,pf_aux,guess);
 }

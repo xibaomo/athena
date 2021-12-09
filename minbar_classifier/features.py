@@ -134,6 +134,17 @@ def macd(df, time_id, slk = 48, llk = 96, sp = 9):
         else:
             macd[i] = 0
     return np.hstack((macd.reshape(-1, 1), macdsignal.reshape(-1, 1), macdhist.reshape(-1, 1)))
+def momentum(df,time_id,lookback):
+    Log(LOG_INFO) << "Computing momentum with looback: %d" % lookback
+    mmt=[]
+    for tid in time_id:
+        oldp = df[OPEN_KEY][tid-lookback]
+        newp = df[OPEN_KEY][tid]
+        rt = np.log(newp/oldp)
+        mmt.append(rt)
+    mmt = np.array(mmt)
+    return mmt.reshape(-1,1)
+
 
 def basic_features_training(prices,tv,tm,lookback):
     #prices = df[OPEN_KEY].values[time_id]
@@ -198,6 +209,10 @@ def prepare_features(fexconf, df, time_id):
     if fexconf.isFeatureEnabled(MACD_KEY):
         fa = macd(df, used_time_id, fexconf.getLookback(MACD_KEY), fexconf.getLongLookback(MACD_KEY))
         fm = np.hstack((fm, fa))
+
+    if fexconf.isFeatureEnabled("MOMENTUM"):
+        fa = momentum(df,used_time_id,fexconf.getLookback("MOMENTUM"))
+        fm = np.hstack((fm,fa))
 
     return fm, used_time_id, lookback
 

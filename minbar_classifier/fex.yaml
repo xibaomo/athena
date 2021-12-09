@@ -20,6 +20,8 @@ FEATURES:
         LONG_LOOKBACK: 9
     BBANDS:
         LOOKBACK: 48
+    MOMENTUM: # return relative to t0-lookback minbar
+        LOOKBACK: 5
     MACD:
         LOOKBACK: -48
         LONG_LOOKBACK: 96

@@ -4,6 +4,7 @@ import pandas as pd
 from enum import IntEnum
 from logger import *
 from basics import *
+import joblib
 import pdb
 
 class Action(IntEnum):
@@ -42,7 +43,7 @@ def inst_change_label(df):
     print("thd: ",thd)
     return y,time_id
 
-def tailorTargetID(tm,target_id,POS_LIFE):
+def tailorTargetID(tm,target_id,pos_life):
     """
     remove tailing time id whose life is shorter than 1 week
     """
@@ -52,52 +53,57 @@ def tailorTargetID(tm,target_id,POS_LIFE):
         tid = target_id[idx] # index to tm
         t_cur = tm[tid]
         dt = (t_end-t_cur).total_seconds()
-        if dt >= POS_LIFE:
+        if dt >= pos_life:
             break
         idx-=1
     tailored_idx = target_id[:idx]
     return tailored_idx
 
+def findLabel(idx,time_id,tm,df,thd_ret,pos_life):
+    tid = time_id[idx]
+    t0 = tm[tid]  # position time
+    id = tid
+    p0 = df[OPEN_KEY][id]
+    label = None
+    while id < len(df):
+        t = tm[id]
+        if (t - t0).seconds > pos_life:
+            break
+        # ret+=rx[id]
+        ret_high = df[HIGH_KEY][id] / p0 - 1
+        ret_low = df[LOW_KEY][id] / p0 - 1
+        if ret_high >= thd_ret and ret_low <= -thd_ret:
+            Log(LOG_DEBUG) << "Run into a big bar " + df[DATE_KEY][id] + " " + df[TIME_KEY][id]
+            label = Action.NO_ACTION
+            break
+        if ret_high >= thd_ret:
+            label = Action.BUY
+            break
+        if ret_low <= -thd_ret:
+            label = Action.SELL
+            break
+        id+=1
+    return label
 
-def later_change_label(df,THD_RET,POS_LIFE):
-    Log(LOG_INFO) << "Labeling with return threshold: %f, position lifetime: %d days" % (THD_RET,POS_LIFE/3600/24)
+
+def later_change_label(df,thd_ret,pos_life):
+    Log(LOG_INFO) << "Labeling with return threshold: %f, position lifetime: %d days" % (thd_ret,pos_life/3600/24)
     tm = getTimeStamps(df)
 
-    tmp = (tm.minute == 15) & (tm.second == 0) # on one quarter, [true,false,...]
+    tmp = (tm.minute == 0) & (tm.second == 0)  & (tm.hour != 0)# on hour sharp except 00:00, [true,false,...]
     time_id = [id for id in range(len(tmp)) if tmp[id]] #index to entire df
     time_id = time_id[120:] #make some room for lookback
 
-    time_id = tailorTargetID(tm,time_id,POS_LIFE) # tailor short-life positions
+    time_id = tailorTargetID(tm,time_id,pos_life) # tailor short-life positions
     labels = np.ones(len(time_id))*int(Action.NO_ACTION)
 
     prices = df[OPEN_KEY].values
-    rx = np.diff(np.log(prices))
+
     for i in range(len(time_id)):
-        tid = time_id[i] #index to df
-        t0 = tm[tid]     # position time
-        # ret = 0.
-        id = tid
-        p0 = df[OPEN_KEY][id]
-        while id < len(df):
-            t = tm[id]
-            if (t-t0).seconds > POS_LIFE:
-                break
-            # ret+=rx[id]
-            ret_high = df[HIGH_KEY][id]/p0-1
-            ret_low  = df[LOW_KEY][id]/p0 - 1
-            if ret_high >= THD_RET and ret_low <= -THD_RET:
-                Log(LOG_DEBUG) << "Run into a big bar " + df[DATE_KEY][id] + " " + df[TIME_KEY][id]
-                labels[i] = Action.NO_ACTION
-                break
-            if ret_high >= THD_RET:
-                labels[i] = Action.BUY
-                break
-            if ret_low <= -THD_RET:
-                labels[i] = Action.SELL
-                break
+        # tid = time_id[i] #index to df
+        labels[i] = findLabel(i,time_id,tm,df,thd_ret,pos_life)
 
-            id+=1
-
+    # labels = joblib.Parallel(n_jobs=-1)(joblib.delayed(findLabel)(i,time_id,tm,df,thd_ret,pos_life) for i in range(len(time_id)))
     Log(LOG_INFO) << "All data size: %d"%len(time_id)
     Log(LOG_INFO) << "label dist.: buy: %d, sell: %d, noact: %d "%((labels==Action.BUY).sum(),\
                                                                   (labels==Action.SELL).sum(),
