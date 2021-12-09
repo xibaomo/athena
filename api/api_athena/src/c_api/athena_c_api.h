@@ -1,18 +1,20 @@
-#ifndef _CAPI_ATHENA_H_
-#define _CAPI_ATHENA_H_
+#pragma once
 
-typedef int Status; /* 0 - success. Non-zero: failure */
-typedef float Real;
-typedef unsigned int Uint;
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
-Status athena_load(void** athena_engine, char* model_file);
+typedef int athenaStatus;
+typedef double real64;
+typedef int    int32;
 
-Status comp_prediction(void* athena_engine,
-                       Real* features,
-                       const Uint n_samples,
-                       const Uint n_features,
-                       Real* bias);
+athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64* close, int32 num_bars, // input: all min bars
+                          int32* used_time_id, int32 num_ids, // input: index to label
+                          real64 ret_thd, // input: return threshold
+                          int32 max_stride, // input: max bars to check
+                          int32* labels, int32 nlabels); // output
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
-Status athena_unload(void** metis_engine);
 
-#endif

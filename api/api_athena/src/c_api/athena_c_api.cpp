@@ -1,68 +1,31 @@
 #include "athena_c_api.h"
-#include "basics/log.h"
-#include "client_apps/client_predictor/client_predictor.h"
-#include "pyhelper.hpp"
-#include "basics/utils.h"
-#include <iostream>
 using namespace std;
-using namespace athena;
 
-String _getModelFile(String qmdlFile)
-{
-    String athena_install = String(getenv("ATHENA_INSTALL"));
-    String modulePath = athena_install + "/api/release/scripts/";
+athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64* close, int32 num_bars, // input: all min bars
+                          int32* used_time_id, int32 num_ids, // input: index to label
+                          real64 ret_thd, // input: return threshold
+                          int32 max_stride, // input: max bars to check
+                          int32* labels) { // output, length is num_ids
 
-    PyEnviron::getInstance().appendSysPath(modulePath);
-
-    CPyObject qmdlParserMod = PyImport_ImportModule("qmdl_parser");
-    CPyObject pDict = PyModule_GetDict(qmdlParserMod);
-    CPyObject pFunc = PyDict_GetItemString(pDict, "getValueByKey");
-
-    CPyObject val = PyObject_CallFunction(pFunc, "ss", "EXTERNAL_MODEL/MODEL_PATH",qmdlFile.c_str());
-
-    auto v = String(PyBytes_AsString(val));
-    return v;
-}
-
-String getModelFile(String qmdlFile)
-{
-    String athena_install = String(getenv("ATHENA_INSTALL"));
-    String parser = athena_install + "/api/release/scripts/qmdl_parser.py";
-    String cmd = parser + " " + qmdlFile;
-
-    String modelfile = execSysCall_block(cmd);
-    return modelfile;
-}
-
-Status athena_load(void** pc, char* qmdl_config_file)
-{
-    *pc = new ClientPredictor();
-    ClientPredictor* app = (ClientPredictor*)*pc;
-
-    String model_file = getModelFile(String(qmdl_config_file));
-
-    app->prepare(model_file);
-
-    return 0;
-}
-
-Status athena_unload(void** pc)
-{
-    delete (ClientPredictor*)*pc;
-    *pc = nullptr;
-
-    return 0;
-}
-
-Status comp_prediction(void* pc,
-        Real* features,
-        const Uint n_samples,
-        const Uint n_features,
-        Real* bias)
-{
-    ClientPredictor* app = (ClientPredictor*)pc;
-    app->sendFeatures(features, n_samples, n_features);
-    app->getResult(bias, n_samples);
-
+    for (int32 idx = 0; idx < num_ids; idx++) {
+        int32 tid = used_time_id[idx];
+        real64 p0 = open[tid];
+        int32 label = 0;
+        for(int j=tid; j < num_bars; j++) {
+            if(j - tid > max_stride) break;
+            real64 ret_high = high[j]/p0 - 1;
+            real64 ret_low  = low[j]/p0 - 1;
+            if (ret_high >= ret_thd && ret_low <= -ret_thd)
+                break;
+            else if (ret_high >= ret_thd) {
+                label = 1;
+                break;
+            } else if (ret_low <= -ret_thd) {
+                label = -1;
+                break;
+            }
+        }
+        labels[idx] = label;
+    }
     return 0;
 }
