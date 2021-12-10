@@ -7,6 +7,11 @@ from basics import *
 import joblib
 import pdb
 
+import sys,os
+athena_path= "%s/api/api_athena/pyapi" % os.environ["ATHENA_HOME"]
+sys.path.append(athena_path)
+import athena as atn
+
 class Action(IntEnum):
     BUY = 0,
     SELL = 1,
@@ -77,9 +82,13 @@ def findLabel(idx,time_id,tm,df,thd_ret,pos_life):
             label = Action.NO_ACTION
             break
         if ret_high >= thd_ret:
+            if idx==9539:
+                print("%d stops at %d"% (tid,id))
             label = Action.BUY
             break
         if ret_low <= -thd_ret:
+            if idx==9539:
+                print("%d stops at %d"% (tid,id))
             label = Action.SELL
             break
         id+=1
@@ -96,12 +105,23 @@ def later_change_label(df,thd_ret,pos_life):
 
     time_id = tailorTargetID(tm,time_id,pos_life) # tailor short-life positions
     labels = np.ones(len(time_id))*int(Action.NO_ACTION)
-
+    # labels_ref = np.ones(len(time_id)) * int(Action.NO_ACTION)
     prices = df[OPEN_KEY].values
 
-    for i in range(len(time_id)):
-        # tid = time_id[i] #index to df
-        labels[i] = findLabel(i,time_id,tm,df,thd_ret,pos_life)
+    time_id = np.array(time_id,dtype=np.int32)
+
+    labels_aux = atn.minbar_label(df[OPEN_KEY].values,df[HIGH_KEY].values,df[LOW_KEY].values,df[CLOSE_KEY].values,
+                     time_id,thd_ret,int(pos_life/15/60)*2)
+
+    for i in range(len(labels)):
+        if labels_aux[i] == -1:
+            labels[i] = Action.SELL
+        elif labels_aux[i] == 1:
+            labels[i] = Action.BUY
+
+    # for i in range(len(time_id)):
+    #     # tid = time_id[i] #index to df
+    #     labels[i] = findLabel(i,time_id,tm,df,thd_ret,pos_life)
 
     # labels = joblib.Parallel(n_jobs=-1)(joblib.delayed(findLabel)(i,time_id,tm,df,thd_ret,pos_life) for i in range(len(time_id)))
     Log(LOG_INFO) << "All data size: %d"%len(time_id)
