@@ -17,19 +17,13 @@ athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64
             real64 ret_high = high[j]/p0 - 1;
             real64 ret_low  = low[j]/p0 - 1;
             if (ret_high >= ret_thd && ret_low <= -ret_thd) {
-                if(idx==9539)
-                    cout<<"tid " << tid << ", stops at " << j<<endl;
                 break;
             }
 
             else if (ret_high >= ret_thd) {
-                if(idx==9539)
-                    cout<<"tid " << tid << ", stops at " << j<<endl;
                 label = 1;
                 break;
             } else if (ret_low <= -ret_thd) {
-                if(idx==9539)
-                    cout<<"tid " << tid << ", stops at " << j<<endl;
                 label = -1;
                 break;
             }

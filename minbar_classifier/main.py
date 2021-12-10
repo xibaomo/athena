@@ -24,8 +24,9 @@ import pickle
 
 def loadcsv(fn):
     df = pd.read_csv(fn, sep='\t')
-
-
+    ret = np.diff(np.log(df[OPEN_KEY].values))
+    ret = np.append(ret,0)
+    df[RET_KEY] = ret
     return df
 
 def train_model(x_train, y_train):
@@ -37,7 +38,7 @@ def train_model(x_train, y_train):
     # model = RandomForestClassifier()
     model = svm.SVC(C = 1., kernel='rbf')
     # model = XGBClassifier(use_label_encoder = False)
-    # model = AdaBoostClassifier(n_estimators=100)
+    # model = AdaBoostClassifier(n_estimators=300)
     ## fit the model
     # pdb.set_trace()
     model.fit(x_train, y_train)

@@ -69,10 +69,18 @@ class FexConfig(object):
         return True
 
 def volatility(df, time_id, lookback = 2):
+    Log(LOG_INFO) << "Computing volatility with %d" % lookback
+    s = np.zeros(len(df))
+    for i in range(len(df)-1):
+        if df[OPEN_KEY][i] > df[CLOSE_KEY][i]:
+            s[i] = df[HIGH_KEY][i]/df[LOW_KEY][i] - 1.
+        else:
+            s[i] = df[LOW_KEY][i] / df[HIGH_KEY][i] - 1.
+    df[STD_KEY] = s
     ft = np.zeros((len(time_id), 2))
     for i in range(len(time_id)):
         tid = time_id[i]
-        past_sd = df['STD'][tid-lookback:tid].values
+        past_sd = df[STD_KEY][tid-lookback:tid].values
         ft[i, 0] = np.mean(past_sd)
         ft[i, 1] = np.std(past_sd)
     return ft
@@ -136,15 +144,67 @@ def macd(df, time_id, slk = 48, llk = 96, sp = 9):
     return np.hstack((macd.reshape(-1, 1), macdsignal.reshape(-1, 1), macdhist.reshape(-1, 1)))
 def momentum(df,time_id,lookback):
     Log(LOG_INFO) << "Computing momentum with looback: %d" % lookback
-    mmt=[]
+    mmt_open=[]
+    mmt_high=[]
+    mmt_mid =[]
     for tid in time_id:
         oldp = df[OPEN_KEY][tid-lookback]
         newp = df[OPEN_KEY][tid]
-        rt = np.log(newp/oldp)
-        mmt.append(rt)
-    mmt = np.array(mmt)
-    return mmt.reshape(-1,1)
+        rt = newp/oldp - 1
+        mmt_open.append(rt)
 
+        oldp = df[HIGH_KEY][tid - lookback]
+        newp = df[HIGH_KEY][tid-1]
+        rt = newp/oldp - 1
+        mmt_high.append(rt)
+
+        oldp = df[MID_KEY][tid - lookback]
+        newp = df[OPEN_KEY][tid]
+        rt = newp / oldp - 1
+        mmt_mid.append(rt)
+
+    mmt_open = np.array(mmt_open)
+    mmt_high = np.array(mmt_high)
+    mmt_mid  = np.array(mmt_mid)
+
+    return np.hstack((mmt_open.reshape(-1,1),mmt_high.reshape(-1,1),mmt_mid.reshape(-1,1)))
+
+def cci(df,time_id,lookback):
+    Log(LOG_INFO) << "Computing CCI with lookback: %d" % lookback
+    cci = talib.CCI(df[HIGH_KEY].values, df[LOW_KEY].values, df[CLOSE_KEY].values,lookback)
+    cci = cci[time_id-1]
+    return cci.reshape(-1,1)
+def rsi(df,time_id,slk,llk):
+    Log(LOG_INFO) << "Computing RSI wtih lookback: %d,%d" % (slk,llk)
+    rsi_s = talib.RSI(df[OPEN_KEY].values,slk)[time_id]
+    rsi_l = talib.RSI(df[OPEN_KEY].values,llk)[time_id]
+    rsi = rsi_s - rsi_l
+    return rsi.reshape(-1,1)
+
+def rsv(df,time_id,lookback):
+    Log(LOG_INFO) << "Computing RSV with lookback: %d" % lookback
+    rsv = []
+    for tid in time_id:
+        high = np.max(df[HIGH_KEY][tid-lookback:tid])
+        low  = np.min(df[LOW_KEY][tid-lookback:tid])
+        val = (df[OPEN_KEY][tid]-low)/(high-low)
+        rsv.append(val)
+    rsv = np.array(rsv)
+    return rsv.reshape(-1,1)
+
+def slope(df,time_id,slk,llk):
+    Log(LOG_INFO) << "Computing SLOPE with lookback: %d,%d" % (slk,llk)
+    xs = range(slk)
+    xl = range(llk)
+    slp = []
+    for tid in time_id:
+        ys = df[MID_KEY][tid-slk:tid]
+        yl = df[MID_KEY][tid-llk:tid]
+        ss = np.polyfit(xs,ys,1)[0]
+        sl = np.polyfit(xl,yl,1)[0]
+        slp.append(ss-sl)
+    slp = np.array(slp)
+    return slp.reshape(-1,1)
 
 def basic_features_training(prices,tv,tm,lookback):
     #prices = df[OPEN_KEY].values[time_id]
@@ -174,10 +234,7 @@ def basic_features_training(prices,tv,tm,lookback):
     return fm
 
 def prepare_features(fexconf, df, time_id):
-    s = np.log(df[HIGH_KEY] / df[LOW_KEY])
-    df[STD_KEY] = s  # volatility of each bar
-    #fexconf = FexConfig(conf_file)
-
+    df[MID_KEY] = (df[HIGH_KEY] + df[LOW_KEY])*0.5
     prices = df[OPEN_KEY].values[time_id]
     tv = df[TICKVOL_KEY].values[time_id]
     tm = pd.to_datetime(df[TIME_KEY].values[time_id])
@@ -212,6 +269,22 @@ def prepare_features(fexconf, df, time_id):
 
     if fexconf.isFeatureEnabled("MOMENTUM"):
         fa = momentum(df,used_time_id,fexconf.getLookback("MOMENTUM"))
+        fm = np.hstack((fm,fa))
+
+    if fexconf.isFeatureEnabled("RSI"):
+        fa = rsi(df,used_time_id,fexconf.getLookback("RSI"),fexconf.getLongLookback("RSI"))
+        fm = np.hstack((fm,fa))
+
+    if fexconf.isFeatureEnabled("CCI"):
+        fa = cci(df,used_time_id,fexconf.getLookback("CCI"))
+        fm = np.hstack((fm,fa))
+
+    if fexconf.isFeatureEnabled("RSV"):
+        fa = rsv(df,used_time_id,fexconf.getLookback("RSV"))
+        fm = np.hstack((fm,fa))
+
+    if fexconf.isFeatureEnabled("SLOPE"):
+        fa = slope(df,used_time_id,fexconf.getLookback("SLOPE"),fexconf.getLongLookback("SLOPE"))
         fm = np.hstack((fm,fa))
 
     return fm, used_time_id, lookback

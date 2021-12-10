@@ -1,6 +1,6 @@
 LABELING:
     POSITION_LIFETIME: 5 #days
-    RETURN_THRESHOLD: 0.003
+    RETURN_THRESHOLD: 0.0035
 TRAINING:
     TEST_SIZE: 480
 
@@ -11,7 +11,7 @@ FEATURES:
     BASICS:
         LOOKBACK: 3
     VOLATILITY:
-        LOOKBACK: 2
+        LOOKBACK: 3
     MA_MISC: 
         LOOKBACK: 6
         LONG_LOOKBACK: 12
@@ -22,6 +22,16 @@ FEATURES:
         LOOKBACK: 48
     MOMENTUM: # return relative to t0-lookback minbar
         LOOKBACK: 5
+    SLOPE:
+        LOOKBACK: 3
+        LONG_LOOKBACK: 6
+    RSV:
+        LOOKBACK: -3
+    CCI:
+        LOOKBACK: -3
+    RSI:
+        LOOKBACK: -5
+        LONG_LOOKBACK: 10
     MACD:
         LOOKBACK: -48
         LONG_LOOKBACK: 96
