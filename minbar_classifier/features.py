@@ -9,6 +9,7 @@ from logger import *
 from basics import *
 import yaml
 
+
 def __prepare_features(df, time_id, labels, test_size):
     lookback = 3
     prices = df[OPEN_KEY].values[time_id]
@@ -206,13 +207,43 @@ def slope(df,time_id,slk,llk):
     slp = np.array(slp)
     return slp.reshape(-1,1)
 
-def basic_features_training(prices,tv,tm,lookback):
-    #prices = df[OPEN_KEY].values[time_id]
+def tsfresh(df,time_id,lookback):
+    from tsfresh import extract_features
+    from tsfresh import select_features
+    from tsfresh.utilities.dataframe_functions import impute
+    Log(LOG_INFO) << "Computing TSFRESH with lookback: %d" % lookback
+    hid_key = "HOUR_ID"
+    ts_key = "TIME_STAMP"
+    dt_key = "DURATION"
+    dff = pd.DataFrame()
+    id=0
+    for tid in time_id:
+        tmp = df.iloc[tid-lookback:tid,:].reset_index(drop=True)
+        tmp[hid_key] = id
+        id += 1
+        dff = dff.append(tmp,ignore_index=True)
+    timestamp= pd.to_datetime(dff[DATE_KEY] + " " + dff[TIME_KEY])
+
+    dts = np.zeros(len(dff))
+    for i in range(len(dff)):
+        dt = timestamp[i] - timestamp[0]
+        dts[i] = dt.seconds
+    dff[dt_key] = dts
+    dff=dff.drop(columns=[DATE_KEY,TIME_KEY,"<VOL>"])
+
+    exf = extract_features(dff, column_id=hid_key, column_sort=dt_key)
+    drop_col=[]
+    for key in exf.keys():
+        if exf[key].isnull().any() or np.isinf(exf[key]).any():
+            drop_col.append(key)
+
+    exf = exf.drop(columns=drop_col)
+
+    return exf
+
+
+def basic_features_training(prices,tv,tm,lookback): # features based on hours, instead of min bars
     rx = np.diff(np.log(prices))
-    #tv = df["<TICKVOL>"].values[time_id]
-    #tm = pd.to_datetime(df[TIME_KEY].values[time_id])
-    # tv = tv[:-1]
-    # tm = tm[:-1]
 
     Log(LOG_INFO) << "Computing basic features ..."
     nsample = len(prices) - lookback
@@ -286,6 +317,10 @@ def prepare_features(fexconf, df, time_id):
     if fexconf.isFeatureEnabled("SLOPE"):
         fa = slope(df,used_time_id,fexconf.getLookback("SLOPE"),fexconf.getLongLookback("SLOPE"))
         fm = np.hstack((fm,fa))
+
+    if fexconf.isFeatureEnabled("TSFRESH"):
+        fa = tsfresh(df, used_time_id, fexconf.getLookback("TSFRESH"))
+        fm = np.hstack((fm, fa))
 
     return fm, used_time_id, lookback
 

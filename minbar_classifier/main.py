@@ -53,7 +53,7 @@ def eval_model(model, x_test, y_test):
     prof_buy=0
     prof_sell=0
     loss = 0.
-    for i in range(test_size):
+    for i in range(len(y_test)):
         if y_pred[i] == Action.NO_ACTION:
             continue
         if y_pred[i] == y_test[i]:
@@ -107,8 +107,10 @@ if __name__ == '__main__':
 
     config = MasterConf(cf)
 
-    # labels,time_id = inst_change_label(df)
-    labels,time_id = later_change_label(df,config.getReturnThreshold(),config.getPosLifeSec())
+    timestamp = pd.to_datetime(df[DATE_KEY] + " " + df[TIME_KEY])
+    dt = (timestamp[1] - timestamp[0])
+    dtmin = dt.seconds/60
+    labels,time_id = later_change_label(df,config.getReturnThreshold(),config.getPosLifeSec(),int(dtmin))
     test_size = config.getTestSize()
     Log(LOG_INFO) << "Test size: %d" % test_size
     fexconf = FexConfig(cf)

@@ -25,6 +25,8 @@ FEATURES:
     SLOPE:
         LOOKBACK: 3
         LONG_LOOKBACK: 6
+    TSFRESH:
+        LOOKBACK: -5
     RSV:
         LOOKBACK: -3
     CCI:

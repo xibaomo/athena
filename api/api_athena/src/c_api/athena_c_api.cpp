@@ -17,6 +17,8 @@ athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64
             real64 ret_high = high[j]/p0 - 1;
             real64 ret_low  = low[j]/p0 - 1;
             if (ret_high >= ret_thd && ret_low <= -ret_thd) {
+//                std::cout << "bar is too long. p0 = " << p0
+//                          << ", high = " << high[j] << ", low = " << low[j] << endl;
                 break;
             }
 
