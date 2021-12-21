@@ -36,8 +36,8 @@ using namespace athena;
 PairAssetMeanRevert::~PairAssetMeanRevert() {
     Log(LOG_INFO) << "Num of buys: " + to_string(m_buys) + ", sells: " + to_string(m_sells) <<std::endl;
 
-    dumpVectors("buysell_totalassets.csv",m_totalAssets_buy,m_totalAssets_sell);
-    dumpVectors("all_totalassets.csv",m_totalAssets_mid);
+    dumpVectors("buysell_totalassets.csv","",m_totalAssets_buy,m_totalAssets_sell);
+    dumpVectors("all_totalassets.csv","",m_totalAssets_mid);
 
     ostringstream os;
     os << "Dev range: buy: [" << m_lowBuyDev<<","<<m_highBuyDev<<"], sell: [" << m_lowSellDev << "," << m_highSellDev << "]";

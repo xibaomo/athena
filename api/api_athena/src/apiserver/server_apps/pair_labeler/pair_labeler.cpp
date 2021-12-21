@@ -33,7 +33,7 @@ PairLabeler::~PairLabeler() {
         ss.push_back(v.sell);
     }
 
-    dumpVectors("labels.csv",bs,ss,m_pairLabels);
+    dumpVectors("labels.csv","",bs,ss,m_pairLabels);
 }
 Message
 PairLabeler::processMsg(Message& msg) {

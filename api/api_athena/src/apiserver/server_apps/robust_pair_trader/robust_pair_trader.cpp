@@ -195,7 +195,7 @@ RobustPairTrader::linreg(size_t start) {
     estimateSpreadTend(spread,len);
 
     vector<real64> vsp(spread,spread+len);
-    dumpVectors("spread.csv",vsp);
+    dumpVectors("spread.csv","",vsp);
 
     delete[] spread;
 }
@@ -215,7 +215,7 @@ RobustPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     m_openX.push_back(x);
     m_openY.push_back(y);
 
-    dumpVectors("ticks.csv",m_openX,m_openY);
+    dumpVectors("ticks.csv","",m_openX,m_openY);
 
     char* pc = (char*)msg.getChar() + sizeof(int)*2;
     int cb = msg.getCharBytes() - sizeof(int)*2;

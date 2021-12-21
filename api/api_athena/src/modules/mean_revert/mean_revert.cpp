@@ -25,10 +25,10 @@ using namespace std;
 using namespace athena;
 
 MeanRevert::~MeanRevert() {
-    dumpVectors("cuscore.csv",m_cuScores);
+    dumpVectors("cuscore.csv","",m_cuScores);
     dumpDevs("devs.csv");
     dumpTradeSpreads();
-    dumpVectors("spreads.csv",m_spreads);
+    dumpVectors("spreads.csv","",m_spreads);
     ostringstream oss;
     oss << "Num buys: " << m_buys << ", sells: " << m_sells << ", close_all: " << m_numclose;
     Log(LOG_INFO) << oss.str() <<std::endl;
@@ -261,7 +261,7 @@ MeanRevert::dumpDevs(const String& fn) {
         buy_dev.push_back(m_spreadDevs[i].buy);
         sell_dev.push_back(m_spreadDevs[i].sell);
     }
-    dumpVectors(fn, buy_dev, sell_dev);
+    dumpVectors(fn, "",buy_dev, sell_dev);
 }
 
 real64
@@ -298,5 +298,5 @@ MeanRevert::dumpTradeSpreads() {
         v1.push_back(p.buy);
         v2.push_back(p.sell);
     }
-    dumpVectors("trade_spreads.csv",v1,v2);
+    dumpVectors("trade_spreads.csv","",v1,v2);
 }

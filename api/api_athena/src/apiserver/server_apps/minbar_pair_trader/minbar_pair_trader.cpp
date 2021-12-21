@@ -41,9 +41,9 @@ MinbarPairTrader::MinbarPairTrader(const String& cfg) : ServerBaseApp(cfg), m_cu
 
 MinbarPairTrader::~MinbarPairTrader()
 {
-    dumpVectors("prices.csv",m_mid_x, m_mid_y);
-    dumpVectors("assets.csv",m_assetX_mid,m_assetY_mid);
-    dumpVectors("trade_assets.csv",m_assetX_buy,m_assetX_sell,m_assetY_buy,m_assetY_sell);
+    dumpVectors("prices.csv","",m_mid_x, m_mid_y);
+    dumpVectors("assets.csv","",m_assetX_mid,m_assetY_mid);
+    dumpVectors("trade_assets.csv","",m_assetX_buy,m_assetX_sell,m_assetY_buy,m_assetY_sell);
 
     if ( m_oracle )
         delete m_oracle;

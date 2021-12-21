@@ -264,8 +264,12 @@ void dumpVectors_aux(std::ofstream& ofs, int i, V& v, T&... args) {
 }
 
 template <typename V, typename ... T>
-void dumpVectors(const String& csvfile, V& v, T&... args) {
+void dumpVectors(const String& csvfile, const String& headers, V& v, T&... args) {
     std::ofstream ofs(csvfile);
+    if(!headers.empty()) {
+        ofs << headers << std::endl;
+    }
+
     for (size_t i = 0; i < v.size(); i++) {
         dumpVectors_aux(ofs, i, v, args...);
     }

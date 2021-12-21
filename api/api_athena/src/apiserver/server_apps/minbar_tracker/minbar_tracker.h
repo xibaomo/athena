@@ -15,6 +15,8 @@ struct PosInfo {
     String close_time;
     PosType pos_type;
     double profit;
+    double open_price;
+    double close_price;
     int lifetime() { // in unit of hours
         if (open_time.empty() || close_time.empty()){
             return -1;

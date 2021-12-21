@@ -87,13 +87,22 @@ def eval_model(model, x_test, y_test):
     # perm_importance = permutation_importance(model, x_test, y_test)
     # Log(LOG_INFO) << "importance: "+ str(perm_importance.importances_mean)
 
-def dumpTestSet(df,used_time_id,test_size):
+def dumpTestSet(df,used_time_id,labels, test_size):
     dff = pd.DataFrame()
     tid_s = len(used_time_id) - test_size
     for i in range(tid_s,len(used_time_id)):
         tid = used_time_id[i]
-        dff = dff.append(df.loc[tid])
+        dff = dff.append(df.loc[tid,[DATE_KEY,TIME_KEY]])
     dff.reset_index(drop=True)
+    label_aux = labels[tid_s:].astype(int)
+    for i in range(len(label_aux)):
+        if label_aux[i] == Action.BUY:
+            label_aux[i] = 1
+            continue
+        if label_aux[i] == Action.SELL:
+            label_aux[i] = -1
+            continue
+    dff['LABEL'] = label_aux
 
     dff.to_csv("test_set.csv",index=False)
 if __name__ == '__main__':
@@ -110,6 +119,7 @@ if __name__ == '__main__':
     timestamp = pd.to_datetime(df[DATE_KEY] + " " + df[TIME_KEY])
     dt = (timestamp[1] - timestamp[0])
     dtmin = dt.seconds/60
+    Log(LOG_INFO) << "Minbar spacing is %d min" % dtmin
     labels,time_id = later_change_label(df,config.getReturnThreshold(),config.getPosLifeSec(),int(dtmin))
     test_size = config.getTestSize()
     Log(LOG_INFO) << "Test size: %d" % test_size
@@ -120,7 +130,7 @@ if __name__ == '__main__':
     tid_e = used_time_id[-1]
     Log(LOG_INFO) << "start date of test: " + df[DATE_KEY][tid_s] + " " + df[TIME_KEY][tid_s]
     Log(LOG_INFO) << "end   date of test: " + df[DATE_KEY][tid_e] + " " + df[TIME_KEY][tid_e]
-    dumpTestSet(df,used_time_id,test_size)
+    dumpTestSet(df,used_time_id,used_labels,test_size)
     x_train, y_train, x_test, y_test,scaler = split_dataset(fm,used_labels,test_size)
 
     model = train_model(x_train, y_train)
