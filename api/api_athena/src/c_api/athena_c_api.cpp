@@ -8,15 +8,18 @@ athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64
                                  //real64 ret_thd, // input: deviation of actual return. The true return is (1-dev)*return
 
                                  int32 max_stride, // input: max bars to check
-                                 int32* labels) { // output, length is num_ids
+                                 int32* labels,
+                                 int32* durations) { // output, length is num_ids
 
     real64 dev = 0.06;
     for (int32 idx = 0; idx < num_ids; idx++) {
         int32 tid = used_time_id[idx];
         real64 p0 = open[tid];
         int32 label = 0;
+        int32 dur = -1;
         for(int j=tid; j < num_bars; j++) {
             if(j - tid > max_stride) break;
+            dur = j - tid;
             real64 ret_high = high[j]/p0 - 1;
             real64 ret_low  = low[j]/p0 - 1;
             // first check if we can take profit in this bar
@@ -59,6 +62,7 @@ athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64
             std::cerr << "Label should not be 0!!!" << std::endl;
         }
         labels[idx] = label;
+        durations[idx] = dur;
 
     }
     return 0;

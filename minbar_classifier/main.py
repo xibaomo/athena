@@ -87,7 +87,7 @@ def eval_model(model, x_test, y_test):
     # perm_importance = permutation_importance(model, x_test, y_test)
     # Log(LOG_INFO) << "importance: "+ str(perm_importance.importances_mean)
 
-def dumpTestSet(df,used_time_id,labels, test_size):
+def dumpTestSet(df,used_time_id,labels, end_time, end_high,end_low,test_size):
     dff = pd.DataFrame()
     tid_s = len(used_time_id) - test_size
     for i in range(tid_s,len(used_time_id)):
@@ -103,6 +103,9 @@ def dumpTestSet(df,used_time_id,labels, test_size):
             label_aux[i] = -1
             continue
     dff['LABEL'] = label_aux
+    dff['END_TIME'] = end_time[tid_s:]
+    dff['END_HIGH'] = end_high[tid_s:]
+    dff['END_LOW']  = end_low[tid_s:]
 
     dff.to_csv("test_set.csv",index=False)
 if __name__ == '__main__':
@@ -120,17 +123,19 @@ if __name__ == '__main__':
     dt = (timestamp[1] - timestamp[0])
     dtmin = dt.seconds/60
     Log(LOG_INFO) << "Minbar spacing is %d min" % dtmin
-    labels,time_id = later_change_label(df,config.getReturnThreshold(),config.getPosLifeSec(),int(dtmin))
+    labels,time_id,end_time,end_high,end_low = later_change_label(df,config.getReturnThreshold(),config.getPosLifeSec(),int(dtmin))
     test_size = config.getTestSize()
     Log(LOG_INFO) << "Test size: %d" % test_size
     fexconf = FexConfig(cf)
     fm,used_time_id,lookback = prepare_features(fexconf, df, time_id)
     used_labels = labels[lookback:]
+    used_endtime = end_time[lookback:]
     tid_s = used_time_id[-test_size]
     tid_e = used_time_id[-1]
     Log(LOG_INFO) << "start date of test: " + df[DATE_KEY][tid_s] + " " + df[TIME_KEY][tid_s]
     Log(LOG_INFO) << "end   date of test: " + df[DATE_KEY][tid_e] + " " + df[TIME_KEY][tid_e]
-    dumpTestSet(df,used_time_id,used_labels,test_size)
+    dumpTestSet(df,used_time_id,used_labels,used_endtime,end_high[lookback:],end_low[lookback:],test_size)
+
     x_train, y_train, x_test, y_test,scaler = split_dataset(fm,used_labels,test_size)
 
     model = train_model(x_train, y_train)

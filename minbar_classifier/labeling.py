@@ -106,7 +106,7 @@ def later_change_label(df,thd_ret,pos_life, bar_min=15):
 
     time_id = np.array(time_id,dtype=np.int32)
 
-    labels_aux = atn.minbar_label(df[OPEN_KEY].values,df[HIGH_KEY].values,df[LOW_KEY].values,df[CLOSE_KEY].values,
+    labels_aux,durations = atn.minbar_label(df[OPEN_KEY].values,df[HIGH_KEY].values,df[LOW_KEY].values,df[CLOSE_KEY].values,
                      time_id,thd_ret,int(pos_life/bar_min/60)*2)
 
     for i in range(len(labels)):
@@ -115,14 +115,21 @@ def later_change_label(df,thd_ret,pos_life, bar_min=15):
         elif labels_aux[i] == 1:
             labels[i] = Action.BUY
 
-    # for i in range(len(time_id)):
-    #     # tid = time_id[i] #index to df
-    #     labels[i] = findLabel(i,time_id,tm,df,thd_ret,pos_life)
-
-    # labels = joblib.Parallel(n_jobs=-1)(joblib.delayed(findLabel)(i,time_id,tm,df,thd_ret,pos_life) for i in range(len(time_id)))
     Log(LOG_INFO) << "All data size: %d"%len(time_id)
     Log(LOG_INFO) << "label dist.: buy: %d, sell: %d, noact: %d "%((labels==Action.BUY).sum(),\
                                                                   (labels==Action.SELL).sum(),
                                                                   (labels==Action.NO_ACTION).sum())
 
-    return labels,time_id
+    # add column of ending datetime
+    end_time = []
+    end_high = []
+    end_low  = []
+    dts = pd.to_datetime(df.loc[:,DATE_KEY] + " " + df.loc[:,TIME_KEY])
+    for i in range(len(labels)):
+        tid = time_id[i]
+        eid = tid + durations[i]
+        end_time.append(dts[eid])
+        end_high.append(df.loc[eid,HIGH_KEY])
+        end_low.append(df.loc[eid,LOW_KEY])
+
+    return labels,time_id,end_time,end_high,end_low

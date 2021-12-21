@@ -15,6 +15,7 @@ try:
                                      ct.POINTER(int32), int32,
                                      real64,
                                      int32,
+                                     ct.POINTER(int32),
                                      ct.POINTER(int32)]
 except:
     pass
@@ -26,6 +27,7 @@ return labels. 1 - buy, -1 - sell, 0 - no action
 def minbar_label(op, hp, lp, cp, time_ids, ret_thd, max_stride):
     num = time_ids.shape[0]
     labels = np.empty(num, dtype = int32)
+    durations = np.empty(num, dtype = int32)
     _athena_minbar_label(op.ctypes.data_as(ct.POINTER(real64)),
                          hp.ctypes.data_as(ct.POINTER(real64)),
                          lp.ctypes.data_as(ct.POINTER(real64)),
@@ -35,5 +37,6 @@ def minbar_label(op, hp, lp, cp, time_ids, ret_thd, max_stride):
                          time_ids.shape[0],
                          ret_thd,
                          max_stride,
-                         labels.ctypes.data_as(ct.POINTER(int32)))
-    return labels
+                         labels.ctypes.data_as(ct.POINTER(int32)),
+                         durations.ctypes.data_as(ct.POINTER(int32)))
+    return labels, durations
