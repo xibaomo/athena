@@ -92,7 +92,7 @@ def dumpTestSet(df,used_time_id,labels, test_size):
     tid_s = len(used_time_id) - test_size
     for i in range(tid_s,len(used_time_id)):
         tid = used_time_id[i]
-        dff = dff.append(df.loc[tid,[DATE_KEY,TIME_KEY]])
+        dff = dff.append(df.loc[tid,[DATE_KEY,TIME_KEY,OPEN_KEY]])
     dff.reset_index(drop=True)
     label_aux = labels[tid_s:].astype(int)
     for i in range(len(label_aux)):

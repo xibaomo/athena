@@ -112,14 +112,16 @@ MinbarTracker::procMsg_REGISTER_POS(Message& msg) {
 
     mt5ulong ticket = pack.mt5ulong_vec[0];
     String tm = pack.str_vec[0];
-    real64 price = pack.real64_vec[0];
+    real64 ask = pack.real64_vec[0];
+    real64 bid = pack.real64_vec[1];
 
     if (m_tk2pos.find(ticket) != m_tk2pos.end()) {
         Log(LOG_ERROR) << "Position already registered: " << ticket <<std::endl;
     }
     PosInfo pf;
     pf.open_time = tm;
-    pf.open_price = price;
+    pf.open_ask = ask;
+    pf.open_bid = bid;
     m_tk2pos[ticket] = pf;
     Log(LOG_INFO) << "Position registered:  " << tm << ", ticket: " << ticket <<std::endl;
 
@@ -181,7 +183,8 @@ MinbarTracker::dumpPosInfo(){
     vector<real64> profits;
     vector<int> lifetimes;
     vector<unsigned long> tks;
-    vector<real64> open_prices;
+    vector<real64> open_asks;
+    vector<real64> open_bids;
     vector<real64> close_prices;
     for(auto iter : m_tk2pos){
         tks.push_back(iter.first);
@@ -189,7 +192,8 @@ MinbarTracker::dumpPosInfo(){
         end_times.push_back(iter.second.close_time);
         profits.push_back(iter.second.profit);
         lifetimes.push_back(iter.second.lifetime());
-        open_prices.push_back(iter.second.open_price);
+        open_asks.push_back(iter.second.open_ask);
+        open_bids.push_back(iter.second.open_bid);
         close_prices.push_back(iter.second.close_price);
     }
 
@@ -213,7 +217,8 @@ MinbarTracker::dumpPosInfo(){
     auto et_aux = end_times;
     auto lf_aux = lifetimes;
     auto pf_aux = profits;
-    auto op_aux = open_prices;
+    auto oa_aux = open_asks;
+    auto ob_aux = open_bids;
     auto cp_aux = close_prices;
     vector<int> guess(ids.size());
     for(size_t i=0;i < ids.size();i++) {
@@ -224,14 +229,15 @@ MinbarTracker::dumpPosInfo(){
         et_aux[i]  = end_times[id];
         lf_aux[i] = lifetimes[id];
         pf_aux[i] = profits[id];
-        op_aux[i] = open_prices[id];
+        oa_aux[i] = open_asks[id];
+        ob_aux[i] = open_bids[id];
         cp_aux[i] = close_prices[id];
-        guess[i] = cp_aux[i]>op_aux[i]? 1 : -1;
+        guess[i] = cp_aux[i]>oa_aux[i]? 1 : -1;
     }
 
     real64 profit = std::accumulate(pf_aux.begin(),pf_aux.end(),0.f);
     Log(LOG_INFO) << "Total profit: " << profit << endl;
 
-    const String headers = "TICKET,START_TIME,END_TIME,DURATION,PROFIT,OPEN_PRICE,CLOSE_PRICE,LABEL";
-    dumpVectors("pos_info.csv",headers, tks_aux,st_aux,et_aux,lf_aux,pf_aux,op_aux,cp_aux,guess);
+    const String headers = "TICKET,START_TIME,END_TIME,DURATION,PROFIT,OPEN_ASK,OPEN_BID,CLOSE_PRICE,LABEL";
+    dumpVectors("pos_info.csv",headers, tks_aux,st_aux,et_aux,lf_aux,pf_aux,oa_aux,ob_aux,cp_aux,guess);
 }
