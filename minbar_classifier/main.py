@@ -123,7 +123,8 @@ if __name__ == '__main__':
     dt = (timestamp[1] - timestamp[0])
     dtmin = dt.seconds/60
     Log(LOG_INFO) << "Minbar spacing is %d min" % dtmin
-    labels,time_id,end_time,end_high,end_low = later_change_label(df,config.getReturnThreshold(),config.getPosLifeSec(),int(dtmin))
+    labels,time_id,end_time,end_high,end_low = later_change_label(df,config.getReturnThreshold(),config.getTrueReturnRatio(),
+                                                                  config.getPosLifeSec(),int(dtmin))
     test_size = config.getTestSize()
     Log(LOG_INFO) << "Test size: %d" % test_size
     fexconf = FexConfig(cf)

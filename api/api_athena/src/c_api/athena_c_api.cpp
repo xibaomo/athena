@@ -1,15 +1,87 @@
 #include "athena_c_api.h"
 #include <iostream>
+#include <math.h>
 using namespace std;
 
-athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64* close, int32 num_bars, // input: all min bars
-                                 int32* used_time_id, int32 num_ids, // input: index to label
-                                 real64 ret_thd, // input: return threshold
-                                 //real64 ret_thd, // input: deviation of actual return. The true return is (1-dev)*return
+// get point unit of the symbol
+static real64 getPoint3or5(real64 v) {
+    // first check if 1e-3
+    real64 vv = v*1e3;
+    int rv = std::round(vv);
+    if (vv - rv < 1e-5)
+        return 1e-3;
 
-                                 int32 max_stride, // input: max bars to check
-                                 int32* labels,
-                                 int32* durations) { // output, length is num_ids
+    // second if 1e-5
+    vv = v*1e5;
+    rv = std::round(vv);
+    if(vv  - rv < 1e-5) {
+        return 1e-5;
+    }
+
+    return -1;
+}
+
+athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64* close, real64* spread, int32 num_bars, // input: all min bars
+                                   int32* used_time_id, int32 num_ids, // input: index to label
+                                   real64 ret_thd, // input: return threshold
+                                   real64 profit_return_ratio, // the true return of a profit return is ret*thd*profit_return_ratio
+
+                                   int32 max_stride, // input: max bars to check
+                                   int32* labels,
+                                   int32* durations) {
+    real64 pv = getPoint3or5(open[0]);
+    std::cout<<"Point unit of symbol: " << pv << endl;
+
+    real64 true_ratio = profit_return_ratio;
+    for(int32 idx = 0; idx < num_ids; idx++) {
+        int32 tid = used_time_id[idx];
+        real64 p0_buy = open[tid] + pv*spread[tid];
+        real64 p0_sell = open[tid];
+        int32 label = 0;
+        int32 dur = -1;
+        for(int j=tid; j < num_bars; j++) {
+            if (j-tid > max_stride) break;
+            dur = j - tid;
+            real64 ret_buy = high[j]/p0_buy - 1.f;
+            real64 ret_sell = (low[j]+pv*spread[j])/p0_sell - 1.f;
+
+            real64 true_ret_buy = ret_buy * true_ratio;
+            real64 true_ret_sell = ret_sell * true_ratio;
+            // first check if we can take profit
+            if (true_ret_buy >= ret_thd && true_ret_sell <= -ret_thd) {
+                label = 2;
+                break;
+            }
+            else if (true_ret_buy >= ret_thd) {
+                label = 1;
+                break;
+            }
+            else if (true_ret_sell <= -ret_thd) {
+                label = -1;
+                break;
+            }
+
+            // next check if stop loss
+
+        }
+        if (label==0) {
+            std::cerr << "Label should not be 0!!!" << std::endl;
+        }
+        labels[idx] = label;
+        durations[idx] = dur;
+    }
+
+    return 0;
+}
+
+athenaStatus __athena_minbar_label(real64* open, real64* high, real64* low, real64* close, int32 num_bars, // input: all min bars
+                                   int32* used_time_id, int32 num_ids, // input: index to label
+                                   real64 ret_thd, // input: return threshold
+                                   //real64 ret_thd, // input: deviation of actual return. The true return is (1-dev)*return
+
+                                   int32 max_stride, // input: max bars to check
+                                   int32* labels,
+                                   int32* durations) { // output, length is num_ids
 
     real64 dev = 0.06;
     for (int32 idx = 0; idx < num_ids; idx++) {
@@ -29,12 +101,10 @@ athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64
             if (rhp >= ret_thd && rlp <= -ret_thd) {
                 label = 2;
                 break;
-            }
-            else if(rhp >= ret_thd) {
+            } else if(rhp >= ret_thd) {
                 label = 1;
                 break;
-            }
-            else if (rlp <= -ret_thd) {
+            } else if (rlp <= -ret_thd) {
                 label = -1;
                 break;
             }

@@ -9,6 +9,9 @@ class MasterConf(object):
     def getReturnThreshold(self):
         return self.yamlDict['LABELING']['RETURN_THRESHOLD']
 
+    def getTrueReturnRatio(self):
+        return self.yamlDict['LABELING']['TRUE_RETURN_RATIO']
+
     def getTestSize(self):
         return self.yamlDict['TRAINING']['TEST_SIZE']
 

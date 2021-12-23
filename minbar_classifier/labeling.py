@@ -91,7 +91,7 @@ def findLabel(idx,time_id,tm,df,thd_ret,pos_life):
     return label
 
 
-def later_change_label(df,thd_ret,pos_life, bar_min=15):
+def later_change_label(df,thd_ret,ret_ratio, pos_life, bar_min=15):
     Log(LOG_INFO) << "Labeling with return threshold: %f, position lifetime: %d days" % (thd_ret,pos_life/3600/24)
     tm = getTimeStamps(df)
 
@@ -106,8 +106,8 @@ def later_change_label(df,thd_ret,pos_life, bar_min=15):
 
     time_id = np.array(time_id,dtype=np.int32)
 
-    labels_aux,durations = atn.minbar_label(df[OPEN_KEY].values,df[HIGH_KEY].values,df[LOW_KEY].values,df[CLOSE_KEY].values,
-                     time_id,thd_ret,int(pos_life/bar_min/60)*2)
+    labels_aux,durations = atn.minbar_label(df[OPEN_KEY].values,df[HIGH_KEY].values,df[LOW_KEY].values,df[CLOSE_KEY].values,df[SPREAD_KEY].values,
+                     time_id,thd_ret,ret_ratio,int(pos_life/bar_min/60)*2)
 
     for i in range(len(labels)):
         if labels_aux[i] == -1:
