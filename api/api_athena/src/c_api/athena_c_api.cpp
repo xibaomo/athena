@@ -1,7 +1,9 @@
 #include "athena_c_api.h"
+#include "basics/utils.h"
 #include <iostream>
 #include <math.h>
 using namespace std;
+using namespace athena;
 
 // get point unit of the symbol
 static real64 getPoint3or5(real64 v) {
@@ -22,15 +24,23 @@ static real64 getPoint3or5(real64 v) {
 }
 
 athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64* close, real64* spread, int32 num_bars, // input: all min bars
-                                   int32* used_time_id, int32 num_ids, // input: index to label
-                                   real64 ret_thd, // input: return threshold
-                                   real64 profit_return_ratio, // the true return of a profit return is ret*thd*profit_return_ratio
+                                 int32* used_time_id, int32 num_ids, // input: index to label
+                                 real64 ret_thd, // input: return threshold
+                                 real64 profit_return_ratio, // the true return of a profit return is ret*thd*profit_return_ratio
 
-                                   int32 max_stride, // input: max bars to check
-                                   int32* labels,
-                                   int32* durations) {
+                                 int32 max_stride, // input: max bars to check
+                                 int32* labels,
+                                 int32* durations) {
+    const real64 ONE = 1.f;
     real64 pv = getPoint3or5(open[0]);
-    std::cout<<"Point unit of symbol: " << pv << endl;
+//    std::cout<<"Point unit of symbol: " << pv << endl;
+//    std::cout<<"Max stride: " << max_stride << endl;
+//
+//    std::cout<<"open hash: " << hasharray(open,num_bars) << endl;
+//    std::cout<<"high hash: " << hasharray(high,num_bars) << endl;
+//    std::cout<<"low hash: " << hasharray(low,num_bars) <<endl;
+//    std::cout<<"close hash: " << hasharray(close,num_bars) << endl;
+//    std::cout<<"spread hash: " << hasharray(spread,num_bars) << endl;
 
     real64 true_ratio = profit_return_ratio;
     for(int32 idx = 0; idx < num_ids; idx++) {
@@ -42,8 +52,8 @@ athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64
         for(int j=tid; j < num_bars; j++) {
             if (j-tid > max_stride) break;
             dur = j - tid;
-            real64 ret_buy = high[j]/p0_buy - 1.f;
-            real64 ret_sell = (low[j]+pv*spread[j])/p0_sell - 1.f;
+            real64 ret_buy = high[j]/p0_buy - ONE;
+            real64 ret_sell = (low[j]+pv*spread[j])/p0_sell - ONE;
 
             real64 true_ret_buy = ret_buy * true_ratio;
             real64 true_ret_sell = ret_sell * true_ratio;
@@ -51,12 +61,10 @@ athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64
             if (true_ret_buy >= ret_thd && true_ret_sell <= -ret_thd) {
                 label = 2;
                 break;
-            }
-            else if (true_ret_buy >= ret_thd) {
+            } else if (true_ret_buy >= ret_thd) {
                 label = 1;
                 break;
-            }
-            else if (true_ret_sell <= -ret_thd) {
+            } else if (true_ret_sell <= -ret_thd) {
                 label = -1;
                 break;
             }
@@ -70,6 +78,8 @@ athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64
         labels[idx] = label;
         durations[idx] = dur;
     }
+
+//    cout<<"hash labels: " << hasharray(labels,num_ids) << endl;
 
     return 0;
 }

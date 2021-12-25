@@ -80,8 +80,8 @@ def eval_model(model, x_test, y_test):
             blind_trade[i] = Action.BUY
         else:
             blind_trade[i] = Action.SELL
-    Log(LOG_INFO) << "blind win ratio: %.2f" % ((y_test==blind_trade).sum()*1./len(y_test))
-    Log(LOG_INFO) << "all long win ratio: %.2f" % ((y_test == Action.BUY).sum() * 1. / len(y_test))
+    Log(LOG_INFO) << "blind win ratio: %.3f" % ((y_test==blind_trade).sum()*1./len(y_test))
+    Log(LOG_INFO) << "all long win ratio: %.3f" % ((y_test == Action.BUY).sum() * 1. / len(y_test))
 
     # Log(LOG_INFO) << "estimating feature importances ..."
     # perm_importance = permutation_importance(model, x_test, y_test)

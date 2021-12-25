@@ -170,11 +170,16 @@ def momentum(df,time_id,lookback):
 
     return np.hstack((mmt_open.reshape(-1,1),mmt_high.reshape(-1,1),mmt_mid.reshape(-1,1)))
 
-def cci(df,time_id,lookback):
-    Log(LOG_INFO) << "Computing CCI with lookback: %d" % lookback
-    cci = talib.CCI(df[HIGH_KEY].values, df[LOW_KEY].values, df[CLOSE_KEY].values,lookback)
-    cci = cci[time_id-1]
-    return cci.reshape(-1,1)
+def cci(df,time_id,slk,llk):
+    Log(LOG_INFO) << "Computing CCI with lookback: %d, %d" % (slk,llk)
+    #pdb.set_trace()
+    cci_s = talib.CCI(df[HIGH_KEY].values, df[LOW_KEY].values, df[CLOSE_KEY].values,slk)
+    cci_s = cci_s[time_id-1]
+
+    cci_l = talib.CCI(df[HIGH_KEY].values, df[LOW_KEY].values, df[CLOSE_KEY].values, llk)
+    cci_l = cci_l[time_id - 1]
+    return np.hstack((cci_s.reshape(-1,1),cci_l.reshape(-1,1)))
+
 def rsi(df,time_id,slk,llk):
     Log(LOG_INFO) << "Computing RSI wtih lookback: %d,%d" % (slk,llk)
     rsi_s = talib.RSI(df[OPEN_KEY].values,slk)[time_id]
@@ -307,7 +312,7 @@ def prepare_features(fexconf, df, time_id):
         fm = np.hstack((fm,fa))
 
     if fexconf.isFeatureEnabled("CCI"):
-        fa = cci(df,used_time_id,fexconf.getLookback("CCI"))
+        fa = cci(df,used_time_id,fexconf.getLookback("CCI"), fexconf.getLongLookback("CCI"))
         fm = np.hstack((fm,fa))
 
     if fexconf.isFeatureEnabled("RSV"):

@@ -35,6 +35,7 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 #include <numpy/arrayobject.h>
+#include <boost/functional/hash.hpp>
 namespace athena {
 
 struct SerializePack {
@@ -300,5 +301,10 @@ searchVector(std::vector<T>& v, T tgt) {
 
 real64
 compHalfLife(real64* ts, int len);
+
+template <typename T>
+size_t hasharray(const T* arr, size_t N) {
+    return boost::hash_range(arr,arr+N);
+}
 }
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */

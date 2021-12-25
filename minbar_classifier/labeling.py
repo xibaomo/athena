@@ -106,8 +106,10 @@ def later_change_label(df,thd_ret,ret_ratio, pos_life, bar_min=15):
 
     time_id = np.array(time_id,dtype=np.int32)
 
+    max_stride = int(pos_life/bar_min/60)
+    Log(LOG_INFO) << "Max stride %d" % max_stride
     labels_aux,durations = atn.minbar_label(df[OPEN_KEY].values,df[HIGH_KEY].values,df[LOW_KEY].values,df[CLOSE_KEY].values,df[SPREAD_KEY].values,
-                     time_id,thd_ret,ret_ratio,int(pos_life/bar_min/60)*2)
+                     time_id,thd_ret,ret_ratio,max_stride)
 
     for i in range(len(labels)):
         if labels_aux[i] == -1:

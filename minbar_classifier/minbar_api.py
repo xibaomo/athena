@@ -45,12 +45,15 @@ def loadConfig(cf):
 ############ required API for custom py predictor #####################
 def init(dates, tms, opens, highs, lows, closes, tkvs):
     print("init() in minbar_api")
+    #pdb.set_trace()
     global df, HOUR_TIME_ID
     df = createDataFrame(dates, tms, opens, highs, lows, closes, tkvs)
     for i in range(len(df)):
-        tm = pd.to_datetime(df.loc[i, '<TIME>'])
+        tm = pd.to_datetime(df.loc[i, TIME_KEY])
         if tm.minute < 2:
             HOUR_TIME_ID.append(i)
+    # pdb.set_trace()
+    # print("wofjowjfoe")
 
 def appendMinbar(dt, tm, op, hp, lp, cp, tkv):
     global df
@@ -62,7 +65,7 @@ def appendMinbar(dt, tm, op, hp, lp, cp, tkv):
 def predict(new_open):
     global df, HOUR_TIME_ID
     tmpdf = appendEntryToDataFrame(df, DATE_STR, TIME_STR, new_open, 0., 0., 0., 0)
-    # pdb.set_trace()
+    pdb.set_trace()
     time_id = HOUR_TIME_ID.copy()
     time_id.append(len(tmpdf)-1)
     fm, _, _ = prepare_features(FEXCONF, tmpdf, time_id[-10:])
