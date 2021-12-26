@@ -65,7 +65,7 @@ def appendMinbar(dt, tm, op, hp, lp, cp, tkv):
 def predict(new_open):
     global df, HOUR_TIME_ID
     tmpdf = appendEntryToDataFrame(df, DATE_STR, TIME_STR, new_open, 0., 0., 0., 0)
-    pdb.set_trace()
+    # pdb.set_trace()
     time_id = HOUR_TIME_ID.copy()
     time_id.append(len(tmpdf)-1)
     fm, _, _ = prepare_features(FEXCONF, tmpdf, time_id[-10:])

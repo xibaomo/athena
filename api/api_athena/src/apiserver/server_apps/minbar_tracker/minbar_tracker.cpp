@@ -49,8 +49,11 @@ MinbarTracker::procMsg_HISTORY_MINBAR(Message& msg) {
 
     real64* pm = &pack.real64_vec[0];
 
+    auto tms = splitString(pack.str_vec[0],";");
+
     for (int i = 0; i < nbars; i++) {
-        MinBar mb{"unknown","unknown",pm[0],pm[1],pm[2],pm[3],pm[4]};
+        auto tmp = splitString(tms[i]," ");
+        MinBar mb{tmp[0],tmp[1],pm[0],pm[1],pm[2],pm[3],pm[4]};
         m_allMinBars.emplace_back(mb);
         pm+=bar_size;
     }
@@ -96,8 +99,6 @@ MinbarTracker::procMsg_NEW_MINBAR(Message& msg) {
                       << mb.close <<" "
                       << mb.tickvol;
     Log(LOG_INFO) << "New minbar: " + iss.str() <<std::endl;
-
-    m_predictor->appendMinbar(mb);
 
     Message outmsg;
     return outmsg;
