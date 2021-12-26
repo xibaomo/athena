@@ -108,6 +108,17 @@ def dumpTestSet(df,used_time_id,labels, end_time, end_high,end_low,test_size):
     dff['END_LOW']  = end_low[tid_s:]
 
     dff.to_csv("test_set.csv",index=False)
+
+def dumpTestFeatures(df,time_id_test,fm_test):
+    dff = pd.DataFrame()
+    dff[DATE_KEY] = df[DATE_KEY][time_id_test]
+    dff[TIME_KEY] = df[TIME_KEY][time_id_test]
+    for i in range(fm_test.shape[1]):
+        header = "F_%d" % i
+        dff[header] = fm_test[:,i]
+
+    dff.to_csv("feature_test.csv",index=False)
+
 if __name__ == '__main__':
     Log.setlogLevel(LOG_INFO)
 
@@ -136,7 +147,7 @@ if __name__ == '__main__':
     Log(LOG_INFO) << "start date of test: " + df[DATE_KEY][tid_s] + " " + df[TIME_KEY][tid_s]
     Log(LOG_INFO) << "end   date of test: " + df[DATE_KEY][tid_e] + " " + df[TIME_KEY][tid_e]
     dumpTestSet(df,used_time_id,used_labels,used_endtime,end_high[lookback:],end_low[lookback:],test_size)
-
+    dumpTestFeatures(df,used_time_id[-test_size:],fm[-test_size:,:])
     x_train, y_train, x_test, y_test,scaler = split_dataset(fm,used_labels,test_size)
 
     model = train_model(x_train, y_train)
