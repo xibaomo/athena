@@ -164,7 +164,7 @@ MinbarTracker::procMsg_CLOSED_POS_INFO(Message& msg) {
 Message
 MinbarTracker::procMsg_REQUEST_ACT(Message& msg){
     real64* pm = (real64*)msg.getData();
-    FXAct act = m_predictor->predict(pm[0]);
+    FXAct act = m_predictor->predict(msg.getComment(), pm[0]);
 
     Message outmsg(1);
     outmsg.setAction(act);

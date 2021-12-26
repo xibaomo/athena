@@ -53,7 +53,7 @@ public:
     void dumpRecords();
     void prepare();
 
-    FXAct predict(real64 new_open);
+    FXAct predict(const String& ts, real64 new_open);
 
     int findNearestCross();
 };

@@ -8,6 +8,7 @@ protected:
 public:
     MinbarPyPredictor();
     virtual ~MinbarPyPredictor() {
+        finish();
         if(m_mod) {
             Py_DECREF(m_mod);
         }
@@ -17,7 +18,8 @@ public:
 
     void prepare();
     void appendMinbar(const MinBar& mb) override;
-    FXAct predict(real64 new_open);
+    FXAct predict(const String& time_str, real64 new_open);
+    void finish();
 
     /////////////////// internal function /////////////////////
     void loadMinbarsToPredictor();

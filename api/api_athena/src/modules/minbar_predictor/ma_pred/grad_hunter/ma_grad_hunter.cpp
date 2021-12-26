@@ -56,7 +56,7 @@ MAHunter::prepare()
 }
 
 FXAct
-MAHunter::predict(real64 new_open)
+MAHunter::predict(const String& ts, real64 new_open)
 {
     auto& mb = m_allMinBars->back();
     real32 md = (mb.high + mb.low)*.5;

@@ -117,7 +117,7 @@ def dumpTestFeatures(df,time_id_test,fm_test):
         header = "F_%d" % i
         dff[header] = fm_test[:,i]
 
-    dff.to_csv("feature_test.csv",index=False)
+    dff.to_csv("offline_feature_testset.csv",index=False)
 
 if __name__ == '__main__':
     Log.setlogLevel(LOG_INFO)

@@ -32,7 +32,7 @@ public:
         m_pyPredictor.appendMinbar(mb);
     }
 
-    FXAct predict(real64 new_open) override {
-        return m_pyPredictor.predict(new_open);
+    FXAct predict(const String& ts, real64 new_open) override {
+        return m_pyPredictor.predict(ts, new_open);
     }
 };

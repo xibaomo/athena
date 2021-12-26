@@ -18,6 +18,7 @@ TIME_STR = ""
 model = None
 scaler = MinMaxScaler()
 df = pd.DataFrame()
+feature_df = pd.DataFrame()
 FEXCONF = None
 
 class PredictConfig(object):
@@ -62,13 +63,19 @@ def appendMinbar(dt, tm, op, hp, lp, cp, tkv):
     if t.minute < 2:
         HOUR_TIME_ID.append(len(df)-1)
 
-def predict(new_open):
-    global df, HOUR_TIME_ID
+def predict(new_time, new_open):
+    global df, HOUR_TIME_ID,feature_df
     tmpdf = appendEntryToDataFrame(df, DATE_STR, TIME_STR, new_open, 0., 0., 0., 0)
-    # pdb.set_trace()
+
     time_id = HOUR_TIME_ID.copy()
     time_id.append(len(tmpdf)-1)
     fm, _, _ = prepare_features(FEXCONF, tmpdf, time_id[-10:])
+
+    df1=pd.DataFrame()
+    df1.loc[0,'TIME'] = new_time
+    df2 = pd.DataFrame(fm[-1,:]).T
+    tmp = pd.concat([df1,df2],axis=1)
+    feature_df = feature_df.append(tmp)
 
     fm = scaler.transform(fm)
     y = model.predict(fm)
@@ -79,7 +86,11 @@ def predict(new_open):
         return 2
 
     return 0 # no action
+def finalize():
+    global feature_df
+    feature_df.to_csv("online_feature.csv",index=False)
 
+################## End of required API #################
 def test_test(x, y):
     print(x)
     print(y)

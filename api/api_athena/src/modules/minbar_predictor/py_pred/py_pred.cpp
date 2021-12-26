@@ -111,25 +111,48 @@ MinbarPyPredictor::prepare()
 }
 
 FXAct
-MinbarPyPredictor::predict(real64 new_open) {
+MinbarPyPredictor::predict(const String& time_str, real64 new_open) {
     Log(LOG_INFO) << "New request arrives, price: " << new_open << ", predicting ..." << endl;
     PyObject* func = PyObject_GetAttrString(m_mod,"predict");
     if(!func)
         Log(LOG_FATAL) << "Failed to find py function: predict" <<std::endl;
 
     PyObject* np = Py_BuildValue("d",new_open);
-    PyObject* args = Py_BuildValue("(O)",np);
+    PyObject* ts = Py_BuildValue("s",time_str.c_str());
+    PyObject* args = Py_BuildValue("(OO)",ts,np);
 
     PyObject* res = PyObject_CallObject(func,args);
 
     int  r =  (int)PyLong_AsLong(res);
+
+    FXAct act = FXAct::NOACTION;
     switch(r) {
     case 1:
         Log(LOG_INFO) << "Decision: buy" << endl;
-        return FXAct::PLACE_BUY;
+        act = FXAct::PLACE_BUY;
+        break;
     case 2:
         Log(LOG_INFO) << "Decision: sell" << endl;
-        return FXAct::PLACE_SELL;
+        act = FXAct::PLACE_SELL;
+        break;
     }
-    return FXAct::NOACTION;
+
+    Py_DECREF(func);
+    Py_DECREF(np);
+    Py_DECREF(ts);
+    Py_DECREF(args);
+    Py_DECREF(res);
+
+    return act;
+}
+
+void
+MinbarPyPredictor::finish() {
+    PyObject* func = PyObject_GetAttrString(m_mod,"finalize");
+    PyObject* args = 0;
+    if(!func)
+        Log(LOG_FATAL) << "Failed to find py function: finalize" <<std::endl;
+    PyObject_CallObject(func,args);
+
+    Py_DECREF(func);
 }

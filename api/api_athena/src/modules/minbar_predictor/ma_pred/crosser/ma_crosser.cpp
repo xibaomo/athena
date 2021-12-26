@@ -61,7 +61,7 @@ MACrosser::prepare()
 }
 
 FXAct
-MACrosser::predict(real64 new_open)
+MACrosser::predict(const String& ts, real64 new_open)
 {
     auto& mb = m_allMinBars->back();
     real32 md = (mb.high + mb.low) *.5;
