@@ -172,7 +172,7 @@ def momentum(df,time_id,lookback):
 
 def cci(df,time_id,slk,llk):
     Log(LOG_INFO) << "Computing CCI with lookback: %d, %d" % (slk,llk)
-    #pdb.set_trace()
+    pdb.set_trace()
     cci_s = talib.CCI(df[HIGH_KEY].values, df[LOW_KEY].values, df[CLOSE_KEY].values,slk)
     cci_s = cci_s[time_id-1]
 

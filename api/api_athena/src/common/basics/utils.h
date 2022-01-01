@@ -306,5 +306,11 @@ template <typename T>
 size_t hasharray(const T* arr, size_t N) {
     return boost::hash_range(arr,arr+N);
 }
+inline
+real64 round5pts(const real64 val) {
+    static real64 p = 1e5;
+    int v = val*p;
+    return (real64)v / p;
+}
 }
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */

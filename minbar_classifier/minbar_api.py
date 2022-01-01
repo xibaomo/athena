@@ -67,6 +67,7 @@ def predict(new_time, new_open):
     global df, HOUR_TIME_ID,feature_df
     tmpdf = appendEntryToDataFrame(df, DATE_STR, TIME_STR, new_open, 0., 0., 0., 0)
 
+    # pdb.set_trace()
     time_id = HOUR_TIME_ID.copy()
     time_id.append(len(tmpdf)-1)
     fm, _, _ = prepare_features(FEXCONF, tmpdf, time_id[-10:])
@@ -106,7 +107,9 @@ if __name__ == "__main__":
 
     loadConfig(sys.argv[2])
     init(tdf['<DATE>'],tdf['<TIME>'],tdf["<OPEN>"],tdf['<HIGH>'],tdf['<LOW>'],tdf['<CLOSE>'],tdf['<TICKVOL>'])
-    pred = predict(last['<OPEN>'])
+
+    t = last['<DATE>'] + " " + last['<TIME>']
+    pred = predict(t,last['<OPEN>'])
     print(pred)
 
     print(df.shape)

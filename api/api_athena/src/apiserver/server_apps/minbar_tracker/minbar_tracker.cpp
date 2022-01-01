@@ -87,7 +87,10 @@ MinbarTracker::procMsg_NEW_MINBAR(Message& msg) {
     String time_str = pack.str_vec[0];
     auto tmp = splitString(time_str," ");
     auto& v = pack.real64_vec;
-    MinBar mb{tmp[0],tmp[1],v[0],v[1],v[2],v[3],v[4]};
+    MinBar mb{tmp[0],tmp[1],round5pts(v[0]),
+                            round5pts(v[1]),
+                            round5pts(v[2]),
+                            round5pts(v[3]),v[4]};
     m_allMinBars.push_back(mb);
     m_predictor->appendMinbar(mb);
 
