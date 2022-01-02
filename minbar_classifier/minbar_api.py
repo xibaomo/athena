@@ -12,7 +12,7 @@ from features import *
 from labeling import *
 
 CONFIG_FILE=""
-HOUR_TIME_ID = []
+HOUR_TIME_ID = np.array([],dtype=np.int64)
 DATE_STR = ""
 TIME_STR = ""
 model = None
@@ -52,16 +52,16 @@ def init(dates, tms, opens, highs, lows, closes, tkvs):
     for i in range(len(df)):
         tm = pd.to_datetime(df.loc[i, TIME_KEY])
         if tm.minute < 2:
-            HOUR_TIME_ID.append(i)
+            HOUR_TIME_ID = np.append(HOUR_TIME_ID,i)
     # pdb.set_trace()
     # print("wofjowjfoe")
 
 def appendMinbar(dt, tm, op, hp, lp, cp, tkv):
-    global df
+    global df,HOUR_TIME_ID
     df = appendEntryToDataFrame(df, dt, tm, op, hp, lp, cp, tkv)
     t = pd.to_datetime(tm)
     if t.minute < 2:
-        HOUR_TIME_ID.append(len(df)-1)
+        HOUR_TIME_ID = np.append(HOUR_TIME_ID,len(df)-1)
 
 def predict(new_time, new_open):
     global df, HOUR_TIME_ID,feature_df
@@ -69,8 +69,8 @@ def predict(new_time, new_open):
 
     # pdb.set_trace()
     time_id = HOUR_TIME_ID.copy()
-    time_id.append(len(tmpdf)-1)
-    fm, _, _ = prepare_features(FEXCONF, tmpdf, time_id[-10:])
+    time_id = np.append(time_id,len(tmpdf)-1)
+    fm, _, _ = prepare_features(FEXCONF, tmpdf, time_id[-50:])
 
     df1=pd.DataFrame()
     df1.loc[0,'TIME'] = new_time
