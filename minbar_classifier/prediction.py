@@ -18,10 +18,10 @@ def createDataFrame(dates, tms, opens, highs, lows, closes, tickvols):
 def appendEntryToDataFrame(df,dt,tm,op,hp,lp,cp,tkv):
     dict = {DATE_KEY: [dt],
             TIME_KEY: [tm],
-            OPEN_KEY: [op],
-            HIGH_KEY: [hp],
-            LOW_KEY : [lp],
-            CLOSE_KEY: [cp],
+            OPEN_KEY: [round(op,5)],
+            HIGH_KEY: [round(hp,5)],
+            LOW_KEY : [round(lp,5)],
+            CLOSE_KEY: [round(cp,5)],
             TICKVOL_KEY: [tkv]}
     df2 = pd.DataFrame(dict)
     df3 = pd.concat([df, df2], ignore_index = True)
