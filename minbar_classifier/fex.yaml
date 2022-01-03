@@ -13,6 +13,7 @@ FEATURES:
         LOOKBACK: 3
     VOLATILITY:
         LOOKBACK: 3
+        LONG_LOOKBACK: 6
     MA_MISC: 
         LOOKBACK: 6
         LONG_LOOKBACK: 12

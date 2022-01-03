@@ -69,21 +69,24 @@ class FexConfig(object):
             return False
         return True
 
-def volatility(df, time_id, slk = 2):
-    Log(LOG_INFO) << "Computing volatility with %d" % slk
+def volatility(df, time_id, slk = 3,llk=6):
+    Log(LOG_INFO) << "Computing volatility with %d, %d" % (slk,llk)
     s = np.zeros(len(df))
     for i in range(len(df)-1):
         if df[OPEN_KEY][i] > df[CLOSE_KEY][i]:
-            s[i] = df[HIGH_KEY][i]/df[LOW_KEY][i] - 1.
+            s[i] = df[HIGH_KEY][i]/df[LOW_KEY][i]
         else:
-            s[i] = df[LOW_KEY][i] / df[HIGH_KEY][i] - 1.
+            s[i] = df[LOW_KEY][i] / df[HIGH_KEY][i]
     df[STD_KEY] = s
-    ft = np.zeros((len(time_id), 2))
+    ft = np.zeros((len(time_id), 4))
     for i in range(len(time_id)):
         tid = time_id[i]
         past_sd = df[STD_KEY][tid-slk:tid].values
         ft[i, 0] = np.mean(past_sd)
         ft[i, 1] = np.std(past_sd)
+        past_sd_l = df[STD_KEY][tid-llk:tid].values
+        ft[i,2] = np.mean(past_sd_l)
+        ft[i,3] = np.std(past_sd_l)
     return ft
 def ma_misc(df, time_id, slk = 6, llk = 12):
     Log(LOG_INFO) << "Computing dema with %d, %d" % (slk, llk)
@@ -281,7 +284,7 @@ def prepare_features(fexconf, df, time_id):
 
     ################## additional features ###############
     if fexconf.isFeatureEnabled(VOLATILITY_KEY):
-        fa = volatility(df, used_time_id, fexconf.getLookback(VOLATILITY_KEY))
+        fa = volatility(df, used_time_id, fexconf.getLookback(VOLATILITY_KEY),fexconf.getLongLookback(VOLATILITY_KEY))
         fm = np.hstack((fm, fa))
 
     if fexconf.isFeatureEnabled(MA_KEY):
