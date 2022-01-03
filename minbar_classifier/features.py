@@ -69,8 +69,8 @@ class FexConfig(object):
             return False
         return True
 
-def volatility(df, time_id, lookback = 2):
-    Log(LOG_INFO) << "Computing volatility with %d" % lookback
+def volatility(df, time_id, slk = 2):
+    Log(LOG_INFO) << "Computing volatility with %d" % slk
     s = np.zeros(len(df))
     for i in range(len(df)-1):
         if df[OPEN_KEY][i] > df[CLOSE_KEY][i]:
@@ -81,7 +81,7 @@ def volatility(df, time_id, lookback = 2):
     ft = np.zeros((len(time_id), 2))
     for i in range(len(time_id)):
         tid = time_id[i]
-        past_sd = df[STD_KEY][tid-lookback:tid].values
+        past_sd = df[STD_KEY][tid-slk:tid].values
         ft[i, 0] = np.mean(past_sd)
         ft[i, 1] = np.std(past_sd)
     return ft
@@ -100,9 +100,10 @@ def kama(df, time_id, slk = 3, llk = 9):
     prices = df[OPEN_KEY].values
     kma_s = talib.KAMA(prices, slk)
     kma_l = talib.KAMA(prices, llk)
-    dif = prices[time_id] - kma_s[time_id]
+    dif_s = prices[time_id] - kma_s[time_id]
+    dif_l = prices[time_id] - kma_l[time_id]
     dkma = kma_s[time_id] - kma_l[time_id]
-    return np.hstack((dif.reshape(-1, 1), dkma.reshape(-1, 1)))
+    return np.hstack((dif_s.reshape(-1, 1), dif_l.reshape(-1,1), dkma.reshape(-1, 1)))
 
 def wma(df, time_id, slk = 3, llk = 24):
     Log(LOG_INFO) << "Computing wma with %d, %d" % (slk, llk)
