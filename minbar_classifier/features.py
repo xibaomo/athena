@@ -113,9 +113,10 @@ def wma(df, time_id, slk = 3, llk = 24):
     prices = df[OPEN_KEY].values
     kma_s = talib.WMA(prices, slk)
     kma_l = talib.WMA(prices, llk)
-    dif = prices[time_id] - kma_s[time_id]
+    dif_s = prices[time_id] - kma_s[time_id]
+    dif_l = prices[time_id] - kma_l[time_id]
     dwma = kma_s[time_id] - kma_l[time_id]
-    return np.hstack((dif.reshape(-1, 1), dwma.reshape(-1, 1)))
+    return np.hstack((dif_s.reshape(-1, 1), dif_l.reshape(-1,1),dwma.reshape(-1, 1)))
 
 def bbands(df, time_id, lk = 48):
     Log(LOG_INFO) << "Computing bbands with %d" % lk
@@ -189,7 +190,7 @@ def rsi(df,time_id,slk,llk):
     rsi_s = talib.RSI(df[OPEN_KEY].values,slk)[time_id]
     rsi_l = talib.RSI(df[OPEN_KEY].values,llk)[time_id]
     rsi = rsi_s - rsi_l
-    return rsi.reshape(-1,1)
+    return np.hstack((rsi_s.reshape(-1,1),rsi_l.reshape(-1,1),rsi.reshape(-1,1)))
 
 def rsv(df,time_id,lookback):
     Log(LOG_INFO) << "Computing RSV with lookback: %d" % lookback
@@ -310,6 +311,8 @@ def prepare_features(fexconf, df, time_id):
     if fexconf.isFeatureEnabled("MOMENTUM"):
         fa = momentum(df,used_time_id,fexconf.getLookback("MOMENTUM"))
         fm = np.hstack((fm,fa))
+        fa = momentum(df, used_time_id, fexconf.getLongLookback("MOMENTUM"))
+        fm = np.hstack((fm, fa))
 
     if fexconf.isFeatureEnabled("RSI"):
         fa = rsi(df,used_time_id,fexconf.getLookback("RSI"),fexconf.getLongLookback("RSI"))

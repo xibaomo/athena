@@ -19,11 +19,7 @@ FEATURES:
         LONG_LOOKBACK: 12
     KAMA:
         LOOKBACK: 3
-        LONG_LOOKBACK: 9
-    BBANDS:
-        LOOKBACK: -48
-    MOMENTUM: # return relative to t0-lookback minbar
-        LOOKBACK: 5
+        LONG_LOOKBACK: 6
     SLOPE:
         LOOKBACK: 3
         LONG_LOOKBACK: 6
@@ -31,17 +27,23 @@ FEATURES:
         LOOKBACK: 5
         LONG_LOOKBACK: 8
  
+################## DO NOT USE ###################
     TSFRESH:
         LOOKBACK: -5
     RSV:
         LOOKBACK: -3
     RSI:
-        LOOKBACK: -5
-        LONG_LOOKBACK: 10
+        LOOKBACK: -3
+        LONG_LOOKBACK: 6 
     MACD:
         LOOKBACK: -48
         LONG_LOOKBACK: 96
     WMA: 
-        LOOKBACK: -3
-        LONG_LOOKBACK: 24
-
+        LOOKBACK: -5
+        LONG_LOOKBACK: 8
+    BBANDS:
+        LOOKBACK: -48
+    MOMENTUM: # return relative to t0-lookback minbar
+        LOOKBACK: -5
+        LONG_LOOKBACK: 8
+ 
