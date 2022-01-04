@@ -117,7 +117,7 @@ def later_change_label(df,thd_ret,ret_ratio, pos_life, bar_min=15):
         elif labels_aux[i] == 1:
             labels[i] = Action.BUY
 
-    Log(LOG_INFO) << "All data size: %d"%len(time_id)
+    Log(LOG_INFO) << "Labeling done. All data size: %d"%len(time_id)
     Log(LOG_INFO) << "label dist.: buy: %d, sell: %d, noact: %d "%((labels==Action.BUY).sum(),\
                                                                   (labels==Action.SELL).sum(),
                                                                   (labels==Action.NO_ACTION).sum())

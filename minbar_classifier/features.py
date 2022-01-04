@@ -213,7 +213,7 @@ def slope(df,time_id,slk,llk):
         yl = df[MID_KEY][tid-llk:tid]
         ss = np.polyfit(xs,ys,1)[0]
         sl = np.polyfit(xl,yl,1)[0]
-        slp.append(ss-sl)
+        slp.append(ss/sl)
     slp = np.array(slp)
     return slp.reshape(-1,1)
 
@@ -350,5 +350,7 @@ def split_dataset(fm, label, test_size):
     scaler = MinMaxScaler()
     x_train = scaler.fit_transform(x_train)
     x_test = scaler.transform(x_test)
+
+    Log(LOG_INFO) << "train and test sets splitted"
 
     return x_train, y_train, x_test, y_test, scaler
