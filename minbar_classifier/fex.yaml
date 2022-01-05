@@ -14,8 +14,8 @@ FEATURES:
     VOLATILITY:
         LOOKBACK: 3
         LONG_LOOKBACK: 6
-    MA_MISC: 
-        LOOKBACK: 6
+    DEMA: 
+        LOOKBACK: -6
         LONG_LOOKBACK: 12
     KAMA:
         LOOKBACK: 3
@@ -26,6 +26,12 @@ FEATURES:
     CCI:
         LOOKBACK: 5
         LONG_LOOKBACK: 8
+    ARIMA:
+        LOOKBACK: -50
+        LONG_LOOKBACK: 100
+        P: 2
+        D: 1
+        Q: 2
     RSI:
         LOOKBACK: -8
         LONG_LOOKBACK: 12 

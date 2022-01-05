@@ -9,6 +9,7 @@ from logger import *
 from basics import *
 import yaml
 
+from statsmodels.tsa.arima.model import ARIMA
 
 def __prepare_features(df, time_id, labels, test_size):
     lookback = 3
@@ -44,7 +45,6 @@ def __prepare_features(df, time_id, labels, test_size):
     x_test = scaler.fit_transform(x_test)
     return x_train, y_train, x_test, y_test
 BASICS_KEY      = "BASICS"
-MA_KEY          = "MA_MISC"
 KAMA_KEY        = "KAMA"
 VOLATILITY_KEY  = "VOLATILITY"
 WMA_KEY         = "WMA"
@@ -91,7 +91,7 @@ def volatility(df, time_id, slk = 3,llk=6):
         ft[i,2] = np.mean(past_sd_l)
         ft[i,3] = np.std(past_sd_l)
     return ft
-def ma_misc(df, time_id, slk = 6, llk = 12):
+def dema(df, time_id, slk = 6, llk = 12):
     Log(LOG_INFO) << "Computing dema with %d, %d" % (slk, llk)
     prices = df[OPEN_KEY].values
     ma_short = talib.DEMA(prices, slk)
@@ -226,6 +226,22 @@ def slope(df,time_id,slk,llk):
     slp_d = np.array(slp_d)
     return np.hstack((slp_s.reshape(-1,1),slp_l.reshape(-1,1),slp_d.reshape(-1,1)))
 
+def arima(df,time_id,lookback, p,d,q):
+    Log(LOG_INFO) << "Computing arima(%d,%d,%d) with lookback: %d " % (p,d,q,lookback)
+    pd=[]
+    for tid in time_id:
+        # pdb.set_trace()
+        series = np.log(df[OPEN_KEY][tid-lookback:tid].values)
+        model = ARIMA(series,order=(p,d,q))
+        model_fit = model.fit(method_kwargs={"warn_convergence": False})
+        output = model_fit.forecast()
+        p0 = np.log(df[OPEN_KEY][tid])
+        err = (output[0]-p0)/p0
+        pd.append(err)
+
+    pd = np.array(pd)
+    return pd.reshape(-1,1)
+
 def tsfresh(df,time_id,lookback):
     from tsfresh import extract_features
     from tsfresh import select_features
@@ -297,8 +313,8 @@ def prepare_features(fexconf, df, time_id):
         fa = volatility(df, used_time_id, fexconf.getLookback(VOLATILITY_KEY),fexconf.getLongLookback(VOLATILITY_KEY))
         fm = np.hstack((fm, fa))
 
-    if fexconf.isFeatureEnabled(MA_KEY):
-        fa = ma_misc(df, used_time_id, fexconf.getLookback(MA_KEY), fexconf.getLongLookback(MA_KEY))
+    if fexconf.isFeatureEnabled("DEMA"):
+        fa = dema(df, used_time_id, fexconf.getLookback("DEMA"), fexconf.getLongLookback("DEMA"))
         fm = np.hstack((fm, fa))
 
     if fexconf.isFeatureEnabled(KAMA_KEY):
@@ -343,6 +359,14 @@ def prepare_features(fexconf, df, time_id):
         fa = tsfresh(df, used_time_id, fexconf.getLookback("TSFRESH"))
         fm = np.hstack((fm, fa))
 
+    if fexconf.isFeatureEnabled("ARIMA"):
+        p = fexconf.getFeatureParam("ARIMA","P")
+        d = fexconf.getFeatureParam("ARIMA","D")
+        q = fexconf.getFeatureParam("ARIMA","Q")
+        fa = arima(df,used_time_id,fexconf.getLookback("ARIMA"),p,d,q)
+        fm = np.hstack((fm, fa))
+
+        
     return fm, used_time_id, lookback
 
 def split_dataset(fm, label, test_size):
