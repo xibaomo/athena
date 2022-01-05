@@ -13,6 +13,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.inspection import permutation_importance
 from sklearn.ensemble import *
 from xgboost import XGBClassifier
+from sklearn.linear_model import LogisticRegression
 
 from labeling import *
 from features import *
@@ -37,6 +38,7 @@ def train_model(x_train, y_train):
     # model = tree.DecisionTreeClassifier()
     # model = RandomForestClassifier()
     model = svm.SVC(C = 1., kernel='rbf')
+    # model = LogisticRegression(max_iter=1000)
     # model = XGBClassifier(use_label_encoder = False)
     # model = AdaBoostClassifier(n_estimators=300)
     ## fit the model

@@ -22,22 +22,23 @@ FEATURES:
         LONG_LOOKBACK: 6
     SLOPE:
         LOOKBACK: 3
-        LONG_LOOKBACK: 6
+        LONG_LOOKBACK: 9
     CCI:
         LOOKBACK: 5
         LONG_LOOKBACK: 8
- 
+    RSI:
+        LOOKBACK: -8
+        LONG_LOOKBACK: 12 
+
 ################## DO NOT USE ###################
     TSFRESH:
         LOOKBACK: -5
     RSV:
         LOOKBACK: -3
-    RSI:
-        LOOKBACK: -3
-        LONG_LOOKBACK: 6 
     MACD:
-        LOOKBACK: -48
-        LONG_LOOKBACK: 96
+        LOOKBACK: -5
+        LONG_LOOKBACK: 10 
+        DIF: 5
     WMA: 
         LOOKBACK: -5
         LONG_LOOKBACK: 8

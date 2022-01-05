@@ -62,6 +62,9 @@ class FexConfig(object):
         return self.fexDict[key][LOOKBACK_KEY]
     def getLongLookback(self, key):
         return self.fexDict[key][LONG_LOOKBACK_KEY]
+    def getFeatureParam(self,feature,param):
+        return self.fexDict[feature][param]
+
     def isFeatureEnabled(self, key):
         if not key in self.fexDict:
             return False
@@ -207,15 +210,21 @@ def slope(df,time_id,slk,llk):
     Log(LOG_INFO) << "Computing SLOPE with lookback: %d,%d" % (slk,llk)
     xs = range(slk)
     xl = range(llk)
-    slp = []
+    slp_s = []
+    slp_l = []
+    slp_d = []
     for tid in time_id:
         ys = df[MID_KEY][tid-slk:tid]
         yl = df[MID_KEY][tid-llk:tid]
         ss = np.polyfit(xs,ys,1)[0]
         sl = np.polyfit(xl,yl,1)[0]
-        slp.append(ss/sl)
-    slp = np.array(slp)
-    return slp.reshape(-1,1)
+        slp_s.append(ss)
+        slp_l.append(sl)
+        slp_d.append(ss/sl)
+    slp_s = np.array(slp_s)
+    slp_l = np.array(slp_l)
+    slp_d = np.array(slp_d)
+    return np.hstack((slp_s.reshape(-1,1),slp_l.reshape(-1,1),slp_d.reshape(-1,1)))
 
 def tsfresh(df,time_id,lookback):
     from tsfresh import extract_features
@@ -305,7 +314,7 @@ def prepare_features(fexconf, df, time_id):
         fm = np.hstack((fm, fa))
 
     if fexconf.isFeatureEnabled(MACD_KEY):
-        fa = macd(df, used_time_id, fexconf.getLookback(MACD_KEY), fexconf.getLongLookback(MACD_KEY))
+        fa = macd(df, used_time_id, fexconf.getLookback(MACD_KEY), fexconf.getLongLookback(MACD_KEY),fexconf.getFeatureParam(MACD_KEY,"DIF"))
         fm = np.hstack((fm, fa))
 
     if fexconf.isFeatureEnabled("MOMENTUM"):
