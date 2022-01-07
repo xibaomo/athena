@@ -42,7 +42,7 @@ FEATURES:
     RSV:
         LOOKBACK: -3
     MACD:
-        LOOKBACK: 5
+        LOOKBACK: -5
         LONG_LOOKBACK: 10 
         DIF: 5
     WMA: 
