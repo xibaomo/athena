@@ -15,9 +15,11 @@ from sklearn.ensemble import *
 from xgboost import XGBClassifier
 from sklearn.linear_model import LogisticRegression
 
+import tf_nn
 from labeling import *
 from features import *
 from logger import *
+from tf_nn import *
 from prediction import *
 from basics import *
 from conf import *
@@ -37,7 +39,8 @@ def train_model(x_train, y_train):
     # model = ComplementNB()
     # model = tree.DecisionTreeClassifier()
     # model = RandomForestClassifier()
-    model = svm.SVC(C = 1., kernel='rbf')
+    # model = svm.SVC(C = 1., kernel='rbf')
+    model = tf_nn.TFClassifier((1,x_train.shape[1]),3)
     # model = LogisticRegression(max_iter=1000)
     # model = XGBClassifier(use_label_encoder = False)
     # model = AdaBoostClassifier(n_estimators=300)
@@ -48,7 +51,6 @@ def train_model(x_train, y_train):
     return model
 
 def eval_model(model, x_test, y_test):
-    Log(LOG_INFO) << "Evaluating model on test set..."
     y_pred = model.predict(x_test)
     Log(LOG_INFO) << "Number of mislabeled points out of a total %d points : %d" % (x_test.shape[0], (y_test != y_pred).sum())
     # calculate profit
@@ -143,6 +145,7 @@ if __name__ == '__main__':
     Log(LOG_INFO) << "Test size: %d" % test_size
     fexconf = FexConfig(cf)
     fm,used_time_id,lookback = prepare_features(fexconf, df, time_id)
+    Log(LOG_INFO) << "Feature dimension: %d" % fm.shape[1]
     used_labels = labels[lookback:]
     used_endtime = end_time[lookback:]
     tid_s = used_time_id[-test_size]
@@ -159,4 +162,9 @@ if __name__ == '__main__':
 
     if test_size == 0:
         sys.exit(0)
+
+    Log(LOG_INFO) << "Evaluating model on training set..."
+    eval_model(model,x_train,y_train)
+
+    Log(LOG_INFO) << "Evaluating model on test set..."
     eval_model(model, x_test, y_test)
