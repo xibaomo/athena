@@ -51,6 +51,7 @@ def train_model(x_train, y_train):
     return model
 
 def eval_model(model, x_test, y_test):
+    # pdb.set_trace()
     y_pred = model.predict(x_test)
     Log(LOG_INFO) << "Number of mislabeled points out of a total %d points : %d" % (x_test.shape[0], (y_test != y_pred).sum())
     # calculate profit

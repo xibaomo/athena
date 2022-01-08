@@ -29,3 +29,5 @@ class TFClassifier(object):
         y = np.zeros(x.shape[0])
         for i in range(x.shape[0]):
             y[i] = np.argmax(raw_y[i])
+
+        return y
