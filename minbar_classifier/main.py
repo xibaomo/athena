@@ -40,7 +40,7 @@ def train_model(x_train, y_train):
     # model = tree.DecisionTreeClassifier()
     # model = RandomForestClassifier()
     model = svm.SVC(C = 1., kernel='rbf')
-    # model = tf_nn.TFClassifier((1,x_train.shape[1]),3)
+    # model = tf_nn.TFClassifier((x_train.shape[1],),3)
     # model = LogisticRegression(max_iter=1000)
     # model = XGBClassifier(use_label_encoder = False)
     # model = AdaBoostClassifier(n_estimators=300)
@@ -164,8 +164,8 @@ if __name__ == '__main__':
     if test_size == 0:
         sys.exit(0)
 
-    Log(LOG_INFO) << "Evaluating model on training set..."
-    eval_model(model,x_train,y_train)
+    # Log(LOG_INFO) << "Evaluating model on training set..."
+    # eval_model(model,x_train,y_train)
 
     Log(LOG_INFO) << "Evaluating model on test set..."
     eval_model(model, x_test, y_test)
