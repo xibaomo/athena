@@ -276,6 +276,30 @@ def tsfresh(df,time_id,lookback):
 
     return exf
 
+def minmax(df,time_id,lookback):
+    Log(LOG_INFO) << "Computing minmax with lookback: %d" % lookback
+    minret = []
+    maxret = []
+    min_dist=[]
+    max_dist=[]
+    # pdb.set_trace()
+    for tid in time_id:
+        price = df[OPEN_KEY][tid]
+        past_hi = df[HIGH_KEY][tid-lookback:tid].values
+        past_lw = df[LOW_KEY][tid-lookback:tid].values
+        hi = np.max(past_hi)/price - 1.
+        lw = np.min(past_lw)/price - 1.
+        minret.append(lw)
+        maxret.append(hi)
+        min_dist.append(lookback - np.argmin(past_lw))
+        max_dist.append(lookback - np.argmax(past_hi))
+
+
+    minret = np.array(minret)
+    maxret = np.array(maxret)
+    min_dist = np.array(min_dist)
+    max_dist = np.array(max_dist)
+    return np.hstack((minret.reshape(-1,1),maxret.reshape(-1,1),min_dist.reshape(-1,1),max_dist.reshape(-1,1)))
 
 def basic_features_training(prices,tv,tm,lookback): # features based on hours, instead of min bars
     rx = np.diff(np.log(prices))
@@ -364,6 +388,12 @@ def prepare_features(fexconf, df, time_id):
         d = fexconf.getFeatureParam("ARIMA","D")
         q = fexconf.getFeatureParam("ARIMA","Q")
         fa = arima(df,used_time_id,fexconf.getLookback("ARIMA"),p,d,q)
+        fm = np.hstack((fm, fa))
+
+    if fexconf.isFeatureEnabled("MINMAX"):
+        fa = minmax(df,used_time_id,fexconf.getLookback("MINMAX"))
+        fm = np.hstack((fm,fa))
+        fa = minmax(df, used_time_id, fexconf.getLongLookback("MINMAX"))
         fm = np.hstack((fm, fa))
 
         

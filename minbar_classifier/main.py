@@ -39,8 +39,8 @@ def train_model(x_train, y_train):
     # model = ComplementNB()
     # model = tree.DecisionTreeClassifier()
     # model = RandomForestClassifier()
-    model = svm.SVC(C = 1., kernel='rbf')
-    # model = tf_nn.TFClassifier((x_train.shape[1],),3)
+    # model = svm.SVC(C = 1., kernel='rbf')
+    model = tf_nn.TFClassifier((x_train.shape[1],),3)
     # model = LogisticRegression(max_iter=1000)
     # model = XGBClassifier(use_label_encoder = False)
     # model = AdaBoostClassifier(n_estimators=300)
@@ -158,8 +158,8 @@ if __name__ == '__main__':
     x_train, y_train, x_test, y_test,scaler = split_dataset(fm,used_labels,test_size)
 
     model = train_model(x_train, y_train)
-    pickle.dump(model,open(config.getModelFile(),'wb'))
-    pickle.dump(scaler,open(config.getScalerFile(),'wb'))
+    # pickle.dump(model,open(config.getModelFile(),'wb'))
+    # pickle.dump(scaler,open(config.getScalerFile(),'wb'))
 
     if test_size == 0:
         sys.exit(0)
