@@ -39,8 +39,8 @@ def train_model(x_train, y_train):
     # model = ComplementNB()
     # model = tree.DecisionTreeClassifier()
     # model = RandomForestClassifier()
-    # model = svm.SVC(C = 1., kernel='rbf')
-    model = tf_nn.TFClassifier((x_train.shape[1],),3)
+    model = svm.SVC(C = 1., kernel='rbf')
+    # model = tf_nn.TFClassifier((x_train.shape[1],),3)
     # model = LogisticRegression(max_iter=1000)
     # model = XGBClassifier(use_label_encoder = False)
     # model = AdaBoostClassifier(n_estimators=300)
@@ -137,29 +137,38 @@ if __name__ == '__main__':
     config = MasterConf(cf)
 
     timestamp = pd.to_datetime(df[DATE_KEY] + " " + df[TIME_KEY])
+    df[TIMESTAMP_KEY] = timestamp
     dt = (timestamp[1] - timestamp[0])
     dtmin = dt.seconds/60
     Log(LOG_INFO) << "Minbar spacing is %d min" % dtmin
     labels,time_id,end_time,end_high,end_low = later_change_label(df,config.getReturnThreshold(),config.getTrueReturnRatio(),
                                                                   config.getPosLifeSec(),int(dtmin))
-    test_size = config.getTestSize()
-    Log(LOG_INFO) << "Test size: %d" % test_size
+
     fexconf = FexConfig(cf)
     fm,used_time_id,lookback = prepare_features(fexconf, df, time_id)
     Log(LOG_INFO) << "Feature dimension: %d" % fm.shape[1]
     used_labels = labels[lookback:]
     used_endtime = end_time[lookback:]
-    tid_s = used_time_id[-test_size]
-    tid_e = used_time_id[-1]
-    Log(LOG_INFO) << "start date of test: " + df[DATE_KEY][tid_s] + " " + df[TIME_KEY][tid_s]
-    Log(LOG_INFO) << "end   date of test: " + df[DATE_KEY][tid_e] + " " + df[TIME_KEY][tid_e]
-    dumpTestSet(df,used_time_id,used_labels,used_endtime,end_high[lookback:],end_low[lookback:],test_size)
-    dumpTestFeatures(df,used_time_id[-test_size:],fm[-test_size:,:])
-    x_train, y_train, x_test, y_test,scaler = split_dataset(fm,used_labels,test_size)
+
+    test_size = config.getTestSize()
+
+    if test_size >= 0:
+        Log(LOG_INFO) << "Test size: %d" % test_size
+        tid_s = used_time_id[-test_size]
+        tid_e = used_time_id[-1]
+        Log(LOG_INFO) << "start date of test: " + df[DATE_KEY][tid_s] + " " + df[TIME_KEY][tid_s]
+        Log(LOG_INFO) << "end   date of test: " + df[DATE_KEY][tid_e] + " " + df[TIME_KEY][tid_e]
+        dumpTestSet(df,used_time_id,used_labels,used_endtime,end_high[lookback:],end_low[lookback:],test_size)
+        dumpTestFeatures(df,used_time_id[-test_size:],fm[-test_size:,:])
+        x_train, y_train, x_test, y_test,scaler = split_dataset(fm,used_labels,test_size)
+    else:
+        start_date = pd.to_datetime(config.getTestStartDate() + " 00:00:00")
+        end_date = pd.to_datetime(config.getTestEndDate() + " 00:00:00")
+        x_train, y_train, x_test, y_test,scaler  = split_dataset_by_dates(df,fm,used_labels,used_time_id,start_date, end_date)
 
     model = train_model(x_train, y_train)
-    # pickle.dump(model,open(config.getModelFile(),'wb'))
-    # pickle.dump(scaler,open(config.getScalerFile(),'wb'))
+    pickle.dump(model,open(config.getModelFile(),'wb'))
+    pickle.dump(scaler,open(config.getScalerFile(),'wb'))
 
     if test_size == 0:
         sys.exit(0)

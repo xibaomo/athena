@@ -21,3 +21,8 @@ class MasterConf(object):
     def getModelFile(self):
         return self.yamlDict['TRAINING']['MODEL_FILE']
 
+    def getTestStartDate(self):
+        return self.yamlDict['TRAINING']['TEST_START_DATE']
+
+    def getTestEndDate(self):
+        return self.yamlDict['TRAINING']['TEST_END_DATE']
