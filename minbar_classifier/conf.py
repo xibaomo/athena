@@ -3,6 +3,10 @@ import yaml
 class MasterConf(object):
     def __init__(self,cf):
         self.yamlDict = yaml.load(open(cf))
+
+    def setRoot(self,root_key):
+        self.yamlDict = self.yamlDict[root_key]
+
     def getPosLifeSec(self):
         return self.yamlDict['LABELING']['POSITION_LIFETIME']*3600*24
 

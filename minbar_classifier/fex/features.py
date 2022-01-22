@@ -54,9 +54,9 @@ MACD_KEY        = "MACD"
 LOOKBACK_KEY = "LOOKBACK"
 LONG_LOOKBACK_KEY = "LONG_LOOKBACK"
 class FexConfig(object):
-    def __init__(self, cf):
-        self.__yamlDict = yaml.load(open(cf))
-        self.fexDict = self.__yamlDict['FEATURES']
+    def __init__(self, master_conf):
+
+        self.fexDict = master_conf.yamlDict['FEATURES']
 
     def getLookback(self, key):
         return self.fexDict[key][LOOKBACK_KEY]
@@ -400,8 +400,8 @@ def prepare_features(fexconf, df, time_id):
     return fm, used_time_id, lookback
 
 class PredefinedFex(object):
-    def __init__(self,cfg):
-        self.fexconf = cfg
+    def __init__(self,masterconf):
+        self.fexconf = FexConfig(masterconf)
 
     def comp_features(self,df,time_id):
         return prepare_features(self.fexconf,df,time_id)

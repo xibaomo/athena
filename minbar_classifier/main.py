@@ -133,8 +133,8 @@ if __name__ == '__main__':
                                                                   config.getPosLifeSec(),int(dtmin))
 
     ########### features #############
-    fexconf = FexConfig(cf)
-    fexbuilder = PredefinedFex(fexconf)
+    # fexconf = FexConfig(cf)
+    fexbuilder = PredefinedFex(config)
     fm,used_time_id,lookback = fexbuilder.comp_features(df, time_id)
     Log(LOG_INFO) << "Feature dimension: %d" % fm.shape[1]
     used_labels = labels[lookback:]
