@@ -10,13 +10,13 @@ static real64 getPoint3or5(real64 v) {
     // first check if 1e-3
     real64 vv = v*1e3;
     int rv = std::round(vv);
-    if (vv - rv < 1e-5)
+    if (std::abs(vv - rv) < 1e-5)
         return 1e-3;
 
     // second if 1e-5
     vv = v*1e5;
     rv = std::round(vv);
-    if(vv  - rv < 1e-5) {
+    if(std::abs(vv  - rv) < 1e-5) {
         return 1e-5;
     }
 
@@ -33,7 +33,7 @@ athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64
                                  int32* durations) {
     const real64 ONE = 1.f;
     real64 pv = getPoint3or5(open[0]);
-//    std::cout<<"Point unit of symbol: " << pv << endl;
+    std::cerr<<"Point unit of symbol: " << pv << endl;
 //    std::cout<<"Max stride: " << max_stride << endl;
 //
 //    std::cout<<"open hash: " << hasharray(open,num_bars) << endl;

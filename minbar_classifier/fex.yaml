@@ -3,10 +3,10 @@ LABELING:
     RETURN_THRESHOLD: 0.0035
     TRUE_RETURN_RATIO: 0.965
 TRAINING:
-    TEST_SIZE: -480 # hours. if >0, use the latest hours, ignore TEST_START_DATE/END_DATE
+    TEST_SIZE: 1 # hours. if >0, use the latest hours, ignore TEST_START_DATE/END_DATE
                    #        if <0, use the dates below as test set
     TEST_START_DATE: 2021.11.09
-    TEST_END_DATE: 2021.12.07
+    TEST_END_DATE: 2021.12.09
 
     #dump files
     SCALER_FILE: scaler.pkl
@@ -28,7 +28,7 @@ FEATURES:
         LONG_LOOKBACK: 8
 
     MINMAX:
-        LOOKBACK: 3
+        LOOKBACK: -3
         LONG_LOOKBACK: 10 
     RSI:
         LOOKBACK: -8
