@@ -18,9 +18,6 @@ class MasterConf(object):
     def getScalerFile(self):
         return self.yamlDict['TRAINING']['SCALER_FILE']
 
-    def getModelFile(self):
-        return self.yamlDict['TRAINING']['MODEL_FILE']
-
     def getTestStartDate(self):
         return self.yamlDict['TRAINING']['TEST_START_DATE']
 
@@ -29,6 +26,11 @@ class MasterConf(object):
 
     def getModelType(self):
         return self.yamlDict['MODEL']['TYPE']
+
+    def getMLModelFile(self):
+        return self.yamlDict['MODEL']['ML_MODEL_FILE']
+    def getTFModelFile(self):
+        return self.yamlDict['MODEL']['TF_MODEL_FILE']
 
     def getDNNEpochs(self):
         return self.yamlDict['MODEL']['DNN']['EPOCHS']

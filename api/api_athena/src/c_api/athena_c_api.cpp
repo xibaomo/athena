@@ -73,7 +73,7 @@ athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64
 
         }
         if (label==0) {
-            std::cerr << "Label should not be 0!!!" << std::endl;
+            std::cerr << "Label should not be 0!!! Try lower threshold" << std::endl;
         }
         labels[idx] = label;
         durations[idx] = dur;

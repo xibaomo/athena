@@ -38,7 +38,7 @@ def train_model(cfg, x_train, y_train):
 
     mt = cfg.getModelType()
     if mt == 0:
-        model = MLClassifier
+        model = MLClassifier(cfg)
     elif mt == 1:
         ny = len(np.unique(y_train))
         model = DNNClassifier(cfg,x_train.shape[1:],ny)
@@ -168,7 +168,7 @@ if __name__ == '__main__':
 
     ######## model training ############
     model = train_model(config, x_train, y_train)
-    model.save(config.getModelFile())
+    model.save()
     pickle.dump(scaler,open(config.getScalerFile(),'wb'))
 
     if test_size == 0:

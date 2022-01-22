@@ -36,5 +36,6 @@ class DNNClassifier(object):
 
         return y
 
-    def save(self,mf):
+    def save(self):
+        mf = self.config.getTFModelFile()
         Log(LOG_WARNING) << "TODO: save tf model"

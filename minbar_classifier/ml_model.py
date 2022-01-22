@@ -10,7 +10,8 @@ import pickle
 from logger import *
 
 class MLClassifier(object):
-    def __init__(self):
+    def __init__(self,config):
+        self.config = config
         self.model = svm.SVC(C = 1., kernel='rbf')
         # model = GaussianNB()
         # model = MultinomialNB()
@@ -30,6 +31,7 @@ class MLClassifier(object):
     def predict(self,x_test):
         return self.model.predict(x_test)
 
-    def save(self,mf):
+    def save(self):
+        mf = self.config.getMLModelFile()
         pickle.dump(self.model, open(mf, 'wb'))
         Log(LOG_INFO) << "Model dumped to %s" % mf
