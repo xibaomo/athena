@@ -1,14 +1,8 @@
-import sys,os
-import pandas as pd
 from main import loadcsv,train_model,eval_model
-from basics import *
 from conf import *
 from labeling import *
-from logger import *
-from features import *
+from fex.features import *
 from tsfresh import select_features
-from tsfresh.utilities.dataframe_functions import impute
-
 
 if __name__ == "__main__":
     Log.setlogLevel(LOG_INFO)

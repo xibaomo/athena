@@ -3,27 +3,17 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
-import sys, os
 import pandas as pd
 import numpy as np
 from sklearn.naive_bayes import *
-from sklearn import svm
-from sklearn import tree
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.inspection import permutation_importance
 from sklearn.ensemble import *
-from xgboost import XGBClassifier
-from sklearn.linear_model import LogisticRegression
 
-import tf_nn
 from labeling import *
-from features import *
-from logger import *
+from fex.features import *
+from fex.split import *
 from tf_nn import *
-from prediction import *
 from basics import *
 from conf import *
-import pickle
 from ml_model import *
 
 def loadcsv(fn):

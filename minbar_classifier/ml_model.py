@@ -18,7 +18,7 @@ class MLClassifier(object):
         # model = ComplementNB()
         # model = tree.DecisionTreeClassifier()
         # model = RandomForestClassifier()
-        model = svm.SVC(C=1., kernel='rbf')
+        # model = svm.SVC(C=1., kernel='rbf')
         # model = tf_nn.TFClassifier((x_train.shape[1],),3)
         # model = LogisticRegression(max_iter=1000)
         # model = XGBClassifier(use_label_encoder = False)
