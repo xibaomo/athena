@@ -134,7 +134,8 @@ if __name__ == '__main__':
 
     ########### features #############
     fexconf = FexConfig(cf)
-    fm,used_time_id,lookback = prepare_features(fexconf, df, time_id)
+    fexbuilder = PredefinedFex(fexconf)
+    fm,used_time_id,lookback = fexbuilder.comp_features(df, time_id)
     Log(LOG_INFO) << "Feature dimension: %d" % fm.shape[1]
     used_labels = labels[lookback:]
     used_endtime = end_time[lookback:]

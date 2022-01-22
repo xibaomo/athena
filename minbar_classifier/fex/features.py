@@ -399,5 +399,11 @@ def prepare_features(fexconf, df, time_id):
         
     return fm, used_time_id, lookback
 
+class PredefinedFex(object):
+    def __init__(self,cfg):
+        self.fexconf = cfg
+
+    def comp_features(self,df,time_id):
+        return prepare_features(self.fexconf,df,time_id)
 
 
