@@ -1,8 +1,10 @@
 import tensorflow as tf
 import numpy as np
+from logger import *
 
-class TFClassifier(object):
-    def __init__(self,x_dim,y_dim):
+class DNNClassifier(object):
+    def __init__(self,cfg,x_dim,y_dim):
+        self.config = cfg
         self.model = tf.keras.models.Sequential([
             tf.keras.layers.Dense(128,activation='relu',input_shape=x_dim),
             tf.keras.layers.Dropout(0.2),
@@ -18,7 +20,8 @@ class TFClassifier(object):
         print(self.model.summary())
 
     def fit(self,x_train,y_train):
-        self.model.fit(x_train,y_train,epochs = 100)
+        epochs = self.config.getDNNEpochs()
+        self.model.fit(x_train,y_train,epochs = epochs)
         self.model.evaluate(x_train, y_train, verbose = 2)
 
     def predict(self,x):
@@ -32,3 +35,6 @@ class TFClassifier(object):
             y[i] = np.argmax(raw_y[i])
 
         return y
+
+    def save(self,mf):
+        Log(LOG_WARNING) << "TODO: save tf model"

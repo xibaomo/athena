@@ -7,6 +7,7 @@ from sklearn.ensemble import *
 from xgboost import XGBClassifier
 from sklearn.linear_model import LogisticRegression
 import pickle
+from logger import *
 
 class MLClassifier(object):
     def __init__(self):
@@ -21,6 +22,7 @@ class MLClassifier(object):
         # model = LogisticRegression(max_iter=1000)
         # model = XGBClassifier(use_label_encoder = False)
         # model = AdaBoostClassifier(n_estimators=300)
+        Log(LOG_INFO) << "SVM classifier created"
 
     def fit(self,x_train,y_train):
         self.model.fit(x_train,y_train)
@@ -30,3 +32,4 @@ class MLClassifier(object):
 
     def save(self,mf):
         pickle.dump(self.model, open(mf, 'wb'))
+        Log(LOG_INFO) << "Model dumped to %s" % mf

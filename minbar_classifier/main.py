@@ -33,10 +33,15 @@ def loadcsv(fn):
     df[RET_KEY] = ret
     return df
 
-def train_model(x_train, y_train):
+def train_model(cfg, x_train, y_train):
     Log(LOG_INFO) << "Training model..."
 
-    model = MLClassifier()
+    mt = cfg.getModelType()
+    if mt == 0:
+        model = MLClassifier
+    elif mt == 1:
+        ny = len(np.unique(y_train))
+        model = DNNClassifier(cfg,x_train.shape[1:],ny)
 
     model.fit(x_train, y_train)
 
@@ -128,6 +133,7 @@ if __name__ == '__main__':
 
     config = MasterConf(cf)
 
+    ########### labeling #############
     timestamp = pd.to_datetime(df[DATE_KEY] + " " + df[TIME_KEY])
     df[TIMESTAMP_KEY] = timestamp
     dt = (timestamp[1] - timestamp[0])
@@ -136,12 +142,14 @@ if __name__ == '__main__':
     labels,time_id,end_time,end_high,end_low = later_change_label(df,config.getReturnThreshold(),config.getTrueReturnRatio(),
                                                                   config.getPosLifeSec(),int(dtmin))
 
+    ########### features #############
     fexconf = FexConfig(cf)
     fm,used_time_id,lookback = prepare_features(fexconf, df, time_id)
     Log(LOG_INFO) << "Feature dimension: %d" % fm.shape[1]
     used_labels = labels[lookback:]
     used_endtime = end_time[lookback:]
 
+    ########## split data set ###########
     test_size = config.getTestSize()
 
     if test_size >= 0:
@@ -158,13 +166,16 @@ if __name__ == '__main__':
         end_date = pd.to_datetime(config.getTestEndDate() + " 00:00:00")
         x_train, y_train, x_test, y_test,scaler  = split_dataset_by_dates(df,fm,used_labels,used_time_id,start_date, end_date)
 
-    model = train_model(x_train, y_train)
+    ######## model training ############
+    model = train_model(config, x_train, y_train)
     model.save(config.getModelFile())
     pickle.dump(scaler,open(config.getScalerFile(),'wb'))
 
     if test_size == 0:
         sys.exit(0)
 
+
+    ########## evaluate model #############
     # Log(LOG_INFO) << "Evaluating model on training set..."
     # eval_model(model,x_train,y_train)
 

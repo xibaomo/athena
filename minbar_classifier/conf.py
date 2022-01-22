@@ -26,3 +26,9 @@ class MasterConf(object):
 
     def getTestEndDate(self):
         return self.yamlDict['TRAINING']['TEST_END_DATE']
+
+    def getModelType(self):
+        return self.yamlDict['MODEL']['TYPE']
+
+    def getDNNEpochs(self):
+        return self.yamlDict['MODEL']['DNN']['EPOCHS']

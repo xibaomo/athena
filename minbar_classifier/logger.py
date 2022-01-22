@@ -8,13 +8,15 @@ import inspect
 import sys
 LOG_FATAL = 0
 LOG_ERROR = 1
-LOG_INFO = 2
-LOG_DEBUG = 3
+LOG_WARNING = 2
+LOG_INFO = 3
+LOG_DEBUG = 4
 LogSwitcher = {
         0: logging.fatal,
         1: logging.error,
-        2: logging.info,
-        3: logging.debug
+        2: logging.warning,
+        3: logging.info,
+        4: logging.debug
 }
 class Logger(object):
     def __init__(self):
