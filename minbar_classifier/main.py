@@ -24,6 +24,7 @@ from prediction import *
 from basics import *
 from conf import *
 import pickle
+from ml_model import *
 
 def loadcsv(fn):
     df = pd.read_csv(fn, sep='\t')
@@ -34,18 +35,9 @@ def loadcsv(fn):
 
 def train_model(x_train, y_train):
     Log(LOG_INFO) << "Training model..."
-    #model = GaussianNB()
-    # model = MultinomialNB()
-    # model = ComplementNB()
-    # model = tree.DecisionTreeClassifier()
-    # model = RandomForestClassifier()
-    model = svm.SVC(C = 1., kernel='rbf')
-    # model = tf_nn.TFClassifier((x_train.shape[1],),3)
-    # model = LogisticRegression(max_iter=1000)
-    # model = XGBClassifier(use_label_encoder = False)
-    # model = AdaBoostClassifier(n_estimators=300)
-    ## fit the model
-    # pdb.set_trace()
+
+    model = MLClassifier()
+
     model.fit(x_train, y_train)
 
     return model
@@ -167,7 +159,7 @@ if __name__ == '__main__':
         x_train, y_train, x_test, y_test,scaler  = split_dataset_by_dates(df,fm,used_labels,used_time_id,start_date, end_date)
 
     model = train_model(x_train, y_train)
-    pickle.dump(model,open(config.getModelFile(),'wb'))
+    model.save(config.getModelFile())
     pickle.dump(scaler,open(config.getScalerFile(),'wb'))
 
     if test_size == 0:

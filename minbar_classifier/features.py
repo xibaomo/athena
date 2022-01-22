@@ -445,6 +445,9 @@ def split_dataset_by_dates(df, fm, labels,time_id,start_time,end_time):
     y_train = labels[:id_s]
     x_test  = fm[id_s:id_e]
     y_test  = labels[id_s:id_e]
+
+    if len(y_test) == 0:
+        Log(LOG_FATAL) << "Test dates cannot be found in history data"
     scaler = MinMaxScaler()
     x_train = scaler.fit_transform(x_train)
     x_test = scaler.transform(x_test)
