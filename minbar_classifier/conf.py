@@ -38,3 +38,6 @@ class MasterConf(object):
 
     def getDNNEpochs(self):
         return self.yamlDict['MODEL']['DNN']['EPOCHS']
+
+    def getFeatureType(self):
+        return self.yamlDict['FEATURES']['TYPE']

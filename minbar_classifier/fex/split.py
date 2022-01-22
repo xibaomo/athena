@@ -2,7 +2,7 @@ from sklearn.preprocessing import *
 from basics import *
 from logger import *
 
-def split_dataset_by_dates(df, fm, labels,time_id,start_time,end_time):
+def split_dataset_by_dates(df, fm, labels,time_id,start_time,end_time,config):
     idx = len(time_id)-1
     id_s = -1
     id_e = -1 # not included
@@ -32,9 +32,12 @@ def split_dataset_by_dates(df, fm, labels,time_id,start_time,end_time):
 
     if len(y_test) == 0:
         Log(LOG_FATAL) << "Test dates cannot be found in history data"
-    scaler = MinMaxScaler()
-    x_train = scaler.fit_transform(x_train)
-    x_test = scaler.transform(x_test)
+
+    scaler = None
+    if config.getFeatureType() == FeatureType.PREDEFINED:
+        scaler = MinMaxScaler()
+        x_train = scaler.fit_transform(x_train)
+        x_test = scaler.transform(x_test)
 
     tid_s = time_id[id_s]
     tid_e = time_id[id_e-1]

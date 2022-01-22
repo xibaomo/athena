@@ -403,7 +403,7 @@ class PredefinedFex(object):
     def __init__(self,masterconf):
         self.fexconf = FexConfig(masterconf)
 
-    def comp_features(self,df,time_id):
+    def create_features(self,df,time_id):
         return prepare_features(self.fexconf,df,time_id)
 
 

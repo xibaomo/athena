@@ -15,6 +15,7 @@ from tf_nn import *
 from basics import *
 from conf import *
 from ml_model import *
+from fex.rawdata import *
 
 def loadcsv(fn):
     df = pd.read_csv(fn, sep='\t')
@@ -133,9 +134,15 @@ if __name__ == '__main__':
                                                                   config.getPosLifeSec(),int(dtmin))
 
     ########### features #############
-    # fexconf = FexConfig(cf)
-    fexbuilder = PredefinedFex(config)
-    fm,used_time_id,lookback = fexbuilder.comp_features(df, time_id)
+    if config.getFeatureType() == FeatureType.PREDEFINED:
+        fexbuilder = PredefinedFex(config)
+    elif config.getFeatureType() == FeatureType.RAW:
+        if config.getModelType() == ModelType.ML:
+            Log(LOG_FATAL) << "Raw feature does not support ML model"
+        fexbuilder = RawFex(config)
+    else:
+        pass
+    fm,used_time_id,lookback = fexbuilder.create_features(df, time_id)
     Log(LOG_INFO) << "Feature dimension: %d" % fm.shape[1]
     used_labels = labels[lookback:]
     used_endtime = end_time[lookback:]
@@ -155,12 +162,13 @@ if __name__ == '__main__':
     else:
         start_date = pd.to_datetime(config.getTestStartDate() + " 00:00:00")
         end_date = pd.to_datetime(config.getTestEndDate() + " 00:00:00")
-        x_train, y_train, x_test, y_test,scaler  = split_dataset_by_dates(df,fm,used_labels,used_time_id,start_date, end_date)
+        x_train, y_train, x_test, y_test,scaler  = split_dataset_by_dates(df,fm,used_labels,used_time_id,start_date, end_date,config)
 
     ######## model training ############
     model = train_model(config, x_train, y_train)
     model.save()
-    pickle.dump(scaler,open(config.getScalerFile(),'wb'))
+    if config.getFeatureType() == FeatureType.PREDEFINED:
+        pickle.dump(scaler,open(config.getScalerFile(),'wb'))
 
     if test_size == 0:
         sys.exit(0)
