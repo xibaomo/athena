@@ -55,8 +55,7 @@ LOOKBACK_KEY = "LOOKBACK"
 LONG_LOOKBACK_KEY = "LONG_LOOKBACK"
 class FexConfig(object):
     def __init__(self, master_conf):
-
-        self.fexDict = master_conf.yamlDict['FEATURES']
+        self.fexDict = master_conf.yamlDict['PREDEFINED_FEATURES']
 
     def getLookback(self, key):
         return self.fexDict[key][LOOKBACK_KEY]

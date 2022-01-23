@@ -11,17 +11,20 @@ MODEL:
     DNN:
         EPOCHS: 30
 TRAINING:
+    FEATURE_TYPE: 1 # 0 - predefined features, 1 - raw data
+
     TEST_SIZE: -1 # hours. if >0, use the latest hours, ignore TEST_START_DATE/END_DATE
                   #        if <0, use the dates below as test set
-    TEST_START_DATE: 2021.11.09
-    TEST_END_DATE: 2021.12.09
+    TEST_START_DATE: 2021.10.09
+    TEST_END_DATE: 2021.11.09
 
     #dump files
     SCALER_FILE: scaler.pkl
 
-FEATURES:
-    TYPE: 0  # 0 - predefined as below, 1 - use raw data
-           
+RAW_FEATURES:
+    LOOKBACK: 100
+
+PREDEFINED_FEATURES:
     BASICS:
         LOOKBACK: 3
     VOLATILITY:

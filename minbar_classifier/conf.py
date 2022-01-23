@@ -40,4 +40,4 @@ class MasterConf(object):
         return self.yamlDict['MODEL']['DNN']['EPOCHS']
 
     def getFeatureType(self):
-        return self.yamlDict['FEATURES']['TYPE']
+        return self.yamlDict['TRAINING']['FEATURE_TYPE']

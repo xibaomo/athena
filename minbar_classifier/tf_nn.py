@@ -1,6 +1,28 @@
+import pdb
+
 import tensorflow as tf
 import numpy as np
 from logger import *
+class SaveBestModel(tf.keras.callbacks.Callback):
+    def __init__(self, save_best_metric='accuracy', this_max=False):
+        self.save_best_metric = save_best_metric
+        self.max = this_max
+        if this_max:
+            self.best = float('-inf')
+        else:
+            self.best = float('inf')
+
+    def on_epoch_end(self, epoch, logs=None):
+        metric_value = logs[self.save_best_metric]
+        if self.max:
+            if metric_value > self.best:
+                self.best = metric_value
+                self.best_weights = self.model.get_weights()
+
+        else:
+            if metric_value < self.best:
+                self.best = metric_value
+                self.best_weights= self.model.get_weights()
 
 class DNNClassifier(object):
     def __init__(self,cfg,x_dim,y_dim):
@@ -20,8 +42,12 @@ class DNNClassifier(object):
         print(self.model.summary())
 
     def fit(self,x_train,y_train):
+        self.save_best_model = SaveBestModel()
         epochs = self.config.getDNNEpochs()
-        self.model.fit(x_train,y_train,epochs = epochs)
+
+        self.model.fit(x_train,y_train,epochs = epochs,verbose=1, callbacks=[self.save_best_model])
+
+        self.model.set_weights(self.save_best_model.best_weights)
         self.model.evaluate(x_train, y_train, verbose = 2)
 
     def predict(self,x):
