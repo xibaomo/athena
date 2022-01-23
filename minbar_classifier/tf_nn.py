@@ -47,7 +47,7 @@ class DNNClassifier(object):
 
         self.model.fit(x_train,y_train,epochs = epochs,verbose=1, callbacks=[self.save_best_model])
 
-        self.model.set_weights(self.save_best_model.best_weights)
+        # self.model.set_weights(self.save_best_model.best_weights)
         self.model.evaluate(x_train, y_train, verbose = 2)
 
     def predict(self,x):
