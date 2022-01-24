@@ -32,7 +32,7 @@ def train_model(cfg, x_train, y_train):
         model = MLClassifier(cfg)
     elif mt == 1:
         ny = len(np.unique(y_train))
-        model = DNNClassifier(cfg,x_train.shape[1:],ny)
+        model = CNNClassifier(cfg,x_train.shape[1:],ny)
 
     model.fit(x_train, y_train)
 
@@ -143,7 +143,7 @@ if __name__ == '__main__':
     else:
         pass
     fm,used_time_id,lookback = fexbuilder.create_features(df, time_id)
-    Log(LOG_INFO) << "Feature dimension: %d" % fm.shape[1]
+    Log(LOG_INFO) << "Feature dimension: {}".format(fm.shape[1:])
     used_labels = labels[lookback:]
     used_endtime = end_time[lookback:]
 

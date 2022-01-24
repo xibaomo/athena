@@ -9,18 +9,17 @@ class RawFex(object):
     def create_features(self,df,time_id):
         hour_lookback = 0
         lookback = self.yamlDict['RAW_FEATURES']['LOOKBACK']
+
+        hi_rtn = df[HIGH_KEY]/df[OPEN_KEY] - 1.
+        lw_rtn = df[LOW_KEY]/df[OPEN_KEY]-1.
         fm = []
         for tid in time_id:
             past_op = df[OPEN_KEY][tid - lookback:tid].values
-            past_hi = df[HIGH_KEY][tid-lookback:tid].values
-            past_lw = df[LOW_KEY][tid-lookback:tid].values
-            past_cl = df[CLOSE_KEY][tid-lookback:tid].values
-            rtn=[]
-            for i in range(lookback):
-                if past_op[i] > past_cl[i]:
-                    rtn.append(past_lw[i]/past_hi[i]-1.)
-                else:
-                    rtn.append(past_hi[i]/past_lw[i]-1.)
+            rtn_op = np.diff(np.log(past_op))
+            rtn_hi = hi_rtn.values[tid-lookback+1:tid]
+            rtn_lw = lw_rtn.values[tid-lookback+1:tid]
+            rtn = np.vstack((rtn_op,rtn_hi,rtn_lw))
+            rtn = np.transpose(rtn)
 
             fm.append(rtn)
 

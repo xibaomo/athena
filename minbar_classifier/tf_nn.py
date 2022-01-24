@@ -65,3 +65,33 @@ class DNNClassifier(object):
     def save(self):
         mf = self.config.getTFModelFile()
         Log(LOG_WARNING) << "TODO: save tf model"
+
+class CNNClassifier(DNNClassifier):
+    def __init__(self,cfg,x_dim,y_dim):
+        if len(x_dim) == 1:
+            x_dim = x_dim + (1,)
+        self.config = cfg
+        ks = 10
+        self.model = tf.keras.models.Sequential([
+            tf.keras.layers.Rescaling(1., input_shape=x_dim),
+            tf.keras.layers.Conv1D(16,ks,padding='same',activation='relu'),
+            tf.keras.layers.MaxPooling1D(),
+            tf.keras.layers.Conv1D(32, ks, padding='same', activation='relu'),
+            tf.keras.layers.MaxPooling1D(),
+            tf.keras.layers.Conv1D(64, ks, padding='same', activation='relu'),
+            tf.keras.layers.MaxPooling1D(),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(256, activation='relu'),
+            tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Dense(128, activation='relu'),
+            tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Dense(32, activation='relu'),
+            tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Dense(16, activation='relu'),
+            tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Dense(y_dim)
+        ])
+        loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+        self.model.compile(optimizer='adam', loss=loss_fn, metrics=['accuracy'])
+
+        print(self.model.summary())

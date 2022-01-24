@@ -32,6 +32,8 @@ athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64
                                  int32* labels,
                                  int32* durations) {
     const real64 ONE = 1.f;
+    size_t bnb = 0; // break neither bounds
+    size_t bbb = 0; // break both bounds
     real64 pv = getPoint3or5(open[0]);
     std::cerr<<"Point unit of symbol: " << pv << endl;
 //    std::cout<<"Max stride: " << max_stride << endl;
@@ -60,6 +62,7 @@ athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64
             // first check if we can take profit
             if (true_ret_buy >= ret_thd && true_ret_sell <= -ret_thd) {
                 label = 2;
+                bbb++;
                 break;
             } else if (true_ret_buy >= ret_thd) {
                 label = 1;
@@ -73,13 +76,16 @@ athenaStatus athena_minbar_label(real64* open, real64* high, real64* low, real64
 
         }
         if (label==0) {
-            std::cerr << "Label should not be 0!!! Try lower threshold" << std::endl;
+//            std::cerr << "Label should not be 0!!! Try lower threshold" << std::endl;
+            bnb++;
         }
         labels[idx] = label;
         durations[idx] = dur;
     }
 
 //    cout<<"hash labels: " << hasharray(labels,num_ids) << endl;
+    std::cerr << "Break both bounds: " << bbb << std::endl;
+    std::cerr << "Break neither of bounds: " << bnb << std::endl;
 
     return 0;
 }
