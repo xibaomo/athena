@@ -166,6 +166,8 @@ MinbarTracker::procMsg_CLOSED_POS_INFO(Message& msg) {
 
 Message
 MinbarTracker::procMsg_REQUEST_ACT(Message& msg){
+    estimate_winratio(0.6,1.0);
+
     real64* pm = (real64*)msg.getData();
     FXAct act = m_predictor->predict(msg.getComment(), pm[0]);
 
@@ -244,4 +246,34 @@ MinbarTracker::dumpPosInfo(){
 
     const String headers = "TICKET,START_TIME,END_TIME,DURATION,PROFIT,OPEN_ASK,OPEN_BID,CLOSE_PRICE,LABEL";
     dumpVectors("pos_info.csv",headers, tks_aux,st_aux,et_aux,lf_aux,pf_aux,oa_aux,ob_aux,cp_aux,guess);
+}
+
+struct NK {
+    int n;
+    int k;
+};
+static double func(double x, void* param) {
+    NK* pm = (NK*)param;
+    return pow(x,pm->k) * pow(1-x,pm->n-pm->k);
+}
+void
+MinbarTracker::estimate_winratio(double lb, double hb) {
+    // find out n,k. n is the number of closed positions, k is winning ones.
+    int n=0;
+    int k=0;
+    for (auto& it : m_tk2pos) {
+        auto& pos = it.second;
+        if (!pos.close_time.empty()) {
+            n++;
+            if (pos.profit > 0.)
+                k++;
+        }
+    }
+    NK pm{n,k};
+    double tmp = intg(func,&pm,lb,hb,1e-6);
+    double prob = (n+1) * comb_num(n,k) * tmp;
+
+    Log(LOG_INFO) << "Opened pos: " << m_tk2pos.size()
+                  << "closed pos: " << n
+                  << ", wins: " << k << ", probability of actual winratio > 60%: " << prob << endl;
 }

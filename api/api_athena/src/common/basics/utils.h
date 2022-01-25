@@ -312,5 +312,24 @@ real64 round5pts(const real64 val) {
     int v = val*p;
     return (real64)v / p;
 }
+
+inline
+long double factorial(size_t n) {
+    long double factorial = 1;
+    for (size_t i = 2; i <= n; i++)
+        factorial = factorial * i;
+    return factorial;
+}
+inline
+double comb_num(size_t n, size_t k) {
+    long double s=1;
+    for (size_t i = n; i >= n-k+1;i--){
+        s*=i;
+    }
+    return (long double)s/factorial(k);
+}
+typedef double(*Integrand)(double,void*);
+double intg(Integrand func, void* param, double low, double high, double relerr=1e-6);
+
 }
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */
