@@ -90,10 +90,20 @@ def findLabel(idx,time_id,tm,df,thd_ret,pos_life):
         id+=1
     return label
 
+def checkDailyReturn(df):
+    tm = getTimeStamps(df)
+    tmp = (tm.hour == 1) & (tm.minute==0) & (tm.second==0)
+    day_id = [id for id in range(len(tmp)) if tmp[id]]
+    op = df[OPEN_KEY][day_id].values
+    r = np.diff(np.log(op))
+
+    Log(LOG_INFO) << "Averaged amplitude of daily return: %f" % np.mean(abs(r))
 
 def later_change_label(df,thd_ret,ret_ratio, pos_life, bar_min=15):
     Log(LOG_INFO) << "Labeling with return threshold: %f, position lifetime: %d days" % (thd_ret,pos_life/3600/24)
     tm = getTimeStamps(df)
+
+    checkDailyReturn(df)
 
     tmp = (tm.minute == 0) & (tm.second == 0)  & (tm.hour != 0)# on hour sharp except 00:00, [true,false,...]
     time_id = [id for id in range(len(tmp)) if tmp[id]] #index to entire df
