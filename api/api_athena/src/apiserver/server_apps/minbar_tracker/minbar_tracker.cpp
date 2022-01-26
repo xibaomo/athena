@@ -274,6 +274,6 @@ MinbarTracker::estimate_winratio(double lb, double hb) {
     double prob = (n+1) * comb_num(n,k) * tmp;
 
     Log(LOG_INFO) << "Opened pos: " << m_tk2pos.size()
-                  << "closed pos: " << n
+                  << ", closed pos: " << n
                   << ", wins: " << k << ", probability of actual winratio > 60%: " << prob << endl;
 }

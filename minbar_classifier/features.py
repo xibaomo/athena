@@ -456,4 +456,4 @@ def split_dataset_by_dates(df, fm, labels,time_id,start_time,end_time):
     Log(LOG_INFO) << "start date of test: " + df[DATE_KEY][tid_s] + " " + df[TIME_KEY][tid_s]
     Log(LOG_INFO) << "end   date of test: " + df[DATE_KEY][tid_e] + " " + df[TIME_KEY][tid_e]
 
-    return x_train,y_train,x_test,y_test, scaler
+    return x_train,y_train,x_test,y_test, id_s, scaler

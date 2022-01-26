@@ -93,14 +93,14 @@ def eval_model(model, x_test, y_test):
     # perm_importance = permutation_importance(model, x_test, y_test)
     # Log(LOG_INFO) << "importance: "+ str(perm_importance.importances_mean)
 
-def dumpTestSet(df,used_time_id,labels, end_time, end_high,end_low,test_size):
+def dumpTestSet(df,used_time_id,labels, end_time, end_high,end_low,idx_s, test_size):
     dff = pd.DataFrame()
-    tid_s = len(used_time_id) - test_size
-    for i in range(tid_s,len(used_time_id)):
+    idx_e = idx_s + test_size # not included
+    for i in range(idx_s,idx_e):
         tid = used_time_id[i]
         dff = dff.append(df.loc[tid,[DATE_KEY,TIME_KEY,OPEN_KEY,SPREAD_KEY]])
     dff.reset_index(drop=True)
-    label_aux = labels[tid_s:].astype(int)
+    label_aux = labels[idx_s:idx_e].astype(int)
     for i in range(len(label_aux)):
         if label_aux[i] == Action.BUY:
             label_aux[i] = 1
@@ -109,9 +109,9 @@ def dumpTestSet(df,used_time_id,labels, end_time, end_high,end_low,test_size):
             label_aux[i] = -1
             continue
     dff['LABEL'] = label_aux
-    dff['END_TIME'] = end_time[tid_s:]
-    dff['END_HIGH'] = end_high[tid_s:]
-    dff['END_LOW']  = end_low[tid_s:]
+    dff['END_TIME'] = end_time[idx_s:idx_e]
+    dff['END_HIGH'] = end_high[idx_s:idx_e]
+    dff['END_LOW']  = end_low[idx_s:idx_e]
 
     dff.to_csv("test_set.csv",index=False)
 
@@ -151,20 +151,23 @@ if __name__ == '__main__':
     used_endtime = end_time[lookback:]
 
     test_size = config.getTestSize()
-
+    idx_s = 0 # index to used_time_id, start point of test set
     if test_size >= 0:
         Log(LOG_INFO) << "Test size: %d" % test_size
         tid_s = used_time_id[-test_size]
         tid_e = used_time_id[-1]
         Log(LOG_INFO) << "start date of test: " + df[DATE_KEY][tid_s] + " " + df[TIME_KEY][tid_s]
         Log(LOG_INFO) << "end   date of test: " + df[DATE_KEY][tid_e] + " " + df[TIME_KEY][tid_e]
-        dumpTestSet(df,used_time_id,used_labels,used_endtime,end_high[lookback:],end_low[lookback:],test_size)
-        dumpTestFeatures(df,used_time_id[-test_size:],fm[-test_size:,:])
+        idx_s  = len(used_labels) - test_size
         x_train, y_train, x_test, y_test,scaler = split_dataset(fm,used_labels,test_size)
     else:
         start_date = pd.to_datetime(config.getTestStartDate() + " 00:00:00")
         end_date = pd.to_datetime(config.getTestEndDate() + " 00:00:00")
-        x_train, y_train, x_test, y_test,scaler  = split_dataset_by_dates(df,fm,used_labels,used_time_id,start_date, end_date)
+        x_train, y_train, x_test, y_test, idx_s, scaler  = split_dataset_by_dates(df,fm,used_labels,used_time_id,start_date, end_date)
+
+    test_size = len(y_test)
+    dumpTestSet(df, used_time_id, used_labels, used_endtime, end_high[lookback:], end_low[lookback:], idx_s, test_size)
+    dumpTestFeatures(df, used_time_id[-test_size:], fm[-test_size:, :])
 
     model = train_model(x_train, y_train)
     pickle.dump(model,open(config.getModelFile(),'wb'))
