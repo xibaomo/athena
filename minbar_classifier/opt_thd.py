@@ -43,12 +43,16 @@ def comp_winratio(val, csvfile,fexyaml_orig ):
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Usage: python {} <csv_file> <fex.yaml>".format(sys.argv[0]))
+        print("Usage: python {} <csv_file> <fex.yaml> <init_val>".format(sys.argv[0]))
         sys.exit()
     if not os.path.exists(WORK_FOLDER):
         os.mkdir(WORK_FOLDER)
     os.chdir(WORK_FOLDER)
     x0 = np.array([0.003])
+
+    if len(sys.argv)>=4:
+        x0[0] = float(sys.argv[3])
+        print("init val: ", x0[0])
     res = minimize(comp_winratio, x0, args=("../" + sys.argv[1], "../" + sys.argv[2]),
                    method='nelder-mead', options={'xatol': 1e-4, 'disp': True})
 
