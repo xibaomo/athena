@@ -76,7 +76,7 @@ def eval_model(model, x_test, y_test):
 
     Log(LOG_INFO) << "profit = %d, loss=%d, net=%d" % (profit, loss, profit - loss)
     Log(LOG_INFO) << "profit buy: %d, sell: %d" % (prof_buy,prof_sell)
-    Log(LOG_INFO) << "win ratio: %.3f" % (profit / (profit + loss))
+    Log(LOG_INFO) << "WIN RATIO: %.3f" % (profit / (profit + loss))
 
     #### blind trade: buy,sell,buy,sell,...
     blind_trade = np.ones(len(y_test))
