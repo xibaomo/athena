@@ -14,6 +14,7 @@ from sklearn.inspection import permutation_importance
 from sklearn.ensemble import *
 from xgboost import XGBClassifier
 from sklearn.linear_model import LogisticRegression
+import thundersvm
 
 import tf_nn
 from labeling import *
@@ -39,7 +40,8 @@ def train_model(x_train, y_train):
     # model = ComplementNB()
     # model = tree.DecisionTreeClassifier()
     # model = RandomForestClassifier()
-    model = svm.SVC(C = 1., kernel='rbf')
+    # model = svm.SVC(C = 1., kernel='rbf')
+    model = thundersvm.SVC()
     # model = tf_nn.TFClassifier((x_train.shape[1],),3)
     # model = LogisticRegression(max_iter=1000)
     # model = XGBClassifier(use_label_encoder = False)
@@ -76,7 +78,9 @@ def eval_model(model, x_test, y_test):
 
     Log(LOG_INFO) << "profit = %d, loss=%d, net=%d" % (profit, loss, profit - loss)
     Log(LOG_INFO) << "profit buy: %d, sell: %d" % (prof_buy,prof_sell)
-    Log(LOG_INFO) << "WIN RATIO: %.3f" % (profit / (profit + loss))
+
+    winratio = profit / (len(y_test))
+    Log(LOG_INFO) << "WIN RATIO: %.3f" % winratio
 
     #### blind trade: buy,sell,buy,sell,...
     blind_trade = np.ones(len(y_test))

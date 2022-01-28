@@ -1,7 +1,7 @@
 import os,sys
 import pdb
 
-from scipy.optimize import minimize
+from scipy.optimize import minimize,Bounds
 import numpy as np
 
 MAIN_COMMAND = "python ../main.py "
@@ -53,7 +53,8 @@ if __name__ == "__main__":
     if len(sys.argv)>=4:
         x0[0] = float(sys.argv[3])
         print("init val: ", x0[0])
-    res = minimize(comp_winratio, x0, args=("../" + sys.argv[1], "../" + sys.argv[2]),
-                   method='nelder-mead', options={'xatol': 1e-4, 'disp': True})
-
+    # res = minimize(comp_winratio, x0, args=("../" + sys.argv[1], "../" + sys.argv[2]),bounds=Bounds(0.001,0.005),
+    #                method='nelder-mead', options={'xatol': 1e-4, 'disp': True})
+    res = minimize(comp_winratio, x0, args=("../" + sys.argv[1], "../" + sys.argv[2]), bounds=[(0.001,0.008)],
+                   method='Powell', options={'xtol': 1e-3, 'disp': True})
     print("Best x: ",res.x)
