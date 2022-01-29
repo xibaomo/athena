@@ -18,7 +18,7 @@ class TFClassifier(object):
         print(self.model.summary())
 
     def fit(self,x_train,y_train):
-        self.model.fit(x_train,y_train,epochs = 100)
+        self.model.fit(x_train,y_train,epochs = 30, verbose=0)
         self.model.evaluate(x_train, y_train, verbose = 2)
 
     def predict(self,x):

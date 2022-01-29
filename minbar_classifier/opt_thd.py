@@ -30,6 +30,7 @@ def comp_winratio(val, csvfile,fexyaml_orig ):
     cmd = MAIN_COMMAND + csvfile + " fex.yaml >& " + LOG_FILE
     os.system("bash -c '{}'".format(cmd))
     # pdb.set_trace()
+    wr=[]
     with open(LOG_FILE,'r') as f:
         for line in f:
             line = line.strip()
@@ -37,9 +38,10 @@ def comp_winratio(val, csvfile,fexyaml_orig ):
             if id > 0:
                 res = line[id+len(RESULT_KEY):]
                 res = float(res)
-                print("Current result: ", val, res)
-                return -res
-    return 99999.
+                wr.append(res)
+
+    print("Current result: ",val,wr)
+    return -wr[0]
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:

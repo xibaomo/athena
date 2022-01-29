@@ -40,8 +40,8 @@ def train_model(x_train, y_train):
     # model = ComplementNB()
     # model = tree.DecisionTreeClassifier()
     # model = RandomForestClassifier()
-    # model = svm.SVC(C = 1., kernel='rbf')
-    model = thundersvm.SVC()
+    model = svm.SVC(C = 1., kernel='rbf')
+    # model = thundersvm.SVC()
     # model = tf_nn.TFClassifier((x_train.shape[1],),3)
     # model = LogisticRegression(max_iter=1000)
     # model = XGBClassifier(use_label_encoder = False)
@@ -129,6 +129,14 @@ def dumpTestFeatures(df,time_id_test,fm_test):
 
     dff.to_csv("offline_feature_testset.csv",index=False)
 
+def dumpLabels(df,time_id,labels):
+    dff = pd.DataFrame()
+    dff[DATE_KEY] = df[DATE_KEY][time_id]
+    dff[TIME_KEY] = df[TIME_KEY][time_id]
+    dff['LABEL'] = labels
+    dff.to_csv("all_labels.csv",index=False)
+    Log(LOG_INFO) << "All labels dumped to all_labels.csv"
+    
 if __name__ == '__main__':
     Log.setlogLevel(LOG_INFO)
 
@@ -147,6 +155,7 @@ if __name__ == '__main__':
     Log(LOG_INFO) << "Minbar spacing is %d min" % dtmin
     labels,time_id,end_time,end_high,end_low = later_change_label(df,config.getReturnThreshold(),config.getTrueReturnRatio(),
                                                                   config.getPosLifeSec(),int(dtmin))
+    dumpLabels(df,time_id,labels)
 
     fexconf = FexConfig(cf)
     fm,used_time_id,lookback = prepare_features(fexconf, df, time_id)
@@ -174,14 +183,14 @@ if __name__ == '__main__':
     dumpTestFeatures(df, used_time_id[-test_size:], fm[-test_size:, :])
 
     model = train_model(x_train, y_train)
-    pickle.dump(model,open(config.getModelFile(),'wb'))
-    pickle.dump(scaler,open(config.getScalerFile(),'wb'))
+    # pickle.dump(model,open(config.getModelFile(),'wb'))
+    # pickle.dump(scaler,open(config.getScalerFile(),'wb'))
 
     if test_size == 0:
         sys.exit(0)
 
-    # Log(LOG_INFO) << "Evaluating model on training set..."
-    # eval_model(model,x_train,y_train)
+    Log(LOG_INFO) << "Evaluating model on training set..."
+    eval_model(model,x_train,y_train)
 
     Log(LOG_INFO) << "Evaluating model on test set..."
     eval_model(model, x_test, y_test)

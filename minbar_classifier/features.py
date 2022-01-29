@@ -311,6 +311,12 @@ def basic_features_training(prices,tv,tm,lookback): # features based on hours, i
     label = np.ones(nsample) * np.nan
     for i in range(nsample):
         past = rx[i:i + lookback]
+        # fm[i,:-3] = past
+        # fm[i,-3] = np.mean(past)
+        # fm[i,-2] = np.std(past)
+        # fm[i,-1] = fm[i,-3]/fm[i,-2]
+
+
         tvp =  tv[i:i + lookback]
         fm[i, 0] = np.mean(past)
         fm[i, 1] = np.std(past)
