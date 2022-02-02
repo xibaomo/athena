@@ -136,7 +136,7 @@ def dumpLabels(df,time_id,labels):
     dff['LABEL'] = labels
     dff.to_csv("all_labels.csv",index=False)
     Log(LOG_INFO) << "All labels dumped to all_labels.csv"
-    
+
 if __name__ == '__main__':
     Log.setlogLevel(LOG_INFO)
 
@@ -179,18 +179,22 @@ if __name__ == '__main__':
         x_train, y_train, x_test, y_test, idx_s, scaler  = split_dataset_by_dates(df,fm,used_labels,used_time_id,start_date, end_date)
 
     test_size = len(y_test)
+    x_val = x_train[-test_size:,:]
+    y_val = y_train[-test_size:]
+    x_train = x_train[:-test_size,:]
+    y_train = y_train[:-test_size]
     dumpTestSet(df, used_time_id, used_labels, used_endtime, end_high[lookback:], end_low[lookback:], idx_s, test_size)
     dumpTestFeatures(df, used_time_id[-test_size:], fm[-test_size:, :])
 
     model = train_model(x_train, y_train)
-    # pickle.dump(model,open(config.getModelFile(),'wb'))
-    # pickle.dump(scaler,open(config.getScalerFile(),'wb'))
+    pickle.dump(model,open(config.getModelFile(),'wb'))
+    pickle.dump(scaler,open(config.getScalerFile(),'wb'))
 
     if test_size == 0:
         sys.exit(0)
 
-    Log(LOG_INFO) << "Evaluating model on training set..."
-    eval_model(model,x_train,y_train)
+    Log(LOG_INFO) << "Evaluating model on validation set..."
+    eval_model(model,x_val,y_val)
 
     Log(LOG_INFO) << "Evaluating model on test set..."
     eval_model(model, x_test, y_test)

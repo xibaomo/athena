@@ -41,7 +41,7 @@ def comp_winratio(val, csvfile,fexyaml_orig ):
                 wr.append(res)
 
     print("Current result: ",val,wr)
-    return -wr[0]
+    return wr[0]
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -57,6 +57,6 @@ if __name__ == "__main__":
         print("init val: ", x0[0])
     # res = minimize(comp_winratio, x0, args=("../" + sys.argv[1], "../" + sys.argv[2]),bounds=Bounds(0.001,0.005),
     #                method='nelder-mead', options={'xatol': 1e-4, 'disp': True})
-    res = minimize(comp_winratio, x0, args=("../" + sys.argv[1], "../" + sys.argv[2]), bounds=[(0.001,0.008)],
+    res = minimize(comp_winratio, x0, args=("../" + sys.argv[1], "../" + sys.argv[2]), bounds=[(0.0025,0.006)],
                    method='Powell', options={'xtol': 1e-3, 'disp': True})
     print("Best x: ",res.x)
