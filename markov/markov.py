@@ -52,8 +52,19 @@ def comp_win_prob(labels):
     return wp
 
 def comp_win_prob_buy(x,price,df,tid_s,tid_e):
-    labels = buy_label_minbars(df,tid_s,tid_e,price,x,-x)
+    if len(x) == 2:
+        tp = x[0]
+        sl = x[1]
+    if len(x) == 1:
+        tp = x
+        sl = -x
+
+    labels = buy_label_minbars(df,tid_s,tid_e,price,tp,sl)
     wp = comp_win_prob(labels)
+
+    dff = pd.DataFrame()
+    dff['LABEL'] = labels
+    dff.to_csv('tmp_labels.csv',index=False)
     print(x,wp)
     return -wp
 if __name__ == "__main__":
@@ -66,16 +77,16 @@ if __name__ == "__main__":
     df = pd.read_csv(csv_file,sep='\t')
 
     test_size = 100
-    hist_len = 5000
-    tarid = 69487
+    hist_len = 4000
+    tarid = 87142
     hist_start = tarid - hist_len
     hist_end = tarid
     price = df[OPEN_KEY][tarid]
 
     # x0=[0.001,-0.001]
-    x0=0.0011
     # bnds = ((0.001,0.005),(-0.01,0))
-    bnds = ((0.001,None))
+    x0=0.0011
+    bnds = [(0.002,0.004)]
     res = minimize(comp_win_prob_buy,x0,(price,df,hist_start,hist_end),bounds=bnds,
                    method='Powell', options={'xtol': 1e-3, 'disp': True,'ftol':1e-2})
     # res = minimize(comp_win_prob_buy, x0, (price, df, hist_start, hist_end), bounds=bnds,
