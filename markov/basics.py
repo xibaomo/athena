@@ -4,7 +4,7 @@ HIGH_KEY = "<HIGH>"
 LOW_KEY  = "<LOW>"
 
 class State(IntEnum):
-    LIVE = 0,
+    ORIGIN = 0,
     TP = 1,
     SL = 2,
     NONE=3
