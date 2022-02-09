@@ -9,7 +9,7 @@ from fex.features import *
 from labeling import *
 
 CONFIG_FILE=""
-HOUR_TIME_ID = np.array([],dtype=np.int64)
+HOUR_TIME_ID = np.array([], dtype = np.int64)
 DATE_STR = ""
 TIME_STR = ""
 model = None
@@ -23,7 +23,7 @@ class PredictConfig(object):
         self.yamlDict = yaml.load(open(config_file))
 
     def getModelFile(self):
-        return self.yamlDict['TRAINING']['MODEL_FILE']
+        return self.yamlDict['MODEL']['ML_MODEL_FILE']
 
     def getScalerFile(self):
         return self.yamlDict['TRAINING']['SCALER_FILE']
@@ -37,7 +37,7 @@ def loadConfig(cf):
     global scaler
     scaler = pickle.load(open(pc.getScalerFile(), 'rb'))
     global FEXCONF
-    FEXCONF = FexConfig(cf)
+    FEXCONF = FexConfig(pc)
     print("model and scaler files are loaded")
 
 ############ required API for custom py predictor #####################
@@ -49,30 +49,30 @@ def init(dates, tms, opens, highs, lows, closes, tkvs):
     for i in range(len(df)):
         tm = pd.to_datetime(df.loc[i, TIME_KEY])
         if tm.minute < 2:
-            HOUR_TIME_ID = np.append(HOUR_TIME_ID,i)
+            HOUR_TIME_ID = np.append(HOUR_TIME_ID, i)
     # pdb.set_trace()
     # print("wofjowjfoe")
 
 def appendMinbar(dt, tm, op, hp, lp, cp, tkv):
-    global df,HOUR_TIME_ID
+    global df, HOUR_TIME_ID
     df = appendEntryToDataFrame(df, dt, tm, op, hp, lp, cp, tkv)
     t = pd.to_datetime(tm)
     if t.minute < 2:
-        HOUR_TIME_ID = np.append(HOUR_TIME_ID,len(df)-1)
+        HOUR_TIME_ID = np.append(HOUR_TIME_ID, len(df)-1)
 
 def predict(new_time, new_open):
-    global df, HOUR_TIME_ID,feature_df
+    global df, HOUR_TIME_ID, feature_df
     tmpdf = appendEntryToDataFrame(df, DATE_STR, TIME_STR, new_open, 0., 0., 0., 0)
 
     # pdb.set_trace()
     time_id = HOUR_TIME_ID.copy()
-    time_id = np.append(time_id,len(tmpdf)-1)
+    time_id = np.append(time_id, len(tmpdf)-1)
     fm, _, _ = prepare_features(FEXCONF, tmpdf, time_id[-50:])
 
-    df1=pd.DataFrame()
-    df1.loc[0,'TIME'] = new_time
-    df2 = pd.DataFrame(fm[-1,:]).T
-    tmp = pd.concat([df1,df2],axis=1)
+    df1 = pd.DataFrame()
+    df1.loc[0, 'TIME'] = new_time
+    df2 = pd.DataFrame(fm[-1, :]).T
+    tmp = pd.concat([df1, df2], axis = 1)
     feature_df = feature_df.append(tmp)
 
     fm = scaler.transform(fm)
@@ -86,7 +86,7 @@ def predict(new_time, new_open):
     return 0 # no action
 def finalize():
     global feature_df
-    feature_df.to_csv("online_feature.csv",index=False)
+    feature_df.to_csv("online_feature.csv",index = False)
 
 ################## End of required API #################
 def test_test(x, y):
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     init(tdf['<DATE>'],tdf['<TIME>'],tdf["<OPEN>"],tdf['<HIGH>'],tdf['<LOW>'],tdf['<CLOSE>'],tdf['<TICKVOL>'])
 
     t = last['<DATE>'] + " " + last['<TIME>']
-    pred = predict(t,last['<OPEN>'])
+    pred = predict(t, last['<OPEN>'])
     print(pred)
 
     print(df.shape)
