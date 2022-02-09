@@ -22,14 +22,11 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-
-    //PyRunner::getInstance();
-    PyEnviron::getInstance().appendSysPath("/home/naopc/dev/athena/minbar_classifier");
     Log(LOG_INFO) << "Athena api-server starts" <<std::endl;
 
     // argv[1] is config file
     if (argc < 2)
-        Log(LOG_FATAL) << "Usage: api_server <yaml_file>" <<std::endl;
+        Log(LOG_FATAL) << "Usage: run_athena <yaml_file>" <<std::endl;
 
     GeneralConfig* cfg = &GeneralConfig::getInstance();
     cfg->loadConfig(String(argv[1]));
