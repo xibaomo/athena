@@ -5,6 +5,9 @@
 #include <iostream>
 #include "pyhelper.hpp"
 int main() {
-    PyEnviron::getInstance().appendSysPath("/home/naopc/dev/athena/minbar_classifier");
+
+    String athenaHome = String(getenv("ATHENA_HOME"));
+    String p = athenaHome + "/minbar_classifier";
+    PyEnviron::getInstance().appendSysPath(p.c_str());
     return 0;
 }
