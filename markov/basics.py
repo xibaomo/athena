@@ -1,7 +1,17 @@
 from enum import IntEnum
-OPEN_KEY = "<OPEN>"
-HIGH_KEY = "<HIGH>"
-LOW_KEY  = "<LOW>"
+DATE_KEY = '<DATE>'
+TIME_KEY = '<TIME>'
+OPEN_KEY = '<OPEN>'
+HIGH_KEY = '<HIGH>'
+LOW_KEY  = '<LOW>'
+CLOSE_KEY = '<CLOSE>'
+TICKVOL_KEY = '<TICKVOL>'
+SPREAD_KEY = '<SPREAD>'
+STD_KEY  = 'STD'
+MID_KEY = 'MID'
+RET_KEY = "RET"
+ENDDATE_KEY = "END_DATETIME"
+TIMESTAMP_KEY = "TIMESTAMP"
 
 class State(IntEnum):
     ORIGIN = 0,

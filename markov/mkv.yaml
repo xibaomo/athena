@@ -1,0 +1,7 @@
+MARKOV:
+    LOOKBACK: 5000
+    ZERO_STATE_TYPE: 0 # 0 - open price, 1 - between tp and sl
+    RETURN_BOUNDS: [0.002,0.004]
+    OPTIMIZATION: 0 # 0 - POWELL
+
+    POS_PROB_THRESHOLD: 0.57

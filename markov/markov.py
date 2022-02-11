@@ -27,13 +27,11 @@ def buy_label_minbars(df,tid_s, tid_e, # not included
         else:
             pass
 
-
-
     return labels
 
 
 def comp_win_prob(labels):
-
+    # pdb.set_trace()
     # n00 = count_subarr(labels,[State.LIVE,State.LIVE])
     n01 = count_subarr(labels,[State.ORIGIN,State.TP])
     n02 = count_subarr(labels,[State.ORIGIN,State.SL])
@@ -41,19 +39,16 @@ def comp_win_prob(labels):
 
     total =n01+n02
 
-    print("n01 = {}, n02 = {}".format(n01, n02))
-    if total<=2:
-        return 0
-    p01 = (n01+1)/(total+2)
+    # print("n01 = {}, n02 = {}".format(n01, n02))
+    if total<2:
+        p01 = 0
+    else:
+        p01 = (n01+1)/(total+2)
     # p02 = n02/total
 
+    return p01,n01,n02
 
-
-
-
-    return p01
-
-def comp_win_prob_buy(x,price,df,tid_s,tid_e):
+def comp_win_prob_buy(x,price,df,tid_s,tid_e,disp=False):
     if len(x) == 2:
         tp = x[0]
         sl = x[1]
@@ -62,13 +57,24 @@ def comp_win_prob_buy(x,price,df,tid_s,tid_e):
         sl = -x
 
     labels = buy_label_minbars(df,tid_s,tid_e,price,tp,sl)
-    wp = comp_win_prob(labels)
+    # pdb.set_trace()
+    wp,n01,n02 = comp_win_prob(labels)
 
-    dff = pd.DataFrame()
-    dff['LABEL'] = labels
-    dff.to_csv('tmp_labels.csv',index=False)
-    print(x,wp)
+    if disp:
+        print("n01 = {}, n02 = {}, tp prob. = {} ".format(n01, n02,wp))
     return -wp
+
+def max_prob_buy(price,df,hist_start,hist_end,
+                 bnds,algo):
+    x0 = np.mean(bnds)
+
+    res = minimize(comp_win_prob_buy, x0, (price, df, hist_start, hist_end), bounds=[bnds],
+                   method=algo, options={'xtol': 1e-3, 'disp': True, 'ftol': 1e-2})
+
+    print("Optimized tp&sl: ", res.x)
+    comp_win_prob_buy(res.x,price,df,hist_start,hist_end,True)
+
+    return res.x,-res.fun
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: python {} <csv_file> <markov.yaml>".format(sys.argv[0]))
@@ -80,20 +86,19 @@ if __name__ == "__main__":
 
     test_size = 100
     hist_len = 5000
-    tarid = 86751-2
+    tarid = len(df)-1
     hist_start = tarid - hist_len
     hist_end = tarid
     price = df[OPEN_KEY][tarid]
 
-    # x0=[0.001,-0.001]
-    # bnds = ((0.001,0.005),(-0.01,0))
-    x0=0.0021
-    bnds = [(0.0025,0.004)]
-    res = minimize(comp_win_prob_buy,x0,(price,df,hist_start,hist_end),bounds=bnds,
-                   method='Powell', options={'xtol': 1e-3, 'disp': True,'ftol':1e-2})
+    bnds = [0.002,0.004]
+    x,pv = max_prob_buy(price,df,hist_start,hist_end,bnds,'Powell')
+    # res = minimize(comp_win_prob_buy,x0,(price,df,hist_start,hist_end),bounds=bnds,
+    #                method='Powell', options={'xtol': 1e-3, 'disp': True,'ftol':1e-2})
     # res = minimize(comp_win_prob_buy, x0, (price, df, hist_start, hist_end), bounds=bnds,
     #                method='Nelder-Mead', options={'disp': True, 'fatol': 1e-2})
     # labels = buy_label_minbars(df,0,hist_end,price,0.0033,-0.005)
     # wp = comp_win_prob(labels)
     # print("win prob: ",wp)
-    print("best param: ",res.x)
+    print("best param: ",x)
+    print("best prob.: ", pv)
