@@ -8,6 +8,7 @@ import pdb
 
 df = pd.DataFrame()
 mkvconf = None
+RTN = 0.
 Int2Algo = {
     0: "Powell"
 }
@@ -68,7 +69,7 @@ def appendMinbar(dt, tm, op, hp, lp, cp, tkv):
     df = appendEntryToDataFrame(df, dt, tm, op, hp, lp, cp, tkv)
 
 def predict(new_time, new_open):
-    global df,mkvconf
+    global df,mkvconf,RTN
     tmpdf = appendEntryToDataFrame(df,"","",new_open,0.,0.,0.,0)
     tarid = len(tmpdf)-1
     lookback = mkvconf.getLookback()
@@ -82,12 +83,16 @@ def predict(new_time, new_open):
     price = new_open
     algo = Int2Algo[mkvconf.getOptAlgo()]
 
-    rtn,prob_buy = max_prob_buy(price,df,hist_start,hist_end,bnds,algo)
+    RTN,prob_buy = max_prob_buy(price,df,hist_start,hist_end,bnds,algo)
     act = 0 # no action
     if prob_buy >= mkvconf.getPosProbThreshold():
         act = 1
 
-    return act,rtn
+    return act
+################ END OF PUBLIC API #############
+def getReturn():
+    global RTN
+    return RTN
 
 if __name__ == "__main__":
 
@@ -97,11 +102,12 @@ if __name__ == "__main__":
     odf = pd.read_csv(csvfile,sep='\t')
     loadConfig(ymlfile)
 
-    tarid = 88801-2
+    tarid = 89443-2
     tdf = odf.iloc[:tarid-1,:]
     init(tdf['<DATE>'],tdf['<TIME>'],tdf["<OPEN>"],tdf['<HIGH>'],tdf['<LOW>'],tdf['<CLOSE>'],tdf['<TICKVOL>'])
     id = tarid-1
     appendMinbar(odf['<DATE>'][id],odf['<TIME>'][id],odf['<OPEN>'][id],odf['<HIGH>'][id],odf['<LOW>'][id],odf['<CLOSE>'][id],odf['<TICKVOL>'][id])
 
-    act,rtn = predict("",odf['<OPEN>'].values[tarid])
+    act = predict("",odf['<OPEN>'].values[tarid])
+    rtn = getReturn()
     print("act = {}, rtn = {}".format(act,rtn))

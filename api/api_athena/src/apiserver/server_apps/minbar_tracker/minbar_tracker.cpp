@@ -26,6 +26,9 @@ MinbarTracker::processMsg(Message& msg) {
     case FXAct::REQUEST_ACT:
         outmsg = procMsg_REQUEST_ACT(msg);
         break;
+    case FXAct::REQUEST_ACT_RTN:
+        outmsg = procMsg_REQUEST_ACT_RTN(msg);
+        break;
     default:
         Log(LOG_FATAL) << "Action not recognized: " + to_string((int)act) <<std::endl;
         break;
@@ -88,19 +91,20 @@ MinbarTracker::procMsg_NEW_MINBAR(Message& msg) {
     auto tmp = splitString(time_str," ");
     auto& v = pack.real64_vec;
     MinBar mb{tmp[0],tmp[1],round5pts(v[0]),
-                            round5pts(v[1]),
-                            round5pts(v[2]),
-                            round5pts(v[3]),v[4]};
+              round5pts(v[1]),
+              round5pts(v[2]),
+              round5pts(v[3]),v[4]};
     m_allMinBars.push_back(mb);
     m_predictor->appendMinbar(mb);
 
-    stringstream iss; iss << mb.date << " "
-                      << mb.time << " "
-                      << mb.open << " "
-                      << mb.high << " "
-                      << mb.low  << " "
-                      << mb.close <<" "
-                      << mb.tickvol;
+    stringstream iss;
+    iss << mb.date << " "
+        << mb.time << " "
+        << mb.open << " "
+        << mb.high << " "
+        << mb.low  << " "
+        << mb.close <<" "
+        << mb.tickvol;
     Log(LOG_INFO) << "New minbar: " + iss.str() <<std::endl;
 
     Message outmsg;
@@ -165,12 +169,24 @@ MinbarTracker::procMsg_CLOSED_POS_INFO(Message& msg) {
 }
 
 Message
-MinbarTracker::procMsg_REQUEST_ACT(Message& msg){
+MinbarTracker::procMsg_REQUEST_ACT(Message& msg) {
     real64* pm = (real64*)msg.getData();
     FXAct act = m_predictor->predict(msg.getComment(), pm[0]);
 
     Message outmsg(1);
     outmsg.setAction(act);
+    return outmsg;
+}
+
+Message
+MinbarTracker::procMsg_REQUEST_ACT_RTN(Message& msg) {
+    real64* pm = (real64*)msg.getData();
+    FXAct act = m_predictor->predict(msg.getComment(), pm[0]);
+
+    Message outmsg(sizeof(real64));
+    outmsg.setAction(act);
+    real64* pd = (real64*)outmsg.getData();
+    pd[0] = m_predictor->getReturn();
     return outmsg;
 }
 
@@ -181,7 +197,7 @@ MinbarTracker::finish() {
 }
 
 void
-MinbarTracker::dumpPosInfo(){
+MinbarTracker::dumpPosInfo() {
     vector<String> start_times;
     vector<String> end_times;
     vector<real64> profits;
@@ -190,7 +206,7 @@ MinbarTracker::dumpPosInfo(){
     vector<real64> open_asks;
     vector<real64> open_bids;
     vector<real64> close_prices;
-    for(auto iter : m_tk2pos){
+    for(auto iter : m_tk2pos) {
         tks.push_back(iter.first);
         start_times.push_back(iter.second.open_time);
         end_times.push_back(iter.second.close_time);
@@ -212,8 +228,9 @@ MinbarTracker::dumpPosInfo(){
 
     vector<int> ids(dts.size());
     std::iota(ids.begin(),ids.end(),0);
-    std::sort(ids.begin(),ids.end(),[&](int i, int j){
-              return dts[i] < dts[j];});
+    std::sort(ids.begin(),ids.end(),[&](int i, int j) {
+        return dts[i] < dts[j];
+    });
 
     auto dts_aux = dts;
     auto tks_aux = tks;
@@ -225,7 +242,7 @@ MinbarTracker::dumpPosInfo(){
     auto ob_aux = open_bids;
     auto cp_aux = close_prices;
     vector<int> guess(ids.size());
-    for(size_t i=0;i < ids.size();i++) {
+    for(size_t i=0; i < ids.size(); i++) {
         auto id = ids[i];
         dts_aux[i] = dts[id];
         tks_aux[i] = tks[id];

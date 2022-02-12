@@ -73,4 +73,6 @@ MINBAR_TRACKER:
         CONFIG_FILE: fex.yaml
     CUSTOM_PY:
         PY_FILE: pred.py
+    BUILTIN_MARKOV:
+        CONFIG_FILE: mkv.yaml
 
