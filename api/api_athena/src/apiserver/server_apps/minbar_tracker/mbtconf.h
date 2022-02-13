@@ -36,6 +36,10 @@ public:
         return getKeyValue<String>(MBT_ROOT + "BUILTIN_ML/CONFIG_FILE");
     }
 
+    String getMarkovConfigFile() {
+        return getKeyValue<String>(MBT_ROOT + "BUILTIN_MARKOV/CONFIG_FILE");
+    }
+
     String getCustomPyFile() {
         return getKeyValue<String>(MBT_ROOT + "CUSTOM_PY/PY_FILE");
     }

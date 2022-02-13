@@ -17,7 +17,7 @@ MarkovPredictor::MarkovPredictor() : m_mod(nullptr) {
 
     m_pyPredictor.setPredictorFile(modPath, modName);
 
-    Log(LOG_INFO) << "Built-n markov predictor created" << endl;
+    Log(LOG_INFO) << "Built-in markov predictor created" << endl;
 }
 
 void

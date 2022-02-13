@@ -55,8 +55,13 @@ MinbarTracker::procMsg_HISTORY_MINBAR(Message& msg) {
     auto tms = splitString(pack.str_vec[0],";");
 
     for (int i = 0; i < nbars; i++) {
-        auto tmp = splitString(tms[i]," ");
-        MinBar mb{tmp[0],tmp[1],pm[0],pm[1],pm[2],pm[3],pm[4]};
+        String ds,ts;
+        if (!tms[i].empty()) {
+            auto tmp = splitString(tms[i]," ");
+            ds = tmp[0];
+            ts=tmp[1];
+        }
+        MinBar mb{ds,ts,pm[0],pm[1],pm[2],pm[3],pm[4]};
         m_allMinBars.emplace_back(mb);
         pm+=bar_size;
     }

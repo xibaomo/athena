@@ -66,13 +66,15 @@ MA_PREDICTOR:
 
 # ------------- MINBAR TRACKER -------------------
 MINBAR_TRACKER:
-    PREDICTOR_TYPE: 0 # 0 - built-in ML python, 1 - customized python script
+    PREDICTOR_TYPE: 1 # 0 - built-in ML python, 
+                      # 1 - built-in markov
+                      # 2 - customized python script
 
     # built-in ML python
     BUILTIN_ML: 
         CONFIG_FILE: fex.yaml
-    CUSTOM_PY:
-        PY_FILE: pred.py
     BUILTIN_MARKOV:
         CONFIG_FILE: mkv.yaml
+    CUSTOM_PY:
+        PY_FILE: pred.py
 

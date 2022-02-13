@@ -89,6 +89,9 @@ def predict(new_time, new_open):
         act = 1
 
     return act
+def finalize():
+    pass
+
 ################ END OF PUBLIC API #############
 def getReturn():
     global RTN
