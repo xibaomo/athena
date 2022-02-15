@@ -7,7 +7,43 @@ from basics import *
 from scipy.optimize import minimize
 import pdb
 
-def buy_label_minbars(df,tid_s, tid_e, # not included
+class MkvZeroStateOpenPriceOnly(object):
+    def __init__(self,df,price):
+        self.hi = df[HIGH_KEY].values / price - 1.
+        self.lw = df[LOW_KEY].values / price - 1.
+
+    def __labelMinbars(self,tid_s,tid_e,tp_return,sl_return):
+        self.labels = []
+        for tid in range(tid_s, tid_e):
+            if self.hi[tid] >= 0 and self.lw[tid] <= 0:
+                self.labels.append(State.ORIGIN)
+            if self.hi[tid] > tp_return:
+                self.labels.append(State.TP)
+
+            elif self.lw[tid] < sl_return:
+                self.labels.append(State.SL)
+            else:
+                pass
+    def compWinProb(self,tid_s,tid_e,tp_return,sl_return,disp=False):
+        self.__labelMinbars(tid_s,tid_e,tp_return,sl_return)
+        n01 = count_subarr(self.labels, [State.ORIGIN, State.TP])
+        n02 = count_subarr(self.labels, [State.ORIGIN, State.SL])
+
+        total = n01 + n02
+
+        # print("n01 = {}, n02 = {}".format(n01, n02))
+        if total < 2:
+            p01 = 0
+        else:
+            p01 = (n01 + 1) / (total + 2)
+
+        if disp:
+            print("tp_rtn = {}, n01 = {}, n02 = {}, tp prob. = {} ".format(tp_return, n01, n02, p01))
+
+        return p01
+
+
+def buy_label_minbars_zs0(df,tid_s, tid_e, # not included
                   price,tp_return,sl_return):
     labels=[]
     # op = df[OPEN_KEY].values / price - 1.
@@ -30,7 +66,7 @@ def buy_label_minbars(df,tid_s, tid_e, # not included
     return labels
 
 
-def comp_win_prob(labels):
+def comp_win_prob_zs0(labels):
     # pdb.set_trace()
     # n00 = count_subarr(labels,[State.LIVE,State.LIVE])
     n01 = count_subarr(labels,[State.ORIGIN,State.TP])
@@ -48,7 +84,7 @@ def comp_win_prob(labels):
 
     return p01,n01,n02
 
-def comp_win_prob_buy(x,price,df,tid_s,tid_e,disp=False):
+def comp_win_prob_buy_zs0(x,price,df,tid_s,tid_e,disp=False):
     if len(x) == 2:
         tp = x[0]
         sl = x[1]
@@ -56,25 +92,50 @@ def comp_win_prob_buy(x,price,df,tid_s,tid_e,disp=False):
         tp = x
         sl = -x
 
-    labels = buy_label_minbars(df,tid_s,tid_e,price,tp,sl)
+    labels = buy_label_minbars_zs0(df,tid_s,tid_e,price,tp,sl)
     # pdb.set_trace()
-    wp,n01,n02 = comp_win_prob(labels)
+    wp,n01,n02 = comp_win_prob_zs0(labels)
 
     if disp:
-        print("n01 = {}, n02 = {}, tp prob. = {} ".format(n01, n02,wp))
-    return -wp
+        print("tp_rtn = {}, n01 = {}, n02 = {}, tp prob. = {} ".format(x, n01, n02,wp))
+    return wp
 
-def max_prob_buy(price,df,hist_start,hist_end,
+def comp_profit_expectation(x, mkvcal, price, tid_s,tid_e,disp=False):
+    tp = 0.
+    sl = 0.
+    if len(x) == 2:
+        tp = x[0]
+        sl = x[1]
+    elif len(x) == 1:
+        tp = x
+        sl = -x
+    else:
+        pass
+    wp = mkvcal.compWinProb(tid_s,tid_e,tp,sl, disp)
+    # ep = wp*price*x - (1-wp)*price*x
+    ep = wp*price*x
+    return -ep
+
+def max_prob_buy(zs,price,df,hist_start,hist_end,
                  bnds,algo):
     x0 = np.mean(bnds)
 
-    res = minimize(comp_win_prob_buy, x0, (price, df, hist_start, hist_end), bounds=[bnds],
+    mkvcal = MkvZeroStateOpenPriceOnly(df,price)
+
+    opt_func = None
+    if zs == 0:
+        # opt_func = comp_win_prob_buy_zs0
+        opt_func = comp_profit_expectation
+    else:
+        print("yet to implement")
+
+    res = minimize(opt_func, x0, (mkvcal, price, hist_start, hist_end), bounds=[bnds],
                    method=algo, options={'xtol': 1e-3, 'disp': True, 'ftol': 1e-2})
 
     print("Optimized tp&sl: ", res.x)
-    comp_win_prob_buy(res.x,price,df,hist_start,hist_end,True)
+    wp = comp_win_prob_buy_zs0(res.x,price,df,hist_start,hist_end,True)
 
-    return res.x,-res.fun
+    return res.x,wp
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: python {} <csv_file> <markov.yaml>".format(sys.argv[0]))
@@ -92,7 +153,7 @@ if __name__ == "__main__":
     price = df[OPEN_KEY][tarid]
 
     bnds = [0.002,0.004]
-    x,pv = max_prob_buy(price,df,hist_start,hist_end,bnds,'Powell')
+    x,pv = max_prob_buy(0,price,df,hist_start,hist_end,bnds,'Powell')
     # res = minimize(comp_win_prob_buy,x0,(price,df,hist_start,hist_end),bounds=bnds,
     #                method='Powell', options={'xtol': 1e-3, 'disp': True,'ftol':1e-2})
     # res = minimize(comp_win_prob_buy, x0, (price, df, hist_start, hist_end), bounds=bnds,

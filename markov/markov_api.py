@@ -83,7 +83,8 @@ def predict(new_time, new_open):
     price = new_open
     algo = Int2Algo[mkvconf.getOptAlgo()]
 
-    RTN,prob_buy = max_prob_buy(price,df,hist_start,hist_end,bnds,algo)
+    zs = mkvconf.getZeroStateType()
+    RTN,prob_buy = max_prob_buy(zs,price,df,hist_start,hist_end,bnds,algo)
     act = 0 # no action
     if prob_buy >= mkvconf.getPosProbThreshold():
         act = 1
