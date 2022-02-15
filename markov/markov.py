@@ -4,7 +4,7 @@ import sys, os
 sys.path.append(os.environ['ATHENA_HOME'] + '/py_basics')
 from logger import *
 from basics import *
-from scipy.optimize import minimize
+from scipy.optimize import minimize,golden,minimize_scalar
 import pdb
 
 class MkvZeroStateOpenPriceOnly(object):
@@ -101,19 +101,13 @@ def comp_win_prob_buy_zs0(x,price,df,tid_s,tid_e,disp=False):
     return wp
 
 def comp_profit_expectation(x, mkvcal, price, tid_s,tid_e,disp=False):
-    tp = 0.
-    sl = 0.
-    if len(x) == 2:
-        tp = x[0]
-        sl = x[1]
-    elif len(x) == 1:
-        tp = x
-        sl = -x
-    else:
-        pass
+    tp = x
+    sl = -x
+
     wp = mkvcal.compWinProb(tid_s,tid_e,tp,sl, disp)
     # ep = wp*price*x - (1-wp)*price*x
-    ep = wp*price*x
+    # ep = wp*price*tp
+    ep = wp
     return -ep
 
 def max_prob_buy(zs,price,df,hist_start,hist_end,
@@ -130,11 +124,17 @@ def max_prob_buy(zs,price,df,hist_start,hist_end,
         print("yet to implement")
 
     res = minimize(opt_func, x0, (mkvcal, price, hist_start, hist_end), bounds=[bnds],
-                   method=algo, options={'xtol': 1e-3, 'disp': True, 'ftol': 1e-2})
+                   method=algo, options={'xtol': 1e-3, 'disp': True, 'ftol': 1e-3})
 
+    # bs = [bnds[0], x0, bnds[1]]
+    # res = minimize_scalar(opt_func,args=(mkvcal, price, hist_start, hist_end), bounds = bnds, tol = 1e-4, method='bounded')
     print("Optimized tp&sl: ", res.x)
-    wp = comp_win_prob_buy_zs0(res.x,price,df,hist_start,hist_end,True)
+    # wp = comp_win_prob_buy_zs0(res.x,price,df,hist_start,hist_end,True)
 
+    tp = res.x
+    sl = -res.x
+
+    wp = mkvcal.compWinProb(hist_start,hist_end,tp,sl,True)
     return res.x,wp
 if __name__ == "__main__":
     if len(sys.argv) < 3:
