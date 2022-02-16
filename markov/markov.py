@@ -131,25 +131,21 @@ def comp_profit_expectation(x, mkvcal, price, tid_s,tid_e,disp=False):
 
 def max_prob_buy(zs,price,df,hist_start,hist_end,
                  bnds,algo):
-    x0 = np.mean(bnds)
-
-    mkvcal = MkvZeroStateOpenPriceOnly(df,price)
-
-    opt_func = None
+    mkvcal = None
     if zs == 0:
-        # opt_func = comp_win_prob_buy_zs0
-        opt_func = comp_profit_expectation
-    else:
-        print("yet to implement")
+        mkvcal = MkvZeroStateOpenPriceOnly(df,price)
+
+    opt_func = comp_profit_expectation
 
     if algo == 0: # Powell
         Log(LOG_INFO) << "Powell optimization used"
+        x0 = np.mean(bnds)
         res = minimize(opt_func, x0, (mkvcal, price, hist_start, hist_end), bounds=[bnds],
                        method="Powell", options={'xtol': 1e-3, 'disp': True, 'ftol': 1e-3})
         tp = res.x
     if algo == 1: # golden search
         Log(LOG_INFO) << "Golden search used"
-        tp,_ = golden_search_min(opt_func,args=(mkvcal, price, hist_start, hist_end),bounds=bnds)
+        tp,_ = golden_search_min_prob(opt_func,args=(mkvcal, price, hist_start, hist_end),bounds=bnds)
 
     sl = -tp
 
@@ -170,20 +166,16 @@ if __name__ == "__main__":
     mkvconf = MarkovConfig(yml_file)
 
     hist_len = mkvconf.getLookback()
-    tarid = len(df)-1
-    hist_start = tarid - hist_len
-    hist_end = tarid
-    price = df[OPEN_KEY][tarid]
+    for i in range(84321-2,len(df)-1):
+        tarid = i
+        hist_start = tarid - hist_len
+        hist_end = tarid
+        price = df[OPEN_KEY][tarid]
 
-    x,pv = max_prob_buy(0,price,df,hist_start,hist_end,
-                        mkvconf.getReturnBounds(),
-                        mkvconf.getOptAlgo())
-    # res = minimize(comp_win_prob_buy,x0,(price,df,hist_start,hist_end),bounds=bnds,
-    #                method='Powell', options={'xtol': 1e-3, 'disp': True,'ftol':1e-2})
-    # res = minimize(comp_win_prob_buy, x0, (price, df, hist_start, hist_end), bounds=bnds,
-    #                method='Nelder-Mead', options={'disp': True, 'fatol': 1e-2})
-    # labels = buy_label_minbars(df,0,hist_end,price,0.0033,-0.005)
-    # wp = comp_win_prob(labels)
-    # print("win prob: ",wp)
-    print("best param: ",x)
-    print("best prob.: ", pv)
+        x,pv = max_prob_buy(0,price,df,hist_start,hist_end,
+                            mkvconf.getReturnBounds(),
+                            mkvconf.getOptAlgo())
+
+        print("best param: ",x)
+        print("best prob.: ", pv)
+
