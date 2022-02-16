@@ -1,5 +1,6 @@
 from enum import IntEnum
 import math
+from logger import *
 DATE_KEY = '<DATE>'
 TIME_KEY = '<TIME>'
 OPEN_KEY = '<OPEN>'
@@ -36,12 +37,14 @@ def golden_search_min(func, args, bounds, xtol = 1e-3, maxinter = 1000):
     phi = (math.sqrt(5) - 1)*.5
     a = bounds[0]
     b = bounds[1]
+    fk = 0
     for i in range(maxinter):
         d = phi*(b-a)
         x1 = b-d
         x2 = a+d
         f1 = func(x1,*args)
         f2 = func(x2,*args)
+        fk+=2
         if f1 < f2:
             b = x2
         else:
@@ -51,4 +54,6 @@ def golden_search_min(func, args, bounds, xtol = 1e-3, maxinter = 1000):
 
     x0 = (a+b)*.5
     fmin = func(x0,*args)
+    fk+=1
+    Log(LOG_INFO) << "Optimization done. Function evaluations: {}".format(fk)
     return x0,fmin

@@ -1,11 +1,30 @@
 import numpy as np
 import pandas as pd
+import yaml
 import sys, os
 sys.path.append(os.environ['ATHENA_HOME'] + '/py_basics')
 from logger import *
 from basics import *
 from scipy.optimize import minimize,golden,minimize_scalar
 import pdb
+class MarkovConfig(object):
+    def __init__(self,cf):
+        self.yamlDict = yaml.load(open(cf))
+
+    def getReturnBounds(self):
+        return self.yamlDict['MARKOV']['RETURN_BOUNDS']
+
+    def getOptAlgo(self):
+        return self.yamlDict['MARKOV']['OPTIMIZATION']
+
+    def getZeroStateType(self):
+        return self.yamlDict['MARKOV']['ZERO_STATE_TYPE']
+
+    def getLookback(self):
+        return self.yamlDict['MARKOV']['LOOKBACK']
+
+    def getPosProbThreshold(self):
+        return self.yamlDict['MARKOV']['POS_PROB_THRESHOLD']
 
 class MkvZeroStateOpenPriceOnly(object):
     def __init__(self,df,price):
@@ -123,24 +142,24 @@ def max_prob_buy(zs,price,df,hist_start,hist_end,
     else:
         print("yet to implement")
 
-    # res = minimize(opt_func, x0, (mkvcal, price, hist_start, hist_end), bounds=[bnds],
-    #                method=algo, options={'xtol': 1e-3, 'disp': True, 'ftol': 1e-3})
-    # tp = res.x
-    # sl = -res.x
-    # bs = [bnds[0], x0, bnds[1]]
-    # res = minimize_scalar(opt_func,args=(mkvcal, price, hist_start, hist_end), bounds = bnds, tol = 1e-4, method='bounded')
+    if algo == 0: # Powell
+        Log(LOG_INFO) << "Powell optimization used"
+        res = minimize(opt_func, x0, (mkvcal, price, hist_start, hist_end), bounds=[bnds],
+                       method="Powell", options={'xtol': 1e-3, 'disp': True, 'ftol': 1e-3})
+        tp = res.x
+    if algo == 1: # golden search
+        Log(LOG_INFO) << "Golden search used"
+        tp,_ = golden_search_min(opt_func,args=(mkvcal, price, hist_start, hist_end),bounds=bnds)
 
-    tp,_ = golden_search_min(opt_func,args=(mkvcal, price, hist_start, hist_end),bounds=bnds)
     sl = -tp
 
     print("Optimized tp&sl: ", tp)
     # wp = comp_win_prob_buy_zs0(res.x,price,df,hist_start,hist_end,True)
 
-
-
     wp = mkvcal.compWinProb(hist_start,hist_end,tp,sl,True)
     return tp,wp
 if __name__ == "__main__":
+    Log.setlogLevel(LOG_INFO)
     if len(sys.argv) < 3:
         print("Usage: python {} <csv_file> <markov.yaml>".format(sys.argv[0]))
         sys.exit()
@@ -148,16 +167,17 @@ if __name__ == "__main__":
     csv_file = sys.argv[1]
     yml_file = sys.argv[2]
     df = pd.read_csv(csv_file,sep='\t')
+    mkvconf = MarkovConfig(yml_file)
 
-    test_size = 100
-    hist_len = 5000
+    hist_len = mkvconf.getLookback()
     tarid = len(df)-1
     hist_start = tarid - hist_len
     hist_end = tarid
     price = df[OPEN_KEY][tarid]
 
-    bnds = [0.002,0.004]
-    x,pv = max_prob_buy(0,price,df,hist_start,hist_end,bnds,'Powell')
+    x,pv = max_prob_buy(0,price,df,hist_start,hist_end,
+                        mkvconf.getReturnBounds(),
+                        mkvconf.getOptAlgo())
     # res = minimize(comp_win_prob_buy,x0,(price,df,hist_start,hist_end),bounds=bnds,
     #                method='Powell', options={'xtol': 1e-3, 'disp': True,'ftol':1e-2})
     # res = minimize(comp_win_prob_buy, x0, (price, df, hist_start, hist_end), bounds=bnds,

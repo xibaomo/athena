@@ -9,27 +9,6 @@ import pdb
 df = pd.DataFrame()
 mkvconf = None
 RTN = 0.
-Int2Algo = {
-    0: "Powell"
-}
-class MarkovConfig(object):
-    def __init__(self,cf):
-        self.yamlDict = yaml.load(open(cf))
-
-    def getReturnBounds(self):
-        return self.yamlDict['MARKOV']['RETURN_BOUNDS']
-
-    def getOptAlgo(self):
-        return self.yamlDict['MARKOV']['OPTIMIZATION']
-
-    def getZeroStateType(self):
-        return self.yamlDict['MARKOV']['ZERO_STATE_TYPE']
-
-    def getLookback(self):
-        return self.yamlDict['MARKOV']['LOOKBACK']
-
-    def getPosProbThreshold(self):
-        return self.yamlDict['MARKOV']['POS_PROB_THRESHOLD']
 
 def loadConfig(cf):
     global mkvconf
@@ -81,7 +60,7 @@ def predict(new_time, new_open):
     # pdb.set_trace()
     x0 = np.mean(bnds)
     price = new_open
-    algo = Int2Algo[mkvconf.getOptAlgo()]
+    algo = mkvconf.getOptAlgo()
 
     zs = mkvconf.getZeroStateType()
     RTN,prob_buy = max_prob_buy(zs,price,df,hist_start,hist_end,bnds,algo)
