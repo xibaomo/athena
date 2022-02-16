@@ -123,19 +123,23 @@ def max_prob_buy(zs,price,df,hist_start,hist_end,
     else:
         print("yet to implement")
 
-    res = minimize(opt_func, x0, (mkvcal, price, hist_start, hist_end), bounds=[bnds],
-                   method=algo, options={'xtol': 1e-3, 'disp': True, 'ftol': 1e-3})
-
+    # res = minimize(opt_func, x0, (mkvcal, price, hist_start, hist_end), bounds=[bnds],
+    #                method=algo, options={'xtol': 1e-3, 'disp': True, 'ftol': 1e-3})
+    # tp = res.x
+    # sl = -res.x
     # bs = [bnds[0], x0, bnds[1]]
     # res = minimize_scalar(opt_func,args=(mkvcal, price, hist_start, hist_end), bounds = bnds, tol = 1e-4, method='bounded')
-    print("Optimized tp&sl: ", res.x)
+
+    tp,_ = golden_search_min(opt_func,args=(mkvcal, price, hist_start, hist_end),bounds=bnds)
+    sl = -tp
+
+    print("Optimized tp&sl: ", tp)
     # wp = comp_win_prob_buy_zs0(res.x,price,df,hist_start,hist_end,True)
 
-    tp = res.x
-    sl = -res.x
+
 
     wp = mkvcal.compWinProb(hist_start,hist_end,tp,sl,True)
-    return res.x,wp
+    return tp,wp
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: python {} <csv_file> <markov.yaml>".format(sys.argv[0]))
