@@ -142,7 +142,7 @@ def comp_win_prob_zs0(labels):
     total =n01+n02
 
     # print("n01 = {}, n02 = {}".format(n01, n02))
-    if total<2:
+    if total<10:
         p01 = 0
     else:
         p01 = (n01+1)/(total+2)
@@ -213,7 +213,7 @@ def max_prob_buy(mkvconf,price,df,hist_start,hist_end):
     if wp == 0:
         n10,n20 = mkvcal.getStartCount()
         print("n10 = {}, n20 = {}".format(n10,n20))
-    return tp,wp
+    return tp,wp,mkvcal
 if __name__ == "__main__":
     Log.setlogLevel(LOG_INFO)
     if len(sys.argv) < 3:

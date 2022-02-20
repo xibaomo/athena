@@ -7,6 +7,7 @@ from scipy.optimize import minimize
 import pdb
 
 df = pd.DataFrame()
+pos_df = pd.DataFrame()
 mkvconf = None
 RTN = 0.
 
@@ -48,7 +49,7 @@ def appendMinbar(dt, tm, op, hp, lp, cp, tkv):
     df = appendEntryToDataFrame(df, dt, tm, op, hp, lp, cp, tkv)
 
 def predict(new_time, new_open):
-    global df,mkvconf,RTN
+    global df,mkvconf,RTN, pos_df
     # pdb.set_trace()
     tmpdf = appendEntryToDataFrame(df,"","",new_open,0.,0.,0.,0)
     tarid = len(tmpdf)-1
@@ -58,19 +59,36 @@ def predict(new_time, new_open):
 
     price = new_open
 
-    RTN,prob_buy = max_prob_buy(mkvconf,price,df,hist_start,hist_end)
+    RTN,prob_buy,mkvcal = max_prob_buy(mkvconf,price,df,hist_start,hist_end)
     act = 0 # no action
     if prob_buy >= mkvconf.getPosProbThreshold():
         act = 1
 
+    if act != 0:
+        n10, n20 = mkvcal.getStartCount()
+        pos_df = registerPos(pos_df,new_time,act,RTN,prob_buy,n10+n20)
+
     return act
 def finalize():
+    global pos_df
+    pos_df.to_csv("online_positions.csv",index=False)
     pass
 
 ################ END OF PUBLIC API #############
 def getReturn():
     global RTN
     return RTN
+def registerPos(df,tm,act,rtn,prob,n0):
+    global pos_df
+    dict = {"TIME" : [tm],
+            "ACTION" : [act],
+            "TP_RETURN": [round(rtn,4)],
+            "PROBABILITY": [round(prob,4)],
+            "STARTS": n0}
+    df2 = pd.DataFrame(dict)
+    # pdb.set_trace()
+    df3 = pd.concat([df, df2], ignore_index=True)
+    return df3
 
 if __name__ == "__main__":
 
