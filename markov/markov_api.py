@@ -49,21 +49,16 @@ def appendMinbar(dt, tm, op, hp, lp, cp, tkv):
 
 def predict(new_time, new_open):
     global df,mkvconf,RTN
+    # pdb.set_trace()
     tmpdf = appendEntryToDataFrame(df,"","",new_open,0.,0.,0.,0)
     tarid = len(tmpdf)-1
     lookback = mkvconf.getLookback()
     hist_start = tarid - lookback
     hist_end = tarid
 
-    bnds = mkvconf.getReturnBounds()
-
-    # pdb.set_trace()
-    x0 = np.mean(bnds)
     price = new_open
-    algo = mkvconf.getOptAlgo()
 
-    zs = mkvconf.getZeroStateType()
-    RTN,prob_buy = max_prob_buy(zs,price,df,hist_start,hist_end,bnds,algo)
+    RTN,prob_buy = max_prob_buy(mkvconf,price,df,hist_start,hist_end)
     act = 0 # no action
     if prob_buy >= mkvconf.getPosProbThreshold():
         act = 1

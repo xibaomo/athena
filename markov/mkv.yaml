@@ -1,7 +1,8 @@
 MARKOV:
     LOOKBACK: 5000
     ZERO_STATE_TYPE: 0 # 0 - open price, 1 - between tp and sl
-    RETURN_BOUNDS: [0.002,0.006]
+    RETURN_BOUNDS: [0.002,0.004]
     OPTIMIZATION: 1 # 0 - POWELL, # 1 - golden search
+    OPT_TARGET: 1 # 0 - probability, 1 - probability*tp
 
-    POS_PROB_THRESHOLD: 0.57
+    POS_PROB_THRESHOLD: 0.7

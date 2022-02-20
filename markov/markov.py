@@ -26,6 +26,9 @@ class MarkovConfig(object):
     def getPosProbThreshold(self):
         return self.yamlDict['MARKOV']['POS_PROB_THRESHOLD']
 
+    def getOptTarget(self):
+        return self.yamlDict['MARKOV']['OPT_TARGET']
+
 class MkvZeroStateOpenPriceOnly(object):
     def __init__(self,df,price):
         self.hi = df[HIGH_KEY].values / price - 1.
@@ -60,7 +63,51 @@ class MkvZeroStateOpenPriceOnly(object):
             print("tp_rtn = {}, n01 = {}, n02 = {}, tp prob. = {} ".format(tp_return, n01, n02, p01))
 
         return p01
+    def getStartCount(self):
+        n10 = count_subarr(self.labels,[State.TP,State.ORIGIN])
+        n20 = count_subarr(self.labels,[State.SL,State.ORIGIN])
+        return n10,n20
 
+class MkvZeroStateEnds(object):
+    def __init__(self,df,price):
+        self.hi = df[HIGH_KEY].values / price - 1.
+        self.lw = df[LOW_KEY].values / price - 1.
+
+    def __labelMinbars(self,tid_s,tid_e,tp_return,sl_return):
+        self.labels = []
+        for tid in range(tid_s, tid_e):
+            if self.hi[tid] <= tp_return and self.lw[tid] >= sl_return:
+                self.labels.append(State.ORIGIN)
+            elif self.hi[tid] > tp_return:
+                self.labels.append(State.TP)
+
+            elif self.lw[tid] < sl_return:
+                self.labels.append(State.SL)
+            else:
+                pass
+
+    def compWinProb(self,tid_s,tid_e,tp_return,sl_return,disp=False):
+        self.__labelMinbars(tid_s,tid_e,tp_return,sl_return)
+        n01 = count_subarr(self.labels, [State.ORIGIN, State.TP])
+        n02 = count_subarr(self.labels, [State.ORIGIN, State.SL])
+
+        total = n01 + n02
+
+        p01 = 0
+        if total < 1:
+            p01 = 0
+        else:
+            p01 = (n01 + 1) / (total + 2)
+
+        if disp:
+            print("tp_rtn = {}, n01 = {}, n02 = {}, tp prob. = {} ".format(tp_return, n01, n02, p01))
+
+        return p01
+
+    def getStartCount(self):
+        n10 = count_subarr(self.labels,[State.TP,State.ORIGIN])
+        n20 = count_subarr(self.labels,[State.SL,State.ORIGIN])
+        return n10,n20
 
 def buy_label_minbars_zs0(df,tid_s, tid_e, # not included
                   price,tp_return,sl_return):
@@ -119,33 +166,42 @@ def comp_win_prob_buy_zs0(x,price,df,tid_s,tid_e,disp=False):
         print("tp_rtn = {}, n01 = {}, n02 = {}, tp prob. = {} ".format(x, n01, n02,wp))
     return wp
 
-def comp_profit_expectation(x, mkvcal, price, tid_s,tid_e,disp=False):
+def comp_cost_func(x, mkvconf,mkvcal, price, tid_s,tid_e,disp=False):
     tp = x
     sl = -x
 
     wp = mkvcal.compWinProb(tid_s,tid_e,tp,sl, disp)
-    # ep = wp*price*x - (1-wp)*price*x
-    # ep = wp*price*tp
-    ep = wp
+
+    if mkvconf.getOptTarget() == 0:
+        ep = wp
+    elif mkvconf.getOptTarget() == 1:
+        ep = wp*price*tp
+    elif mkvconf.getOptTarget() == 2:
+        ep = wp * price * x - (1 - wp) * price * x
+    else:
+        pass
     return -ep
 
-def max_prob_buy(zs,price,df,hist_start,hist_end,
-                 bnds,algo):
+def max_prob_buy(mkvconf,price,df,hist_start,hist_end):
     mkvcal = None
-    if zs == 0:
+    if mkvconf.getZeroStateType() == 0:
         mkvcal = MkvZeroStateOpenPriceOnly(df,price)
+    elif mkvconf.getZeroStateType() == 1:
+        mkvcal = MkvZeroStateEnds(df,price)
+    else:
+        pass
 
-    opt_func = comp_profit_expectation
+    opt_func = comp_cost_func
 
-    if algo == 0: # Powell
+    if mkvconf.getOptAlgo() == 0: # Powell
         Log(LOG_INFO) << "Powell optimization used"
-        x0 = np.mean(bnds)
-        res = minimize(opt_func, x0, (mkvcal, price, hist_start, hist_end), bounds=[bnds],
+        x0 = np.mean(mkvconf.getReturnBounds())
+        res = minimize(opt_func, x0, (mkvconf, mkvcal, price, hist_start, hist_end), bounds=[mkvconf.getReturnBounds()],
                        method="Powell", options={'xtol': 1e-3, 'disp': True, 'ftol': 1e-3})
         tp = res.x
-    if algo == 1: # golden search
+    if mkvconf.getOptAlgo() == 1: # golden search
         Log(LOG_INFO) << "Golden search used"
-        tp,_ = golden_search_min_prob(opt_func,args=(mkvcal, price, hist_start, hist_end),bounds=bnds)
+        tp,_ = golden_search_min_prob(opt_func,args=(mkvconf,mkvcal, price, hist_start, hist_end),bounds=mkvconf.getReturnBounds())
 
     sl = -tp
 
@@ -153,6 +209,10 @@ def max_prob_buy(zs,price,df,hist_start,hist_end,
     # wp = comp_win_prob_buy_zs0(res.x,price,df,hist_start,hist_end,True)
 
     wp = mkvcal.compWinProb(hist_start,hist_end,tp,sl,True)
+
+    if wp == 0:
+        n10,n20 = mkvcal.getStartCount()
+        print("n10 = {}, n20 = {}".format(n10,n20))
     return tp,wp
 if __name__ == "__main__":
     Log.setlogLevel(LOG_INFO)
@@ -172,10 +232,11 @@ if __name__ == "__main__":
         hist_end = tarid
         price = df[OPEN_KEY][tarid]
 
-        x,pv = max_prob_buy(0,price,df,hist_start,hist_end,
-                            mkvconf.getReturnBounds(),
-                            mkvconf.getOptAlgo())
+        x,pv = max_prob_buy(mkvconf,price,df,hist_start,hist_end)
 
         print("best param: ",x)
         print("best prob.: ", pv)
+        if pv==0:
+            print("price: ", price)
+            break
 
