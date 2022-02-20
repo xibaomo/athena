@@ -109,63 +109,6 @@ class MkvZeroStateEnds(object):
         n20 = count_subarr(self.labels,[State.SL,State.ORIGIN])
         return n10,n20
 
-def buy_label_minbars_zs0(df,tid_s, tid_e, # not included
-                  price,tp_return,sl_return):
-    labels=[]
-    # op = df[OPEN_KEY].values / price - 1.
-    hi = df[HIGH_KEY].values / price - 1.
-    lw = df[LOW_KEY].values  / price - 1.
-    k=0
-    for tid in range(tid_s,tid_e):
-        if hi[tid] >= 0 and lw[tid] <= 0:
-            labels.append(State.ORIGIN)
-
-        if hi[tid] > tp_return:
-            labels.append(State.TP)
-
-        elif lw[tid] < sl_return:
-            labels.append(State.SL)
-
-        else:
-            pass
-
-    return labels
-
-
-def comp_win_prob_zs0(labels):
-    # pdb.set_trace()
-    # n00 = count_subarr(labels,[State.LIVE,State.LIVE])
-    n01 = count_subarr(labels,[State.ORIGIN,State.TP])
-    n02 = count_subarr(labels,[State.ORIGIN,State.SL])
-    # n03 = count_subarr(labels,[State.LIVE,State.NONE])
-
-    total =n01+n02
-
-    # print("n01 = {}, n02 = {}".format(n01, n02))
-    if total<10:
-        p01 = 0
-    else:
-        p01 = (n01+1)/(total+2)
-    # p02 = n02/total
-
-    return p01,n01,n02
-
-def comp_win_prob_buy_zs0(x,price,df,tid_s,tid_e,disp=False):
-    if len(x) == 2:
-        tp = x[0]
-        sl = x[1]
-    if len(x) == 1:
-        tp = x
-        sl = -x
-
-    labels = buy_label_minbars_zs0(df,tid_s,tid_e,price,tp,sl)
-    # pdb.set_trace()
-    wp,n01,n02 = comp_win_prob_zs0(labels)
-
-    if disp:
-        print("tp_rtn = {}, n01 = {}, n02 = {}, tp prob. = {} ".format(x, n01, n02,wp))
-    return wp
-
 def comp_cost_func(x, mkvconf,mkvcal, price, tid_s,tid_e,disp=False):
     tp = x
     sl = -x
