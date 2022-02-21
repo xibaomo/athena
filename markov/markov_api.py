@@ -67,9 +67,8 @@ def predict(new_time, new_open):
     # if 1-prob_buy >= prob_thd:
     #     act = 2
 
-    if act != 0:
-        n10, n20 = mkvcal.getStartCount()
-        pos_df = registerPos(pos_df,new_time,act,RTN,prob_buy,n10+n20)
+
+    pos_df = registerPos(pos_df,new_time,act,RTN,prob_buy)
 
     return act
 def finalize():
@@ -81,13 +80,12 @@ def finalize():
 def getReturn():
     global RTN
     return RTN
-def registerPos(df,tm,act,rtn,prob,n0):
+def registerPos(df,tm,act,rtn,prob):
     global pos_df
     dict = {"TIME" : [tm],
             "ACTION" : [act],
             "TP_RETURN": [round(rtn,4)],
-            "PROBABILITY": [round(prob,4)],
-            "STARTS": n0}
+            "PROBABILITY": [round(prob,4)]}
     df2 = pd.DataFrame(dict)
     # pdb.set_trace()
     df3 = pd.concat([df, df2], ignore_index=True)
@@ -95,6 +93,7 @@ def registerPos(df,tm,act,rtn,prob,n0):
 
 if __name__ == "__main__":
 
+    Log.setlogLevel(LOG_INFO)
     csvfile = sys.argv[1]
     ymlfile = sys.argv[2]
 

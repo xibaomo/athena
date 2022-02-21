@@ -17,8 +17,11 @@ class MarkovConfig(object):
     def getOptAlgo(self):
         return self.yamlDict['MARKOV']['OPTIMIZATION']
 
-    def getZeroStateType(self):
-        return self.yamlDict['MARKOV']['ZERO_STATE_TYPE']
+    def getProbCalType(self):
+        return self.yamlDict['MARKOV']['PROB_CAL_TYPE']
+
+    def getNumStates(self):
+        return self.yamlDict['MARKOV']['NUM_STATES']
 
     def getLookback(self):
         return self.yamlDict['MARKOV']['LOOKBACK']
@@ -116,6 +119,7 @@ class MkvCalTransMat(object):
             Log(LOG_FATAL) << "Num of states must be odd: {}".format(n_states)
         self.n_states = n_states
         self.labels = []
+        Log(LOG_INFO) << "Trans mat prob cal created"
     def __labelMinbars(self,tid_s,tid_e,tp_return,sl_return):
         openrtn = self.open_rtn[tid_s:tid_e]
         drtn = (tp_return - sl_return) / self.n_states
@@ -132,19 +136,29 @@ class MkvCalTransMat(object):
     def compWinProb(self,tid_s,tid_e,tp_return,sl_return,disp=False):
         self.__labelMinbars(tid_s,tid_e,tp_return,sl_return)
         transmat = np.zeros((self.n_states,self.n_states+2))
-        freqmat  = transmat
+        freqmat  = np.zeros((self.n_states,self.n_states+2))
         for i in range(self.n_states):
             for j in range(self.n_states+2):
                 freqmat[i,j] = count_subarr(self.labels,[i,j])
-            transmat[i,:] = freqmat[i,:]/sum(freqmat[i,:])
+            total = sum(freqmat[i,:])
+            if total > 0:
+                transmat[i,:] = freqmat[i,:]/total
+            else:
+                transmat[i,i] = 1.
 
+        # pdb.set_trace()
         Q = transmat[:,:-2]
         I = np.identity(Q.shape[0])
         f = transmat[:,-2].reshape(-1,1)
+        if sum(f) == 0: # none of states could reach tp state
+            return 0.
         tmp = np.linalg.inv(I-Q)
         v = np.matmul(tmp,f)
         id = int((self.n_states-1)/2)
 
+        if disp:
+            print(freqmat.astype(np.int32))
+            print("prob: ",v[id][0])
         return v[id][0]
 
 def comp_cost_func(x, mkvconf,mkvcal, price, tid_s,tid_e,disp=False):
@@ -165,10 +179,10 @@ def comp_cost_func(x, mkvconf,mkvcal, price, tid_s,tid_e,disp=False):
 
 def max_prob_buy(mkvconf,price,df,hist_start,hist_end):
     mkvcal = None
-    if mkvconf.getZeroStateType() == 0:
+    if mkvconf.getProbCalType() == 0:
         mkvcal = MkvProbCalOpenPrice(df,price)
-    elif mkvconf.getZeroStateType() == 1:
-        mkvcal = MkvProbCalEndAve(df,price)
+    elif mkvconf.getProbCalType() == 1:
+        mkvcal = MkvCalTransMat(df,price,mkvconf.getNumStates())
     else:
         pass
 
@@ -184,16 +198,10 @@ def max_prob_buy(mkvconf,price,df,hist_start,hist_end):
         Log(LOG_INFO) << "Golden search used"
         tp,_ = golden_search_min_prob(opt_func,args=(mkvconf,mkvcal, price, hist_start, hist_end),bounds=mkvconf.getReturnBounds())
 
-    sl = -tp
-
     print("Optimized tp&sl: ", tp)
-    # wp = comp_win_prob_buy_zs0(res.x,price,df,hist_start,hist_end,True)
 
-    wp = mkvcal.compWinProb(hist_start,hist_end,tp,sl,True)
+    wp = mkvcal.compWinProb(hist_start,hist_end,tp,-tp,True)
 
-    if wp == 0:
-        n10,n20 = mkvcal.getStartCount()
-        print("n10 = {}, n20 = {}".format(n10,n20))
     return tp,wp,mkvcal
 if __name__ == "__main__":
     Log.setlogLevel(LOG_INFO)
@@ -207,17 +215,17 @@ if __name__ == "__main__":
     mkvconf = MarkovConfig(yml_file)
 
     hist_len = mkvconf.getLookback()
-    for i in range(84321-2,len(df)-1):
-        tarid = i
-        hist_start = tarid - hist_len
-        hist_end = tarid
-        price = df[OPEN_KEY][tarid]
+    # for i in range(84321-2,len(df)-1):
+    tarid = 86442-2
+    hist_start = tarid - hist_len
+    hist_end = tarid
+    price = df[OPEN_KEY][tarid]
 
-        x,pv = max_prob_buy(mkvconf,price,df,hist_start,hist_end)
+    x,pv,_ = max_prob_buy(mkvconf,price,df,hist_start,hist_end)
 
-        print("best param: ",x)
-        print("best prob.: ", pv)
-        if pv==0:
-            print("price: ", price)
-            break
+    print("best param: ",x)
+    print("best prob.: ", pv)
+        # if pv==0:
+        #     print("price: ", price)
+        #     break
 

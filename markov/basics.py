@@ -33,12 +33,14 @@ def count_subarr(arr,sub_arr):
             occ+=1
     return occ
 
-def golden_search_min_prob(func, args, bounds, xtol = 1e-3, maxinter = 1000):
+def golden_search_min_prob(func, args, bounds, xtol = 1e-2, maxinter = 1000):
     phi = (math.sqrt(5) - 1)*.5
     a = bounds[0]
     b = bounds[1]
     fa = func(a,*args)
     fb = func(b,*args)
+    print(a,fa)
+    print(b,fb)
     if fa == 0:
         return a,fa
     fk = 0
@@ -48,8 +50,8 @@ def golden_search_min_prob(func, args, bounds, xtol = 1e-3, maxinter = 1000):
         x2 = a+d
         f1 = func(x1,*args)
         f2 = func(x2,*args)
-        # print(x1,f1)
-        # print(x2,f2)
+        print(x1,f1)
+        print(x2,f2)
         fk+=2
         if f1 < f2:
             b = x2
@@ -61,7 +63,10 @@ def golden_search_min_prob(func, args, bounds, xtol = 1e-3, maxinter = 1000):
             b = x2
         else:
             pass
-        if abs(a-b)/abs(a) < xtol:
+
+        x0 = (a+b)*.5
+        err = abs(a-b)/abs(x0)
+        if err < xtol:
             break
 
     x0 = (a+b)*.5
