@@ -109,6 +109,44 @@ class MkvProbCalEndAve(object):
         n20 = count_subarr(self.labels,[State.SL,State.ORIGIN])
         return n10,n20
 
+class MkvCalTransMat(object):
+    def __init__(self,df,price,n_states):
+        self.open_rtn = df[OPEN_KEY].values/price - 1.
+        if n_states % 2 == 0:
+            Log(LOG_FATAL) << "Num of states must be odd: {}".format(n_states)
+        self.n_states = n_states
+        self.labels = []
+    def __labelMinbars(self,tid_s,tid_e,tp_return,sl_return):
+        openrtn = self.open_rtn[tid_s:tid_e]
+        drtn = (tp_return - sl_return) / self.n_states
+
+        for rtn in openrtn:
+            w = (rtn-sl_return)/drtn
+            if w < 0:
+                self.labels.append(self.n_states+1)
+            sid = int(np.floor(w))
+            if sid > self.n_states-1:
+                sid = self.n_states
+            self.labels.append(sid)
+
+    def compWinProb(self,tid_s,tid_e,tp_return,sl_return,disp=False):
+        self.__labelMinbars(tid_s,tid_e,tp_return,sl_return)
+        transmat = np.zeros((self.n_states,self.n_states+2))
+        freqmat  = transmat
+        for i in range(self.n_states):
+            for j in range(self.n_states+2):
+                freqmat[i,j] = count_subarr(self.labels,[i,j])
+            transmat[i,:] = freqmat[i,:]/sum(freqmat[i,:])
+
+        Q = transmat[:,:-2]
+        I = np.identity(Q.shape[0])
+        f = transmat[:,-2].reshape(-1,1)
+        tmp = np.linalg.inv(I-Q)
+        v = np.matmul(tmp,f)
+        id = int((self.n_states-1)/2)
+
+        return v[id][0]
+
 def comp_cost_func(x, mkvconf,mkvcal, price, tid_s,tid_e,disp=False):
     tp = x
     sl = -x
