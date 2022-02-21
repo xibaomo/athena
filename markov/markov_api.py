@@ -61,8 +61,11 @@ def predict(new_time, new_open):
 
     RTN,prob_buy,mkvcal = max_prob_buy(mkvconf,price,df,hist_start,hist_end)
     act = 0 # no action
-    if prob_buy >= mkvconf.getPosProbThreshold():
+    prob_thd = mkvconf.getPosProbThreshold()
+    if prob_buy >= prob_thd:
         act = 1
+    # if 1-prob_buy >= prob_thd:
+    #     act = 2
 
     if act != 0:
         n10, n20 = mkvcal.getStartCount()

@@ -29,7 +29,7 @@ class MarkovConfig(object):
     def getOptTarget(self):
         return self.yamlDict['MARKOV']['OPT_TARGET']
 
-class MkvZeroStateOpenPriceOnly(object):
+class MkvProbCalOpenPrice(object):
     def __init__(self,df,price):
         self.hi = df[HIGH_KEY].values / price - 1.
         self.lw = df[LOW_KEY].values / price - 1.
@@ -68,7 +68,7 @@ class MkvZeroStateOpenPriceOnly(object):
         n20 = count_subarr(self.labels,[State.SL,State.ORIGIN])
         return n10,n20
 
-class MkvZeroStateEnds(object):
+class MkvProbCalEndAve(object):
     def __init__(self,df,price):
         self.hi = df[HIGH_KEY].values / price - 1.
         self.lw = df[LOW_KEY].values / price - 1.
@@ -128,9 +128,9 @@ def comp_cost_func(x, mkvconf,mkvcal, price, tid_s,tid_e,disp=False):
 def max_prob_buy(mkvconf,price,df,hist_start,hist_end):
     mkvcal = None
     if mkvconf.getZeroStateType() == 0:
-        mkvcal = MkvZeroStateOpenPriceOnly(df,price)
+        mkvcal = MkvProbCalOpenPrice(df,price)
     elif mkvconf.getZeroStateType() == 1:
-        mkvcal = MkvZeroStateEnds(df,price)
+        mkvcal = MkvProbCalEndAve(df,price)
     else:
         pass
 
