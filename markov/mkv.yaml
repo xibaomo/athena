@@ -3,8 +3,7 @@ MARKOV:
     PROB_CAL_TYPE: 1 # 0 - open price track, 1 - transmat
     NUM_STATES: 9 # number of states between tp & sl. Works only when PROB_CAL_TYPE=1
 
-    RETURN_BOUNDS: [0.002,0.005]
-    OPTIMIZATION: 1 # 0 - POWELL, # 1 - golden search
-    OPT_TARGET: 0 # 0 - probability, 1 - probability*tp
+    TP_RETURN:  0.003
+    SL_RETURN:  auto   # 'auto' gives -TP_RETURN
 
-    POS_PROB_THRESHOLD: 0.5
+    POS_PROB_THRESHOLD: 0.57

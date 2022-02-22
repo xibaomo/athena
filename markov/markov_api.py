@@ -59,16 +59,29 @@ def predict(new_time, new_open):
 
     price = new_open
 
-    RTN,prob_buy,mkvcal = max_prob_buy(mkvconf,price,df,hist_start,hist_end)
+    mkvcal = None
+    if mkvconf.getProbCalType() == 0:
+        mkvcal = MkvProbCalOpenPrice(df, price)
+    elif mkvconf.getProbCalType() == 1:
+        mkvcal = MkvCalTransMat(df, price, mkvconf.getNumStates())
+    else:
+        pass
+
+    tp = mkvconf.getTPReturn()
+    sl = mkvconf.getSLReturn()
+
+    prob_buy = mkvcal.compWinProb(hist_start, hist_end, tp, sl)
+
+    print("tp prob: ", prob_buy)
     act = 0 # no action
     prob_thd = mkvconf.getPosProbThreshold()
     if prob_buy >= prob_thd:
         act = 1
     # if 1-prob_buy >= prob_thd:
     #     act = 2
-
-
-    pos_df = registerPos(pos_df,new_time,act,RTN,prob_buy)
+    RTN = tp
+    if act!=0:
+        pos_df = registerPos(pos_df,new_time,act,tp,prob_buy)
 
     return act
 def finalize():
@@ -99,8 +112,12 @@ if __name__ == "__main__":
 
     odf = pd.read_csv(csvfile,sep='\t')
     loadConfig(ymlfile)
+    ts = pd.to_datetime(odf['<DATE>'] + " " + odf['<TIME>'])
+    tms = '2021.11.18 03:00'
+    tt = pd.to_datetime(tms)
 
-    tarid = 89443-2
+    tarid = ts.index[ts==tt].tolist()[0]
+
     tdf = odf.iloc[:tarid-1,:]
     init(tdf['<DATE>'],tdf['<TIME>'],tdf["<OPEN>"],tdf['<HIGH>'],tdf['<LOW>'],tdf['<CLOSE>'],tdf['<TICKVOL>'])
     id = tarid-1
@@ -108,4 +125,5 @@ if __name__ == "__main__":
 
     act = predict("",odf['<OPEN>'].values[tarid])
     rtn = getReturn()
+    print(odf['<DATE>'][tarid],odf['<TIME>'][tarid])
     print("act = {}, rtn = {}".format(act,rtn))

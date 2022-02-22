@@ -6,31 +6,8 @@ sys.path.append(os.environ['ATHENA_HOME'] + '/py_basics')
 from logger import *
 from basics import *
 from scipy.optimize import minimize,golden,minimize_scalar
+from conf import *
 import pdb
-class MarkovConfig(object):
-    def __init__(self,cf):
-        self.yamlDict = yaml.load(open(cf))
-
-    def getReturnBounds(self):
-        return self.yamlDict['MARKOV']['RETURN_BOUNDS']
-
-    def getOptAlgo(self):
-        return self.yamlDict['MARKOV']['OPTIMIZATION']
-
-    def getProbCalType(self):
-        return self.yamlDict['MARKOV']['PROB_CAL_TYPE']
-
-    def getNumStates(self):
-        return self.yamlDict['MARKOV']['NUM_STATES']
-
-    def getLookback(self):
-        return self.yamlDict['MARKOV']['LOOKBACK']
-
-    def getPosProbThreshold(self):
-        return self.yamlDict['MARKOV']['POS_PROB_THRESHOLD']
-
-    def getOptTarget(self):
-        return self.yamlDict['MARKOV']['OPT_TARGET']
 
 class MkvProbCalOpenPrice(object):
     def __init__(self,df,price):
@@ -118,48 +95,93 @@ class MkvCalTransMat(object):
         if n_states % 2 == 0:
             Log(LOG_FATAL) << "Num of states must be odd: {}".format(n_states)
         self.n_states = n_states
-        self.labels = []
+
         Log(LOG_INFO) << "Trans mat prob cal created"
     def __labelMinbars(self,tid_s,tid_e,tp_return,sl_return):
+        self.labels = []
+        # pdb.set_trace()
         openrtn = self.open_rtn[tid_s:tid_e]
-        drtn = (tp_return - sl_return) / self.n_states
+        self.drtn = (tp_return - sl_return) / self.n_states
 
         for rtn in openrtn:
-            w = (rtn-sl_return)/drtn
-            if w < 0:
-                self.labels.append(self.n_states+1)
+            w = (rtn-sl_return)/self.drtn
             sid = int(np.floor(w))
-            if sid > self.n_states-1:
-                sid = self.n_states
+            if w < 0:
+                sid = self.n_states+1
+            else:
+                if sid > self.n_states-1:
+                    sid = self.n_states
             self.labels.append(sid)
+
+        # pdb.set_trace()
+        lbs = np.array(self.labels)
+        ntp = sum(lbs==self.n_states)
+        nsl = sum(lbs==self.n_states+1)
+        print("ntp = {}, nsl = {}".format(ntp,nsl))
 
     def compWinProb(self,tid_s,tid_e,tp_return,sl_return,disp=False):
         self.__labelMinbars(tid_s,tid_e,tp_return,sl_return)
-        transmat = np.zeros((self.n_states,self.n_states+2))
+        id0 = int((0 - sl_return) / self.drtn)
         freqmat  = np.zeros((self.n_states,self.n_states+2))
         for i in range(self.n_states):
             for j in range(self.n_states+2):
                 freqmat[i,j] = count_subarr(self.labels,[i,j])
-            total = sum(freqmat[i,:])
-            if total > 0:
-                transmat[i,:] = freqmat[i,:]/total
-            else:
-                transmat[i,i] = 1.
 
+        print(freqmat)
+        t = freqmat[:,-2]
+        if sum(t) == 0:
+            return 0.
         # pdb.set_trace()
+        transmat,id0 = self.cleanZeroRowsCols(freqmat,id0)
+
+        print(np.round(transmat,3),id0)
+        if id0<0:
+            return 0
+        if transmat[id0,id0] == 1:
+            return 0
         Q = transmat[:,:-2]
         I = np.identity(Q.shape[0])
         f = transmat[:,-2].reshape(-1,1)
         if sum(f) == 0: # none of states could reach tp state
             return 0.
+
         tmp = np.linalg.inv(I-Q)
         v = np.matmul(tmp,f)
-        id = int((self.n_states-1)/2)
 
         if disp:
             print(freqmat.astype(np.int32))
             print("prob: ",v[id][0])
-        return v[id][0]
+        return v[id0][0]
+    def cleanZeroRowsCols(self,freqmat,id0):
+        to_rm = []
+        for i in range(freqmat.shape[0]):
+            total = sum(freqmat[i,:])
+            if total == 0:
+                to_rm.append(i)
+            elif freqmat[i,i] == total:
+                to_rm.append(i)
+            else:
+                pass
+
+        fqm = freqmat.copy()
+        if len(to_rm) > 0:
+            fqm = np.delete(fqm,to_rm,axis=0)
+            fqm = np.delete(fqm,to_rm,axis=1)
+        # pdb.set_trace()
+        tmp = 0
+        for i in range(len(to_rm)):
+            if i <= id0:
+                tmp+=1
+        id0-=tmp
+        if id0 < 0:
+            return -1,id0
+
+        transmat = np.zeros(fqm.shape)
+        for i in range(fqm.shape[0]):
+            total = sum(fqm[i,:])
+            transmat[i,:] = fqm[i,:] / total
+
+        return transmat,id0
 
 def comp_cost_func(x, mkvconf,mkvcal, price, tid_s,tid_e,disp=False):
     tp = x
@@ -216,16 +238,25 @@ if __name__ == "__main__":
 
     hist_len = mkvconf.getLookback()
     # for i in range(84321-2,len(df)-1):
-    tarid = 86442-2
+    tarid = 87072-2
     hist_start = tarid - hist_len
     hist_end = tarid
     price = df[OPEN_KEY][tarid]
 
-    x,pv,_ = max_prob_buy(mkvconf,price,df,hist_start,hist_end)
+    mkvcal = None
+    if mkvconf.getProbCalType() == 0:
+        mkvcal = MkvProbCalOpenPrice(df,price)
+    elif mkvconf.getProbCalType() == 1:
+        mkvcal = MkvCalTransMat(df,price,mkvconf.getNumStates())
+    else:
+        pass
 
-    print("best param: ",x)
-    print("best prob.: ", pv)
-        # if pv==0:
-        #     print("price: ", price)
-        #     break
+    tp = mkvconf.getTPReturn()
+    sl = mkvconf.getSLReturn()
+
+    wp = mkvcal.compWinProb(hist_start,hist_end,tp,sl)
+
+    print("tp,sl: ",tp,sl)
+    print("tp prob.: ", wp)
+
 
