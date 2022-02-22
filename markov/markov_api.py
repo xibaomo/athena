@@ -34,6 +34,8 @@ def appendEntryToDataFrame(df,dt,tm,op,hp,lp,cp,tkv):
             CLOSE_KEY: [round(cp,5)],
             TICKVOL_KEY: [tkv]}
     df2 = pd.DataFrame(dict)
+    if df2[DATE_KEY][0] == df[DATE_KEY].values[-1] and df2[TIME_KEY][0] == df[TIME_KEY].values[-1]:
+        return df
     df3 = pd.concat([df, df2], ignore_index = True)
     return df3
 
@@ -76,6 +78,7 @@ def predict(new_time, new_open):
     act = 0 # no action
     prob_thd = mkvconf.getPosProbThreshold()
     if prob_buy >= prob_thd:
+        # pdb.set_trace()
         act = 1
     # if 1-prob_buy >= prob_thd:
     #     act = 2
@@ -85,8 +88,10 @@ def predict(new_time, new_open):
 
     return act
 def finalize():
-    global pos_df
+    global pos_df,df
+    df.to_csv("all_minbars.csv",index=False)
     pos_df.to_csv("online_positions.csv",index=False)
+
     pass
 
 ################ END OF PUBLIC API #############
@@ -113,7 +118,7 @@ if __name__ == "__main__":
     odf = pd.read_csv(csvfile,sep='\t')
     loadConfig(ymlfile)
     ts = pd.to_datetime(odf['<DATE>'] + " " + odf['<TIME>'])
-    tms = '2021.11.18 03:00'
+    tms = '2021.11.03 20:00'
     tt = pd.to_datetime(tms)
 
     tarid = ts.index[ts==tt].tolist()[0]

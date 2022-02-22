@@ -126,6 +126,10 @@ class MkvCalTransMat(object):
         for i in range(self.n_states):
             for j in range(self.n_states+2):
                 freqmat[i,j] = count_subarr(self.labels,[i,j])
+            if freqmat[i,i-1] == 0:
+                freqmat[i,i-1] = 1
+            if freqmat[i,i+1] == 0:
+                freqmat[i,i+1] = 1
 
         print(freqmat)
         t = freqmat[:,-2]
