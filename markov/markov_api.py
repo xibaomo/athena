@@ -110,18 +110,19 @@ def registerPos(df,tm,act,rtn,prob):
     return df3
 
 if __name__ == "__main__":
-
-    Log.setlogLevel(LOG_INFO)
+    
+    import matplotlib.pyplot as plt
+    # Log.setlogLevel(LOG_INFO)
     csvfile = sys.argv[1]
     ymlfile = sys.argv[2]
 
     odf = pd.read_csv(csvfile,sep='\t')
     loadConfig(ymlfile)
     ts = pd.to_datetime(odf['<DATE>'] + " " + odf['<TIME>'])
-    tms = '2021.11.03 20:00'
+    tms = '2021.10.01 21:00'
     tt = pd.to_datetime(tms)
 
-    tarid = ts.index[ts==tt].tolist()[0]
+    tarid = ts.index[ts==tt].tolist()[0]    
 
     tdf = odf.iloc[:tarid-1,:]
     init(tdf['<DATE>'],tdf['<TIME>'],tdf["<OPEN>"],tdf['<HIGH>'],tdf['<LOW>'],tdf['<CLOSE>'],tdf['<TICKVOL>'])
@@ -132,3 +133,18 @@ if __name__ == "__main__":
     rtn = getReturn()
     print(odf['<DATE>'][tarid],odf['<TIME>'][tarid])
     print("act = {}, rtn = {}".format(act,rtn))
+
+    hi = odf['<OPEN>'].values
+    lw = odf['<LOW>'].values
+    p  = odf['<OPEN>'].values[tarid]
+    lk = mkvconf.getLookback()
+    r = hi[tarid-lk:tarid+1440]/p - 1
+    rl = lw[tarid-lk:tarid+1440]/p - 1
+    plt.plot(r,'.')
+    plt.plot(rl,'.')
+    tp = mkvconf.getTPReturn()
+    sl = mkvconf.getSLReturn()
+    plt.plot([0, len(r)-1],[tp,tp])
+    plt.plot([0, len(r)-1],[sl,sl])
+    plt.plot([lk],[0],'ro')
+    plt.show()

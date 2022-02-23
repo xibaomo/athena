@@ -264,6 +264,6 @@ MinbarTracker::dumpPosInfo() {
     real64 profit = std::accumulate(pf_aux.begin(),pf_aux.end(),0.f);
     Log(LOG_INFO) << "Total profit: " << profit << endl;
 
-    const String headers = "TICKET,START_TIME,END_TIME,DURATION,PROFIT,OPEN_ASK,OPEN_BID,CLOSE_PRICE,LABEL";
-    dumpVectors("pos_info.csv",headers, tks_aux,st_aux,et_aux,lf_aux,pf_aux,oa_aux,ob_aux,cp_aux,guess);
+    const String headers = "START_TIME,END_TIME,DURATION,PROFIT,OPEN_ASK,OPEN_BID,CLOSE_PRICE,LABEL";
+    dumpVectors("pos_info.csv",headers, st_aux,et_aux,lf_aux,pf_aux,oa_aux,ob_aux,cp_aux,guess);
 }

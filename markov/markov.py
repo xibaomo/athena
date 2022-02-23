@@ -126,10 +126,10 @@ class MkvCalTransMat(object):
         for i in range(self.n_states):
             for j in range(self.n_states+2):
                 freqmat[i,j] = count_subarr(self.labels,[i,j])
-            if freqmat[i,i-1] == 0:
-                freqmat[i,i-1] = 1
-            if freqmat[i,i+1] == 0:
-                freqmat[i,i+1] = 1
+            # if freqmat[i,i-1] == 0:
+            #     freqmat[i,i-1] = 1
+            # if freqmat[i,i+1] == 0:
+            #     freqmat[i,i+1] = 1
 
         print(freqmat)
         t = freqmat[:,-2]
@@ -139,15 +139,15 @@ class MkvCalTransMat(object):
         transmat,id0 = self.cleanZeroRowsCols(freqmat,id0)
 
         print(np.round(transmat,3),id0)
-        if id0<0:
-            return 0
-        if transmat[id0,id0] == 1:
-            return 0
+
         Q = transmat[:,:-2]
         I = np.identity(Q.shape[0])
         f = transmat[:,-2].reshape(-1,1)
         if sum(f) == 0: # none of states could reach tp state
             return 0.
+
+        if np.linalg.det(I-Q) == 0:
+            pdb.set_trace()
 
         tmp = np.linalg.inv(I-Q)
         v = np.matmul(tmp,f)
@@ -157,33 +157,43 @@ class MkvCalTransMat(object):
             print("prob: ",v[id][0])
         return v[id0][0]
     def cleanZeroRowsCols(self,freqmat,id0):
-        to_rm = []
-        for i in range(freqmat.shape[0]):
-            total = sum(freqmat[i,:])
-            if total == 0:
-                to_rm.append(i)
-            elif freqmat[i,i] == total:
-                to_rm.append(i)
-            else:
-                pass
+        # to_rm = []
+        # for i in range(freqmat.shape[0]):
+        #     total = sum(freqmat[i,:])
+            # if total == 0:
+            #     to_rm.append(i)
+            # elif freqmat[i,i] == total:
+            #     to_rm.append(i)
+            # else:
+            #     pass
 
+        # fqm = freqmat.copy()
+        # if len(to_rm) > 0:
+        #     fqm = np.delete(fqm,to_rm,axis=0)
+        #     fqm = np.delete(fqm,to_rm,axis=1)
+        # # pdb.set_trace()
+        # tmp = 0
+        # for i in range(len(to_rm)):
+        #     if i <= id0:
+        #         tmp+=1
+        # id0-=tmp
+        # if id0 < 0:
+        #     return -1,id0
         fqm = freqmat.copy()
-        if len(to_rm) > 0:
-            fqm = np.delete(fqm,to_rm,axis=0)
-            fqm = np.delete(fqm,to_rm,axis=1)
-        # pdb.set_trace()
-        tmp = 0
-        for i in range(len(to_rm)):
-            if i <= id0:
-                tmp+=1
-        id0-=tmp
-        if id0 < 0:
-            return -1,id0
-
         transmat = np.zeros(fqm.shape)
         for i in range(fqm.shape[0]):
             total = sum(fqm[i,:])
-            transmat[i,:] = fqm[i,:] / total
+            if total == 0:
+                transmat[i,i-1] = .5
+                transmat[i,i+1] = .5
+            else:
+                transmat[i,:] = fqm[i,:] / total
+                if transmat[i,i+1] == 0:
+                    transmat[i,i+1] = TYNY_PROB
+                    transmat[i,i] -= TYNY_PROB
+                if transmat[i,i-1] == 0:
+                    transmat[i,i-1] = TYNY_PROB
+                    transmat[i,i] -= TYNY_PROB
 
         return transmat,id0
 
