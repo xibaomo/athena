@@ -224,6 +224,9 @@ MinbarTracker::dumpPosInfo() {
 
     // sort against starting time
     vector<int> dts;
+    if (start_times.empty()) {
+        return;
+    }
     bt::ptime t0(bt::time_from_string(start_times[0]));
     for (auto s : start_times) {
         bt::ptime t(bt::time_from_string(s));

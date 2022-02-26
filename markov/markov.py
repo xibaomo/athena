@@ -118,6 +118,7 @@ class MkvCalTransMat(object):
         ntp = sum(lbs==self.n_states)
         nsl = sum(lbs==self.n_states+1)
         print("ntp = {}, nsl = {}".format(ntp,nsl))
+        print("effective states: ", len(self.labels) - ntp - nsl)
 
     def compWinProb(self,tid_s,tid_e,tp_return,sl_return,disp=False):
         self.__labelMinbars(tid_s,tid_e,tp_return,sl_return)
@@ -196,6 +197,41 @@ class MkvCalTransMat(object):
                     transmat[i,i] -= TYNY_PROB
 
         return transmat,id0
+
+class MkvCalEqnSol(object):
+    def __init__(self,df, npts):
+        self.n_partitions = npts
+        self.df = df
+
+    def compWinProb(self,tid_s,tid_e,tp_rtn,sl_rtn):
+        pc = self.df[OPEN_KEY][tid_s:tid_e+1]
+        rtn = np.diff(np.log(pc))
+        print("Ave rtn: ",np.mean(rtn))
+        self.transProbCal = FreqCounter(rtn)
+        npts = self.n_partitions
+        d = (tp_rtn-sl_rtn)/npts
+        idxDiff2Prob = {}
+        for i in range(-npts+1,npts):
+            p = self.transProbCal.compRangeProb(i*d,i*d+d)
+            idxDiff2Prob[i] = p
+
+        C = np.zeros((npts,npts))
+        I = np.identity(npts)
+        Q = np.zeros((npts,1))
+        for i in range(npts):
+            for j in range(npts):
+                C[i,j] = idxDiff2Prob[j-i]
+            Q[i] = self.transProbCal.compRangeProb((npts-i)*d,1)
+
+        pdb.set_trace()
+        tmp = I-C
+
+        tmp = np.linalg.inv(tmp)
+        pr = np.matmul(tmp,Q)
+
+        idx = int((0-sl_rtn)/d)
+        return pr[idx]
+
 
 def comp_cost_func(x, mkvconf,mkvcal, price, tid_s,tid_e,disp=False):
     tp = x

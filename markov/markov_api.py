@@ -66,6 +66,8 @@ def predict(new_time, new_open):
         mkvcal = MkvProbCalOpenPrice(df, price)
     elif mkvconf.getProbCalType() == 1:
         mkvcal = MkvCalTransMat(df, price, mkvconf.getNumStates())
+    elif mkvconf.getProbCalType() == 2:
+        mkvcal = MkvCalEqnSol(df,mkvconf.getNumPartitions())
     else:
         pass
 
@@ -115,12 +117,13 @@ if __name__ == "__main__":
     # Log.setlogLevel(LOG_INFO)
     csvfile = sys.argv[1]
     ymlfile = sys.argv[2]
+    tar_time = sys.argv[3] + ' ' + sys.argv[4]
 
     odf = pd.read_csv(csvfile,sep='\t')
     loadConfig(ymlfile)
     ts = pd.to_datetime(odf['<DATE>'] + " " + odf['<TIME>'])
-    tms = '2021.10.01 21:00'
-    tt = pd.to_datetime(tms)
+
+    tt = pd.to_datetime(tar_time)
 
     tarid = ts.index[ts==tt].tolist()[0]    
 
@@ -144,7 +147,28 @@ if __name__ == "__main__":
     plt.plot(rl,'.')
     tp = mkvconf.getTPReturn()
     sl = mkvconf.getSLReturn()
-    plt.plot([0, len(r)-1],[tp,tp])
-    plt.plot([0, len(r)-1],[sl,sl])
+    plt.plot([0, len(r)-1],[tp,tp],'g-')
+    plt.plot([0, len(r)-1],[sl,sl],'r-')
     plt.plot([lk],[0],'ro')
+    ns = mkvconf.getNumPartitions()
+    drtn = (tp-sl)/ns
+
+    x = [0,len(r)-1]
+    for i in range(ns):
+        y = [sl+i*drtn,sl+i*drtn]
+        plt.plot(x,y)
     plt.show()
+
+    p = odf['<OPEN>'].values
+    r = np.diff(np.log(p))
+
+    tt = r[-288:]
+    yt = r[-288*2:-288]
+    from scipy.stats import norm
+    z = (sum(tt) - sum(yt))/np.std(yt)/math.sqrt(288)
+
+
+
+
+
+

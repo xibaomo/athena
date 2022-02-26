@@ -1,6 +1,7 @@
 from enum import IntEnum
 import math
 from logger import *
+import numpy as np
 DATE_KEY = '<DATE>'
 TIME_KEY = '<TIME>'
 OPEN_KEY = '<OPEN>'
@@ -75,3 +76,61 @@ def golden_search_min_prob(func, args, bounds, xtol = 1e-2, maxinter = 1000):
     fk+=1
     Log(LOG_INFO) << "Optimization done. Function evaluations: {}".format(fk)
     return x0,fmin
+
+
+class FreqCounter(object):
+    def __init__(self,arr):
+        self.sorted_arr = np.sort(arr)
+
+    def __bi_sec_search(self,target,isLow):
+        lw = 0
+        hi = len(self.sorted_arr)-1
+        if isLow and self.sorted_arr[lw] >= target:
+            return lw
+        if not isLow and self.sorted_arr[hi]<= target:
+            return hi+1
+        while hi-lw>1:
+            idx = int((lw+hi)/2)
+            mid = self.sorted_arr[idx]
+            if mid < target:
+                lw = idx
+            elif mid > target:
+                hi = idx
+            else:
+                if isLow:
+                    lw = idx
+                    while self.sorted_arr[lw] == target:
+                        lw-=1
+                    return lw+1
+                else:
+                    hi = idx
+                    while self.sorted_arr[hi] == target:
+                        hi+=1
+                    return hi
+        if isLow:
+            return lw+1
+        return hi
+
+    def __countInRange(self,lb,ub):
+        idlw = self.__bi_sec_search(lb,True)
+        idhi = self.__bi_sec_search(ub,False)
+        return idhi - idlw
+    def compRangeProb(self,lb,ub):
+        count = self.__countInRange(lb,ub)
+        return count/len(self.sorted_arr)
+
+
+if __name__ == "__main__":
+    import sys
+    import pandas as pd
+    df=pd.read_csv(sys.argv[1],sep='\t')
+    p = df['<OPEN>'].values
+    r = np.diff(np.log(p))
+    n = 1440
+    fq = FreqCounter(r[-n:])
+    p = fq.compRangeProb(0,0.003)
+
+    # arr = np.array([1,2,2,3,3,3,4,5])
+    # fq = FreqCounter(arr)
+
+

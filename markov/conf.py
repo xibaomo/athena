@@ -32,3 +32,6 @@ class MarkovConfig(object):
         if sl == 'auto':
             sl = -self.getTPReturn()
         return sl
+
+    def getNumPartitions(self):
+        return self.yamlDict['MARKOV']['NUM_PARTITIONS']
