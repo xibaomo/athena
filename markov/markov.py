@@ -224,14 +224,14 @@ class MkvCalEqnSol(object):
             for j in range(npts):
                 C[i,j] = idxDiff2Prob[j-i]
             Q[i] = self.transProbCal.compRangeProb((npts-i)*d-d/2,1)
-            Qsell[i] = self.transProbCal.compRangeProb(-1,(-1-i)*d+d/2)
+            # Qsell[i] = self.transProbCal.compRangeProb(-1,(-1-i)*d+d/2)
 
         # pdb.set_trace()
         # print(C)
         tmp = I-C
         tmp = np.linalg.inv(tmp)
         pr = np.matmul(tmp,Q)
-        ps = np.matmul(tmp,Qsell)
+        # ps = np.matmul(tmp,Qsell)
 
         idx = int((0-sl_rtn)/d)
         return pr[idx][0]

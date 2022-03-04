@@ -35,3 +35,6 @@ class MarkovConfig(object):
 
     def getNumPartitions(self):
         return self.yamlDict['MARKOV']['NUM_PARTITIONS']
+
+    def isBuyOnly(self):
+        return self.yamlDict['MARKOV']['BUY_ONLY']

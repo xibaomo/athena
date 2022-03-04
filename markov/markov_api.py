@@ -82,8 +82,8 @@ def predict(new_time, new_open):
     if prob_buy >= prob_thd:
         # pdb.set_trace()
         act = 1
-    # if 1-prob_buy >= prob_thd:
-    #     act = 2
+    if mkvconf.isBuyOnly == 0 and 1-prob_buy >= prob_thd:
+        act = 2
     RTN = tp
     if act!=0:
         pos_df = registerPos(pos_df,new_time,act,tp,prob_buy)
