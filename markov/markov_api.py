@@ -92,7 +92,9 @@ def predict(new_time, new_open):
 def finalize():
     global pos_df,df
     df.to_csv("all_minbars.csv",index=False)
-    pos_df.to_csv("online_positions.csv",index=False)
+    pos_df.to_csv("online_decision.csv",index=False)
+
+    print("Ave prob of positions: ", np.mean(pos_df['PROBABILITY'].values))
 
     pass
 
@@ -159,13 +161,20 @@ if __name__ == "__main__":
         plt.plot(x,y)
     plt.show()
 
-    p = odf['<OPEN>'].values
-    r = np.diff(np.log(p))
-
-    tt = r[-288:]
-    yt = r[-288*2:-288]
-    from scipy.stats import norm
-    z = (sum(tt) - sum(yt))/np.std(yt)/math.sqrt(288)
+    # p = odf['<OPEN>'].values
+    # r = np.diff(np.log(p))
+    #
+    # rr = r[-2000:]
+    # qf = CDFCounter(rr)
+    #
+    # d = 0.006/10
+    # ps=[]
+    # for i in range(10):
+    #     p = qf.compRangeProb(i*d-d/2,i*d+d/2)
+    #     ps.append(p)
+    #
+    # plt.plot(ps)
+    # plt.show()
 
 
 

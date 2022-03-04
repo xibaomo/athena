@@ -119,6 +119,38 @@ class FreqCounter(object):
         count = self.__countInRange(lb,ub)
         return count/len(self.sorted_arr)
 
+class CDFCounter(object):
+    def __init__(self,arr):
+        self.sorted_arr = np.sort(arr)
+        N = len(arr)
+        self.x = []
+        self.cdf = []
+        idx = 0
+
+        while 1:
+            tar = self.sorted_arr[idx]
+            self.x.append(tar)
+            j = idx
+            while j < N and self.sorted_arr[j]==tar:
+                j+=1
+            self.cdf.append(j/N)
+            if j==N:
+                break
+            idx = j
+
+        self.x = np.array(self.x)
+        self.cdf = np.array(self.cdf)
+    def compCDF(self,x):
+        if x >= self.sorted_arr[-1]:
+            return 1.
+        if x < self.sorted_arr[0]:
+            return 0.
+        return np.interp(x,self.x,self.cdf)
+    def compRangeProb(self,lb,ub):
+        uy = self.compCDF(ub)
+        ly = self.compCDF(lb)
+        return uy - ly
+
 
 if __name__ == "__main__":
     import sys

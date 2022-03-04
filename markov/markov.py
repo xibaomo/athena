@@ -207,30 +207,34 @@ class MkvCalEqnSol(object):
         pc = self.df[OPEN_KEY][tid_s:tid_e+1]
         rtn = np.diff(np.log(pc))
         print("Ave rtn: ",np.mean(rtn))
-        self.transProbCal = FreqCounter(rtn)
+        self.transProbCal = CDFCounter(rtn)
         npts = self.n_partitions
         d = (tp_rtn-sl_rtn)/npts
         idxDiff2Prob = {}
         for i in range(-npts+1,npts):
-            p = self.transProbCal.compRangeProb(i*d,i*d+d)
+            p = self.transProbCal.compRangeProb(i*d-d/2,i*d+d/2)
             idxDiff2Prob[i] = p
 
         C = np.zeros((npts,npts))
         I = np.identity(npts)
         Q = np.zeros((npts,1))
+        Qsell = np.zeros((npts,1))
+
         for i in range(npts):
             for j in range(npts):
                 C[i,j] = idxDiff2Prob[j-i]
-            Q[i] = self.transProbCal.compRangeProb((npts-i)*d,1)
+            Q[i] = self.transProbCal.compRangeProb((npts-i)*d-d/2,1)
+            Qsell[i] = self.transProbCal.compRangeProb(-1,(-1-i)*d+d/2)
 
-        pdb.set_trace()
+        # pdb.set_trace()
+        # print(C)
         tmp = I-C
-
         tmp = np.linalg.inv(tmp)
         pr = np.matmul(tmp,Q)
+        ps = np.matmul(tmp,Qsell)
 
         idx = int((0-sl_rtn)/d)
-        return pr[idx]
+        return pr[idx][0]
 
 
 def comp_cost_func(x, mkvconf,mkvcal, price, tid_s,tid_e,disp=False):
