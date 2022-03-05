@@ -4,7 +4,7 @@ MARKOV:
 
 #----------- modifiable parameters -------------
     BUY_ONLY: 1
-    LOOKBACK: 2000
+    LOOKBACK: 1000
     TP_RETURN:  0.004
     SL_RETURN:  -0.004  # 'auto' gives -TP_RETURN
 

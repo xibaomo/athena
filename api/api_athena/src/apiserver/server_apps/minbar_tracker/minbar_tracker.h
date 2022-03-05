@@ -26,7 +26,8 @@ struct PosInfo {
         bt::ptime te(bt::time_from_string(close_time));
         auto dt = te - ts;
         tm dpt = to_tm(dt);
-        return dpt.tm_hour;
+//        return dpt.tm_hour;
+        return dpt.tm_min + dpt.tm_hour*60;
     }
 };
 

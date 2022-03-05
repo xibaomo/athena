@@ -74,19 +74,21 @@ def predict(new_time, new_open):
     tp = mkvconf.getTPReturn()
     sl = mkvconf.getSLReturn()
 
-    prob_buy = mkvcal.compWinProb(hist_start, hist_end, tp, sl)
+    prob_buy,prob_sell,steps = mkvcal.compWinProb(hist_start, hist_end, tp, sl)
 
     print("tp prob: ", prob_buy)
     act = 0 # no action
     prob_thd = mkvconf.getPosProbThreshold()
+    prob_pos = prob_buy
     if prob_buy >= prob_thd:
         # pdb.set_trace()
         act = 1
-    if mkvconf.isBuyOnly == 0 and 1-prob_buy >= prob_thd:
+    if mkvconf.isBuyOnly() == 0 and 1-prob_buy >= prob_thd:
+        prob_pos = 1-prob_buy
         act = 2
     RTN = tp
     if act!=0:
-        pos_df = registerPos(pos_df,new_time,act,tp,prob_buy)
+        pos_df = registerPos(pos_df,new_time,act,tp,prob_buy,prob_sell,prob_buy+prob_sell,steps)
 
     return act
 def finalize():
@@ -94,7 +96,7 @@ def finalize():
     df.to_csv("all_minbars.csv",index=False)
     pos_df.to_csv("online_decision.csv",index=False)
 
-    print("Ave prob of positions: ", np.mean(pos_df['PROBABILITY'].values))
+    # print("Ave prob of positions: ", np.mean(pos_df['PROBABILITY'].values))
 
     pass
 
@@ -102,12 +104,15 @@ def finalize():
 def getReturn():
     global RTN
     return RTN
-def registerPos(df,tm,act,rtn,prob):
+def registerPos(df,tm,act,rtn,prob_buy,prob_sell,prob_sum,steps):
     global pos_df
     dict = {"TIME" : [tm],
             "ACTION" : [act],
             "TP_RETURN": [round(rtn,4)],
-            "PROBABILITY": [round(prob,4)]}
+            "PROB_BUY": [round(prob_buy,4)],
+            "PROB_SELL": [round(prob_sell,4)],
+            "PROB_SUM": [round(prob_sum,4)],
+            "EXP_STEPS": [round(steps)]}
     df2 = pd.DataFrame(dict)
     # pdb.set_trace()
     df3 = pd.concat([df, df2], ignore_index=True)
@@ -155,10 +160,10 @@ if __name__ == "__main__":
     ns = mkvconf.getNumPartitions()
     drtn = (tp-sl)/ns
 
-    x = [0,len(r)-1]
-    for i in range(ns):
-        y = [sl+i*drtn,sl+i*drtn]
-        plt.plot(x,y)
+    # x = [0,len(r)-1]
+    # for i in range(ns):
+    #     y = [sl+i*drtn,sl+i*drtn]
+    #     plt.plot(x,y)
     plt.show()
 
     # p = odf['<OPEN>'].values
