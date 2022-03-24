@@ -154,14 +154,8 @@ if __name__ == "__main__":
     lk = mkvconf.getLookback()
     p = odf['<OPEN>'].values[tarid-lk:tarid+1]
     r = np.diff(np.log(p))
-    sk =skew(r)
-    kt = kurtosis(r)-3
-    from scipy.optimize import fsolve
-    fs = lambda x: 2*(1-x**6) - sk*(x**4+1)**(3/2)
-    fk = lambda x: 6*(1+x**8) - kt*(1+x**4)**2
-    k = fsolve(fs,[0.5,1,5,10])
-    print(k)
-
+    fs = CDFLaplace(r)
+    lb = fs.compRangeProb(-1,np.min(r))
 
 
 

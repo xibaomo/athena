@@ -4,6 +4,8 @@ from logger import *
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit
+from scipy.stats import skew,kurtosis
+from scipy.optimize import fsolve
 DATE_KEY = '<DATE>'
 TIME_KEY = '<TIME>'
 OPEN_KEY = '<OPEN>'
@@ -177,6 +179,39 @@ class CDFCounter(object):
         f = interp1d(self.x, self.cdf, kind='cubic')
         return f(x)
     def compRangeProb(self,lb,ub):
+        uy = self.compCDF(ub)
+        ly = self.compCDF(lb)
+        return uy - ly
+
+class CDFLaplace(object):
+    def __init__(self,rtn):
+        sk = skew(rtn)
+        if sk > 2:
+            self.kappa = 0.01
+            print("skewness {} > 2, kappa set to 0.01".format(sk))
+
+        elif sk < -2:
+            self.kappa = 10
+        else:
+            fs = lambda x: 2*(1-x**6) - sk*(x**4+1)**(3/2)
+            ks = fsolve(fs,[1])
+            self.kappa = ks[0]
+            print("ckeck kappa root: ", fs(self.kappa))
+        sd = np.std(rtn)
+        self.lmb = np.sqrt((1+self.kappa**4)/self.kappa**2/sd**2)
+        self.mu = np.mean(rtn) - (1-self.kappa**2)/self.lmb/self.kappa
+        print("skew = ",sk)
+        print("kappa = {}, lambda = {}, mu = {}".format(self.kappa,self.lmb,self.mu))
+
+    def compCDF(self,x):
+        mu = self.mu
+        k = self.kappa
+        s = 1./self.lmb
+        y = np.piecewise(x, [x <= mu], [lambda x: k * k / (1 + k * k) * np.exp((x - mu) / s / k),
+                                        lambda x: 1 - 1 / (1 + k * k) * np.exp(-k * (x - mu) / s)])
+        return y
+
+    def compRangeProb(self, lb, ub):
         uy = self.compCDF(ub)
         ly = self.compCDF(lb)
         return uy - ly

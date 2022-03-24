@@ -208,7 +208,8 @@ class MkvCalEqnSol(object):
         pc = self.df[OPEN_KEY][tid_s:tid_e+1]
         rtn = np.diff(np.log(pc))
         print("Ave rtn: ",np.mean(rtn))
-        self.transProbCal = CDFCounter(rtn)
+        # self.transProbCal = CDFCounter(rtn)
+        self.transProbCal = CDFLaplace(rtn)
         npts = self.n_partitions
         d = (tp_rtn-sl_rtn)/npts
         idxDiff2Prob = {}
