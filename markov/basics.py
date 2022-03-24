@@ -2,6 +2,8 @@ from enum import IntEnum
 import math
 from logger import *
 import numpy as np
+from scipy.interpolate import interp1d
+from scipy.optimize import curve_fit
 DATE_KEY = '<DATE>'
 TIME_KEY = '<TIME>'
 OPEN_KEY = '<OPEN>'
@@ -119,6 +121,19 @@ class FreqCounter(object):
         count = self.__countInRange(lb,ub)
         return count/len(self.sorted_arr)
 
+def ns_lap_mu(x, mu, k, s):
+    y = np.piecewise(x, [x<=mu], [lambda x:k*k/(1+k*k)*np.exp((x-mu)/s/k), lambda x:1-1/(1+k*k)*np.exp(-k*(x-mu)/s)])
+    return y
+
+def lap(x, mu, b):
+    y = np.piecewise(x, [x<=mu], [lambda x:0.5*np.exp((x-mu)/b), lambda x:1-0.5*np.exp((-x+mu)/b)])
+    return y
+
+def lap0(x, b):
+    mu = 0.
+    y = np.piecewise(x, [x<=mu], [lambda x:0.5*np.exp((x-mu)/b), lambda x:1-0.5*np.exp((-x+mu)/b)])
+    return y
+
 class CDFCounter(object):
     def __init__(self,arr):
         self.sorted_arr = np.sort(arr)
@@ -140,12 +155,27 @@ class CDFCounter(object):
 
         self.x = np.array(self.x)
         self.cdf = np.array(self.cdf)
+
+        # fit cdf to asymmetric-laplacian distribution
+        self.fitFunc = ns_lap_mu
+        self.popt,_ = curve_fit(self.fitFunc,self.x,self.cdf)
+        self.compFitErr()
+    def compFitErr(self):
+        y = self.fitFunc(self.x,*self.popt)
+        err = y - self.cdf
+        rms = np.sqrt(np.mean(err*err))
+        print("rms of cdf fit: ", rms)
+        return rms
     def compCDF(self,x):
+        return self.fitFunc(x,*self.popt)
+    def __compCDF(self,x):
         if x >= self.sorted_arr[-1]:
             return 1.
         if x < self.sorted_arr[0]:
             return 0.
-        return np.interp(x,self.x,self.cdf)
+        # return np.interp(x,self.x,self.cdf)
+        f = interp1d(self.x, self.cdf, kind='cubic')
+        return f(x)
     def compRangeProb(self,lb,ub):
         uy = self.compCDF(ub)
         ly = self.compCDF(lb)

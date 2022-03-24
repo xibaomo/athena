@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import yaml
 import sys, os
 sys.path.append(os.environ['ATHENA_HOME'] + '/py_basics')
@@ -219,25 +220,27 @@ class MkvCalEqnSol(object):
         I = np.identity(npts)
         Q = np.zeros((npts,1))
         one = np.ones((npts,1))
-        Qsell = np.zeros((npts,1))
+        # Qsell = np.zeros((npts,1))
 
         for i in range(npts):
             for j in range(npts):
                 C[i,j] = idxDiff2Prob[j-i]
             Q[i] = self.transProbCal.compRangeProb((npts-i)*d-d/2,1)
-            Qsell[i] = self.transProbCal.compRangeProb(-1,(-1-i)*d+d/2)
+            # Qsell[i] = self.transProbCal.compRangeProb(-1,(-1-i)*d+d/2)
 
         # pdb.set_trace()
         # print(C)
         tmp = I-C
         tmp = np.linalg.inv(tmp)
         pr = np.matmul(tmp,Q)
-        ps = np.matmul(tmp,Qsell)
+        # ps = np.matmul(tmp,Qsell)
         steps = np.matmul(tmp,one)
 
         idx = int((0-sl_rtn)/d)
         print("Expected buy tp steps",steps[idx][0])
-        return pr[idx][0],ps[idx][0],steps[idx][0]
+        # return pr[idx][0],ps[idx][0],steps[idx][0]
+
+        return pr[idx][0]
 
 
 def comp_cost_func(x, mkvconf,mkvcal, price, tid_s,tid_e,disp=False):

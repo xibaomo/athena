@@ -74,9 +74,13 @@ def predict(new_time, new_open):
     tp = mkvconf.getTPReturn()
     sl = mkvconf.getSLReturn()
 
-    prob_buy,prob_sell,steps = mkvcal.compWinProb(hist_start, hist_end, tp, sl)
+    # hist_start=0
+    prob_buy = mkvcal.compWinProb(hist_start, hist_end, tp, sl)
 
-    print("tp prob: ", prob_buy)
+    print("buy prob: ", prob_buy)
+    # pdb.set_trace()
+    # print("sell prob: ", prob_sell)
+    # print(prob_buy+prob_sell)
     act = 0 # no action
     prob_thd = mkvconf.getPosProbThreshold()
     prob_pos = prob_buy
@@ -88,15 +92,16 @@ def predict(new_time, new_open):
         act = 2
     RTN = tp
     if act!=0:
-        pos_df = registerPos(pos_df,new_time,act,tp,prob_buy,prob_sell,prob_buy+prob_sell,steps)
+        pos_df = registerPos(pos_df,new_time,act,tp,prob_buy,1-prob_buy,1.0,0)
 
     return act
 def finalize():
-    global pos_df,df
+    global pos_df,df,mkvconf
     df.to_csv("all_minbars.csv",index=False)
     pos_df.to_csv("online_decision.csv",index=False)
 
-    # print("Ave prob of positions: ", np.mean(pos_df['PROBABILITY'].values))
+    if mkvconf.isBuyOnly() == 1:
+        print("Ave prob of positions: ", np.mean(pos_df['PROB_BUY'].values))
 
     pass
 
@@ -144,42 +149,21 @@ if __name__ == "__main__":
     print(odf['<DATE>'][tarid],odf['<TIME>'][tarid])
     print("act = {}, rtn = {}".format(act,rtn))
 
-    hi = odf['<OPEN>'].values
-    lw = odf['<LOW>'].values
-    p  = odf['<OPEN>'].values[tarid]
+    from scipy.stats import skew,kurtosis
+    # global mkvconf
     lk = mkvconf.getLookback()
-    r = hi[tarid-lk:tarid+1440]/p - 1
-    rl = lw[tarid-lk:tarid+1440]/p - 1
-    plt.plot(r,'.')
-    plt.plot(rl,'.')
-    tp = mkvconf.getTPReturn()
-    sl = mkvconf.getSLReturn()
-    plt.plot([0, len(r)-1],[tp,tp],'g-')
-    plt.plot([0, len(r)-1],[sl,sl],'r-')
-    plt.plot([lk],[0],'ro')
-    ns = mkvconf.getNumPartitions()
-    drtn = (tp-sl)/ns
+    p = odf['<OPEN>'].values[tarid-lk:tarid+1]
+    r = np.diff(np.log(p))
+    sk =skew(r)
+    kt = kurtosis(r)-3
+    from scipy.optimize import fsolve
+    fs = lambda x: 2*(1-x**6) - sk*(x**4+1)**(3/2)
+    fk = lambda x: 6*(1+x**8) - kt*(1+x**4)**2
+    k = fsolve(fs,[0.5,1,5,10])
+    print(k)
 
-    # x = [0,len(r)-1]
-    # for i in range(ns):
-    #     y = [sl+i*drtn,sl+i*drtn]
-    #     plt.plot(x,y)
-    plt.show()
 
-    # p = odf['<OPEN>'].values
-    # r = np.diff(np.log(p))
-    #
-    # rr = r[-2000:]
-    # qf = CDFCounter(rr)
-    #
-    # d = 0.006/10
-    # ps=[]
-    # for i in range(10):
-    #     p = qf.compRangeProb(i*d-d/2,i*d+d/2)
-    #     ps.append(p)
-    #
-    # plt.plot(ps)
-    # plt.show()
+
 
 
 

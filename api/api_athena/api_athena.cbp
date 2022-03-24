@@ -418,6 +418,12 @@
 			<Option target="run_athena" />
 			<Option target="gsl_hist" />
 		</Unit>
+		<Unit filename="src/modules/minbar_predictor/markov/markov_pred.cpp">
+			<Option target="run_athena" />
+		</Unit>
+		<Unit filename="src/modules/minbar_predictor/markov/markov_pred.h">
+			<Option target="run_athena" />
+		</Unit>
 		<Unit filename="src/modules/minbar_predictor/mb_base/mb_base_pred.h">
 			<Option target="run_athena" />
 			<Option target="gsl_hist" />
