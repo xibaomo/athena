@@ -1,3 +1,4 @@
+import pdb
 from enum import IntEnum
 import math
 from logger import *
@@ -156,21 +157,25 @@ class CDFCounter(object):
             idx = j
 
         self.x = np.array(self.x)
+        self.x = np.insert(self.x,0,-0.1)
+        self.x = np.append(self.x,0.1)
         self.cdf = np.array(self.cdf)
+        self.cdf = np.insert(self.cdf,0,0)
+        self.cdf = np.append(self.cdf,1.)
 
         # fit cdf to asymmetric-laplacian distribution
-        self.fitFunc = ns_lap_mu
-        self.popt,_ = curve_fit(self.fitFunc,self.x,self.cdf)
-        self.compFitErr()
+        # self.fitFunc = ns_lap_mu
+        # self.popt,_ = curve_fit(self.fitFunc,self.x,self.cdf)
+        # self.compFitErr()
     def compFitErr(self):
         y = self.fitFunc(self.x,*self.popt)
         err = y - self.cdf
         rms = np.sqrt(np.mean(err*err))
         print("rms of cdf fit: ", rms)
         return rms
-    def compCDF(self,x):
-        return self.fitFunc(x,*self.popt)
     def __compCDF(self,x):
+        return self.fitFunc(x,*self.popt)
+    def compCDF(self,x):
         if x >= self.sorted_arr[-1]:
             return 1.
         if x < self.sorted_arr[0]:
@@ -186,6 +191,7 @@ class CDFCounter(object):
 class CDFLaplace(object):
     def __init__(self,rtn):
         sk = skew(rtn)
+        # pdb.set_trace()
         if sk > 2:
             self.kappa = 0.01
             print("skewness {} > 2, kappa set to 0.01".format(sk))
@@ -194,10 +200,11 @@ class CDFLaplace(object):
             self.kappa = 10
         else:
             fs = lambda x: 2*(1-x**6) - sk*(x**4+1)**(3/2)
-            ks = fsolve(fs,[1])
+            ks = fsolve(fs,[2])
             self.kappa = ks[0]
             print("ckeck kappa root: ", fs(self.kappa))
         sd = np.std(rtn)
+        # pdb.set_trace()
         self.lmb = np.sqrt((1+self.kappa**4)/self.kappa**2/sd**2)
         self.mu = np.mean(rtn) - (1-self.kappa**2)/self.lmb/self.kappa
         print("skew = ",sk)

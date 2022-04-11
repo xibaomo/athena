@@ -226,22 +226,33 @@ class MkvCalEqnSol(object):
         for i in range(npts):
             for j in range(npts):
                 C[i,j] = idxDiff2Prob[j-i]
-            Q[i] = self.transProbCal.compRangeProb((npts-i)*d-d/2,1)
+            Q[i] = self.transProbCal.compRangeProb((npts-i)*d-d/2,.5)
             # Qsell[i] = self.transProbCal.compRangeProb(-1,(-1-i)*d+d/2)
 
         # pdb.set_trace()
         # print(C)
         tmp = I-C
-        tmp = np.linalg.inv(tmp)
+        det = np.linalg.det(tmp)
+        # if np.linalg.det(tmp) == 0:
+        #     pdb.set_trace()
+        try:
+            tmp = np.linalg.inv(tmp)
+        except:
+            print("inversion fails")
+            return 0.5
+
         pr = np.matmul(tmp,Q)
         # ps = np.matmul(tmp,Qsell)
         steps = np.matmul(tmp,one)
 
         idx = int((0-sl_rtn)/d)
-        print("Expected buy tp steps",steps[idx][0])
+        # print("Expected buy tp steps",steps[idx][0])
+        print("pr = {}, det = {}".format(pr[idx][0],det))
         # return pr[idx][0],ps[idx][0],steps[idx][0]
-
-        return pr[idx][0]
+        p = pr[idx][0]
+        if p < 0:
+            p = 0.
+        return p
 
 
 def comp_cost_func(x, mkvconf,mkvcal, price, tid_s,tid_e,disp=False):
