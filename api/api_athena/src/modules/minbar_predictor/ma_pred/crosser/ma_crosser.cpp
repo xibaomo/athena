@@ -60,7 +60,7 @@ MACrosser::prepare()
     m_maCal->compAllMA(m_median,m_config->getShortLookBack(),m_short_ma);
 }
 
-FXAct
+int
 MACrosser::predict(const String& ts, real64 new_open)
 {
     auto& mb = m_allMinBars->back();
@@ -82,14 +82,14 @@ MACrosser::predict(const String& ts, real64 new_open)
     if (cid - tp > m_config->getTurnPointExpiry()) {
         action = FXAct::NOACTION;
         m_records.emplace_back(l_ma,s_ma,action);
-        return action;
+        return (int)action;
     }
 
     real32 gap = m_long_ma.back() - m_short_ma.back();
     if ( fabs(gap) < m_config->getStartOffGap()) {
         action = FXAct::NOACTION;
         m_records.emplace_back(l_ma,s_ma,action);
-        return action;
+        return (int)action;
     }
 
     if (gap > 0) {
@@ -101,7 +101,7 @@ MACrosser::predict(const String& ts, real64 new_open)
     }
 
     m_records.emplace_back(l_ma,s_ma,action);
-    return action;
+    return (int)action;
 }
 
 int

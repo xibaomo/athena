@@ -4,14 +4,6 @@ class MarkovConfig(object):
     def __init__(self,cf):
         self.yamlDict = yaml.load(open(cf))
 
-    # def getReturnBounds(self):
-    #     return self.yamlDict['MARKOV']['RETURN_BOUNDS']
-    #
-    # def getOptAlgo(self):
-    #     return self.yamlDict['MARKOV']['OPTIMIZATION']
-
-    # def getOptTarget(self):
-    #     return self.yamlDict['MARKOV']['OPT_TARGET']
     def getProbCalType(self):
         return self.yamlDict['MARKOV']['PROB_CAL_TYPE']
 
@@ -36,5 +28,8 @@ class MarkovConfig(object):
     def getNumPartitions(self):
         return self.yamlDict['MARKOV']['NUM_PARTITIONS']
 
-    def isBuyOnly(self):
-        return self.yamlDict['MARKOV']['BUY_ONLY']
+    def getOverbuyThd(self):
+        return self.yamlDict['MARKOV']['OVERBUY_THD']
+
+    def getOversellThd(self):
+        return self.yamlDict['MARKOV']['OVERSELL_THD']

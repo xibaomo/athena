@@ -39,7 +39,7 @@ public:
 
     virtual void appendMinbar(const MinBar& mb){BASE_METHOD_WARN;}
 
-    virtual FXAct predict(const String& time_str, real64 new_open) = 0;
+    virtual int predict(const String& time_str, real64 new_open) = 0;
 
     virtual real64 getReturn() {BASE_METHOD_WARN; return 0.f;}
 };

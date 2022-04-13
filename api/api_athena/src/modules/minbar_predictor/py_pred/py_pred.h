@@ -18,7 +18,7 @@ public:
 
     void prepare();
     void appendMinbar(const MinBar& mb) override;
-    FXAct predict(const String& time_str, real64 new_open);
+    int predict(const String& time_str, real64 new_open);
     void finish();
 
     /////////////////// internal function /////////////////////

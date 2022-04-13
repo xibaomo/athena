@@ -55,7 +55,7 @@ MAHunter::prepare()
     m_maCal->compAllMA(m_median,m_config->getMALookback(),m_ma);
 }
 
-FXAct
+int
 MAHunter::predict(const String& ts, real64 new_open)
 {
     auto& mb = m_allMinBars->back();
@@ -80,19 +80,19 @@ MAHunter::predict(const String& ts, real64 new_open)
     Log(LOG_INFO) << "Nearest turn point: " + to_string(offset) <<std::endl;
 
     if (offset > m_config->getTurnPointOffset())
-        return FXAct::NOACTION;
+        return (int)FXAct::NOACTION;
 
     real64 slope = (ma_aux[id+1]-ma_aux[id-1])/2.;
     real64 fos    = m_config->getFireOffSlope();
     Log(LOG_INFO) << "Slope (1e6) = " + to_string(slope*1e6) <<std::endl;
 
     if (slope >= fos)
-        return FXAct::PLACE_BUY;
+        return (int)FXAct::PLACE_BUY;
 
     if (slope <= -fos)
-        return FXAct::PLACE_SELL;
+        return (int)FXAct::PLACE_SELL;
 
-    return FXAct::NOACTION;
+    return (int)FXAct::NOACTION;
 }
 
 int

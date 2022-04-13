@@ -44,7 +44,7 @@ public:
     void dumpRecords();
     void prepare();
 
-    FXAct predict(const String& ts, real64 new_open);
+    int predict(const String& ts, real64 new_open);
 
     void compLWMA();
     real32 compALWMA(int lookback, size_t idx);

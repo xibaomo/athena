@@ -176,22 +176,26 @@ MinbarTracker::procMsg_CLOSED_POS_INFO(Message& msg) {
 Message
 MinbarTracker::procMsg_REQUEST_ACT(Message& msg) {
     real64* pm = (real64*)msg.getData();
-    FXAct act = m_predictor->predict(msg.getComment(), pm[0]);
+    int act = m_predictor->predict(msg.getComment(), pm[0]);
 
-    Message outmsg(1);
-    outmsg.setAction(act);
+    Message outmsg(sizeof(int));
+    outmsg.setAction(FXAct::DECISION);
+    int* pms = (int*)outmsg.getData();
+    pms[0] = act;
     return outmsg;
 }
 
 Message
 MinbarTracker::procMsg_REQUEST_ACT_RTN(Message& msg) {
     real64* pm = (real64*)msg.getData();
-    FXAct act = m_predictor->predict(msg.getComment(), pm[0]);
+    int act = m_predictor->predict(msg.getComment(), pm[0]);
 
-    Message outmsg(sizeof(real64));
-    outmsg.setAction(act);
-    real64* pd = (real64*)outmsg.getData();
-    pd[0] = m_predictor->getReturn();
+    Message outmsg(sizeof(int),sizeof(real64));
+    outmsg.setAction(FXAct::DECISION);
+    int* pms = (int*)outmsg.getData();
+    pms[0] = act;
+    real64* pc = (real64*)msg.getChar();
+    pc[0] = m_predictor->getReturn();
     return outmsg;
 }
 

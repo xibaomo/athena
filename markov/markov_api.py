@@ -12,6 +12,7 @@ df = pd.DataFrame()
 pos_df = pd.DataFrame()
 mkvconf = None
 RTN = 0.
+LAST_MARKET_STATE = -1  # 0 - overbuy, 1 - oversell, 2 - other
 
 def loadConfig(cf):
     global mkvconf
@@ -55,7 +56,7 @@ def appendMinbar(dt, tm, op, hp, lp, cp, tkv):
     df = appendEntryToDataFrame(df, dt, tm, op, hp, lp, cp, tkv)
 
 def predict(new_time, new_open):
-    global df,mkvconf,RTN, pos_df
+    global df,mkvconf,RTN, pos_df, LAST_MARKET_STATE
     # pdb.set_trace()
     # tmpdf = appendEntryToDataFrame(df,"","",new_open,0.,0.,0.,0)
     tarid = len(df)-1
@@ -84,18 +85,29 @@ def predict(new_time, new_open):
     print("buy prob: ", prob_buy)
 
     act = 0 # no action
-    prob_thd = mkvconf.getPosProbThreshold()
+    overbuy_thd = mkvconf.getOverbuyThd()
+    oversell_thd = mkvconf.getOversellThd()
+
     prob_pos = prob_buy
-    if prob_buy >= prob_thd:
-        # pdb.set_trace()
-        act = 1
-    if mkvconf.isBuyOnly() == 0 and 1-prob_buy >= prob_thd:
-        prob_pos = 1-prob_buy
+    CURRENT_MARKET_STATE = LAST_MARKET_STATE
+    if prob_buy >= overbuy_thd:
+        CURRENT_MARKET_STATE = 0 # over buy
         act = 2
+    if prob_buy <= oversell_thd:
+        CURRENT_MARKET_STATE = 1 # over sell
+        act = 1
+
+    if LAST_MARKET_STATE == -1:
+        LAST_MARKET_STATE = CURRENT_MARKET_STATE
+
+    if CURRENT_MARKET_STATE != LAST_MARKET_STATE:
+        LAST_MARKET_STATE = CURRENT_MARKET_STATE
+        act = 30+act  # 3 - close all
     RTN = tp
-    if act!=0:
+    if act % 10 !=0:
         pos_df = registerPos(pos_df,new_time,act,tp,prob_buy,1-prob_buy,1.0,0)
 
+    print("action = ", act)
     return act
 def finalize():
     global pos_df,df,mkvconf
@@ -151,6 +163,8 @@ if __name__ == "__main__":
     print(odf['<DATE>'][tarid],odf['<TIME>'][tarid])
     print("act = {}, rtn = {}".format(act,rtn))
 
+    # sys.exit(0)
+
     from scipy.stats import skew,kurtosis
     # global mkvconf
     lk = mkvconf.getLookback()
@@ -169,7 +183,8 @@ if __name__ == "__main__":
     props = []
     pc = []
     p0=odf['<OPEN>'][tarid]
-    tartm = pd.to_datetime("2021-10-28 12:00:00")
+
+    lookback = 1440
     for i in range(00,len(odf)-tarid):
         tm = odf['<DATE>'][tarid+i] + " " + odf['<TIME>'][tarid+i]
         tm = pd.to_datetime(tm)
@@ -180,10 +195,11 @@ if __name__ == "__main__":
         hist_end = tarid+i
         if hist_end >= len(odf):
             break
-        hist_start = hist_end -1440*1
+        hist_start = hist_end - lookback
         prop = mkvcal.compWinProb(hist_start,hist_end,tp,-tp)
         props.append(prop)
-        pc.append(odf['<OPEN>'][hist_end]/p0-1)
+        # pc.append(odf['<OPEN>'][hist_end]/p0-1)
+        pc.append(odf['<OPEN>'][hist_end])
 
         print(odf['<DATE>'][hist_end],odf['<TIME>'][hist_end],prop)
 
@@ -192,13 +208,10 @@ if __name__ == "__main__":
     fig,ax1 = plt.subplots()
     ax2 = ax1.twinx()
     ax2.plot(props,'.-')
-    ax1.plot(pc,'r.-')
+    ax1.plot(np.sqrt(pc),'r.-')
     ax2.plot([0,len(props)],[0.9,0.9])
     ax2.plot([0, len(props)], [0.1, 0.1])
-    # plt.figure()
-    # plt.plot(rsi)
-    # mid = 1000
-    # plt.plot([mid,mid],[min(pc),max(pc)])
+    plt.title('lookback: ' + str(lookback) + 'min')
     plt.show()
 
 

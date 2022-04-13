@@ -110,7 +110,7 @@ MinbarPyPredictor::prepare()
     loadMinbarsToPredictor();
 }
 
-FXAct
+int
 MinbarPyPredictor::predict(const String& time_str, real64 new_open) {
     Log(LOG_INFO) << "New request arrives, price: " << new_open << ", predicting ..." << endl;
     PyObject* func = PyObject_GetAttrString(m_mod,"predict");
@@ -125,17 +125,19 @@ MinbarPyPredictor::predict(const String& time_str, real64 new_open) {
 
     int  r =  (int)PyLong_AsLong(res);
 
-    FXAct act = FXAct::NOACTION;
-    switch(r) {
-    case 1:
-        Log(LOG_INFO) << "Decision: buy" << endl;
-        act = FXAct::PLACE_BUY;
-        break;
-    case 2:
-        Log(LOG_INFO) << "Decision: sell" << endl;
-        act = FXAct::PLACE_SELL;
-        break;
-    }
+    Log(LOG_INFO) << "Action returned: " << r << endl;
+
+//    FXAct act = FXAct::NOACTION;
+//    switch(r) {
+//    case 1:
+//        Log(LOG_INFO) << "Decision: buy" << endl;
+//        act = FXAct::PLACE_BUY;
+//        break;
+//    case 2:
+//        Log(LOG_INFO) << "Decision: sell" << endl;
+//        act = FXAct::PLACE_SELL;
+//        break;
+//    }
 
     Py_DECREF(func);
     Py_DECREF(np);
@@ -143,7 +145,7 @@ MinbarPyPredictor::predict(const String& time_str, real64 new_open) {
     Py_DECREF(args);
     Py_DECREF(res);
 
-    return act;
+    return r;
 }
 
 void
