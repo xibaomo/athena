@@ -73,16 +73,22 @@ def predict(new_time, new_open):
         mkvcal = MkvCalTransMat(df, price, mkvconf.getNumStates())
     elif mkvconf.getProbCalType() == 2:
         mkvcal = MkvCalEqnSol(df,mkvconf.getNumPartitions())
+    elif mkvconf.getProbCalType() == 3:
+        mkvcal = FirstHitProbCal(df,mkvconf.getNumPartitions())
     else:
         pass
 
-    tp = mkvconf.getTPReturn()
-    sl = mkvconf.getSLReturn()
+    tp = mkvconf.getUBReturn()
+    sl = mkvconf.getLBReturn()
 
-    # hist_start=0
-    prob_buy = mkvcal.compWinProb(hist_start, hist_end, tp, sl)
+    if mkvconf.getProbCalType() < 3:
+        prob_buy = mkvcal.compWinProb(hist_start, hist_end, tp, sl)
+        prob_sell = 1 - prob_buy
+    else:
+        prob_buy,prob_sell = mkvcal.comp1stHitProb(hist_start,hist_end,tp,sl,mkvconf.getSteps())
 
-    print("buy prob: ", prob_buy)
+    sig = prob_buy/(prob_sell+prob_buy)
+    print("buy prob = {}, sell prob = {}, sig = {} ".format(prob_buy,prob_sell,sig))
 
     act = 0 # no action
     overbuy_thd = mkvconf.getOverbuyThd()
@@ -90,12 +96,19 @@ def predict(new_time, new_open):
 
     prob_pos = prob_buy
     CURRENT_MARKET_STATE = LAST_MARKET_STATE
-    if prob_buy >= overbuy_thd:
-        CURRENT_MARKET_STATE = 0 # over buy
+    if sig >= overbuy_thd:
+        CURRENT_MARKET_STATE = 0 # overbuy
         act = 2
-    if prob_buy <= oversell_thd:
-        CURRENT_MARKET_STATE = 1 # over sell
+    if sig <= oversell_thd:
+        CURRENT_MARKET_STATE = 1 # oversell
         act = 1
+
+    if act > 0:
+        lsig = compLongSig(mkvcal,mkvconf,hist_end,tp,sl)
+        if sig >= overbuy_thd and lsig >= overbuy_thd:
+            act = 0
+        if sig <= oversell_thd and lsig <= oversell_thd:
+            act = 0
 
     if LAST_MARKET_STATE == -1:
         LAST_MARKET_STATE = CURRENT_MARKET_STATE
@@ -120,6 +133,12 @@ def finalize():
     pass
 
 ################ END OF PUBLIC API #############
+def compLongSig(mkvcal,mkvconf,tarid,ub_rtn,lb_rtn):
+    llk = mkvconf.getLongLookback()
+    lpb,lps = mkvcal.comp1stHitProb(tarid-llk,tarid,ub_rtn,lb_rtn,mkvconf.getSteps())
+    sig = lpb/(lpb+lps)
+    return sig
+
 def getReturn():
     global RTN
     return RTN
@@ -176,16 +195,19 @@ if __name__ == "__main__":
     res = ks_2samp(r1,r)
 
     # pdb.set_trace()
-    tp = mkvconf.getTPReturn()
-    mkvcal = MkvCalEqnSol(odf, mkvconf.getNumPartitions())
+    tp = mkvconf.getUBReturn()
+    mkvcal = FirstHitProbCal(odf, mkvconf.getNumPartitions())
 
     ftu = int(sys.argv[-1])
-    props = []
+    ftu = min(len(odf)-tarid,ftu)
+    pbs = []
+    pss = []
     pc = []
     p0=odf['<OPEN>'][tarid]
 
-    lookback = 1440
-    for i in range(00,len(odf)-tarid):
+    lsig = []
+    lookback = mkvconf.getLookback()
+    for i in range(00, ftu):
         tm = odf['<DATE>'][tarid+i] + " " + odf['<TIME>'][tarid+i]
         tm = pd.to_datetime(tm)
         # if tm == tartm:
@@ -196,22 +218,33 @@ if __name__ == "__main__":
         if hist_end >= len(odf):
             break
         hist_start = hist_end - lookback
-        prop = mkvcal.compWinProb(hist_start,hist_end,tp,-tp)
-        props.append(prop)
-        # pc.append(odf['<OPEN>'][hist_end]/p0-1)
-        pc.append(odf['<OPEN>'][hist_end])
+        # prop = mkvcal.compWinProb(hist_start,hist_end,tp,-tp)
+        prob_buy,prob_sell = mkvcal.comp1stHitProb(hist_start,hist_end,tp,-tp,mkvconf.getSteps())
+        pbs.append(prob_buy)
+        pss.append(prob_sell)
+        pc.append(odf['<OPEN>'][hist_end]/p0-1)
+        lpb,lps = mkvcal.comp1stHitProb(hist_end-mkvconf.getLongLookback(),hist_end,tp,-tp,mkvconf.getSteps())
+        lsg = lpb/(lpb+lps)
+        lsig.append(lsg)
+        # pc.append(odf['<OPEN>'][hist_end])
 
-        print(odf['<DATE>'][hist_end],odf['<TIME>'][hist_end],prop)
+        print(odf['<DATE>'][hist_end],odf['<TIME>'][hist_end],prob_buy,prob_sell)
 
 
     # pc = odf['<OPEN>'].values[tarid-1000:tarid+ftu]
+    pbs = np.array(pbs)
+    pss = np.array(pss)
     fig,ax1 = plt.subplots()
     ax2 = ax1.twinx()
-    ax2.plot(props,'.-')
-    ax1.plot(np.sqrt(pc),'r.-')
-    ax2.plot([0,len(props)],[0.9,0.9])
-    ax2.plot([0, len(props)], [0.1, 0.1])
-    plt.title('lookback: ' + str(lookback) + 'min')
+    ax2.plot(pbs/(pbs+pss),'b.-')
+    ax2.plot(lsig,'y.-')
+    
+    ax2.set_ylim([-.1,1.1])
+    # ax2.plot(pss,'.-')
+    ax1.plot((pc),'r.-')
+    # ax2.plot([0,len(pbs)],[0.9,0.9])
+    # ax2.plot([0, len(pbs)], [0.1, 0.1])
+    plt.title('lookback: ' + str(lookback) + 'minbar')
     plt.show()
 
 

@@ -41,7 +41,7 @@ class MkvProbCalOpenPrice(object):
             p01 = (n01 + 1) / (total + 2)
 
         if disp:
-            print("tp_rtn = {}, n01 = {}, n02 = {}, tp prob. = {} ".format(tp_return, n01, n02, p01))
+            print("ub_rtn = {}, n01 = {}, n02 = {}, tp prob. = {} ".format(tp_return, n01, n02, p01))
 
         return p01
     def getStartCount(self):
@@ -81,7 +81,7 @@ class MkvProbCalEndAve(object):
             p01 = (n01 + 1) / (total + 2)
 
         if disp:
-            print("tp_rtn = {}, n01 = {}, n02 = {}, tp prob. = {} ".format(tp_return, n01, n02, p01))
+            print("ub_rtn = {}, n01 = {}, n02 = {}, tp prob. = {} ".format(tp_return, n01, n02, p01))
 
         return p01
 
@@ -204,14 +204,14 @@ class MkvCalEqnSol(object):
         self.n_partitions = npts
         self.df = df
 
-    def compWinProb(self,tid_s,tid_e,tp_rtn,sl_rtn):
+    def compWinProb(self,tid_s,tid_e,ub_rtn,lb_rtn):
         pc = self.df[OPEN_KEY][tid_s:tid_e+1]
         rtn = np.diff(np.log(pc))
         print("Ave rtn: ",np.mean(rtn))
         # self.transProbCal = CDFCounter(rtn)
         self.transProbCal = CDFLaplace(rtn)
         npts = self.n_partitions
-        d = (tp_rtn-sl_rtn)/npts
+        d = (ub_rtn-lb_rtn)/npts
         idxDiff2Prob = {}
         for i in range(-npts+1,npts):
             p = self.transProbCal.compRangeProb(i*d-d/2,i*d+d/2)
@@ -245,7 +245,7 @@ class MkvCalEqnSol(object):
         # ps = np.matmul(tmp,Qsell)
         steps = np.matmul(tmp,one)
 
-        idx = int((0-sl_rtn)/d)
+        idx = int((0-lb_rtn)/d)
         # print("Expected buy tp steps",steps[idx][0])
         print("pr = {}, det = {}".format(pr[idx][0],det))
         # return pr[idx][0],ps[idx][0],steps[idx][0]
@@ -254,6 +254,59 @@ class MkvCalEqnSol(object):
             p = 0.
         return p
 
+class FirstHitProbCal(object):
+    def __init__(self,df,npts):
+        self.n_partitions = npts
+        self.df = df
+    def comp1stHitProb(self,tid_s, tid_e, ub_rtn,lb_rtn, steps):
+        pc = self.df[OPEN_KEY][tid_s:tid_e + 1]
+        rtn = np.diff(np.log(pc))
+        print("Ave rtn: ", np.mean(rtn))
+        # self.transProbCal = CDFCounter(rtn)
+        self.transProbCal = CDFLaplace(rtn)
+        npts = self.n_partitions
+        d = (ub_rtn - lb_rtn) / npts
+        idxDiff2Prob = {}
+        for i in range(-npts + 1, npts):
+            p = self.transProbCal.compRangeProb(i * d - d / 2, i * d + d / 2)
+            idxDiff2Prob[i] = p
+
+        PT = np.zeros((npts+2,npts+2))
+        for i in range(npts):
+            for j in range(npts):
+                PT[i, j] = idxDiff2Prob[j - i]
+            PT[i,npts] = self.transProbCal.compRangeProb((npts - i) * d - d / 2, .5)
+            PT[i,npts+1] = self.transProbCal.compRangeProb(-0.5,(-1-i)*d+d/2)
+
+        PT[npts,npts] = 1.
+        PT[npts+1,npts+1] = 1.
+        idc = int((0-lb_rtn)/d)
+        pup = self.firstHitProb(PT,steps,idc,npts)
+        pdw = self.firstHitProb(PT,steps,idc, npts+1)
+
+        return pup,pdw
+    def firstHitProb(self,PT,steps, s_id, tar_id):
+        f = PT[:,tar_id].copy()
+        P = PT.copy()
+        pbs = []
+        pbs.append(f[s_id])
+        P[:,tar_id]=0
+        for i in range(steps):
+            f = np.matmul(P,f)
+            pbs.append(f[s_id])
+        return sum(pbs)
+
+class RSICal(object):
+    def __init__(self,df):
+        self.df = df
+    def compWinProb(self,hist_start,hist_end):
+        p = self.df['<OPEN>'].values[hist_start:hist_end+1]
+        r = np.diff(np.log(p))
+        rp = r[r>=0]
+        rn = r[r<0]
+        mrp = np.mean(rp)
+        mrn = abs(np.mean(rn))
+        return (mrp/(mrp+mrn))
 
 def comp_cost_func(x, mkvconf,mkvcal, price, tid_s,tid_e,disp=False):
     tp = x
@@ -323,8 +376,8 @@ if __name__ == "__main__":
     else:
         pass
 
-    tp = mkvconf.getTPReturn()
-    sl = mkvconf.getSLReturn()
+    tp = mkvconf.getUBReturn()
+    sl = mkvconf.getLBReturn()
 
     wp = mkvcal.compWinProb(hist_start,hist_end,tp,sl)
 

@@ -13,16 +13,19 @@ class MarkovConfig(object):
     def getLookback(self):
         return self.yamlDict['MARKOV']['LOOKBACK']
 
+    def getLongLookback(self):
+        return self.yamlDict['MARKOV']['LONG_LOOKBACK']
+
     def getPosProbThreshold(self):
         return self.yamlDict['MARKOV']['POS_PROB_THRESHOLD']
 
-    def getTPReturn(self):
-        return self.yamlDict['MARKOV']['TP_RETURN']
+    def getUBReturn(self):
+        return self.yamlDict['MARKOV']['UB_RETURN']
 
-    def getSLReturn(self):
-        sl = self.yamlDict['MARKOV']['SL_RETURN']
+    def getLBReturn(self):
+        sl = self.yamlDict['MARKOV']['LB_RETURN']
         if sl == 'auto':
-            sl = -self.getTPReturn()
+            sl = -self.getUBReturn()
         return sl
 
     def getNumPartitions(self):
@@ -33,3 +36,6 @@ class MarkovConfig(object):
 
     def getOversellThd(self):
         return self.yamlDict['MARKOV']['OVERSELL_THD']
+
+    def getSteps(self):
+        return self.yamlDict['MARKOV']['STEPS']

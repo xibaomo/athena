@@ -1,11 +1,13 @@
 MARKOV:
-    PROB_CAL_TYPE: 2 # 0 - open price track, 1 - transmat, 2 - solve eqn
-    NUM_PARTITIONS: 601 # number of partitions between tp & sl returns. Only for PROB_CAL_TYPE=2
+    PROB_CAL_TYPE: 3 # 0 - open price track, 1 - transmat, 2 - solve eqn, 3 - first hit prob
+    NUM_PARTITIONS: 601 # number of partitions between tp & sl returns. Only for PROB_CAL_TYPE=2,3
 
 #----------- modifiable parameters -------------
-    LOOKBACK: 1440
-    TP_RETURN:  0.01
-    SL_RETURN:  auto  # 'auto' gives -TP_RETURN
+    LOOKBACK: 200
+    LONG_LOOKBACK: 3000
+    UB_RETURN:  0.008
+    LB_RETURN:  auto  # 'auto' gives -UB_RETURN
+    STEPS: 100
 
-    OVERBUY_THD: 0.85
+    OVERBUY_THD: 0.75
     OVERSELL_THD: 0.15
