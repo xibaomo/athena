@@ -7,6 +7,7 @@ from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit
 from scipy.stats import skew,kurtosis
 from scipy.optimize import fsolve
+import matplotlib.pyplot as plt
 DATE_KEY = '<DATE>'
 TIME_KEY = '<TIME>'
 OPEN_KEY = '<OPEN>'
@@ -192,17 +193,24 @@ class CDFLaplace(object):
     def __init__(self,rtn):
         sk = skew(rtn)
         # pdb.set_trace()
-        if sk > 2:
-            self.kappa = 0.01
-            print("skewness {} > 2, kappa set to 0.01".format(sk))
+        if sk >= 2:
+            rtn = np.sort(rtn)
+            rtn = rtn[:-1]
+            # self.kappa = 0.01
+            # print("skewness {} > 2, kappa set to 0.01".format(sk))
 
-        elif sk < -2:
-            self.kappa = 10
-        else:
-            fs = lambda x: 2*(1-x**6) - sk*(x**4+1)**(3/2)
-            ks = fsolve(fs,[2])
-            self.kappa = ks[0]
-            print("ckeck kappa root: ", fs(self.kappa))
+        if sk <= -2:
+            # self.kappa = 10
+            rtn = np.sort(rtn)
+            rtn = rtn[1:]
+
+        sk = skew(rtn)
+        if sk >=2 or sk <= -2:
+            pdb.set_trace()
+        fs = lambda x: 2*(1-x**6) - sk*(x**4+1)**(3/2)
+        ks = fsolve(fs,[2])
+        self.kappa = ks[0]
+        print("ckeck kappa root: ", fs(self.kappa))
         sd = np.std(rtn)
         # pdb.set_trace()
         self.lmb = np.sqrt((1+self.kappa**4)/self.kappa**2/sd**2)

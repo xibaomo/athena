@@ -6,6 +6,7 @@ import pandas as pd
 from scipy.optimize import minimize
 from sklearn.feature_selection import mutual_info_regression
 from statsmodels.tsa.stattools import adfuller
+from scipy.stats import skew,kurtosis
 import pdb
 
 df = pd.DataFrame()
@@ -164,7 +165,7 @@ if __name__ == "__main__":
     ymlfile = sys.argv[2]
     tar_time = sys.argv[3] + ' ' + sys.argv[4]
 
-    odf = pd.read_csv(csvfile,sep=',')
+    odf = pd.read_csv(csvfile,sep='\t')
     loadConfig(ymlfile)
     ts = pd.to_datetime(odf['<DATE>'] + " " + odf['<TIME>'])
 
@@ -206,6 +207,8 @@ if __name__ == "__main__":
     p0=odf['<OPEN>'][tarid]
 
     lsig = []
+    kh=-1
+    sk = []
     lookback = mkvconf.getLookback()
     for i in range(00, ftu):
         tm = odf['<DATE>'][tarid+i] + " " + odf['<TIME>'][tarid+i]
@@ -217,18 +220,23 @@ if __name__ == "__main__":
         hist_end = tarid+i
         if hist_end >= len(odf):
             break
+        kh+=1
         hist_start = hist_end - lookback
         # prop = mkvcal.compWinProb(hist_start,hist_end,tp,-tp)
         prob_buy,prob_sell = mkvcal.comp1stHitProb(hist_start,hist_end,tp,-tp,mkvconf.getSteps())
         pbs.append(prob_buy)
         pss.append(prob_sell)
+        # p = odf['<OPEN>'].values[hist_start:hist_end+1]
+        # rtn = np.diff(np.log(p))
+        # sw = skew(rtn)
+        # sk.append(sw)
         pc.append(odf['<OPEN>'][hist_end]/p0-1)
-        lpb,lps = mkvcal.comp1stHitProb(hist_end-mkvconf.getLongLookback(),hist_end,tp,-tp,mkvconf.getSteps())
-        lsg = lpb/(lpb+lps)
-        lsig.append(lsg)
+        # lpb,lps = mkvcal.comp1stHitProb(hist_end-mkvconf.getLongLookback(),hist_end,tp,-tp,mkvconf.getSteps())
+        # lsg = lpb/(lpb+lps)
+        # lsig.append(lsg)
         # pc.append(odf['<OPEN>'][hist_end])
 
-        print(odf['<DATE>'][hist_end],odf['<TIME>'][hist_end],prob_buy,prob_sell)
+        # print(odf['<DATE>'][hist_end],odf['<TIME>'][hist_end],prob_buy,prob_sell)
 
 
     # pc = odf['<OPEN>'].values[tarid-1000:tarid+ftu]
@@ -237,9 +245,14 @@ if __name__ == "__main__":
     fig,ax1 = plt.subplots()
     ax2 = ax1.twinx()
     ax2.plot(pbs/(pbs+pss),'b.-')
-    ax2.plot(lsig,'y.-')
+    # ax2.plot(pbs,'.-')
+
+    # ax2.plot(pbs/(pbs+pss),'b.-')
+    # ax2.plot(lsig,'y.-')
+    # ax2.plot(pbs,'b.-')
+    # ax2.plot(pss,'.-')
     
-    ax2.set_ylim([-.1,1.1])
+    # ax2.set_ylim([-.1,1.1])
     # ax2.plot(pss,'.-')
     ax1.plot((pc),'r.-')
     # ax2.plot([0,len(pbs)],[0.9,0.9])

@@ -280,6 +280,7 @@ class FirstHitProbCal(object):
 
         PT[npts,npts] = 1.
         PT[npts+1,npts+1] = 1.
+        # pdb.set_trace()
         idc = int((0-lb_rtn)/d)
         pup = self.firstHitProb(PT,steps,idc,npts)
         pdw = self.firstHitProb(PT,steps,idc, npts+1)

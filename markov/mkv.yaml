@@ -3,9 +3,9 @@ MARKOV:
     NUM_PARTITIONS: 601 # number of partitions between tp & sl returns. Only for PROB_CAL_TYPE=2,3
 
 #----------- modifiable parameters -------------
-    LOOKBACK: 200
-    LONG_LOOKBACK: 3000
-    UB_RETURN:  0.008
+    LOOKBACK: 60
+    LONG_LOOKBACK: 1000
+    UB_RETURN:  0.005
     LB_RETURN:  auto  # 'auto' gives -UB_RETURN
     STEPS: 100
 
