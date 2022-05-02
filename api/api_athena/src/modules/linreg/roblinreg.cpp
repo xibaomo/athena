@@ -22,7 +22,7 @@
 using namespace std;
 
 RobLRParam
-robLinreg(vector<real32>& vx, vector<real32>& vy, size_t start)
+robLinreg(vector<real64>& vx, vector<real64>& vy, size_t start)
 {
     const size_t dim = 2;
     const size_t len = vx.size() - start;

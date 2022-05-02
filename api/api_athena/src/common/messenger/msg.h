@@ -39,7 +39,7 @@ enum class MsgAct {
 
 /*****************************************************************************************
 *  Message uses an 1D char array to store
-    size_t   uint   int  size_t  size_t       Real / int []          char[]
+    size_t   uint   int  size_t  size_t       real64 / int []          char[]
    +-------+------+-----+-------+------+-----------------------+---------------+
    |       |      |     |       |      |                       |               |
    |msgSize|Action| tag | data  |cmmnt |         data          |    comment    |

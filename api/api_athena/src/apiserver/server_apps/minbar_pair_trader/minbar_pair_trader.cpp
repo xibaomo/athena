@@ -136,7 +136,7 @@ MinbarPairTrader::procMsg_PAIR_HIST_X(Message& msg)
     int nbars = pack.int32_vec[0];
     int bar_size = pack.int32_vec[1];
 
-    auto& v = pack.real32_vec;
+    auto& v = pack.real64_vec;
     m_ticksize_x = pack.real64_vec[0];
     m_tickval_x  = pack.real64_vec[1];
     size_t pm = 0;
@@ -166,7 +166,7 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg)
 
     m_ticksize_y = pack.real64_vec[0];
     m_tickval_y  = pack.real64_vec[1];
-    auto& v = pack.real32_vec;
+    auto& v = pack.real64_vec;
     size_t pm = 0;
     for ( int i = 0; i < nbars; i++ )
     {
@@ -188,8 +188,8 @@ MinbarPairTrader::procMsg_PAIR_HIST_Y(Message& msg)
     m_oracle->setLookback(m_mid_x.size());
 
 
-    Message outmsg(msg.getAction(), sizeof(real32), 0);
-    real32* p = (real32*)outmsg.getData();
+    Message outmsg(msg.getAction(), sizeof(real64), 0);
+    real64* p = (real64*)outmsg.getData();
     p[0] = -999.f;
 
     return outmsg;
@@ -199,7 +199,7 @@ Message
 MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
 {
     m_pairCount++;
-    Message outmsg(sizeof(real32), 0);
+    Message outmsg(sizeof(real64), 0);
     SerializePack pack;
     unserialize(msg.getComment(), pack);
 
@@ -253,7 +253,7 @@ MinbarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg)
     FXAct act = m_oracle->getDecision();
 
     outmsg.setAction(act);
-    real32* p = (real32*)outmsg.getData();
+    real64* p = (real64*)outmsg.getData();
     p[0] = m_oracle->getSlope();
 
     m_isRunning = m_oracle->isContinue();

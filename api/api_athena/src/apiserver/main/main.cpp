@@ -23,6 +23,7 @@ using namespace std;
 int main(int argc, char** argv)
 {
     Log(LOG_INFO) << "Athena api-server starts" <<std::endl;
+    PyRunner::getInstance().runAthenaPyFunc("pd_utils","hello",NULL);
 
     // argv[1] is config file
     if (argc < 2)

@@ -23,14 +23,14 @@
 #include "rptconf.h"
 #include "linreg/roblinreg.h"
 
-typedef std::unordered_map<String,real32> PTStatus;
+typedef std::unordered_map<String,real64> PTStatus;
 
 class RobustPairTrader : public ServerBaseApp {
 protected:
-    real32                  m_initBalance;
+    real64                  m_initBalance;
     RptConfig*              m_cfg;
-    std::vector<real32>     m_openX;
-    std::vector<real32>     m_openY;
+    std::vector<real64>     m_openX;
+    std::vector<real64>     m_openY;
     PTStatus                m_currStatus;
     size_t                  m_numPos;
 

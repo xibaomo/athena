@@ -46,7 +46,7 @@ Obsolete_minbar_tracker::processMsg(Message& msg)
         break;
     case FXAct::PROFIT:
         msgnew = procMsg_noreply(msg,[this](Message& m){
-        real32* pm = (real32*)m.getData();
+        real64* pm = (real64*)m.getData();
         Log(LOG_INFO) << "Total profit of current positions: " + to_string(pm[0]) <<std::endl;
         if (pm[0] < m_lowestProfit) m_lowestProfit = pm[0];
 
@@ -56,12 +56,12 @@ Obsolete_minbar_tracker::processMsg(Message& msg)
 
     case FXAct::CLOSE_POS:
         msgnew = procMsg_noreply(msg,[this](Message& m) {
-        real32* pm = (real32*)m.getData();
+        real64* pm = (real64*)m.getData();
         if (pm[0] > 0) m_revenue.push_back(pm[0]);
         else m_loss.push_back(pm[0]);
 
-        real32 rev = std::accumulate(m_revenue.begin(),m_revenue.end(),0.);
-        real32 loss = std::accumulate(m_loss.begin(),m_loss.end(),0.);
+        real64 rev = std::accumulate(m_revenue.begin(),m_revenue.end(),0.);
+        real64 loss = std::accumulate(m_loss.begin(),m_loss.end(),0.);
         Log(LOG_INFO) << "Earn: " + to_string(rev) <<std::endl;
         Log(LOG_INFO) << "Loss: " + to_string(loss) <<std::endl;
         Log(LOG_INFO) << "Net profit: " + to_string(rev + loss) <<std::endl;
@@ -80,7 +80,7 @@ Obsolete_minbar_tracker::procMsg_MINBAR(Message& msg)
     String timestr = msg.getComment();
     Log(LOG_INFO) << "New min bar arrives: " + timestr + " + 00:01" <<std::endl;
 
-    real32* pm = (real32*)msg.getData();
+    real64* pm = (real64*)msg.getData();
 
     m_allMinBars.emplace_back(timestr,pm[0],pm[1],pm[2],pm[3],pm[4]);
 
@@ -113,8 +113,8 @@ Obsolete_minbar_tracker::procMsg_HISTORY_MINBAR(Message& msg)
 
     int bar_size = pack.int32_vec[1];
 
-    real32* pm = &pack.real32_vec[0];
-    int nbars = msg.getDataBytes()/sizeof(real32)/bar_size;
+    real64* pm = &pack.real64_vec[0];
+    int nbars = msg.getDataBytes()/sizeof(real64)/bar_size;
     if (nbars != histLen) {
         Log(LOG_FATAL) << "No. of min bars inconsistent" <<std::endl;
     }
@@ -179,7 +179,7 @@ Obsolete_minbar_tracker::loadMinBarFromFile(const String& barFile)
     io::CSVReader<NUM_MINBAR_FIELDS> in(barFile);
     in.read_header(io::ignore_extra_column,"TIME","OPEN","HIGH","LOW","CLOSE","TICKVOL");
     String time;
-    real32 open,high,low,close;
+    real64 open,high,low,close;
     int32 tickvol;
     while(in.read_row(time,open,high,low,close,tickvol)) {
         m_allMinBars.emplace_back(time,open,high,low,close,tickvol);

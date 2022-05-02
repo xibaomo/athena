@@ -25,7 +25,7 @@
 class DecisionMaker;
 class MinbarPairTrader : public ServerBaseApp {
   protected:
-    real32              m_initBalance;
+    real64              m_initBalance;
     MptConfig*          m_cfg;
     std::vector<real64> m_x_ask;
     std::vector<real64> m_y_ask;

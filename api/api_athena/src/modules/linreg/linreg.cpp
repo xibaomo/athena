@@ -30,7 +30,7 @@ LRParam linreg(real64* xs, real64* ys, size_t n)
     return pm;
 }
 
-LRParam ordLinreg(std::vector<real32>& vx, std::vector<real32>& vy)
+LRParam ordLinreg(std::vector<real64>& vx, std::vector<real64>& vy)
 {
     int len = vx.size();
     real64* x = new real64[len];

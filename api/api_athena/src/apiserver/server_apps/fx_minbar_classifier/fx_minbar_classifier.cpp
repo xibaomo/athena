@@ -126,7 +126,7 @@ Message
 ForexMinBarClassifier::procMsg_MINBAR(Message& msg)
 {
     Log(LOG_INFO) << "New min bar arrives: " + msg.getComment() + " + 00:05 " <<std::endl;
-    Real* pm = (Real*)msg.getData();
+    real64* pm = (real64*)msg.getData();
 
     Log(LOG_INFO) << to_string(pm[0]) + " "
                   + to_string(pm[1]) + " "
@@ -136,11 +136,11 @@ ForexMinBarClassifier::procMsg_MINBAR(Message& msg)
 
     ActionType action;
     CPyObject pypred;
-    CPyObject pyopen = Py_BuildValue(REALFORMAT,pm[0]);
-    CPyObject pyhigh = Py_BuildValue(REALFORMAT,pm[1]);
-    CPyObject pylow  = Py_BuildValue(REALFORMAT,pm[2]);
-    CPyObject pyclose= Py_BuildValue(REALFORMAT,pm[3]);
-    CPyObject pytickvol=Py_BuildValue(REALFORMAT,pm[4]);
+    CPyObject pyopen = Py_BuildValue("d",pm[0]);
+    CPyObject pyhigh = Py_BuildValue("d",pm[1]);
+    CPyObject pylow  = Py_BuildValue("d",pm[2]);
+    CPyObject pyclose= Py_BuildValue("d",pm[3]);
+    CPyObject pytickvol=Py_BuildValue("d",pm[4]);
     CPyObject pytime = Py_BuildValue("s",msg.getComment().c_str());
 
     pypred = PyObject_CallMethod(m_buyPredictor,"classifyMinBar","(OOOOOO)",pyopen.getObject(),
@@ -178,10 +178,10 @@ ForexMinBarClassifier::procMsg_HISTORY_MINBAR(Message& msg)
 
     if (histLen >0) {
         int minbar_size = pack.int32_vec[1];
-        Real* pm = &pack.real32_vec[0];
+        real64* pm = &pack.real64_vec[0];
         CPyObject lst = PyList_New(histLen*minbar_size);
         for (int i=0; i < histLen*minbar_size; i++) {
-            PyList_SetItem(lst,i,Py_BuildValue(REALFORMAT,pm[i]));
+            PyList_SetItem(lst,i,Py_BuildValue("d",pm[i]));
         }
         CPyObject pylookback = Py_BuildValue("i",histLen);
         CPyObject pyminbarsize = Py_BuildValue("i",minbar_size);

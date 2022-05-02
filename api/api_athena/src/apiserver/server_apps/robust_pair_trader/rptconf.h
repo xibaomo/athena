@@ -39,24 +39,24 @@ public:
         return getKeyValue<String>(RPT_ROOT + "SYM_Y");
     }
 
-    std::vector<real32> getThresholdStd() {
-        return getKeyValue<std::vector<real32>>(RPT_ROOT + "THRESHOLD_STD");
+    std::vector<real64> getThresholdStd() {
+        return getKeyValue<std::vector<real64>>(RPT_ROOT + "THRESHOLD_STD");
     }
 
-    real32 getOutlierWeightRatio() {
-        return getKeyValue<real32>(RPT_ROOT + "OUTLIER_WEIGHT_RATIO");
+    real64 getOutlierWeightRatio() {
+        return getKeyValue<real64>(RPT_ROOT + "OUTLIER_WEIGHT_RATIO");
     }
 
     int getOutlierNumLimit() {
         return getKeyValue<int>(RPT_ROOT + "OUTLIER_NUM_LIMIT");
     }
 
-    real32 getStationaryPVLimit() {
-        return getKeyValue<real32>(RPT_ROOT + "STATIONARY_PV_LIMIT");
+    real64 getStationaryPVLimit() {
+        return getKeyValue<real64>(RPT_ROOT + "STATIONARY_PV_LIMIT");
     }
 
-    real32 getR2Limit() {
-        return getKeyValue<real32>(RPT_ROOT + "R2_LIMIT");
+    real64 getR2Limit() {
+        return getKeyValue<real64>(RPT_ROOT + "R2_LIMIT");
     }
 };
 #endif   /* ----- #ifndef _ROBUST_PAIRTRADER_CONF_H_  ----- */

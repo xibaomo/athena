@@ -25,18 +25,18 @@
 #include "linreg/linreg.h"
 #include <unordered_map>
 
-typedef std::unordered_map<String,real32> PairStatus;
+typedef std::unordered_map<String,real64> PairStatus;
 
 class MinBarPairTrader : public ServerBaseApp {
 protected:
 
-    std::unordered_map<String,std::vector<real32>> m_sym2hist;
+    std::unordered_map<String,std::vector<real64>> m_sym2hist;
 
     std::vector<MinBar> m_minbarX;
     std::vector<MinBar> m_minbarY;
 
-    std::vector<real32> m_openX;
-    std::vector<real32> m_openY;
+    std::vector<real64> m_openX;
+    std::vector<real64> m_openY;
 
     std::unordered_map<String,PairStatus> m_pairTracker;
 
@@ -80,7 +80,7 @@ public:
     Message processMsg(Message& msg);
 
     Message procMsg_ASK_PAIR(Message& msg);
-    void loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::vector<real32>& openvec);
+    void loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::vector<real64>& openvec);
 
     Message procMsg_PAIR_MIN_OPEN(Message& msg);
 
@@ -95,7 +95,7 @@ public:
     Message procMsg_PAIR_POS_PLACED(Message& msg);
     Message procMsg_PAIR_POS_CLOSED(Message& msg);
 
-    //real64 computePairCorr(std::vector<real32>& v1, std::vector<real32>& v2);
+    //real64 computePairCorr(std::vector<real64>& v1, std::vector<real64>& v2);
 
     /**
      * Linear regression of X & Y

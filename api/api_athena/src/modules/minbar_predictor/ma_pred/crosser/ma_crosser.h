@@ -25,17 +25,17 @@
 
 class MACrosser : public MABasePredictor {
     struct ActionRecord {
-        real32 long_ma;
-        real32 short_ma;
+        real64 long_ma;
+        real64 short_ma;
         FXAct action;
-        ActionRecord(real32 lma, real32 sma, FXAct ac) :
+        ActionRecord(real64 lma, real64 sma, FXAct ac) :
             long_ma(lma),short_ma(sma),action(ac){;}
     };
 
 protected:
-    std::vector<real32> m_median;
-    std::vector<real32> m_long_ma;
-    std::vector<real32> m_short_ma;
+    std::vector<real64> m_median;
+    std::vector<real64> m_long_ma;
+    std::vector<real64> m_short_ma;
 
     std::vector<ActionRecord> m_records;
 

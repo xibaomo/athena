@@ -20,7 +20,7 @@
 class ClientPredictor: public ClientBaseApp {
 public:
     ClientPredictor() {;}
-    Real* m_resultArray;
+    real64* m_resultArray;
 public:
     virtual ~ClientPredictor() {;}
 
@@ -43,7 +43,7 @@ public:
 /*
  * Send feature matrix to api server
  */
-    void sendFeatures(Real* fm, const Uint rows, const Uint cols);
+    void sendFeatures(real64* fm, const Uint rows, const Uint cols);
 
 /*
  * Wait until received message from api server
@@ -59,7 +59,7 @@ public:
  * Copy result to user's container
  * 'out' must be allocated beforehand by user
  */
-    void getResult(Real* out, int len);
+    void getResult(real64* out, int len);
     void execute() {;}
 
     void finish() {;}

@@ -44,28 +44,28 @@ public:
         return getKeyValue<int>(MPT_ROOT + "LR_LEN");
     }
 
-    real32 getLowThresholdStd() {
-        return getKeyValue<real32>(MPT_ROOT + "LOW_THRESHOLD_STD");
+    real64 getLowThresholdStd() {
+        return getKeyValue<real64>(MPT_ROOT + "LOW_THRESHOLD_STD");
     }
 
-    real32 getHighThresholdStd() {
-        return getKeyValue<real32>(MPT_ROOT + "HIGH_THRESHOLD_STD");
+    real64 getHighThresholdStd() {
+        return getKeyValue<real64>(MPT_ROOT + "HIGH_THRESHOLD_STD");
     }
 
-    real32 getCorrBaseline() {
-        return getKeyValue<real32>(MPT_ROOT + "CORR_BSL");
+    real64 getCorrBaseline() {
+        return getKeyValue<real64>(MPT_ROOT + "CORR_BSL");
     }
 
-    real32 getR2Baseline() {
-        return getKeyValue<real32>(MPT_ROOT + "R2_BSL");
+    real64 getR2Baseline() {
+        return getKeyValue<real64>(MPT_ROOT + "R2_BSL");
     }
 
     int getStationaryCheckLookback() {
         return getKeyValue<int>(MPT_ROOT + "STATIONARY_CHECK_LOOKBACK");
     }
 
-    real32 getStationaryPVLimit() {
-        return getKeyValue<real32>(MPT_ROOT + "STATIONARY_PV_LIMIT");
+    real64 getStationaryPVLimit() {
+        return getKeyValue<real64>(MPT_ROOT + "STATIONARY_PV_LIMIT");
     }
 
     int getSpreadMALookback() {

@@ -211,14 +211,14 @@ static void import_numpy()
 //        import_array();
 }
 bool
-test_coint(std::vector<real32>& v1, std::vector<real32>& v2, real32 pval)
+test_coint(std::vector<real64>& v1, std::vector<real64>& v2, real64 pval)
 {
     CPyObject lx = PyList_New(v1.size());
     CPyObject ly = PyList_New(v2.size());
-    CPyObject pv = Py_BuildValue("f",pval);
+    CPyObject pv = Py_BuildValue("d",pval);
     for (size_t i = 0; i < v1.size(); i++) {
-        PyList_SetItem(lx,i,Py_BuildValue("f",v1[i]));
-        PyList_SetItem(ly,i,Py_BuildValue("f",v2[i]));
+        PyList_SetItem(lx,i,Py_BuildValue("d",v1[i]));
+        PyList_SetItem(ly,i,Py_BuildValue("d",v2[i]));
     }
 
     auto& pyrun = PyRunner::getInstance();
@@ -250,7 +250,7 @@ test_coint(std::vector<real32>& v1, std::vector<real32>& v2, real32 pval)
 }
 
 bool
-__test_coint(std::vector<real32>& v1, std::vector<real32>& v2)
+__test_coint(std::vector<real64>& v1, std::vector<real64>& v2)
 {
     auto& pyrun=PyRunner::getInstance();
 

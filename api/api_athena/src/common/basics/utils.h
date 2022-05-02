@@ -40,11 +40,11 @@ namespace athena {
 
 struct SerializePack {
     std::vector<int>   int32_vec;
-    std::vector<float> real32_vec;
+//    std::vector<float> real32_vec;
     std::vector<double> real64_vec;
     std::vector<std::string> str_vec;
     std::vector<int>   int32_vec1;
-    std::vector<float> real32_vec1;
+//    std::vector<float> real32_vec1;
     std::vector<double> real64_vec1;
     std::vector<std::string> str_vec1;
     std::vector<mt5ulong> mt5ulong_vec;
@@ -52,11 +52,11 @@ struct SerializePack {
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version) {
         ar & int32_vec;
-        ar & real32_vec;
+//        ar & real32_vec;
         ar & real64_vec;
         ar & str_vec;
         ar & int32_vec1;
-        ar & real32_vec1;
+//        ar & real32_vec1;
         ar & real64_vec1;
         ar & str_vec1;
         ar & mt5ulong_vec;
@@ -237,7 +237,7 @@ computePairCorr(std::vector<T>& v1, std::vector<T>& v2) {
 }
 
 bool
-test_coint(std::vector<real32>& v1, std::vector<real32>& v2, real32 pval=0.01);
+test_coint(std::vector<real64>& v1, std::vector<real64>& v2, real64 pval=0.01);
 
 /**
  * Compute p-value of adf test (stationarity)

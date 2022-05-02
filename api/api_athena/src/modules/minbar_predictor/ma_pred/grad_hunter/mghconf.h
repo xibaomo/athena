@@ -53,8 +53,8 @@ public:
         return getKeyValue<int>(MA_HUNTER_ROOT + "TURN_POINT_OFFSET");
     }
 
-    real32 getSlopeZero() {
-        return getKeyValue<real32>(MA_HUNTER_ROOT + "SLOPE_ZERO");
+    real64 getSlopeZero() {
+        return getKeyValue<real64>(MA_HUNTER_ROOT + "SLOPE_ZERO");
     }
 
     real64 getFireOffSlope() {

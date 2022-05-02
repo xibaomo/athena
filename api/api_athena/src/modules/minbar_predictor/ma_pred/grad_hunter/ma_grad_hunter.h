@@ -27,10 +27,10 @@
 class  MAHunter : public MABasePredictor {
 protected:
 
-    std::vector<real32> m_median;
-    std::vector<real32> m_ma;
+    std::vector<real64> m_median;
+    std::vector<real64> m_ma;
 
-    std::vector<real32> m_records;
+    std::vector<real64> m_records;
 
     MahuntConfig* m_config;
     MAHunter(const String& cf, MACalculator* cal);
@@ -47,7 +47,7 @@ public:
     int predict(const String& ts, real64 new_open);
 
     void compLWMA();
-    real32 compALWMA(int lookback, size_t idx);
+    real64 compALWMA(int lookback, size_t idx);
 
     int findNearestTurnPoint(std::vector<real64>& curve);
 };

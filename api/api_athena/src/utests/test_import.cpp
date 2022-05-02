@@ -6,8 +6,9 @@
 #include "pyhelper.hpp"
 int main() {
 
-    String athenaHome = String(getenv("ATHENA_HOME"));
-    String p = athenaHome + "/minbar_classifier";
-    PyEnviron::getInstance().appendSysPath(p.c_str());
+//    String athenaHome = String(getenv("ATHENA_HOME"));
+//    String p = athenaHome + "/minbar_classifier";
+//    PyEnviron::getInstance().appendSysPath(p.c_str());
+    PyRunner::getInstance().runAthenaPyFunc("pd_utils","hello",NULL);
     return 0;
 }

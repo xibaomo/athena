@@ -30,7 +30,7 @@ struct LRParam {
 };
 
 LRParam linreg(real64* x, real64* y, size_t n);
-LRParam ordLinreg(std::vector<real32>& x, std::vector<real32>& y);
+LRParam ordLinreg(std::vector<real64>& x, std::vector<real64>& y);
 
 void linreg_est(LRParam& pm, real64 x, real64* yp, real64* sigma);
 

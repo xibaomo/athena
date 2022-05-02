@@ -48,6 +48,7 @@ public:
 
         std::string cmd = "sys.path.append(\'"+modulePath + "\')";
         PyRun_SimpleString(cmd.c_str());
+        PyRun_SimpleString("print(sys.path)");
 
         m_addedModulePaths.insert(modulePath);
     }

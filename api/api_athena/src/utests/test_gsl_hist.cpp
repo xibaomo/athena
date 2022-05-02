@@ -27,9 +27,9 @@ int main(int argc, char** argv)
 {
     io::CSVReader<3> in(argv[1]);
     in.read_header(io::ignore_extra_column,"x","y","spread");
-    real32 x,y,spread;
+    real64 x,y,spread;
 
-    vector<real32> xs,ys,sps;
+    vector<real64> xs,ys,sps;
     while(in.read_row(x,y,spread)) {
         xs.push_back(x);
         ys.push_back(y);

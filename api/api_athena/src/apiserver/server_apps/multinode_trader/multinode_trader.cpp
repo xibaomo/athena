@@ -42,7 +42,7 @@ MultinodeTrader::processMsg(Message& msg)
 Message
 MultinodeTrader::procMsg_ALL_SYM_OPEN(Message& msg)
 {
-    real32* pm = (real32*)msg.getData();
+    real64* pm = (real64*)msg.getData();
     String cmt = msg.getComment();
     vector<String> syms = splitString(cmt,",");
     syms.pop_back();

@@ -115,12 +115,12 @@ ServerPredictor::loadEngine(EngineType et, EngineCoreType ect, const String& mf)
 }
 
 void
-ServerPredictor::predict(Real* featureMatrix, const Uint rows, const Uint cols)
+ServerPredictor::predict(real64* featureMatrix, const Uint rows, const Uint cols)
 {
     // create python list to pass array
     CPyObject lst = PyList_New(rows*cols);
     for ( Uint i = 0; i < rows*cols; i++ ) {
-        PyList_SetItem(lst, i, Py_BuildValue(REALFORMAT, featureMatrix[i]));
+        PyList_SetItem(lst, i, Py_BuildValue("d", featureMatrix[i]));
     }
 
 //    CPyObject args = PyTuple_New(3);
@@ -189,7 +189,7 @@ Message
 ServerPredictor::procMsg_HISTORY(Message& msg)
 {
     Log(LOG_INFO) << "Msg of history data received" <<std::endl;
-    int len = msg.getDataBytes() / sizeof(Real);
+    int len = msg.getDataBytes() / sizeof(real64);
     if (msg.getComment() == "buy") {
         m_buyTicks.resize(len);
         memcpy(&m_buyTicks[0],msg.getData(),msg.getDataBytes());

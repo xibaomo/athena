@@ -32,15 +32,15 @@ public:
         return _ins;
     }
 
-    real32 getCorrBaseline() {
-        return getKeyValue<real32>(PAIRSELECT_ROOT + "CORR_BSL");
+    real64 getCorrBaseline() {
+        return getKeyValue<real64>(PAIRSELECT_ROOT + "CORR_BSL");
     }
 
     /**
      * Get p value for cointegration test
      */
-    real32 getCoIntPVal() {
-        return getKeyValue<real32>(PAIRSELECT_ROOT + "COINT_P_VAL");
+    real64 getCoIntPVal() {
+        return getKeyValue<real64>(PAIRSELECT_ROOT + "COINT_P_VAL");
     }
 };
 

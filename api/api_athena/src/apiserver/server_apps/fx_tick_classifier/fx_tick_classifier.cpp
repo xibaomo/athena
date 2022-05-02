@@ -122,11 +122,11 @@ ForexTickClassifier::procMsg_HISTORY(Message& msg)
 {
     Log(LOG_INFO) << "Msg of history data received" <<std::endl;
 
-    int len = msg.getDataBytes()/sizeof(Real);
+    int len = msg.getDataBytes()/sizeof(real64);
     CPyObject lst = PyList_New(len);
-    Real* pm = (Real*)msg.getData();
+    real64* pm = (real64*)msg.getData();
     for ( int i = 0; i < len; i++ ) {
-        PyList_SetItem(lst, i, Py_BuildValue(REALFORMAT, pm[i]));
+        PyList_SetItem(lst, i, Py_BuildValue("d", pm[i]));
     }
     if ( msg.getComment() == "buy" ) {
         PyObject_CallMethod(m_buyPredictor, (char*)"loadTicks","(O)",lst.getObject());
@@ -145,12 +145,12 @@ Message
 ForexTickClassifier::procMsg_TICK(Message& msg)
 {
     Log(LOG_DEBUG) << "New tick arrives" <<std::endl;
-    Real *pm = (Real*)msg.getData();
-    Real tick = pm[0];
+    real64 *pm = (real64*)msg.getData();
+    real64 tick = pm[0];
 
     ActionType action;
     CPyObject pypred;
-    CPyObject pytick = Py_BuildValue(REALFORMAT, tick);
+    CPyObject pytick = Py_BuildValue("d", tick);
     if ( msg.getComment() == "buy" ) {
         pypred = PyObject_CallMethod(m_buyPredictor, "classifyATick","(O)",pytick.getObject());
         action = (ActionType)FXAct::PLACE_BUY;

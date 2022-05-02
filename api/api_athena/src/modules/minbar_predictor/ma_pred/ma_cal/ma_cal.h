@@ -34,8 +34,8 @@ protected:
 public:
     virtual ~MACalculator() {;}
 
-    virtual void compAllMA(std::vector<real32>& arr, int lookback,std::vector<real32>& out) = 0;
-    virtual real32 compLatestMA(std::vector<real32>& arr, int lookback, size_t idx) = 0;
+    virtual void compAllMA(std::vector<real64>& arr, int lookback,std::vector<real64>& out) = 0;
+    virtual real64 compLatestMA(std::vector<real64>& arr, int lookback, size_t idx) = 0;
 };
 
 MACalculator* createMACalculator(MA_TYPE mt);

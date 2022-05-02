@@ -39,10 +39,10 @@ protected:
 
     std::vector<ActionRecord> m_actions;
 
-    std::vector<real32> m_revenue;
-    std::vector<real32> m_loss;
+    std::vector<real64> m_revenue;
+    std::vector<real64> m_loss;
 
-    real32 m_lowestProfit = 1.e6;
+    real64 m_lowestProfit = 1.e6;
 
     Obsolete_minbar_tracker(const String& cfgFile) : m_predictor(nullptr), m_mbtCfg(nullptr), ServerBaseApp(cfgFile){
         m_mbtCfg = &MbtConfig::getInstance();

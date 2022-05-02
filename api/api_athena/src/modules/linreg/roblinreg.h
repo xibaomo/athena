@@ -32,7 +32,7 @@ struct RobLRParam {
     real64 w_now;
 };
 
-RobLRParam robLinreg(std::vector<real32>& vx, std::vector<real32>& vy, size_t start=0);
+RobLRParam robLinreg(std::vector<real64>& vx, std::vector<real64>& vy, size_t start=0);
 RobLRParam robLinreg(real64* x, real64* y, size_t slen);
 
 #endif   /* ----- #ifndef _LINREG_ROBUST_LINREG_H_  ----- */

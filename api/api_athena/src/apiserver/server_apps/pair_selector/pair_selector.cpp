@@ -5,8 +5,7 @@ using namespace std;
 using namespace athena;
 
 Message
-PairSelector::processMsg(Message& msg)
-{
+PairSelector::processMsg(Message& msg) {
     Message outmsg;
 
     FXAct action = (FXAct)msg.getAction();
@@ -25,8 +24,7 @@ PairSelector::processMsg(Message& msg)
 }
 
 Message
-PairSelector::procMsg_ASK_PAIR(Message& msg)
-{
+PairSelector::procMsg_ASK_PAIR(Message& msg) {
     selectTopCorr();
 
     Message out;
@@ -34,27 +32,25 @@ PairSelector::procMsg_ASK_PAIR(Message& msg)
     return out;
 }
 Message
-PairSelector::procMsg_SYM_HIST_OPEN(Message& msg)
-{
+PairSelector::procMsg_SYM_HIST_OPEN(Message& msg) {
     SerializePack pack;
     unserialize(msg.getComment(),pack);
-    String sym = pack.str_vec[0];
+    String sym = pack.str_vec[0].substr(0,6);
 
     Log(LOG_INFO) << "Received history: " + sym <<std::endl;
-    Log(LOG_INFO) << "History length: " + to_string(pack.real32_vec.size()) <<std::endl;
+    Log(LOG_INFO) << "History length: " + to_string(pack.real64_vec.size()) <<std::endl;
 
     if (m_sym2hist.find(sym) != m_sym2hist.end()) {
         Log(LOG_ERROR) << "Duplicated symbol received: " + sym <<std::endl;
     }
 
-    m_sym2hist[sym] = std::move(pack.real32_vec);
+    m_sym2hist[sym] = std::move(pack.real64_vec);
     Message out;
     return out;
 }
 
 void
-PairSelector::selectTopCorr()
-{
+PairSelector::selectTopCorr() {
     Log(LOG_INFO) << "Total symbols received: " + to_string(m_sym2hist.size()) <<std::endl;
     vector<String> keys;
     for(const auto& kv : m_sym2hist) {
@@ -76,10 +72,10 @@ PairSelector::selectTopCorr()
             if (fabs(corr) > m_cfg->getCorrBaseline()) {
                 std::cout<<std::endl;
                 Log(LOG_INFO) << "Testing cointegration: " +  keys[i] + " vs " + keys[j] <<std::endl;
-                real32 pv = m_cfg->getCoIntPVal();
-                if (!test_coint(v1,v2,pv)) {
-                    continue;
-                }
+//                real64 pv = m_cfg->getCoIntPVal();
+//                if (!test_coint(v1,v2,pv)) {
+//                    continue;
+//                }
 
                 SymPair sp{keys[i],keys[j],corr};
                 m_topCorrSyms.push_back(sp);
@@ -96,4 +92,41 @@ PairSelector::selectTopCorr()
     }
 
     Log(LOG_INFO) << "Inspected pairs: " + to_string(k) <<std::endl;
+}
+
+void PairSelector::finish() {
+    PyObject* mod = PyImport_ImportModule("pd_utils");
+    if (!mod)
+        Log(LOG_FATAL) << "Failed to import module: " <<std::endl;
+
+    PyObject* func = PyObject_GetAttrString(mod,"addCol");
+    if(!func)
+        Log(LOG_FATAL) << "Failed to find py function: " <<std::endl;
+
+    int k=0;
+    for (auto& it : m_sym2hist) {
+            k++;
+        auto& v = it.second;
+        PyObject* lx = PyList_New(v.size());
+
+        for (size_t i = 0; i < v.size(); i++) {
+            PyList_SetItem(lx,i,Py_BuildValue("d",v[i]));
+        }
+
+        PyObject* header = Py_BuildValue("s",it.first.c_str());
+        PyObject* args = Py_BuildValue("(OO)",header,lx);
+        PyObject_CallObject(func,args);
+
+        Py_DECREF(args);
+        Py_DECREF(lx);
+        Py_DECREF(header);
+    }
+
+    Log(LOG_INFO) << "All syms added to pd dataframe: " << k <<endl;
+    PyObject* str = Py_BuildValue("s","sym_hist.csv");
+    PyObject* ag = Py_BuildValue("(O)",str);
+    PyRunner::getInstance().runAthenaPyFunc("pd_utils","dump_csv",ag);
+
+    Py_DECREF(str);
+
 }

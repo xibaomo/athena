@@ -40,7 +40,7 @@ RobustPairTrader::processMsg(Message& msg) {
         break;
     case FXAct::NUM_POS:
         outmsg = procMsg_noreply(msg,[this](Message& msg) {
-            real32* pm = (real32*)msg.getData();
+            real64* pm = (real64*)msg.getData();
             m_numPos = pm[0];
         });
         break;
@@ -90,7 +90,7 @@ RobustPairTrader::procMsg_PAIR_HIST_X(Message& msg) {
     int nbars = pack.int32_vec[0];
     int bar_size = pack.int32_vec[1];
 
-    real32* pm = &pack.real32_vec[0];
+    real64* pm = &pack.real64_vec[0];
     for (int i=0; i < nbars; i++) {
         m_openX.push_back(pm[0]);
         pm+=bar_size;
@@ -112,7 +112,7 @@ RobustPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
     int nbars = pack.int32_vec[0];
     int bar_size = pack.int32_vec[1];
 
-    real32* pm = &pack.real32_vec[0];
+    real64* pm = &pack.real64_vec[0];
     for (int i=0; i < nbars; i++) {
         m_openY.push_back(pm[0]);
         pm+=bar_size;
@@ -128,8 +128,8 @@ RobustPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
 
     linreg();
 
-    Message outmsg(msg.getAction(),sizeof(real32),0);
-    pm = (real32*)outmsg.getData();
+    Message outmsg(msg.getAction(),sizeof(real64),0);
+    pm = (real64*)outmsg.getData();
     pm[0] = m_currStatus["c1"];
     return outmsg;
 }
@@ -203,15 +203,15 @@ RobustPairTrader::linreg(size_t start) {
 Message
 RobustPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     // This function fits linear model with all past ticks even though they are outliers
-    Message outmsg(sizeof(real32),0);
+    Message outmsg(sizeof(real64),0);
     SerializePack pack;
     unserialize(msg.getComment(),pack);
 
-    real32* pm = &pack.real32_vec[0];
+    real64* pm = &pack.real64_vec[0];
     real64 x = pm[0];
     real64 y = pm[1];
-    real32 y_pv = pm[2];
-    real32 y_pd = pm[3];
+    real64 y_pv = pm[2];
+    real64 y_pd = pm[3];
     m_openX.push_back(x);
     m_openY.push_back(y);
 
@@ -232,7 +232,7 @@ RobustPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 
     Log(LOG_INFO) << "R2 = " + to_string(m_currStatus["r2"]) <<std::endl;
 
-    real32 sigma = m_currStatus["sigma"];
+    real64 sigma = m_currStatus["sigma"];
     Log(LOG_INFO) << "std = " + to_string(sigma) <<std::endl;
 
     m_currStatus["rms"] = m_currStatus["rms"]/y_pv*y_pd;
@@ -242,10 +242,10 @@ RobustPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
     real64 fac = err/m_currStatus["sigma"];
     Log(LOG_INFO) << " ====== err/std: " + to_string(fac) + " ======" <<std::endl;
 
-    pm = (real32*)outmsg.getData();
+    pm = (real64*)outmsg.getData();
     pm[0] = m_currStatus["c1"];
 
-    vector<real32> thd = m_cfg->getThresholdStd();
+    vector<real64> thd = m_cfg->getThresholdStd();
 
     if ( fac > thd[0] && fac < thd[1]) {
         outmsg.setAction(FXAct::PLACE_SELL);

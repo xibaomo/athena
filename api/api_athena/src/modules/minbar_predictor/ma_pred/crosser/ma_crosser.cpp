@@ -64,12 +64,12 @@ int
 MACrosser::predict(const String& ts, real64 new_open)
 {
     auto& mb = m_allMinBars->back();
-    real32 md = (mb.high + mb.low) *.5;
+    real64 md = (mb.high + mb.low) *.5;
     m_median.push_back(md);
 
-    real32 s_ma = m_maCal->compLatestMA(m_median,m_config->getShortLookBack(),
+    real64 s_ma = m_maCal->compLatestMA(m_median,m_config->getShortLookBack(),
                                         m_median.size()-1);
-    real32 l_ma = m_maCal->compLatestMA(m_median,m_config->getLongLookBack(),
+    real64 l_ma = m_maCal->compLatestMA(m_median,m_config->getLongLookBack(),
                                         m_median.size()-1);
     m_long_ma.push_back(l_ma);
     m_short_ma.push_back(s_ma);
@@ -85,7 +85,7 @@ MACrosser::predict(const String& ts, real64 new_open)
         return (int)action;
     }
 
-    real32 gap = m_long_ma.back() - m_short_ma.back();
+    real64 gap = m_long_ma.back() - m_short_ma.back();
     if ( fabs(gap) < m_config->getStartOffGap()) {
         action = FXAct::NOACTION;
         m_records.emplace_back(l_ma,s_ma,action);
@@ -107,11 +107,11 @@ MACrosser::predict(const String& ts, real64 new_open)
 int
 MACrosser::findNearestCross()
 {
-    real32 cs = m_long_ma.back() - m_short_ma.back(); //current status
+    real64 cs = m_long_ma.back() - m_short_ma.back(); //current status
     int id = m_long_ma.size()-2;
 
     while (id > 0) {
-        real32 ps = m_long_ma[id] - m_short_ma[id];
+        real64 ps = m_long_ma[id] - m_short_ma[id];
         if (ps * cs < 0)
             break;
         id--;

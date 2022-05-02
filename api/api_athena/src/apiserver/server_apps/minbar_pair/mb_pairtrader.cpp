@@ -76,7 +76,7 @@ MinBarPairTrader::procMsg_PAIR_POS_CLOSED(Message& msg) {
     }
 
     PairStatus& ps = m_pairTracker[key];
-    real32* pc = (real32*)msg.getData();
+    real64* pc = (real64*)msg.getData();
     ps["profit"] = pc[0];
 
     return outmsg;
@@ -102,7 +102,7 @@ MinBarPairTrader::procMsg_SYM_HIST_OPEN(Message& msg) {
         Log(LOG_ERROR) << "Duplicated symbol received: " + sym <<std::endl;
     }
 
-    m_sym2hist[sym] = std::move(pack.real32_vec);
+    m_sym2hist[sym] = std::move(pack.real64_vec);
 
     Message out;
     return out;
@@ -129,14 +129,14 @@ MinBarPairTrader::procMsg_PAIR_HIST_Y(Message& msg) {
 
     test_coint(m_openX,m_openY);
 
-    Message outmsg(msg.getAction(),sizeof(real32),0);
-    real32* pm = (real32*) outmsg.getData();
+    Message outmsg(msg.getAction(),sizeof(real64),0);
+    real64* pm = (real64*) outmsg.getData();
     pm[0] = m_linregParam.c1;
 
     return outmsg;
 }
 void
-MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::vector<real32>& openvec) {
+MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::vector<real64>& openvec) {
     SerializePack pack;
     unserialize(msg.getComment(),pack);
 
@@ -147,8 +147,8 @@ MinBarPairTrader::loadHistoryFromMsg(Message& msg, std::vector<MinBar>& v, std::
     }
 
     int bar_size = pack.int32_vec[1];
-    real32* pm = &pack.real32_vec[0];
-    int nbars = msg.getDataBytes()/sizeof(real32)/bar_size;
+    real64* pm = &pack.real64_vec[0];
+    int nbars = msg.getDataBytes()/sizeof(real64)/bar_size;
     if (nbars != histLen) {
         Log(LOG_FATAL) << "No. of min bars inconsistent" <<std::endl;
     }
@@ -299,18 +299,18 @@ MinBarPairTrader::compDistr(real64* data, int len, real64* mean_out, real64* sd_
 
 Message
 MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
-    Message outmsg(sizeof(real32),0);
+    Message outmsg(sizeof(real64),0);
 
     SerializePack pack;
     unserialize(msg.getComment(),pack);
 
-    real32* pm = &pack.real32_vec[0];
+    real64* pm = &pack.real64_vec[0];
     m_openX.push_back(pm[0]);
     m_openY.push_back(pm[1]);
     real64 x = pm[0];
     real64 y = pm[1];
-    real32 y_pv = pm[2]; // point digits
-    real32 y_pd = pm[3]; // point value in dollar
+    real64 y_pv = pm[2]; // point digits
+    real64 y_pd = pm[3]; // point value in dollar
 
     //dumpVectors("open_price.csv",m_openX,m_openY);
 
@@ -352,7 +352,7 @@ MinBarPairTrader::procMsg_PAIR_MIN_OPEN(Message& msg) {
 
     m_currStatus["err"] = fac;
     m_currStatus["spread"] = spread;
-    real32* pcm = (real32*)outmsg.getData();
+    real64* pcm = (real64*)outmsg.getData();
     pcm[0] = m_linregParam.c1;
 
     if ( fac > thd && fac < 3) {

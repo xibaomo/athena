@@ -59,15 +59,15 @@ int
 MAHunter::predict(const String& ts, real64 new_open)
 {
     auto& mb = m_allMinBars->back();
-    real32 md = (mb.high + mb.low)*.5;
+    real64 md = (mb.high + mb.low)*.5;
     m_median.push_back(md);
 
-    real32 ma = m_maCal->compLatestMA(m_median,m_config->getMALookback(),m_median.size()-1);
+    real64 ma = m_maCal->compLatestMA(m_median,m_config->getMALookback(),m_median.size()-1);
     m_ma.push_back(ma);
 
     m_records.push_back(ma);
 
-    vector<real32> ma_aux(m_ma.begin()+10000,m_ma.end());
+    vector<real64> ma_aux(m_ma.begin()+10000,m_ma.end());
 
 
     vector<real64> curve;
@@ -100,7 +100,7 @@ MAHunter::findNearestTurnPoint(vector<real64>& curve)
 {
     int id = curve.size() - 2;
     while(id>0) {
-        real32 c = curve[id];
+        real64 c = curve[id];
         if (c > curve[id+1] && c > curve[id-1]) {
             break;
         } else if(c < curve[id+1] && c < curve[id-1]) {
@@ -120,7 +120,7 @@ MAHunter::findNearestTurnPoint(vector<real64>& curve)
 //{
 //    int id =  m_ma.size()-2;
 //    while(id > 0) {
-//        real32 slope = (m_ma[id+1] - m_ma[id-1])/2.;
+//        real64 slope = (m_ma[id+1] - m_ma[id-1])/2.;
 //        if (fabs(slope) < m_config->getSlopeZero())
 //            return id;
 //        id--;

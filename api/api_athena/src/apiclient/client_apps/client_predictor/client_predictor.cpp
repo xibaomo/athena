@@ -42,10 +42,10 @@ ClientPredictor::sendEngineConfig(const String& modelfile)
 }
 
 void
-ClientPredictor::sendFeatures(Real* fm, const Uint rows, const Uint cols)
+ClientPredictor::sendFeatures(real64* fm, const Uint rows, const Uint cols)
 {
-    m_resultArray = new Real[rows];
-    int dataBytes = sizeof(Real) * rows * cols;
+    m_resultArray = new real64[rows];
+    int dataBytes = sizeof(real64) * rows * cols;
     int charBytes = sizeof(Uint) * 2;
     Message msg(dataBytes, charBytes);
     msg.setAction(PrdAction::PREDICT);
@@ -88,13 +88,13 @@ ClientPredictor::waitResult()
 void
 ClientPredictor::procResultMsg(Message& msg)
 {
-    Real* pm = (Real*)msg.getData();
+    real64* pm = (real64*)msg.getData();
     memmove((void*)m_resultArray, pm, msg.getDataBytes());
 }
 
 void
-ClientPredictor::getResult(Real* out, int len)
+ClientPredictor::getResult(real64* out, int len)
 {
-    memmove(out, m_resultArray, sizeof(Real)*len);
+    memmove(out, m_resultArray, sizeof(real64)*len);
     delete m_resultArray;
 }

@@ -28,8 +28,8 @@ protected:
     std::vector<CPyObject> m_buyEngines;
     std::vector<CPyObject> m_sellEngines;
 
-    std::vector<Real> m_buyTicks;
-    std::vector<Real> m_sellTicks;
+    std::vector<real64> m_buyTicks;
+    std::vector<real64> m_sellTicks;
     CPyObject m_engCreatorMod; // module for engine creator
     CPyObject m_mlEngMod;     // module for mlengine base
     CPyObject m_engineCoreMod; // module for mlengine core
@@ -74,7 +74,7 @@ public:
     /**
      * Predict upon input feature matrix
      */
-    void predict(Real* fm, const Uint n_samples, const Uint n_features);
+    void predict(real64* fm, const Uint n_samples, const Uint n_features);
 
     /**
      * Preparation:

@@ -31,7 +31,7 @@ class PairSelector : public ServerBaseApp {
 protected:
     PairSelectConfig* m_cfg;
 
-    std::unordered_map<String,std::vector<real32>> m_sym2hist;
+    std::unordered_map<String,std::vector<real64>> m_sym2hist;
     std::vector<SymPair> m_topCorrSyms;
 
     PairSelector(const String& cf) : ServerBaseApp(cf) {
@@ -54,9 +54,11 @@ public:
     Message procMsg_SYM_HIST_OPEN(Message& msg);
     Message procMsg_ASK_PAIR(Message& msg);
 
-    //bool test_coint(std::vector<real32>& v1, std::vector<real32>& v2);
+    //bool test_coint(std::vector<real64>& v1, std::vector<real64>& v2);
 
     void selectTopCorr();
+
+    void finish();
 
 };
 #endif   /* ----- #ifndef _MULTI_PAir_TRADER_H_  ----- */
