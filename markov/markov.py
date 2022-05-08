@@ -232,7 +232,7 @@ class MkvCalEqnSol(object):
         # pdb.set_trace()
         # print(C)
         tmp = I-C
-        det = np.linalg.det(tmp)
+        # det = np.linalg.det(tmp)
         # if np.linalg.det(tmp) == 0:
         #     pdb.set_trace()
         try:
@@ -247,12 +247,13 @@ class MkvCalEqnSol(object):
 
         idx = int((0-lb_rtn)/d)
         # print("Expected buy tp steps",steps[idx][0])
-        print("pr = {}, det = {}".format(pr[idx][0],det))
+        # print("pr = {}, det = {}".format(pr[idx][0],det))
         # return pr[idx][0],ps[idx][0],steps[idx][0]
         p = pr[idx][0]
+        sp = steps[idx][0]
         if p < 0:
             p = 0.
-        return p
+        return p,sp
 
 class FirstHitProbCal(object):
     def __init__(self,df,npts):

@@ -72,10 +72,10 @@ PairSelector::selectTopCorr() {
             if (fabs(corr) > m_cfg->getCorrBaseline()) {
                 std::cout<<std::endl;
                 Log(LOG_INFO) << "Testing cointegration: " +  keys[i] + " vs " + keys[j] <<std::endl;
-//                real64 pv = m_cfg->getCoIntPVal();
-//                if (!test_coint(v1,v2,pv)) {
-//                    continue;
-//                }
+                real64 pv = m_cfg->getCoIntPVal();
+                if (!test_coint(v1,v2,pv)) {
+                    continue;
+                }
 
                 SymPair sp{keys[i],keys[j],corr};
                 m_topCorrSyms.push_back(sp);

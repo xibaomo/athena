@@ -197,7 +197,8 @@ if __name__ == "__main__":
 
     # pdb.set_trace()
     tp = mkvconf.getUBReturn()
-    mkvcal = FirstHitProbCal(odf, mkvconf.getNumPartitions())
+    mkvcal = MkvCalEqnSol(odf,mkvconf.getNumPartitions())
+    # mkvcal = FirstHitProbCal(odf, mkvconf.getNumPartitions())
 
     ftu = int(sys.argv[-1])
     ftu = min(len(odf)-tarid,ftu)
@@ -208,7 +209,8 @@ if __name__ == "__main__":
 
     lsig = []
     kh=-1
-    sk = []
+    props=[]
+    steps = []
     lookback = mkvconf.getLookback()
     for i in range(00, ftu):
         tm = odf['<DATE>'][tarid+i] + " " + odf['<TIME>'][tarid+i]
@@ -222,10 +224,14 @@ if __name__ == "__main__":
             break
         kh+=1
         hist_start = hist_end - lookback
-        # prop = mkvcal.compWinProb(hist_start,hist_end,tp,-tp)
-        prob_buy,prob_sell = mkvcal.comp1stHitProb(hist_start,hist_end,tp,-tp,mkvconf.getSteps())
-        pbs.append(prob_buy)
-        pss.append(prob_sell)
+        prop,sp = mkvcal.compWinProb(hist_start,hist_end,tp,-tp)
+        props.append(prop)
+        vsp = tp/sp
+        steps.append(vsp)
+
+        # prob_buy,prob_sell = mkvcal.comp1stHitProb(hist_start,hist_end,tp,-tp,mkvconf.getSteps())
+        # pbs.append(prob_buy)
+        # pss.append(prob_sell)
         # p = odf['<OPEN>'].values[hist_start:hist_end+1]
         # rtn = np.diff(np.log(p))
         # sw = skew(rtn)
@@ -236,27 +242,22 @@ if __name__ == "__main__":
         # lsig.append(lsg)
         # pc.append(odf['<OPEN>'][hist_end])
 
-        # print(odf['<DATE>'][hist_end],odf['<TIME>'][hist_end],prob_buy,prob_sell)
+        print(odf['<DATE>'][hist_end],odf['<TIME>'][hist_end],prop,sp,kh)
 
 
     # pc = odf['<OPEN>'].values[tarid-1000:tarid+ftu]
-    pbs = np.array(pbs)
-    pss = np.array(pss)
-    fig,ax1 = plt.subplots()
-    ax2 = ax1.twinx()
-    ax2.plot(pbs/(pbs+pss),'b.-')
-    # ax2.plot(pbs,'.-')
+    # pbs = np.array(pbs)
+    # pss = np.array(pss)
+    fig,(ax1,ax2) = plt.subplots(2,1)
+    ax11 = ax1.twinx()
+    ax11.plot(steps,'y.-')
+    ax1.plot(pc,'r.-')
 
-    # ax2.plot(pbs/(pbs+pss),'b.-')
-    # ax2.plot(lsig,'y.-')
-    # ax2.plot(pbs,'b.-')
-    # ax2.plot(pss,'.-')
-    
-    # ax2.set_ylim([-.1,1.1])
-    # ax2.plot(pss,'.-')
-    ax1.plot((pc),'r.-')
-    # ax2.plot([0,len(pbs)],[0.9,0.9])
-    # ax2.plot([0, len(pbs)], [0.1, 0.1])
+    ax22 = ax2.twinx()
+    ax22.plot(props,'b.-')
+    ax2.plot(pc,'r.-')
+
+
     plt.title('lookback: ' + str(lookback) + 'minbar')
     plt.show()
 

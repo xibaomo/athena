@@ -189,28 +189,28 @@ class CDFCounter(object):
         ly = self.compCDF(lb)
         return uy - ly
 
+SKEWNESS_LIMIT=1.8
 class CDFLaplace(object):
-    def __init__(self,rtn):
+    def __init__(self,rtn0):
+        rtn = np.sort(rtn0)
         sk = skew(rtn)
-        # pdb.set_trace()
-        if sk >= 2:
-            rtn = np.sort(rtn)
+        l0 = len(rtn)
+        while sk >= SKEWNESS_LIMIT:
             rtn = rtn[:-1]
-            # self.kappa = 0.01
-            # print("skewness {} > 2, kappa set to 0.01".format(sk))
-
-        if sk <= -2:
-            # self.kappa = 10
-            rtn = np.sort(rtn)
+            sk = skew(rtn)
+        while sk <= -SKEWNESS_LIMIT:
             rtn = rtn[1:]
-
-        sk = skew(rtn)
-        if sk >=2 or sk <= -2:
+            sk = skew(rtn)
+        print("Filtered elements: ", l0 - len(rtn))
+        if l0 - len(rtn) > 2:
             pdb.set_trace()
+
         fs = lambda x: 2*(1-x**6) - sk*(x**4+1)**(3/2)
         ks = fsolve(fs,[2])
         self.kappa = ks[0]
-        print("ckeck kappa root: ", fs(self.kappa))
+        # print("ckeck kappa root: ", fs(self.kappa))
+        if abs(fs(self.kappa)) > .1:
+            pdb.set_trace()
         sd = np.std(rtn)
         # pdb.set_trace()
         self.lmb = np.sqrt((1+self.kappa**4)/self.kappa**2/sd**2)
