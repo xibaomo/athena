@@ -61,8 +61,8 @@
 			<Add directory="src/common" />
 			<Add directory="src/modules" />
 			<Add directory="/tools/include" />
-			<Add directory="/tools/lib/python3.8/site-packages/numpy/core/include" />
-			<Add directory="/tools/include/python3.8" />
+			<Add directory="/tools/lib/python3.9/site-packages/numpy/core/include" />
+			<Add directory="/tools/include/python3.9" />
 			<Add directory="src/apiserver/server_apps" />
 			<Add directory="/tools/software/tensorflow/current/include" />
 		</Compiler>
@@ -80,7 +80,7 @@
 			<Add option="-lgsl" />
 			<Add option="-lgslcblas" />
 			<Add option="-Wl,-Bdynamic" />
-			<Add option="-lpython3.8" />
+			<Add option="-lpython3.9" />
 			<Add option="-lpthread" />
 		</Linker>
 		<Unit filename="src/apiclient/client_apps/client_base_app/client_base_app.cpp">
@@ -327,10 +327,12 @@
 		<Unit filename="src/common/pyrunner/pyrunner.cpp">
 			<Option target="run_athena" />
 			<Option target="gsl_hist" />
+			<Option target="test_import" />
 		</Unit>
 		<Unit filename="src/common/pyrunner/pyrunner.h">
 			<Option target="run_athena" />
 			<Option target="gsl_hist" />
+			<Option target="test_import" />
 		</Unit>
 		<Unit filename="src/modules/fx_action/fx_action.h">
 			<Option target="run_athena" />

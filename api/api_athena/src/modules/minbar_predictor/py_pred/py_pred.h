@@ -1,6 +1,6 @@
 #pragma once
 #include "minbar_predictor/mb_base/mb_base_pred.h"
-#include <python3.8/Python.h>
+#include <Python.h>
 
 class MinbarPyPredictor : public MinBarBasePredictor {
 protected:

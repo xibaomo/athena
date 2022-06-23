@@ -2,7 +2,7 @@ import yaml
 
 class MarkovConfig(object):
     def __init__(self,cf):
-        self.yamlDict = yaml.load(open(cf))
+        self.yamlDict = yaml.load(open(cf),Loader=yaml.FullLoader)
 
     def getProbCalType(self):
         return self.yamlDict['MARKOV']['PROB_CAL_TYPE']
@@ -12,9 +12,6 @@ class MarkovConfig(object):
 
     def getLookback(self):
         return self.yamlDict['MARKOV']['LOOKBACK']
-
-    def getLongLookback(self):
-        return self.yamlDict['MARKOV']['LONG_LOOKBACK']
 
     def getPosProbThreshold(self):
         return self.yamlDict['MARKOV']['POS_PROB_THRESHOLD']
@@ -31,11 +28,20 @@ class MarkovConfig(object):
     def getNumPartitions(self):
         return self.yamlDict['MARKOV']['NUM_PARTITIONS']
 
-    def getOverbuyThd(self):
-        return self.yamlDict['MARKOV']['OVERBUY_THD']
+    def getBuyProb(self):
+        return self.yamlDict['MARKOV']['BUY_PROB']
 
-    def getOversellThd(self):
-        return self.yamlDict['MARKOV']['OVERSELL_THD']
+    def getSellProb(self):
+        return self.yamlDict['MARKOV']['SELL_PROB']
 
-    def getSteps(self):
-        return self.yamlDict['MARKOV']['STEPS']
+    def getSpeedLookback(self):
+        return self.yamlDict['MARKOV']['SPEED_LOOKBACK']
+
+    def getOpenPosSpeed(self):
+        return self.yamlDict['MARKOV']['OPEN_POS_SPEED']
+
+    def getPosIntervalMin(self):
+        return self.yamlDict['MARKOV']['POS_INTERVAL']
+
+    def getOffPeakSpeedScaler(self):
+        return self.yamlDict['MARKOV']['OFF_PEAKSPEED_SCALER']

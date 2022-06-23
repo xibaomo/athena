@@ -13,7 +13,9 @@ df = pd.DataFrame()
 pos_df = pd.DataFrame()
 mkvconf = None
 RTN = 0.
-LAST_MARKET_STATE = -1  # 0 - overbuy, 1 - oversell, 2 - other
+all_spds = []
+WAVE_START_ID = -1
+LAST_POS_TIME = None
 
 def loadConfig(cf):
     global mkvconf
@@ -57,7 +59,8 @@ def appendMinbar(dt, tm, op, hp, lp, cp, tkv):
     df = appendEntryToDataFrame(df, dt, tm, op, hp, lp, cp, tkv)
 
 def predict(new_time, new_open):
-    global df,mkvconf,RTN, pos_df, LAST_MARKET_STATE
+    global df,mkvconf,RTN, pos_df, all_spds, WAVE_START_ID,LAST_POS_TIME
+    nowtime = pd.to_datetime(new_time)
     # pdb.set_trace()
     # tmpdf = appendEntryToDataFrame(df,"","",new_open,0.,0.,0.,0)
     tarid = len(df)-1
@@ -82,58 +85,81 @@ def predict(new_time, new_open):
     tp = mkvconf.getUBReturn()
     sl = mkvconf.getLBReturn()
 
-    if mkvconf.getProbCalType() < 3:
-        prob_buy = mkvcal.compWinProb(hist_start, hist_end, tp, sl)
-        prob_sell = 1 - prob_buy
-    else:
-        prob_buy,prob_sell = mkvcal.comp1stHitProb(hist_start,hist_end,tp,sl,mkvconf.getSteps())
-
-    sig = prob_buy/(prob_sell+prob_buy)
-    print("buy prob = {}, sell prob = {}, sig = {} ".format(prob_buy,prob_sell,sig))
-
+    prob_buy,steps = mkvcal.compWinProb(hist_start,hist_end,tp,sl)
+    spd = tp/steps
+    all_spds.append(spd)
+    npts = mkvconf.getSpeedLookback()
+    grad = compSpeedGrad(all_spds,npts,3)
+    offscaler = mkvconf.getOffPeakSpeedScaler()
     act = 0 # no action
-    overbuy_thd = mkvconf.getOverbuyThd()
-    oversell_thd = mkvconf.getOversellThd()
+    ub_prob = mkvconf.getBuyProb()
+    lb_prob = mkvconf.getSellProb()
+    spd_thd = mkvconf.getOpenPosSpeed()
+    if WAVE_START_ID < 0:
+        ave_spd = 0.01/1440
+        if len(all_spds) > npts:
+            ave_spd = np.mean(all_spds[-npts:])
+        print("{}-ave speed: {} ".format(npts,ave_spd))
+        if spd > ave_spd and grad > 0:
+            WAVE_START_ID = len(all_spds) - 1
+            if prob_buy>= ub_prob:
+                act = 1 # long
+            elif prob_buy <= lb_prob:
+                act = 2 # short
+            else:
+                pass
 
-    prob_pos = prob_buy
-    CURRENT_MARKET_STATE = LAST_MARKET_STATE
-    if sig >= overbuy_thd:
-        CURRENT_MARKET_STATE = 0 # overbuy
-        act = 2
-    if sig <= oversell_thd:
-        CURRENT_MARKET_STATE = 1 # oversell
-        act = 1
+    else:
+        s = all_spds[WAVE_START_ID:]
+        high = np.max(s)
 
-    if act > 0:
-        lsig = compLongSig(mkvcal,mkvconf,hist_end,tp,sl)
-        if sig >= overbuy_thd and lsig >= overbuy_thd:
-            act = 0
-        if sig <= oversell_thd and lsig <= oversell_thd:
-            act = 0
+        if spd / high <= offscaler and grad < 0:
+            # pdb.set_trace()
+            print("start speed: {}, peak speed: {}".format(all_spds[WAVE_START_ID],high))
+            act = 30
+            WAVE_START_ID = -1
+        else:
+            dt = nowtime - LAST_POS_TIME
+            if dt.total_seconds()/60 < mkvconf.getPosIntervalMin():
+                act = 0
+            else:
+                if prob_buy>= ub_prob:
+                    act = 1 # long
+                elif prob_buy <= lb_prob:
+                    act = 2 # short
+                else:
+                    pass
 
-    if LAST_MARKET_STATE == -1:
-        LAST_MARKET_STATE = CURRENT_MARKET_STATE
-
-    if CURRENT_MARKET_STATE != LAST_MARKET_STATE:
-        LAST_MARKET_STATE = CURRENT_MARKET_STATE
-        act = 30+act  # 3 - close all
-    RTN = tp
-    if act % 10 !=0:
-        pos_df = registerPos(pos_df,new_time,act,tp,prob_buy,1-prob_buy,1.0,0)
+    print("prop = {}, spd = {}, grad = {}".format(prob_buy,spd,grad))
 
     print("action = ", act)
+
+    if act ==1 or act==2:
+        # pdb.set_trace()
+        registerPos(new_time,act,prob_buy,spd)
+        LAST_POS_TIME = nowtime
+
     return act
+
 def finalize():
     global pos_df,df,mkvconf
     df.to_csv("all_minbars.csv",index=False)
     pos_df.to_csv("online_decision.csv",index=False)
 
-    if mkvconf.isBuyOnly() == 1:
-        print("Ave prob of positions: ", np.mean(pos_df['PROB_BUY'].values))
-
-    pass
-
 ################ END OF PUBLIC API #############
+def compSpeedGrad(spds,n_pts,order):
+    # pdb.set_trace()
+    if len(spds) < n_pts:
+        return 0
+    allspeeds  = np.array(spds)
+    y = allspeeds[-n_pts:]
+    x = np.array([i for i in range(n_pts)])
+    p = np.polyfit(x,y,order)
+    x0 = n_pts-1
+    dx = 1e-4
+    g = (np.polyval(p,x0+dx) - np.polyval(p,x0-dx))/2./dx
+    return g
+
 def compLongSig(mkvcal,mkvconf,tarid,ub_rtn,lb_rtn):
     llk = mkvconf.getLongLookback()
     lpb,lps = mkvcal.comp1stHitProb(tarid-llk,tarid,ub_rtn,lb_rtn,mkvconf.getSteps())
@@ -143,19 +169,15 @@ def compLongSig(mkvcal,mkvconf,tarid,ub_rtn,lb_rtn):
 def getReturn():
     global RTN
     return RTN
-def registerPos(df,tm,act,rtn,prob_buy,prob_sell,prob_sum,steps):
+def registerPos(tm,act,prob_buy,spd):
     global pos_df
     dict = {"TIME" : [tm],
             "ACTION" : [act],
-            "TP_RETURN": [round(rtn,4)],
             "PROB_BUY": [round(prob_buy,4)],
-            "PROB_SELL": [round(prob_sell,4)],
-            "PROB_SUM": [round(prob_sum,4)],
-            "EXP_STEPS": [round(steps)]}
+            "SPEED": [spd]}
     df2 = pd.DataFrame(dict)
     # pdb.set_trace()
-    df3 = pd.concat([df, df2], ignore_index=True)
-    return df3
+    pos_df = pd.concat([pos_df, df2], ignore_index=True)
 
 if __name__ == "__main__":
     
@@ -165,7 +187,7 @@ if __name__ == "__main__":
     ymlfile = sys.argv[2]
     tar_time = sys.argv[3] + ' ' + sys.argv[4]
 
-    odf = pd.read_csv(csvfile,sep='\t')
+    odf = pd.read_csv(csvfile,sep=',')
     loadConfig(ymlfile)
     ts = pd.to_datetime(odf['<DATE>'] + " " + odf['<TIME>'])
 
@@ -210,7 +232,8 @@ if __name__ == "__main__":
     lsig = []
     kh=-1
     props=[]
-    steps = []
+    spds = []
+    grads = []
     lookback = mkvconf.getLookback()
     for i in range(00, ftu):
         tm = odf['<DATE>'][tarid+i] + " " + odf['<TIME>'][tarid+i]
@@ -226,8 +249,12 @@ if __name__ == "__main__":
         hist_start = hist_end - lookback
         prop,sp = mkvcal.compWinProb(hist_start,hist_end,tp,-tp)
         props.append(prop)
+        # _,sp = mkvcal.compWinProb(hist_end-60,hist_end,tp,-tp)
         vsp = tp/sp
-        steps.append(vsp)
+        spds.append(vsp)
+
+        g = compSpeedGrad(spds,mkvconf.getSpeedLookback(),3)
+        grads.append(g)
 
         # prob_buy,prob_sell = mkvcal.comp1stHitProb(hist_start,hist_end,tp,-tp,mkvconf.getSteps())
         # pbs.append(prob_buy)
@@ -250,7 +277,7 @@ if __name__ == "__main__":
     # pss = np.array(pss)
     fig,(ax1,ax2) = plt.subplots(2,1)
     ax11 = ax1.twinx()
-    ax11.plot(steps,'y.-')
+    ax11.plot(spds,'y.-')
     ax1.plot(pc,'r.-')
 
     ax22 = ax2.twinx()
