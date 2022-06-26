@@ -11,9 +11,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-mkv_path = os.environ['ATHENA_HOME']+'/py_algos/mkv_svm'
+mkv_path = os.environ['ATHENA_HOME']+'/py_algos/markov'
 sys.path.append(mkv_path)
-from conf import *
+from mkvsvmconf import *
+from markov import *
 
 TM_KEY = 'DATETIME'
 
@@ -88,7 +89,16 @@ def labelHours(df,sid,eid,rtn):
         
     return np.array(labels),np.array(tid)
         
-
+def plot_labels(ffm,flbs):
+    for i in range(len(flbs)):
+        if flbs[i] == 0:
+            plt.plot(ffm[i,0],ffm[i,1],'gs')
+        if flbs[i] == 1:
+            plt.plot(ffm[i,0],ffm[i,1],'ro',fillstyle='none')
+        if flbs[i] == 2:
+            plt.plot(ffm[i,0],ffm[i,1],'bx')
+        if flbs[i] == 3:
+            plt.plot(ffm[i,0],ffm[i,1],'d')
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: {} <csv> <mkv.yaml> <date> <time> <ndays>".format(sys.argv[0]))
@@ -102,7 +112,7 @@ if __name__ == "__main__":
     print(start_time)
     
     df = pd.read_csv(csvfile,sep='\t')
-    mkvconf = MarkovConfig(ymlfile)
+    mkvconf = MkvSvmConfig(ymlfile)
     
     sid,eid = find_range(df, start_time, ndays)
     if sid < 0:
@@ -126,10 +136,12 @@ if __name__ == "__main__":
         fm[i,1] = rtn/sp 
         
     print('features done')
-    np.save('fm.npy',fm)
-    np.save('labels.npy',labels)
+    np.save(mkvconf.getFeatureFile(),fm)
+    np.save(mkvconf.getLabelFile(),labels)
     
-    print('fm.npy & labels.npy saved')
+    print('{} & {} saved'.format(mkvconf.getFeatureFile(),mkvconf.getLabelFile()))
+    plot_labels(fm, labels)
+    plt.show()
     
 
         

@@ -5,12 +5,16 @@ Created on Tue Jun 21 00:20:35 2022
 
 @author: naopc
 """
+import sys,os
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import svm
 from sklearn.preprocessing import StandardScaler
 import pickle
-MIN_SPEED = 4.5E-6
+mkv_path = os.environ['ATHENA_HOME']+'/py_algos/mkv_svm'
+sys.path.append(mkv_path)
+from mkvsvmconf import *
+
 def plot_svc_decision_function(model, ax=None, plot_support=True):
     """Plot the decision function for a 2D SVC"""
     if ax is None:
@@ -56,17 +60,21 @@ def eval_model(model, x_test, y_test):
     print("accuracy: ",acc)
     
 if __name__ == "__main__":
-    fm = np.load('fm.npy')
-    labels = np.load('labels.npy')
+    if len(sys.argv)  < 2:
+        print("Usage: {} <mkv.yaml>".format(sys.argv[0]))
+        sys.exit(1)
+        
+    mkvconf = MkvSvmConfig(sys.argv[1])
     
+        
+    fm = np.load(mkvconf.getFeatureFile())
+    labels = np.load(mkvconf.getLabelFile())
+    
+    MIN_SPEED = float(mkvconf.getMinSpeed())
     idx = fm[:,1] >= MIN_SPEED
     
     ffm = fm[idx,:]
     flbs = labels[idx]
-    
-    # idx = ffm[:,0] <0.5
-    # ffm = ffm[idx,:]
-    # flbs = flbs[idx]
     
     scaler = StandardScaler()
     ffm = scaler.fit_transform(ffm)
@@ -74,10 +82,16 @@ if __name__ == "__main__":
     
     plot_labels(ffm, flbs)
     
-    clf = svm.SVC(kernel='rbf', C=1e3)
+    C = float(mkvconf.getSvm_C())
+    clf = svm.SVC(kernel='rbf', C=C)
     clf.fit(ffm,flbs)
-    pickle.dump(clf, open("svm.pkl", 'wb'))
-    print("model saved: svm.pkl")
+    
+    mf = mkvconf.getModelFile()
+    sf = mkvconf.getScalerFile()
+    pickle.dump(clf, open(mf, 'wb'))
+    print("model saved: ",mf)
+    pickle.dump(scaler, open(sf, 'wb'))
+    print("scaler saved: ",sf)
     plot_svc_decision_function(clf)
     
     eval_model(clf,ffm,flbs)
