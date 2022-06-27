@@ -94,9 +94,9 @@ def plot_labels(ffm,flbs):
         if flbs[i] == 0:
             plt.plot(ffm[i,0],ffm[i,1],'gs')
         if flbs[i] == 1:
-            plt.plot(ffm[i,0],ffm[i,1],'ro',fillstyle='none')
+            plt.plot(ffm[i,0],ffm[i,1],'go',fillstyle='none')
         if flbs[i] == 2:
-            plt.plot(ffm[i,0],ffm[i,1],'bx')
+            plt.plot(ffm[i,0],ffm[i,1],'rx')
         if flbs[i] == 3:
             plt.plot(ffm[i,0],ffm[i,1],'d')
 if __name__ == "__main__":

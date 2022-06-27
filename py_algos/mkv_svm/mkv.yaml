@@ -1,8 +1,8 @@
 MARKOV_SVM:
-    NUM_PARTITIONS: 601 # number of partitions between tp & sl returns. Only for PROB_CAL_TYPE=2,3
+    NUM_PARTITIONS: 601 # number of partitions between UB & LB returns. 
 
 #----------- modifiable parameters -------------
-    LOOKBACK: 2880
+    LOOKBACK: 2880 # unit: minute
     UB_RETURN:  0.01
     LB_RETURN:  auto  # 'auto' gives -UB_RETURN
     
@@ -11,6 +11,8 @@ MARKOV_SVM:
 
     MIN_SPEED: 4.5E-6
     
-    SVM_C: 1E3
+    SVM_C: 1E3  # The larger, the more weight on misclassfied points
     MODEL_FILE: svm.pkl
     SCALER_FILE: scaler.pkl
+    
+    MIN_POS_INTERVAL: 60  # unit: minute. The minimal interval between positions

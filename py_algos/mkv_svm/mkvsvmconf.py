@@ -42,6 +42,9 @@ class MkvSvmConfig(object):
     
     def getSvm_C(self):
         return self.yamlDict['MARKOV_SVM']['SVM_C']
+    
+    def getMinPosInterval(self):
+        return self.yamlDict['MARKOV_SVM']['MIN_POS_INTERVAL']
 
 
 
