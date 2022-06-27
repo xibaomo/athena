@@ -22,6 +22,7 @@
 #include "minbar_predictor/builtin_ml/builtin_ml.h"
 #include "minbar_predictor/py_pred/py_pred.h"
 #include "minbar_predictor/markov/markov_pred.h"
+#include "minbar_predictor/mkvsvm/mkvsvm.h"
 using namespace std;
 using namespace athena;
 
@@ -42,6 +43,13 @@ createMBPredictor(int type,MbtConfig* cfg) {
     }
         break;
     case 2: {
+        p = new MkvSvmPredictor();
+        String cf = cfg->getKeyValue<String>("MINBAR_TRACKER/BUILTIN_MKVSVM/CONFIG_FILE");
+        p->setPredictorFile("",cf);
+
+    }
+        break;
+    case 3: {
         p = new MinbarPyPredictor();
         Log(LOG_FATAL) << "Customized python predictor not supported" <<std::endl;
         break;

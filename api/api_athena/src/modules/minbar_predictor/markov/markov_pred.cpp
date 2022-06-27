@@ -5,7 +5,7 @@
 using namespace std;
 
 MarkovPredictor::MarkovPredictor() : m_mod(nullptr) {
-    String modPath = String(getenv("ATHENA_HOME")) + "/markov";
+    String modPath = String(getenv("ATHENA_HOME")) + "/py_algos/markov";
     PyEnviron::getInstance().appendSysPath(modPath);
     Log(LOG_INFO) << "Python module path appended: " << modPath << endl;
 

@@ -28,7 +28,7 @@ df = pd.DataFrame()
 pos_df = pd.DataFrame()
 mkvconf = None
 RTN = 0.
-LAST_POS_TIME = None
+LAST_DECISION_TIME = None
 scaler = None
 model = None
 
@@ -77,17 +77,18 @@ def init(dates, tms, opens, highs, lows, closes, tkvs):
     scaler = pickle.load(open(sf,'rb'))
 
 def predict(new_time, new_open):
-    global df,mkvconf,RTN, pos_df, LAST_POS_TIME,model,scaler
+    global df,mkvconf,RTN, pos_df, LAST_DECISION_TIME,model,scaler
     
     ts = pd.to_datetime(new_time)
     df = appendEntryToDataFrame(df, ts, new_open, -1, -1, -1, -1)
     nowtime = pd.to_datetime(new_time)
 
-    if LAST_POS_TIME is not None:
-        dt = nowtime - LAST_POS_TIME 
+    if LAST_DECISION_TIME is not None:
+        dt = nowtime - LAST_DECISION_TIME 
         if dt.total_seconds()/60 < mkvconf.getMinPosInterval():
             return 0
-        
+    
+    LAST_DECISION_TIME = nowtime
     tarid = len(df)-1
     lookback = mkvconf.getLookback()
     hist_start = tarid - lookback
@@ -120,7 +121,7 @@ def predict(new_time, new_open):
     if act ==1 or act==2:
         # pdb.set_trace()
         registerPos(new_time,act,prob_buy,spd)
-        LAST_POS_TIME = nowtime
+        
 
     return act
 
