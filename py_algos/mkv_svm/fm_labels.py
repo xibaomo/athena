@@ -50,7 +50,7 @@ def find_range(df,stm,ndays):
     return sid,eid
     
 
-def labelHours(df,sid,eid,rtn):
+def labelHours(df,sid,eid,rtn,lifetime_days):
     labels = []
     tid= []
     for i in range(sid,eid):
@@ -76,7 +76,7 @@ def labelHours(df,sid,eid,rtn):
                 break 
             else:
                 dt = df[TM_KEY][idx] - df[TM_KEY][i]
-                if dt.total_seconds() >= 3600*24*7:
+                if dt.total_seconds() >= 3600*24*lifetime_days:
                     if p0 > rh:
                         lb = 2
                     if p0 < rl:
@@ -121,19 +121,24 @@ if __name__ == "__main__":
         
     rtn = mkvconf.getUBReturn()
         
-    labels,hourids = labelHours(df, sid, eid, rtn)   
+    labels,hourids = labelHours(df, sid, eid, rtn, mkvconf.getPosLifetime())
     
     ##### markov
     mkvcal = MkvCalEqnSol(df,mkvconf.getNumPartitions())
     
     lookback = mkvconf.getLookback()
-    fm = np.zeros((len(labels),2))
+    fm = np.zeros((len(labels),4))
     for i in range(len(hourids)):
         hist_end = hourids[i] + 1
         hist_start = hist_end - lookback
         prop,sp = mkvcal.compWinProb(hist_start,hist_end,rtn,-rtn)
         fm[i,0] = prop
-        fm[i,1] = rtn/sp 
+        fm[i,1] = rtn/sp
+
+        ops = df['<OPEN>'].values[hist_start:hist_end]
+        rts = np.diff(np.log(ops))
+        fm[i,2] = sum(rts)
+        fm[i,3] = np.std(rts)
         
     print('features done')
     np.save(mkvconf.getFeatureFile(),fm)

@@ -1,18 +1,19 @@
 MARKOV_SVM:
-    NUM_PARTITIONS: 601 # number of partitions between UB & LB returns. 
+    NUM_PARTITIONS: 501 # number of partitions between UB & LB returns.
+    POSITION_LIFETIME: 5 #days
 
-#----------- modifiable parameters -------------
-    LOOKBACK: 2880 # unit: minute
+#----------- Labeling used -------------
+    LOOKBACK: 4320 #unit: minute
     UB_RETURN:  0.01
     LB_RETURN:  auto  # 'auto' gives -UB_RETURN
     
     FEATURE_FILE: fm.npy
     LABEL_FILE: labels.npy
-
-    MIN_SPEED: 4.5E-6
+# ------------- cal_dtree -----------------
+    MIN_SPEED: 5.0e-6
     
-    SVM_C: 1E3  # The larger, the more weight on misclassfied points
-    MODEL_FILE: svm.pkl
+    SVM_C: 1  # The larger, the more weight on misclassfied points
+    MODEL_FILE: dtree.pkl
     SCALER_FILE: scaler.pkl
     
     MIN_POS_INTERVAL: 60  # unit: minute. The minimal interval between positions

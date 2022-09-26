@@ -89,29 +89,35 @@ def predict(new_time, new_open):
             return 0
     
     LAST_DECISION_TIME = nowtime
-    tarid = len(df)-1
-    lookback = mkvconf.getLookback()
-    hist_start = tarid - lookback
-    hist_end = tarid
+    # tarid = len(df)-1
+    # lookback = mkvconf.getLookback()
+    # hist_start = tarid - lookback
+    # hist_end = tarid
 
-    mkvcal = MkvCalEqnSol(df,mkvconf.getNumPartitions())
+    # mkvcal = MkvCalEqnSol(df,mkvconf.getNumPartitions())
 
-    tp = mkvconf.getUBReturn()
-    sl = mkvconf.getLBReturn()
+    # tp = mkvconf.getUBReturn()
+    # sl = mkvconf.getLBReturn()
 
-    prob_buy,steps = mkvcal.compWinProb(hist_start,hist_end,tp,sl)
-    spd = tp/steps
+    # prob_buy,steps = mkvcal.compWinProb(hist_start,hist_end,tp,sl)
+    # spd = tp/steps
     
-    print("Features: {}, {}".format(prob_buy,spd))
+    # print("Features: {}, {}".format(prob_buy,spd))
+
+    # # if prob_buy > 0.5:
+    # #     return 0
+
+    #pdb.set_trace()
+    fm = computeFeatures(mkvconf,df)
+    prob_buy = fm[0,0]
+    spd = fm[0,1]
     
     if spd < mkvconf.getMinSpeed():
         print("Speed too low. No action")
         return 0
 
     act = 0
-    fm = np.zeros([1,2])
-    fm[0,0] = prob_buy 
-    fm[0,1] = spd 
+    
     sfm = scaler.transform(fm)
     
     act = model.predict(sfm)[0]
@@ -131,6 +137,32 @@ def finalize():
     pos_df.to_csv("online_decision.csv",index=False)
 
 ################ END OF PUBLIC API #############
+def computeFeatures(mkvconf,df):
+    tarid = len(df)-1
+    lookback = mkvconf.getLookback()
+    hist_start = tarid - lookback
+    hist_end = tarid
+    mkvcal = MkvCalEqnSol(df,mkvconf.getNumPartitions())
+
+    tp = mkvconf.getUBReturn()
+    sl = mkvconf.getLBReturn()
+
+    prob_buy,steps = mkvcal.compWinProb(hist_start,hist_end,tp,sl)
+    spd = tp/steps
+    
+    print("Features: {}, {}".format(prob_buy,spd))
+    
+    fm = np.zeros([1,4])
+    fm[0,0] = prob_buy 
+    fm[0,1] = spd 
+    
+    ops = df['<OPEN>'].values[hist_start:hist_end]
+    rts = np.diff(np.log(ops))
+    fm[0,2] = sum(rts)
+    fm[0,3] = np.std(rts)
+    
+    return fm
+    
 
 def getReturn():
     global RTN,mkvconf
