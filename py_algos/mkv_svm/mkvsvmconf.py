@@ -40,8 +40,8 @@ class MkvSvmConfig(object):
     def getLabelFile(self):
         return self.yamlDict['MARKOV_SVM']['LABEL_FILE']
     
-    def getSvm_C(self):
-        return self.yamlDict['MARKOV_SVM']['SVM_C']
+    def getMinProb(self):
+        return self.yamlDict['MARKOV_SVM']['MIN_PROB']
     
     def getMinPosInterval(self):
         return self.yamlDict['MARKOV_SVM']['MIN_POS_INTERVAL']

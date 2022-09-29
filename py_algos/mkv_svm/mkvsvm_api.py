@@ -113,16 +113,29 @@ def predict(new_time, new_open):
     spd = fm[0,1]
     
     if spd < mkvconf.getMinSpeed():
-        print("Speed too low. No action")
+        print("Speed too low. No action",spd,mkvconf.getMinSpeed())
         return 0
 
     act = 0
+    pba = 0
     
     sfm = scaler.transform(fm)
     
-    act = model.predict(sfm)[0]
+    probs = model.predict_proba(sfm)[0]
+    
+    minprob = mkvconf.getMinProb()
+    
+    if probs[0] > probs[1] and probs[0] > minprob:
+        act = 1
+        pba = probs[0]
+    
+    if probs[0] < probs[1] and probs[1] > minprob:
+        act = 2
+        pba = probs[1]
+    
+    
 
-    print("action = ", act)
+    print("action = {}, prob = {}", act,pba)
 
     if act ==1 or act==2:
         # pdb.set_trace()

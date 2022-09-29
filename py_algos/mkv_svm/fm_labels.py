@@ -77,17 +77,28 @@ def labelHours(df,sid,eid,rtn,lifetime_days):
             else:
                 dt = df[TM_KEY][idx] - df[TM_KEY][i]
                 if dt.total_seconds() >= 3600*24*lifetime_days:
-                    if p0 > rh:
-                        lb = 2
-                    if p0 < rl:
+                    if rl > 0:
                         lb = 1
+                    if rh < 0:
+                        lb = 2
                     
                     break
                 pass 
             idx+=1
         labels.append(lb)
         
-    return np.array(labels),np.array(tid)
+    labels = np.array(labels)
+    tid = np.array(tid)
+    n0 = np.sum(labels==0)
+    n1 = np.sum(labels==1)
+    n2 = np.sum(labels==2) 
+    n3 = np.sum(labels==3) 
+    print("Labels dist: 0 - {}, 1 - {}, 2 - {}, 3 - {}".format(n0,n1,n2,n3))
+    idx = labels > 0
+    labels = labels[idx]
+    tid = tid[idx]
+        
+    return labels,tid
         
 def plot_labels(ffm,flbs):
     for i in range(len(flbs)):

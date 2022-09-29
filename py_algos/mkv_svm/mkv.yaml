@@ -3,16 +3,16 @@ MARKOV_SVM:
     POSITION_LIFETIME: 5 #days
 
 #----------- Labeling used -------------
-    LOOKBACK: 4320 #unit: minute
+    LOOKBACK: 7200 #unit: minute
     UB_RETURN:  0.01
     LB_RETURN:  auto  # 'auto' gives -UB_RETURN
     
     FEATURE_FILE: fm.npy
     LABEL_FILE: labels.npy
 # ------------- cal_dtree -----------------
-    MIN_SPEED: 5.0e-6
+    MIN_SPEED: 5.3e-6
     
-    SVM_C: 1  # The larger, the more weight on misclassfied points
+    MIN_PROB: 0.8
     MODEL_FILE: dtree.pkl
     SCALER_FILE: scaler.pkl
     
