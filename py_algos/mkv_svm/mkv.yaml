@@ -10,7 +10,7 @@ MARKOV_SVM:
     FEATURE_FILE: fm.npy
     LABEL_FILE: labels.npy
 # ------------- cal_dtree -----------------
-    MIN_SPEED: 5.3e-6
+    MIN_SPEED: 4.8e-6
     
     MIN_PROB: 0.8
     MODEL_FILE: dtree.pkl

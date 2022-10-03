@@ -430,6 +430,12 @@
 			<Option target="run_athena" />
 			<Option target="gsl_hist" />
 		</Unit>
+		<Unit filename="src/modules/minbar_predictor/mkvsvm/mkvsvm.cpp">
+			<Option target="run_athena" />
+		</Unit>
+		<Unit filename="src/modules/minbar_predictor/mkvsvm/mkvsvm.h">
+			<Option target="run_athena" />
+		</Unit>
 		<Unit filename="src/modules/minbar_predictor/py_pred/py_pred.cpp">
 			<Option target="run_athena" />
 		</Unit>

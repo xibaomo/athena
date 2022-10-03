@@ -113,7 +113,7 @@ def predict(new_time, new_open):
     spd = fm[0,1]
     
     if spd < mkvconf.getMinSpeed():
-        print("Speed too low. No action",spd,mkvconf.getMinSpeed())
+        print("Speed too low. No action. ",spd,mkvconf.getMinSpeed())
         return 0
 
     act = 0
@@ -135,7 +135,7 @@ def predict(new_time, new_open):
     
     
 
-    print("action = {}, prob = {}", act,pba)
+    print("action = {}, prob = {}".format(act,pba))
 
     if act ==1 or act==2:
         # pdb.set_trace()
@@ -165,14 +165,14 @@ def computeFeatures(mkvconf,df):
     
     print("Features: {}, {}".format(prob_buy,spd))
     
-    fm = np.zeros([1,4])
+    fm = np.zeros([1,2])
     fm[0,0] = prob_buy 
     fm[0,1] = spd 
     
-    ops = df['<OPEN>'].values[hist_start:hist_end]
-    rts = np.diff(np.log(ops))
-    fm[0,2] = sum(rts)
-    fm[0,3] = np.std(rts)
+    # ops = df['<OPEN>'].values[hist_start:hist_end]
+    # rts = np.diff(np.log(ops))
+    # fm[0,2] = sum(rts)
+    # fm[0,3] = np.std(rts)
     
     return fm
     

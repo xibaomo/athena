@@ -112,7 +112,7 @@ MinbarPyPredictor::prepare()
 
 int
 MinbarPyPredictor::predict(const String& time_str, real64 new_open) {
-    Log(LOG_INFO) << "New request arrives, price: " << new_open << ", predicting ..." << endl;
+    Log(LOG_INFO) << "Server time: " << time_str << ", price: " << new_open << ", predicting ..." << endl;
     PyObject* func = PyObject_GetAttrString(m_mod,"predict");
     if(!func)
         Log(LOG_FATAL) << "Failed to find py function: predict" <<std::endl;

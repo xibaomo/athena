@@ -195,14 +195,9 @@ class CDFLaplace(object):
         rtn = np.sort(rtn0)
         sk = skew(rtn)
         l0 = len(rtn)
-        while sk >= SKEWNESS_LIMIT:
-            rtn = rtn[:-1]
-            sk = skew(rtn)
-        while sk <= -SKEWNESS_LIMIT:
-            rtn = rtn[1:]
-            sk = skew(rtn)
+        sk,rtn = self.filterOutliers(rtn)
         print("Filtered elements: ", l0 - len(rtn))
-        if l0 - len(rtn) > 2:
+        if l0 - len(rtn) > 5:
             pdb.set_trace()
 
         fs = lambda x: 2*(1-x**6) - sk*(x**4+1)**(3/2)
@@ -218,6 +213,17 @@ class CDFLaplace(object):
         print("skew = ",sk)
         print("kappa = {}, lambda = {}, mu = {}".format(self.kappa,self.lmb,self.mu))
 
+    def filterOutliers(self,rtn):
+        #pdb.set_trace()
+        while 1:
+            sk = skew(rtn)
+            if sk < SKEWNESS_LIMIT and sk > -SKEWNESS_LIMIT:
+                break
+            if sk >= SKEWNESS_LIMIT:
+                rtn =rtn[:-1]
+            if sk <= -SKEWNESS_LIMIT:
+                rtn = rtn[1:]
+        return sk,rtn
     def compCDF(self,x):
         mu = self.mu
         k = self.kappa

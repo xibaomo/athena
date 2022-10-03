@@ -46,6 +46,7 @@ def test_test(lx, ly):
 
 def test_arg(x):
     print(x)
+    return "abc",1, 2.760
 
 if __name__ == "__main__":
 
