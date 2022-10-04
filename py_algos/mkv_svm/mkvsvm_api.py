@@ -71,10 +71,10 @@ def init(dates, tms, opens, highs, lows, closes, tkvs):
     tms = df[DATE_KEY].values[-1] + " " + df[TIME_KEY].values[-1]
     print("Latest open time: ", tms)
     
-    mf = mkvconf.getModelFile() 
-    sf = mkvconf.getScalerFile() 
-    model = pickle.load(open(mf,'rb')) 
-    scaler = pickle.load(open(sf,'rb'))
+    # mf = mkvconf.getModelFile() 
+    # sf = mkvconf.getScalerFile() 
+    # model = pickle.load(open(mf,'rb')) 
+    # scaler = pickle.load(open(sf,'rb'))
 
 def predict(new_time, new_open):
     global df,mkvconf,RTN, pos_df, LAST_DECISION_TIME,model,scaler
@@ -117,25 +117,16 @@ def predict(new_time, new_open):
         return 0
 
     act = 0
-    pba = 0
-    
-    sfm = scaler.transform(fm)
-    
-    probs = model.predict_proba(sfm)[0]
-    
-    minprob = mkvconf.getMinProb()
-    
-    if probs[0] > probs[1] and probs[0] > minprob:
-        act = 1
-        pba = probs[0]
-    
-    if probs[0] < probs[1] and probs[1] > minprob:
-        act = 2
-        pba = probs[1]
-    
-    
 
-    print("action = {}, prob = {}".format(act,pba))
+    prob_low = mkvconf.getProbNodes()[0]
+    prob_high = mkvconf.getProbNodes()[1]    
+    
+    if prob_buy >= prob_high:
+        act = 2
+    if prob_buy <= prob_low:
+        act = 1
+
+    print("action = {}".format(act))
 
     if act ==1 or act==2:
         # pdb.set_trace()
