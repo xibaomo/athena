@@ -12,6 +12,6 @@ MARKOV_SVM:
 # ------------- cal_dtree -----------------
     MIN_SPEED: 4.8e-6
     
-    PROB_NODES: [0.3,0.75]
+    PROB_NODES: [0.35,0.7]
     
     MIN_POS_INTERVAL: 60  # unit: minute. The minimal interval between positions

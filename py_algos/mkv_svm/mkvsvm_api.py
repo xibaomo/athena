@@ -113,6 +113,7 @@ def predict(new_time, new_open):
     spd = fm[0,1]
     
     if spd < mkvconf.getMinSpeed():
+        print(new_time)
         print("Speed too low. No action. ",spd,mkvconf.getMinSpeed())
         return 0
 
@@ -126,7 +127,7 @@ def predict(new_time, new_open):
     if prob_buy <= prob_low:
         act = 1
 
-    print("action = {}".format(act))
+    print("action = {}, server time: {}".format(act,new_time))
 
     if act ==1 or act==2:
         # pdb.set_trace()
