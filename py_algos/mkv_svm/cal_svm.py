@@ -86,8 +86,8 @@ if __name__ == "__main__":
     print("max speed: ", np.max(fm[:, 1]))
     print("min speed: ", MIN_SPEED)
 
-    #idx = fm[:, 1] >= MIN_SPEED
-    idx = fm[:, 1] >= 3e-6
+    idx = fm[:, 1] >= MIN_SPEED
+    # idx = fm[:, 1] >= 3e-6
     ffm = fm[idx, :]
     flbs = labels[idx]
 
@@ -98,7 +98,11 @@ if __name__ == "__main__":
     ffm = ffm[:, [0, 3]]
     
     
-    test_size = 480
+    test_size = 200
+    
+    if (test_size > ffm.shape[0]):
+        print("Error: all data size: {}, test size: {}".format(fm.shape[0],test_size))
+        sys.exit(1)
     fm_train = ffm[:-test_size, :]
     fm_test = ffm[-test_size:, :]
     lb_train = flbs[:-test_size]

@@ -19,6 +19,6 @@ PROB_SPEED:
     PROB_NODES: [0.35,0.7]
     
 PKL_PREDICTOR:
-    MIN_SPEED: 4.5e-6
+    MIN_SPEED: 4.e-6
     MODEL_FILE: rf.pkl
     SCALER_FILE: scaler.pkl
