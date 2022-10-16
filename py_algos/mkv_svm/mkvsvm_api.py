@@ -23,6 +23,7 @@ from sklearn.feature_selection import mutual_info_regression
 from statsmodels.tsa.stattools import adfuller
 from scipy.stats import skew,kurtosis
 from prob_speed import *
+from pkl_predictor import *
 import pdb
 
 df = pd.DataFrame()
@@ -68,6 +69,10 @@ def createPredictor(gencfg):
     tp = gencfg.getPredictorType()
     if tp == 0:
         p = ProbSpeedPredictor(gencfg)
+    elif tp == 1:
+        p = PklPredictor(gencfg)
+    else:
+        print('Error: predictor type is wrong: ', tp)
         
     return p
 ############ required API for custom py predictor #####################

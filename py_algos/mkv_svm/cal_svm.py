@@ -14,6 +14,7 @@ import pickle
 mkv_path = os.environ['ATHENA_HOME']+'/py_algos/mkv_svm'
 sys.path.append(mkv_path)
 from mkvsvmconf import *
+from pkl_predictor import *
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 
@@ -78,8 +79,9 @@ if __name__ == "__main__":
 
     fm = np.load(mkvconf.getFeatureFile())
     labels = np.load(mkvconf.getLabelFile())
+    pklconf = PklPredictorConfig(mkvconf)
 
-    MIN_SPEED = float(mkvconf.getMinSpeed())
+    MIN_SPEED = float(pklconf.getMinSpeed())
 
     print("max speed: ", np.max(fm[:, 1]))
     print("min speed: ", MIN_SPEED)
@@ -94,11 +96,16 @@ if __name__ == "__main__":
             ffm[i, 1] = -ffm[i, 1]
 
     ffm = ffm[:, [0, 3]]
-    test_size = 200
+    
+    
+    test_size = 480
     fm_train = ffm[:-test_size, :]
     fm_test = ffm[-test_size:, :]
     lb_train = flbs[:-test_size]
     lb_test = flbs[-test_size:]
+    
+    print("train size: ",fm_train.shape[0])
+    print("test size: ",fm_test.shape[0])
     scaler = StandardScaler()
     ffm = scaler.fit_transform(fm_train)
 
@@ -106,14 +113,17 @@ if __name__ == "__main__":
     #clf = DecisionTreeClassifier(max_leaf_nodes = 90, min_samples_leaf = 0.1)
     clf = RandomForestClassifier(n_estimators = 100)
     clf.fit(fm_train, lb_train)
+    
+    eval_model(clf, fm_train, lb_train)
 
-    '''
-    mf = mkvconf.getModelFile()
-    sf = mkvconf.getScalerFile()
+
+    mf = pklconf.getModelFile()
+    sf = pklconf.getScalerFile()
     pickle.dump(clf, open(mf, 'wb'))
     print("model saved: ",mf)
     pickle.dump(scaler, open(sf, 'wb'))
     print("scaler saved: ",sf)
+    '''
     # plot_svc_decision_function(clf)
     '''
 
