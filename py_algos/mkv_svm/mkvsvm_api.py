@@ -22,6 +22,7 @@ from scipy.optimize import minimize
 from sklearn.feature_selection import mutual_info_regression
 from statsmodels.tsa.stattools import adfuller
 from scipy.stats import skew,kurtosis
+from prob_speed import *
 import pdb
 
 df = pd.DataFrame()
@@ -31,6 +32,7 @@ RTN = 0.
 LAST_DECISION_TIME = None
 scaler = None
 model = None
+oracle = None
 
 def loadConfig(cf):
     global mkvconf
@@ -61,9 +63,16 @@ def appendEntryToDataFrame(df,timestamp,op,hp,lp,cp,tkv):
         return df
     df3 = pd.concat([df, df2], ignore_index = True)
     return df3
-
+def createPredictor(gencfg):
+    p = None
+    tp = gencfg.getPredictorType()
+    if tp == 0:
+        p = ProbSpeedPredictor(gencfg)
+        
+    return p
 ############ required API for custom py predictor #####################
 def init(dates, tms, opens, highs, lows, closes, tkvs):
+    global oracle,mkvconf
     print("init() in markov_api")
     # pdb.set_trace()
     global df,scaler,model
@@ -71,13 +80,15 @@ def init(dates, tms, opens, highs, lows, closes, tkvs):
     tms = df[DATE_KEY].values[-1] + " " + df[TIME_KEY].values[-1]
     print("Latest open time: ", tms)
     
+    oracle = createPredictor(mkvconf)
+    
     # mf = mkvconf.getModelFile() 
     # sf = mkvconf.getScalerFile() 
     # model = pickle.load(open(mf,'rb')) 
     # scaler = pickle.load(open(sf,'rb'))
 
 def predict(new_time, new_open):
-    global df,mkvconf,RTN, pos_df, LAST_DECISION_TIME,model,scaler
+    global df,mkvconf,RTN, pos_df, LAST_DECISION_TIME,model,scaler,oracle
     
     ts = pd.to_datetime(new_time)
     df = appendEntryToDataFrame(df, ts, new_open, -1, -1, -1, -1)
@@ -109,29 +120,14 @@ def predict(new_time, new_open):
 
     #pdb.set_trace()
     fm = computeFeatures(mkvconf,df)
-    prob_buy = fm[0,0]
-    spd = fm[0,1]
     
-    if spd < mkvconf.getMinSpeed():
-        print(new_time)
-        print("Speed too low. No action. ",spd,mkvconf.getMinSpeed())
-        return 0
-
-    act = 0
-
-    prob_low = mkvconf.getProbNodes()[0]
-    prob_high = mkvconf.getProbNodes()[1]    
-    
-    if prob_buy >= prob_high:
-        act = 2
-    if prob_buy <= prob_low:
-        act = 1
+    act = oracle.predict(fm)
 
     print("action = {}, server time: {}".format(act,new_time))
 
     if act ==1 or act==2:
         # pdb.set_trace()
-        registerPos(new_time,act,prob_buy,spd)
+        registerPos(new_time,act,fm[0,0],fm[0,1])
         
 
     return act

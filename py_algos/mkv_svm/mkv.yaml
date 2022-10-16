@@ -1,4 +1,5 @@
 MARKOV_SVM:
+    MIN_POS_INTERVAL: 60  # unit: minute. The minimal interval between positions
     NUM_PARTITIONS: 501 # number of partitions between UB & LB returns.
     POSITION_LIFETIME: 5 #days
 
@@ -9,9 +10,11 @@ MARKOV_SVM:
     
     FEATURE_FILE: fm.npy
     LABEL_FILE: labels.npy
-# ------------- cal_dtree -----------------
+
+    PREDICTOR_TYPE: 0  # 0 - PROB_SPEED (probability and speed)
+                       # 1 - pkl predictor
+
+PROB_SPEED:
     MIN_SPEED: 4.8e-6
-    
     PROB_NODES: [0.35,0.7]
     
-    MIN_POS_INTERVAL: 60  # unit: minute. The minimal interval between positions
