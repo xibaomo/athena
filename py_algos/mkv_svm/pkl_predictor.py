@@ -20,6 +20,9 @@ class PklPredictorConfig(object):
     def getScalerFile(self):
         return self.yamlDict[self.root]['SCALER_FILE']
     
+    def getSelectedFeatureID(self):
+        return self.yamlDict[self.root]['SELECTED_FEATURE_ID']
+    
 class PklPredictor(object):
     def __init__(self,gencfg):
         self.cfg = PklPredictorConfig(gencfg)
@@ -32,6 +35,8 @@ class PklPredictor(object):
             print("Speed too low. No action. ",spd,self.cfg.getMinSpeed())
             return 0
         
-        ffm = self.scaler.transform(fm)
+        ft_id = self.cfg.getSelectedFeatureID()
+        pfm = fm[:,ft_id] # must be a 2d array
+        ffm = self.scaler.transform(pfm)
         act = self.model.predict(ffm)
         return act[0]

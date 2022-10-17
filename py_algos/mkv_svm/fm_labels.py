@@ -15,6 +15,7 @@ mkv_path = os.environ['ATHENA_HOME']+'/py_algos/markov'
 sys.path.append(mkv_path)
 from mkvsvmconf import *
 from markov import *
+from feature import *
 
 TM_KEY = 'DATETIME'
 
@@ -150,6 +151,8 @@ if __name__ == "__main__":
         rts = np.diff(np.log(ops))
         fm[i,2] = sum(rts)
         fm[i,3] = np.std(rts)
+        # ft = compMkvFeatures(df,hourids[i],mkvcal,mkvconf)
+        # fm[i,:] = ft
         
     print('features done')
     np.save(mkvconf.getFeatureFile(),fm)

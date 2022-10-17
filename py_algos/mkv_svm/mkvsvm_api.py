@@ -24,6 +24,7 @@ from statsmodels.tsa.stattools import adfuller
 from scipy.stats import skew,kurtosis
 from prob_speed import *
 from pkl_predictor import *
+from feature import *
 import pdb
 
 df = pd.DataFrame()
@@ -123,7 +124,7 @@ def predict(new_time, new_open):
     # # if prob_buy > 0.5:
     # #     return 0
 
-    #pdb.set_trace()
+    # pdb.set_trace()
     fm = computeFeatures(mkvconf,df)
     
     act = oracle.predict(fm)
@@ -149,18 +150,20 @@ def computeFeatures(mkvconf,df):
     hist_start = tarid - lookback
     hist_end = tarid
     mkvcal = MkvCalEqnSol(df,mkvconf.getNumPartitions())
-
-    tp = mkvconf.getUBReturn()
-    sl = mkvconf.getLBReturn()
-
-    prob_buy,steps = mkvcal.compWinProb(hist_start,hist_end,tp,sl)
-    spd = tp/steps
     
-    print("Features: {}, {}".format(prob_buy,spd))
+    fm = compMkvFeatures(df,tarid,mkvcal,mkvconf)
+
+    # tp = mkvconf.getUBReturn()
+    # sl = mkvconf.getLBReturn()
+
+    # prob_buy,steps = mkvcal.compWinProb(hist_start,hist_end,tp,sl)
+    # spd = tp/steps
     
-    fm = np.zeros([1,2])
-    fm[0,0] = prob_buy 
-    fm[0,1] = spd 
+    # print("Features: {}, {}".format(prob_buy,spd))
+    
+    # fm = np.zeros([1,2])
+    # fm[0,0] = prob_buy 
+    # fm[0,1] = spd 
     
     # ops = df['<OPEN>'].values[hist_start:hist_end]
     # rts = np.diff(np.log(ops))
