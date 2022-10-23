@@ -96,18 +96,17 @@ if __name__ == "__main__":
             ffm[i, 1] = -ffm[i, 1]
 
     ffm = ffm[:, [0, 3]]
-    
-    
+
     test_size = 200
-    
-    if (test_size > ffm.shape[0]):
-        print("Error: all data size: {}, test size: {}".format(fm.shape[0],test_size))
+
+    if ( test_size > ffm.shape[0]):
+        print("Error: all data size: {}, test size: {}".format(fm.shape[0], test_size))
         sys.exit(1)
     fm_train = ffm[:-test_size, :]
     fm_test = ffm[-test_size:, :]
     lb_train = flbs[:-test_size]
     lb_test = flbs[-test_size:]
-    
+
     print("train size: ",fm_train.shape[0])
     print("test size: ",fm_test.shape[0])
     scaler = StandardScaler()
@@ -117,9 +116,9 @@ if __name__ == "__main__":
     #clf = DecisionTreeClassifier(max_leaf_nodes = 90, min_samples_leaf = 0.1)
     clf = RandomForestClassifier(n_estimators = 100)
     clf.fit(fm_train, lb_train)
-    
-    eval_model(clf, fm_train, lb_train)
 
+    print("Computing accuracy on training set...")
+    eval_model(clf, fm_train, lb_train)
 
     mf = pklconf.getModelFile()
     sf = pklconf.getScalerFile()
@@ -132,6 +131,7 @@ if __name__ == "__main__":
     '''
 
     xx = scaler.transform(fm_test)
+    print("Computing accuracy on test set...")
     eval_model(clf, xx, lb_test)
     plt.show()
 
