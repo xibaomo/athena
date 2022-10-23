@@ -29,6 +29,47 @@ def find_range(df,stm,ndays):
     tms = df['<DATE>'] + " " + df['<TIME>']
     tms = pd.to_datetime(tms)
     df[TM_KEY] = tms
+    
+    sid = bisec_time_point(df, stm)
+    stm = df[TM_KEY][sid]
+    print("Starting time set to ",stm)
+    
+    etm = stm + pd.Timedelta(ndays + ' days') 
+    eid = bisec_time_point(df, etm)
+    etm = df[TM_KEY][eid]
+    print("Ending time set to ",etm)
+    
+    return sid,eid
+    
+    
+def bisec_time_point(df,tm):
+    # pdb.set_trace()
+    lb = 0
+    ub = len(df)-1
+    fl = df[TM_KEY][lb] - tm
+    fr = df[TM_KEY][ub] - tm
+    if fl.total_seconds() > 0:
+        print("time {} is earlier than the 1st time point, return the 1st".format(df[TM_KEY][lb]))
+        return 0
+    if fr.total_seconds() <=0:
+        print("time {} is newer than the latest history, return the last time".format(df[TM_KEY][-1]))
+        return ub
+    while ub-lb > 1:
+        mid = int((lb+ub)/2)
+        fm = df[TM_KEY][mid] - tm
+        if fm.total_seconds() ==0:
+            return mid
+        if fm.total_seconds() < 0:
+            lb = mid
+        else:
+            ub = mid
+            
+    return ub
+
+def __find_range(df,stm,ndays):
+    tms = df['<DATE>'] + " " + df['<TIME>']
+    tms = pd.to_datetime(tms)
+    df[TM_KEY] = tms
     etm = stm + pd.Timedelta(ndays + ' days') 
     
     sid = -1
@@ -52,6 +93,7 @@ def find_range(df,stm,ndays):
     
 
 def labelHours(df,sid,eid,rtn,lifetime_days):
+    print('labeling {} hours ... '.format(eid-sid))
     labels = []
     tid= []
     for i in range(sid,eid):
@@ -128,7 +170,7 @@ if __name__ == "__main__":
     
     sid,eid = find_range(df, start_time, ndays)
     if sid < 0:
-        print("Target datetime not found: {}",start_time)
+        print("Target datetime not found: {}".format(start_time))
         sys.exit(0)
         
     rtn = mkvconf.getUBReturn()

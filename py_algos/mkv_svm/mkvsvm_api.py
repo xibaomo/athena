@@ -106,25 +106,7 @@ def predict(new_time, new_open):
             return 0
     
     LAST_DECISION_TIME = nowtime
-    # tarid = len(df)-1
-    # lookback = mkvconf.getLookback()
-    # hist_start = tarid - lookback
-    # hist_end = tarid
-
-    # mkvcal = MkvCalEqnSol(df,mkvconf.getNumPartitions())
-
-    # tp = mkvconf.getUBReturn()
-    # sl = mkvconf.getLBReturn()
-
-    # prob_buy,steps = mkvcal.compWinProb(hist_start,hist_end,tp,sl)
-    # spd = tp/steps
     
-    # print("Features: {}, {}".format(prob_buy,spd))
-
-    # # if prob_buy > 0.5:
-    # #     return 0
-
-    # pdb.set_trace()
     fm = computeFeatures(mkvconf,df)
     
     act = oracle.predict(fm)
@@ -152,24 +134,7 @@ def computeFeatures(mkvconf,df):
     mkvcal = MkvCalEqnSol(df,mkvconf.getNumPartitions())
     
     fm = compMkvFeatures(df,tarid,mkvcal,mkvconf)
-
-    # tp = mkvconf.getUBReturn()
-    # sl = mkvconf.getLBReturn()
-
-    # prob_buy,steps = mkvcal.compWinProb(hist_start,hist_end,tp,sl)
-    # spd = tp/steps
-    
-    # print("Features: {}, {}".format(prob_buy,spd))
-    
-    # fm = np.zeros([1,2])
-    # fm[0,0] = prob_buy 
-    # fm[0,1] = spd 
-    
-    # ops = df['<OPEN>'].values[hist_start:hist_end]
-    # rts = np.diff(np.log(ops))
-    # fm[0,2] = sum(rts)
-    # fm[0,3] = np.std(rts)
-    
+   
     return fm
     
 

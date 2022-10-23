@@ -11,7 +11,7 @@ MARKOV_SVM:
     FEATURE_FILE: fm.npy
     LABEL_FILE: labels.npy
 
-    PREDICTOR_TYPE: 1  # 0 - PROB_SPEED (probability and speed)
+    PREDICTOR_TYPE: 0  # 0 - PROB_SPEED (probability and speed)
                        # 1 - pkl predictor
 
 PROB_SPEED:
@@ -19,7 +19,7 @@ PROB_SPEED:
     PROB_NODES: [0.35,0.7]
     
 PKL_PREDICTOR:
-    SELECTED_FEATURE_ID: [0,3]
+    SELECTED_FEATURE_ID: [0,3] # 0-probability, 1-speed, 2-return sum, 3-std of return
     MIN_SPEED: 4.e-6
     MODEL_FILE: rf.pkl
     SCALER_FILE: scaler.pkl
