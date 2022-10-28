@@ -113,9 +113,8 @@ def predict(new_time, new_open):
 
     print("action = {}, server time: {}".format(act,new_time))
 
-    if act ==1 or act==2:
-        # pdb.set_trace()
-        registerPos(new_time,act,fm[0,0],fm[0,1])
+
+    registerPos(new_time,act,fm[0,0],fm[0,1])
         
 
     return act

@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import yaml
 import sys, os
+import copy
 sys.path.append(os.environ['ATHENA_HOME'] + '/py_basics')
 from logger import *
 from basics import *
@@ -203,10 +204,16 @@ class MkvCalEqnSol(object):
     def __init__(self,df, npts):
         self.n_partitions = npts
         self.df = df
+        self.rtn=None
 
+    def getRtn(self):
+        return self.rtn
+    
     def compWinProb(self,tid_s,tid_e,ub_rtn,lb_rtn):
         pc = self.df[OPEN_KEY][tid_s:tid_e+1]
-        rtn = np.diff(np.log(pc))
+        self.rtn = np.diff(np.log(pc))
+        
+        rtn = copy.deepcopy(self.rtn)
         print("Ave rtn: ",np.mean(rtn))
         # self.transProbCal = CDFCounter(rtn)
         self.transProbCal = CDFLaplace(rtn)

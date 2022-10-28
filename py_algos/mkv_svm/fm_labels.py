@@ -93,7 +93,7 @@ def __find_range(df, stm, ndays):
     return sid, eid
 
 def labelHours(df, sid, eid, rtn, lifetime_days):
-    print('labeling {} hours ... '.format(eid-sid))
+    print('labeling range: {} minutes ... '.format(eid-sid))
     labels = []
     tid= []
     for i in range(sid, eid):
@@ -181,20 +181,20 @@ if __name__ == "__main__":
     mkvcal = MkvCalEqnSol(df, mkvconf.getNumPartitions())
 
     lookback = mkvconf.getLookback()
-    fm = np.zeros((len(labels), 4))
+    fm = np.zeros((len(labels), getNumFeatures()))
     for i in range(len(hourids)):
-        hist_end = hourids[i] + 1
-        hist_start = hist_end - lookback
-        prop, sp = mkvcal.compWinProb(hist_start, hist_end, rtn, -rtn)
-        fm[i, 0] = prop
-        fm[i, 1] = rtn/sp
+        # hist_end = hourids[i] + 1
+        # hist_start = hist_end - lookback
+        # prop, sp = mkvcal.compWinProb(hist_start, hist_end, rtn, -rtn)
+        # fm[i, 0] = prop
+        # fm[i, 1] = rtn/sp
 
-        ops = df['<OPEN>'].values[hist_start:hist_end]
-        rts = np.diff(np.log(ops))
-        fm[i, 2] = sum(rts)
-        fm[i, 3] = np.std(rts)
-        # ft = compMkvFeatures(df, hourids[i], mkvcal, mkvconf)
-        # fm[i, :] = ft
+        # ops = df['<OPEN>'].values[hist_start:hist_end]
+        # rts = np.diff(np.log(ops))
+        # fm[i, 2] = sum(rts)
+        # fm[i, 3] = np.std(rts)
+        ft = compMkvFeatures(df, hourids[i], mkvcal, mkvconf)
+        fm[i, :] = ft
 
     print('features done')
     np.save(mkvconf.getFeatureFile(), fm)

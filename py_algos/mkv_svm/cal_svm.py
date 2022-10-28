@@ -9,7 +9,7 @@ import sys, os
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import svm
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import *
 import pickle
 mkv_path = os.environ['ATHENA_HOME']+'/py_algos/mkv_svm'
 sys.path.append(mkv_path)
@@ -85,17 +85,22 @@ if __name__ == "__main__":
 
     print("max speed: ", np.max(fm[:, 1]))
     print("min speed: ", MIN_SPEED)
+    
+    idx = ~np.isnan(fm[:,4]) 
+    fm = fm[idx,:]
+    labels = labels[idx]
+    
 
     idx = fm[:, 1] >= MIN_SPEED
     # idx = fm[:, 1] >= 3e-6
     ffm = fm[idx, :]
     flbs = labels[idx]
 
-    for i in range(ffm.shape[0]):
-        if ffm[i, 0] < 0.5:
-            ffm[i, 1] = -ffm[i, 1]
+    # for i in range(ffm.shape[0]):
+    #     if ffm[i, 0] < 0.5:
+    #         ffm[i, 1] = -ffm[i, 1]
 
-    ffm = ffm[:, [0, 3]]
+    ffm = ffm[:, pklconf.getSelectedFeatureID()]
 
     test_size = 200
 
@@ -109,12 +114,14 @@ if __name__ == "__main__":
 
     print("train size: ",fm_train.shape[0])
     print("test size: ",fm_test.shape[0])
-    scaler = StandardScaler()
-    ffm = scaler.fit_transform(fm_train)
+    # scaler = StandardScaler()
+    # scaler = MinMaxScaler()
+    scaler = RobustScaler()
+    fm_train = scaler.fit_transform(fm_train)
 
     #clf = svm.SVC(kernel='rbf', C = 1)
     #clf = DecisionTreeClassifier(max_leaf_nodes = 90, min_samples_leaf = 0.1)
-    clf = RandomForestClassifier(n_estimators = 100)
+    clf = RandomForestClassifier(n_estimators = 600)
     clf.fit(fm_train, lb_train)
 
     print("Computing accuracy on training set...")
@@ -131,6 +138,7 @@ if __name__ == "__main__":
     '''
 
     xx = scaler.transform(fm_test)
+    # xx = fm_test
     print("Computing accuracy on test set...")
     eval_model(clf, xx, lb_test)
     plt.show()
