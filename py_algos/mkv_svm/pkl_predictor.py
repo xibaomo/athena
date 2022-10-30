@@ -31,7 +31,7 @@ class PklPredictor(object):
         
     def predict(self,fm):
         spd = fm[0,1]
-        if spd < self.cfg.getMinSpeed():
+        if abs(spd) < self.cfg.getMinSpeed():
             print("Speed too low. No action. ",spd,self.cfg.getMinSpeed())
             return 0
         

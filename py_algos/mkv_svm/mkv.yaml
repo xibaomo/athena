@@ -16,7 +16,7 @@ MARKOV_SVM:
 
 PROB_SPEED:
     MIN_SPEED: 4.8e-6
-    ZERO_ACC: 1.e-8 #  below which acceleration is zero
+    ZERO_ACC: 2.e-8 #  below which acceleration is set to zero
     PROB_NODES: [0.35,0.7]
     
 PKL_PREDICTOR:
