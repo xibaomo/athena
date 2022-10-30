@@ -136,11 +136,13 @@ if __name__ == "__main__":
     '''
     # plot_svc_decision_function(clf)
     '''
+    
+    print(clf.feature_importances_)
 
-    xx = scaler.transform(fm_test)
+    fm_test = scaler.transform(fm_test)
     # xx = fm_test
     print("Computing accuracy on test set...")
-    eval_model(clf, xx, lb_test)
+    eval_model(clf, fm_test, lb_test)
     plt.show()
 
 

@@ -109,12 +109,15 @@ def predict(new_time, new_open):
     
     fm = computeFeatures(mkvconf,df)
     
-    act = oracle.predict(fm)
+    if np.isnan(fm).any():
+        act = 0
+    else:
+        act = oracle.predict(fm)
 
     print("action = {}, server time: {}".format(act,new_time))
 
 
-    registerPos(new_time,act,fm[0,0],fm[0,1])
+    registerPos(new_time,new_open,act,fm)
         
 
     return act
@@ -141,12 +144,15 @@ def getReturn():
     global RTN,mkvconf
     RTN = mkvconf.getUBReturn()
     return RTN
-def registerPos(tm,act,prob_buy,spd):
+def registerPos(tm,price,act,fm):
     global pos_df
     dict = {"TIME" : [tm],
+            "PRICE" : [price],
             "ACTION" : [act],
-            "PROB_BUY": [round(prob_buy,4)],
-            "SPEED": [spd]}
+            "PROB_BUY": [round(fm[0,0],4)],
+            "SPEED": [fm[0,1]],
+            "STD" : [fm[0,3]],
+            "ACC" : [fm[0,4]]}
     df2 = pd.DataFrame(dict)
     # pdb.set_trace()
     pos_df = pd.concat([pos_df, df2], ignore_index=True)

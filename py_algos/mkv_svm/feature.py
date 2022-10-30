@@ -23,6 +23,8 @@ def compMkvFeatures(df,tid,mkvcal,mkvconf):
     prop,sp = mkvcal.compWinProb(hist_start,hist_end,rtn,-rtn)
     fm[0,0] = prop
     fm[0,1] = rtn/sp
+    if prop < 0.5:
+        fm[0,1] = -fm[0,1]
 
     rts = mkvcal.getRtn()
     fm[0,2] = sum(rts)
@@ -31,7 +33,7 @@ def compMkvFeatures(df,tid,mkvcal,mkvconf):
     fm[0,4] = compAcceleration(all_speed)
     return fm
 
-def compAcceleration(spd,lookback=24):
+def compAcceleration(spd,lookback=12):
     # pdb.set_trace()
     if len(spd) < lookback+1:
         return np.nan

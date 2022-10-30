@@ -17,6 +17,8 @@ class ProbSpeedConfig(object):
     
     def getMinSpeed(self):
         return self.yamlDict[self.root]['MIN_SPEED']
+    def getZeroAccLimit(self):
+        return self.yamlDict[self.root]['ZERO_ACC']
         
 class ProbSpeedPredictor(object):
     def __init__(self,gencfg):
@@ -26,8 +28,17 @@ class ProbSpeedPredictor(object):
         prob_buy = fm[0,0]
         spd = fm[0,1]
         
-        if spd < self.cfg.getMinSpeed():
+        if abs(spd) < self.cfg.getMinSpeed():
             print("Speed too low. No action. ",spd,self.cfg.getMinSpeed())
+            return 0
+        
+        # if fm[0,4] > self.cfg.getMaxAcc(): #acceleration
+        #     return 0
+        acc = fm[0,4]
+        if abs(acc) < self.cfg.getZeroAccLimit():
+            acc= 0
+        if fm[0,1] * acc > 0:
+            print("Speed and acceleration has the sanme sign. No action")
             return 0
 
         act = 0
