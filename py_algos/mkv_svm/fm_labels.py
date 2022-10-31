@@ -144,15 +144,16 @@ def labelHours(df, sid, eid, rtn, lifetime_days):
     return labels, tid
 
 def plot_labels(ffm, flbs):
+    spd = abs(ffm[i,1])
     for i in range(len(flbs)):
         if flbs[i] == 0:
-            plt.plot(ffm[i, 0], ffm[i, 1], 'gs')
+            plt.plot(ffm[i, 0], spd, 'gs')
         if flbs[i] == 1:
-            plt.plot(ffm[i, 0], ffm[i, 1], 'go',fillstyle='none')
+            plt.plot(ffm[i, 0], spd, 'go',fillstyle='none')
         if flbs[i] == 2:
-            plt.plot(ffm[i, 0], ffm[i, 1], 'rx')
+            plt.plot(ffm[i, 0], spd, 'rx')
         if flbs[i] == 3:
-            plt.plot(ffm[i, 0], ffm[i, 1], 'd')
+            plt.plot(ffm[i, 0], spd, 'd')
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: {} <csv> <mkv.yaml> <date> <time> <ndays>".format(sys.argv[0]))

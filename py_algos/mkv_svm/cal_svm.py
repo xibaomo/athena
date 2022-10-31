@@ -91,7 +91,7 @@ if __name__ == "__main__":
     labels = labels[idx]
     
 
-    idx = fm[:, 1] >= MIN_SPEED
+    idx = abs(fm[:, 1]) >= MIN_SPEED
     # idx = fm[:, 1] >= 3e-6
     ffm = fm[idx, :]
     flbs = labels[idx]
