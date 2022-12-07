@@ -146,6 +146,7 @@ def labelHours(df, sid, eid, rtn, lifetime_days):
 def plot_labels(ffm, flbs):
     for i in range(len(flbs)):
         spd = abs(ffm[i, 1])
+
         if flbs[i] == 0:
             plt.plot(ffm[i, 0], spd, 'gs')
         if flbs[i] == 1:

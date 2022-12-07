@@ -85,22 +85,26 @@ if __name__ == "__main__":
 
     print("max speed: ", np.max(fm[:, 1]))
     print("min speed: ", MIN_SPEED)
-    
-    idx = ~np.isnan(fm[:,4]) 
-    fm = fm[idx,:]
-    labels = labels[idx]
-    
 
-    idx = abs(fm[:, 1]) >= MIN_SPEED
-    # idx = fm[:, 1] >= 3e-6
+    print("features: ",fm.shape[1])
+    idx = ~np.isnan(fm[:, 4])
+    fm = fm[idx, :]
+    labels = labels[idx]
+
+    # idx = abs(fm[:, 1]) >= MIN_SPEED
+    idx = abs(fm[:, 1]) >= 3e-6
     ffm = fm[idx, :]
     flbs = labels[idx]
+    
+    v1=ffm[:,4]*ffm[:,1]
+    v2=ffm[:,1]/ffm[:,4]
+    v1=v1.reshape((-1,1))
+    v2=v2.reshape((-1,1))
 
-    # for i in range(ffm.shape[0]):
-    #     if ffm[i, 0] < 0.5:
-    #         ffm[i, 1] = -ffm[i, 1]
-
-    ffm = ffm[:, pklconf.getSelectedFeatureID()]
+    # ffm = ffm[:, pklconf.getSelectedFeatureID()]
+    ffm = ffm[:,:6]
+    
+    # ffm = np.hstack((ffm,v1,v2))
 
     test_size = 200
 
@@ -136,7 +140,7 @@ if __name__ == "__main__":
     '''
     # plot_svc_decision_function(clf)
     '''
-    
+
     print(clf.feature_importances_)
 
     fm_test = scaler.transform(fm_test)

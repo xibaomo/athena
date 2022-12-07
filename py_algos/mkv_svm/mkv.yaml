@@ -21,6 +21,7 @@ PROB_SPEED:
     
 PKL_PREDICTOR:
     SELECTED_FEATURE_ID: [0,3] # 0-probability, 1-speed, 2-return sum, 3-std of return
+                               # 4-acceleration, 5-binned entropy
     MIN_SPEED: 4.e-6
     MODEL_FILE: rf.pkl
     SCALER_FILE: scaler.pkl
