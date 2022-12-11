@@ -43,6 +43,19 @@
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
+				<Option projectCompilerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-std=gnu++14" />
+					<Add option="-fPIC" />
+					<Add option="-fopenmp" />
+				</Compiler>
+				<Linker>
+					<Add option="-O3" />
+					<Add option="-s" />
+					<Add option="-static-libstdc++" />
+					<Add option="-static-libgcc" />
+					<Add option="-lgomp" />
+				</Linker>
 			</Target>
 		</Build>
 		<VirtualTargets>
@@ -256,6 +269,12 @@
 		</Unit>
 		<Unit filename="src/c_api/athena_c_api.h">
 			<Option target="run_athena" />
+			<Option target="libathena" />
+		</Unit>
+		<Unit filename="src/c_api/athn.cpp">
+			<Option target="libathena" />
+		</Unit>
+		<Unit filename="src/c_api/athn.h">
 			<Option target="libathena" />
 		</Unit>
 		<Unit filename="src/common/app_base/app_base.h">
