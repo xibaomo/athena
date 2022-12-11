@@ -20,6 +20,7 @@ def compMkvFeatures(df,tid,mkvcal,mkvconf):
     fm = np.zeros((1,getNumFeatures()))
     hist_end = tid 
     hist_start = hist_end - lookback
+    # pdb.set_trace()
     prop,sp = mkvcal.compWinProb(hist_start,hist_end,rtn,-rtn)
     fm[0,0] = prop
     fm[0,1] = rtn/sp

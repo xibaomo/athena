@@ -368,4 +368,40 @@ compHalfLife(real64* y, int len)
     return lambda;
 }
 
+PyObject* makeRealPyArray(const real32* data, const std::vector<size_t>& dims) {
+    import_array();
+    npy_intp* dm = new npy_intp[dims.size()];
+    for(size_t i=0; i < dims.size();i++) {
+        dm[i] = dims[i];
+    }
+
+    size_t len = dims[0]*dims[1];
+    float* a = new float[len];
+    for(size_t i=0; i < len; i++) {
+        a[i] = data[i];
+    }
+    PyObject* arr = PyArray_SimpleNewFromData(dims.size(),dm,NPY_FLOAT32,(void*)a);
+    delete dm;
+//TODO: delete a, might leak
+    return arr;
+}
+
+PyObject* makeCmplxPyArray(const std::complex<real32>* data, const std::vector<size_t>& dims) {
+    import_array();
+    npy_intp* dm = new npy_intp[dims.size()];
+    for(size_t i=0; i < dims.size();i++) {
+        dm[i] = dims[i];
+    }
+
+    size_t len = dims[0]*dims[1];
+    std::complex<real32>* a = new std::complex<real32>[len];
+    for(size_t i=0; i < len; i++) {
+        a[i] = data[i];
+    }
+    PyObject* arr = PyArray_SimpleNewFromData(dims.size(),dm,NPY_COMPLEX64,(void*)a);
+    delete dm;
+//TODO: delete a, might leak
+    return arr;
+}
+
 }

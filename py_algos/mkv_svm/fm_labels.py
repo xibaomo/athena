@@ -10,14 +10,18 @@ import sys, os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 mkv_path = os.environ['ATHENA_HOME']+'/py_algos/markov'
 sys.path.append(mkv_path)
 mkv_path = os.environ['ATHENA_HOME']+'/py_algos/mkv_svm'
 sys.path.append(mkv_path)
+mkv_path = os.environ['ATHENA_HOME'] + '/api/api_athena/pyapi'
+sys.path.append(mkv_path)
 from mkvsvmconf import *
 from markov import *
 from feature import *
+from athena import *
 
 TM_KEY = 'DATETIME'
 
@@ -92,7 +96,7 @@ def __find_range(df, stm, ndays):
 
     return sid, eid
 
-def labelHours(df, sid, eid, rtn, lifetime_days):
+def __labelHours(df, sid, eid, rtn, lifetime_days):
     print('labeling range: {} minutes ... '.format(eid-sid))
     labels = []
     tid= []
@@ -141,8 +145,12 @@ def labelHours(df, sid, eid, rtn, lifetime_days):
     labels = labels[idx]
     tid = tid[idx]
 
-    return labels, tid
+    return tid, labels
 
+def labelHours(df, sid, eid, rtn, lifetime_days):
+    hourid,labels = athn_label_hours(df,sid,eid,rtn,lifetime_days)
+    return hourid,labels
+    
 def plot_labels(ffm, flbs):
     for i in range(len(flbs)):
         spd = abs(ffm[i, 1])
@@ -177,7 +185,12 @@ if __name__ == "__main__":
 
     rtn = mkvconf.getUBReturn()
 
-    labels, hourids = labelHours(df, sid, eid, rtn, mkvconf.getPosLifetime())
+    st = time.perf_counter()
+    hourids,labels = labelHours(df, sid, eid, rtn, mkvconf.getPosLifetime())
+    print("labeling time (s) ",time.perf_counter()-st)
+    # pdb.set_trace()
+    hourids = hourids.astype(np.int32)
+    st = time.perf_counter()
 
     ##### markov
     mkvcal = MkvCalEqnSol(df, mkvconf.getNumPartitions())
@@ -198,7 +211,7 @@ if __name__ == "__main__":
         ft = compMkvFeatures(df, hourids[i], mkvcal, mkvconf)
         fm[i, :] = ft
 
-    print('features done')
+    print('features done. time(s): ',time.perf_counter()-st)
     np.save(mkvconf.getFeatureFile(), fm)
     np.save(mkvconf.getLabelFile(), labels)
 

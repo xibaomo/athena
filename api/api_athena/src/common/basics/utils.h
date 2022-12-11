@@ -312,5 +312,10 @@ real64 round5pts(const real64 val) {
     int v = val*p;
     return (real64)v / p;
 }
+
+PyObject* makeRealPyArray(const real32* data, const std::vector<size_t>& dims);
+
+PyObject* makeCmplxPyArray(const std::complex<real32>* data, const std::vector<size_t>& dims);
+
 }
 #endif   /* ----- #ifndef _BASIC_UTILS_H_  ----- */
