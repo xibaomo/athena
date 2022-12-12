@@ -29,10 +29,25 @@ MinbarTracker::processMsg(Message& msg) {
     case FXAct::REQUEST_ACT_RTN:
         outmsg = procMsg_REQUEST_ACT_RTN(msg);
         break;
+    case FXAct::ALL_POS_INFO:
+        outmsg = procMsg_ALL_POS_INFO(msg);
+        break;
     default:
-        Log(LOG_FATAL) << "Action not recognized: " + to_string((int)act) <<std::endl;
+        Log(LOG_FATAL) << "Action not recognized: " + to_string((int)act) << std::endl;
         break;
     }
+    return outmsg;
+}
+
+Message
+MinbarTracker::procMsg_ALL_POS_INFO(Message& msg) {
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
+    for(size_t i=0; i < pack.real64_vec1.size();i++) {
+        cout<<"highest profit: " << pack.real64_vec1[i] << ", profit: " << pack.real64_vec[i] << endl;
+    }
+
+    Message outmsg;
     return outmsg;
 }
 

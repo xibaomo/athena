@@ -81,5 +81,6 @@ public:
     Message procMsg_CLOSED_POS_INFO(Message& msg);
     Message procMsg_REQUEST_ACT(Message& msg);
     Message procMsg_REQUEST_ACT_RTN(Message& msg);
+    Message procMsg_ALL_POS_INFO(Message& msg);
 };
 

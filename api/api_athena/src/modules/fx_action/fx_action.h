@@ -35,6 +35,7 @@ enum class FXAct {
     REQUEST_ACT_RTN,
     REGISTER_POS,
     CLOSE_POS_INFO,
-    DECISION
+    DECISION,
+    ALL_POS_INFO
 };
 #endif // _CLIENT_API_FX_ACTION_H_
