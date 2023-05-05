@@ -209,14 +209,117 @@ class MkvCalEqnSol(object):
     def getRtn(self):
         return self.rtn
     
+    def compTransMat_noabsorb(self,rtns,ub_rtn,lb_rtn):#no absorb states, but cannot go higher or lower
+        probcal = ECDFCal(rtns)
+        n_states = self.n_partitions+2
+        d = (ub_rtn-lb_rtn)/self.n_partitions
+        idxDiff2Prob = {}
+        for i in range(-n_states-1,n_states+2):
+            p = probcal.compRangeProb(i*d-d/2,i*d+d/2)
+            idxDiff2Prob[i] = p
+        pm = np.zeros((n_states,n_states))
+        
+        for i in range(n_states):
+            for j in range(n_states):      
+                if j==0:
+                    dr = (j-i)*d+d*.5
+                    pm[i,j] = probcal.compRangeProb(-.5, dr)
+                elif j==n_states-1:
+                    dr = (j-i)*d - d*.5
+                    pm[i,j] = probcal.compRangeProb(dr, .5)
+                else:
+                    pm[i,j] = idxDiff2Prob[j-i]
+        
+        # truncate at end states
+        s = np.sum(pm[0,:])
+        pm[0,0] += (1-s)
+        s = np.sum(pm[-1,:])
+        pm[-1,-1] += (1-s)
+        
+        return pm
+    def compLimitDist(self,rtns,ub_rtn,lb_rtn): #stationary distribution of states
+        pm = self.compTransMat_noabsorb(rtns, ub_rtn, lb_rtn)
+        npts = self.n_partitions+2
+        I = np.identity(npts)
+        ONE = np.ones((npts,npts))
+        one = np.ones((1,npts))
+        tmp = I - pm + ONE
+        
+        tmp = np.linalg.inv(tmp)
+        
+        dist = np.matmul(one,tmp)
+        return dist
+    
+    def compLimitRtn(self,tid_s,tid_e,ub_rtn,lb_rtn): # expected return per cdf 
+        pc = self.df[OPEN_KEY][tid_s:tid_e+1]
+        rtns = np.diff(np.log(pc))
+        dist = self.compLimitDist(rtns, ub_rtn, lb_rtn)
+        d = (ub_rtn-lb_rtn)/self.n_partitions
+        s = 0.
+        for i in range(self.n_partitions+2):
+            s += dist[0,i]*(lb_rtn-d/2 + i*d)
+        return s
+    
+    def compExpectHitSteps(self,tid_s,tid_e,ub_rtn,lb_rtn,tar_state,steps):
+        pc = self.df[OPEN_KEY][tid_s:tid_e+1]
+        rtns = np.diff(np.log(pc))
+        pm = self.compTransMat_absorb(rtns, ub_rtn, lb_rtn)
+        
+        pu = copy.deepcopy(pm)
+        fu = copy.deepcopy(pu[:,tar_state])
+        pu [:,tar_state] = 0
+        pb = fu[int(len(fu)/2)]
+ 
+        exstep = pb
+        for i in range(steps):
+            fu = np.matmul(pu,fu)
+            # pb+=fu[int(len(fu)/2)]
+            # ps.append(fu[int(len(fu)/2)])
+            s = (i+2) * fu[int(len(fu)/2)]
+            exstep += s
+            if exstep > 0 and s/exstep < 0.001:
+                print("expected steps converge: ", i,exstep)
+                break
+        
+        return exstep
+        
+        
+    def compTransMat_absorb(self,rtns,ub_rtn,lb_rtn):
+        probcal = ECDFCal(rtns)
+        npts = self.n_partitions
+        d = (ub_rtn-lb_rtn)/npts
+        idxDiff2Prob = {}
+        for i in range(-npts-1,npts+2):
+            p = probcal.compRangeProb(i*d-d/2,i*d+d/2)
+            idxDiff2Prob[i] = p
+        
+        pm = np.zeros((npts+2,npts+2))
+        for i in range(npts+2):
+            for j in range(npts+2):
+                if j==0:
+                    dr = (j-i)*d+d*.5
+                    pm[i,j] = probcal.compRangeProb(-.5, dr)
+                elif j==npts+1:
+                    dr = (j-i)*d - d*.5
+                    pm[i,j] = probcal.compRangeProb(dr, .5)
+                else:
+                    pm[i,j] = idxDiff2Prob[j-i]
+        pm[0,:] = 0
+        pm[0,0] = 1.
+        pm[-1,:] = 0
+        pm[-1,-1] = 1.
+        return pm
+            
     def compWinProb(self,tid_s,tid_e,ub_rtn,lb_rtn):
         pc = self.df[OPEN_KEY][tid_s:tid_e+1]
         self.rtn = np.diff(np.log(pc))
         
         rtn = copy.deepcopy(self.rtn)
-        print("Ave rtn: ",np.mean(rtn))
+        # print("Ave rtn: ",np.mean(rtn))
         # self.transProbCal = CDFCounter(rtn)
-        self.transProbCal = CDFLaplace(rtn)
+        # self.transProbCal = CDFLaplace(rtn)
+        self.transProbCal = ECDFCal(rtn)
+        # print("ECDFCal is used")
         npts = self.n_partitions
         d = (ub_rtn-lb_rtn)/npts
         idxDiff2Prob = {}

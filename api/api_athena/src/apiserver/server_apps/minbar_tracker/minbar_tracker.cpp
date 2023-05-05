@@ -43,10 +43,15 @@ Message
 MinbarTracker::procMsg_ALL_POS_INFO(Message& msg) {
     SerializePack pack;
     unserialize(msg.getComment(),pack);
-    for(size_t i=0; i < pack.real64_vec1.size();i++) {
-        cout<<"highest profit: " << pack.real64_vec1[i] << ", profit: " << pack.real64_vec[i] << endl;
+    ofstream ofs("profits.dat");
+    int p = 0;
+    for(auto k : pack.int32_vec) {
+        for(int i=0; i < k; i++) {
+            ofs << pack.real64_vec[p++] << ",";
+        }
+        ofs<<"\n";
     }
-
+    ofs.close();
     Message outmsg;
     return outmsg;
 }

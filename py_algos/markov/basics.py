@@ -8,6 +8,7 @@ from scipy.optimize import curve_fit
 from scipy.stats import skew,kurtosis
 from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
+import statsmodels.api as sm
 DATE_KEY = '<DATE>'
 TIME_KEY = '<TIME>'
 OPEN_KEY = '<OPEN>'
@@ -209,6 +210,8 @@ class CDFLaplace(object):
         sd = np.std(rtn)
         # pdb.set_trace()
         self.lmb = np.sqrt((1+self.kappa**4)/self.kappa**2/sd**2)
+        if abs(self.lmb) > 1e6:
+            pdb.set_trace()
         self.mu = np.mean(rtn) - (1-self.kappa**2)/self.lmb/self.kappa
         print("skew = ",sk)
         print("kappa = {}, lambda = {}, mu = {}".format(self.kappa,self.lmb,self.mu))
@@ -237,6 +240,16 @@ class CDFLaplace(object):
         ly = self.compCDF(lb)
         return uy - ly
 
+class ECDFCal(object): #empirical cdf calculator
+    def __init__(self,rtn0):
+        self.ecdf = sm.distributions.ECDF(rtn0)
+    def compCDF(self,x):
+        return self.ecdf(x)
+    
+    def compRangeProb(self,lb,ub):
+        uy = self.compCDF(ub)
+        ly = self.compCDF(lb)
+        return uy-ly
 
 if __name__ == "__main__":
     import sys
