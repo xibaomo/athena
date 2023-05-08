@@ -22,11 +22,11 @@ from scipy.signal import savgol_filter
 
 mkv_path = os.environ['ATHENA_HOME']+'/py_algos/markov'
 sys.path.append(mkv_path)
-mkv_path = os.environ['ATHENA_HOME']+'/py_algos/mkv_svm'
+mkv_path = os.environ['ATHENA_HOME']+'/py_algos/fex_tf'
 sys.path.append(mkv_path)
 mkv_path = os.environ['ATHENA_HOME'] + '/api/api_athena/pyapi'
 sys.path.append(mkv_path)
-from mkvsvmconf import *
+from fexconf import *
 from markov import *
 from feature import *
 from athena import *
@@ -258,9 +258,9 @@ def find_turning_points(data, threshold):
     turning_points : ndarray
         The indices of the turning points in the input data.
     """
-    
+
     data = savgol_filter(data, 60*6, 2)
-    
+
     # Find local minima and maxima
     local_minima = argrelextrema(data, np.less)[0]
     local_maxima = argrelextrema(data, np.greater)[0]
@@ -273,19 +273,19 @@ def find_turning_points(data, threshold):
             ftp.append(turning_points[i])
     if abs((data[ftp[-1]] - data[turning_points[-1]]) / data[ftp[-1]]) > threshold:
         ftp.append(len(data)-1)
-       
+
     # only keep turning points of turning ponts
     ftp1 = [ftp[0]]
-    for i in range(1,len(ftp)-1):
-        if (data[ftp[i]]-data[ftp[i-1]]) * (data[ftp[i+1]]-data[ftp[i]]) < 0:
+    for i in range(1, len(ftp)-1):
+        if ( data[ftp[i]]-data[ftp[i-1]]) * (data[ftp[i+1]]-data[ftp[i]]) < 0:
             ftp1.append(ftp[i])
     ftp1.append(ftp[-1])
-    return data,ftp1
+    return data, ftp1
 def compRiseRatio(data): # percentage of rising time
-    _,tps = find_turning_points(data, 0.0015)
-    up=0
-    down=0
-    for i in range(1,len(tps)):
+    _, tps = find_turning_points(data, 0.0015)
+    up = 0
+    down = 0
+    for i in range(1, len(tps)):
         if data[tps[i]] > data[tps[i-1]]:
             up+= (tps[i]-tps[i-1])
         else:
@@ -293,10 +293,10 @@ def compRiseRatio(data): # percentage of rising time
     return up/(up+down)
 
 def compSpeedRatio(data):
-    smt,tps = find_turning_points(data,0.0015)
+    smt, tps = find_turning_points(data, 0.0015)
     upspd=[]
     dwspd=[]
-    for i in range(1,len(tps)):
+    for i in range(1, len(tps)):
         d = smt[tps[i]] - smt[tps[i-1]]
         t = tps[i] - tps[i-1]
         spd = d/t
@@ -304,7 +304,7 @@ def compSpeedRatio(data):
             upspd.append(spd)
         else:
             dwspd.append(-spd)
-            
+
     return np.mean(upspd)/np.mean(dwspd)
 
 # Define a function to calculate the ATR
@@ -346,10 +346,10 @@ if __name__ == "__main__":
     ymlfile = sys.argv[2]
 
     df = pd.read_csv(csvfile, sep='\t')
-    mkvconf = MkvSvmConfig(ymlfile)
+    fexconf =FexConfig(ymlfile)
     op = df['<OPEN>'].values
 
-    rtn = mkvconf.getUBReturn()
+    rtn = fexconf.getUBReturn()
 
     st = time.perf_counter()
     thd = 0.01
@@ -367,9 +367,9 @@ if __name__ == "__main__":
     st = time.perf_counter()
 
     ##### markov
-    mkvcal = MkvCalEqnSol(df, mkvconf.getNumPartitions())
+    mkvcal = MkvCalEqnSol(df, fexconf.getNumPartitions())
 
-    lookback = mkvconf.getLookback()
+    lookback =fexconf.getLookback()
     fm = np.zeros((len(labels), 7))
     print("computing features...")
     for i in range(len(hourids)):
@@ -384,7 +384,7 @@ if __name__ == "__main__":
         #rts = np.diff(np.log(ops))
         #fm[i, 0] = sum(rts)
         #fm[i, 1] = np.std(rts)
-        ft = compMkvFeatures(df, hourids[i], mkvcal, mkvconf)
+        ft = compMkvFeatures(df, hourids[i], mkvcal, fexconf)
         fm[i, 0] = ft[0][0]
         fm[i, 1] = ft[0][1]
         #pu, pd = comp_clt(df, tid, lookback, lookfwd, thd)
@@ -393,19 +393,19 @@ if __name__ == "__main__":
         darr = np.diff(np.log(arr))
         fm[i, 2] = np.sum(darr)
         fm[i, 3] = np.std(darr)
-        # fm[i, 4] = mkvcal.compLimitRtn(tid-lookback,tid,.05,-.05)
-        fm[i,4] = mkvcal.compExpectHitSteps(tid-lookback,tid,0.01,-0.01,-1,1440*5)
+        # fm[i, 4] = mkvcal.compLimitRtn(tid-lookback, tid, .05, -.05)
+        fm[i, 4] = mkvcal.compExpectHitSteps(tid-lookback, tid, 0.01, -0.01, -1, 1440*5)
         # pdb.set_trace()
-        fm[i,5] = mkvcal.compExpectHitSteps(tid-lookback,tid,0.01,-0.01,-0,1440*5)
-        
-        fm[i,6] = fm[i,4]/fm[i,5]
+        fm[i, 5] = mkvcal.compExpectHitSteps(tid-lookback, tid, 0.01, -0.01, -0, 1440*5)
+
+        fm[i, 6] = fm[i, 4]/fm[i, 5]
 
         print("{} of {} finished".format(i, len(hourids)))
 
     print('features done. time(s): ',time.perf_counter()-st)
-    np.save(mkvconf.getFeatureFile(), fm)
-    np.save(mkvconf.getLabelFile(), labels)
-    print('{} & {} saved'.format(mkvconf.getFeatureFile(),mkvconf.getLabelFile()))
+    np.save(fexconf.getFeatureFile(), fm)
+    np.save(fexconf.getLabelFile(), labels)
+    print('{} & {} saved'.format(fexconf.getFeatureFile(),fexconf.getLabelFile()))
     plot_labels(fm, labels)
 
     #compare distribution
