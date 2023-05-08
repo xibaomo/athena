@@ -363,16 +363,17 @@ if __name__ == "__main__":
     hourids = hourids[idx]
     labels  = labels[idx]
     #pdb.set_trace()
-    hourids = hourids.astype(np.int32)
-    st = time.perf_counter()
+    hourids = hourids.astype(np.int32)  
 
     ##### markov
     mkvcal = MkvCalEqnSol(df, fexconf.getNumPartitions())
 
     lookback =fexconf.getLookback()
+    lookfwd = fexconf.getLookforward()
     fm = np.zeros((len(labels), 7))
     print("computing features...")
     for i in range(len(hourids)):
+        st = time.perf_counter()
         tid = hourids[i]
         # hist_end = hourids[i] + 1
         # hist_start = hist_end - lookback
@@ -393,16 +394,18 @@ if __name__ == "__main__":
         darr = np.diff(np.log(arr))
         fm[i, 2] = np.sum(darr)
         fm[i, 3] = np.std(darr)
+        sp_up,sp_dn,spr = mkvcal.compExpectHitSteps(tid-lookback,tid,rtn,-rtn,lookfwd)
         # fm[i, 4] = mkvcal.compLimitRtn(tid-lookback, tid, .05, -.05)
-        fm[i, 4] = mkvcal.compExpectHitSteps(tid-lookback, tid, 0.01, -0.01, -1, 1440*5)
+        fm[i, 4] = sp_up
         # pdb.set_trace()
-        fm[i, 5] = mkvcal.compExpectHitSteps(tid-lookback, tid, 0.01, -0.01, -0, 1440*5)
+        fm[i, 5] = sp_dn
 
         fm[i, 6] = fm[i, 4]/fm[i, 5]
 
         print("{} of {} finished".format(i, len(hourids)))
 
-    print('features done. time(s): ',time.perf_counter()-st)
+        print('Elapsed time(s): ',time.perf_counter()-st)
+        
     np.save(fexconf.getFeatureFile(), fm)
     np.save(fexconf.getLabelFile(), labels)
     print('{} & {} saved'.format(fexconf.getFeatureFile(),fexconf.getLabelFile()))

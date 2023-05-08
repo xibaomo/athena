@@ -260,28 +260,29 @@ class MkvCalEqnSol(object):
             s += dist[0,i]*(lb_rtn-d/2 + i*d)
         return s
     
-    def compExpectHitSteps(self,tid_s,tid_e,ub_rtn,lb_rtn,tar_state,steps):
+    def auxExpect1HitStep(self,pm,tar_state,lookfwd):
+        pf = copy.deepcopy(pm)
+        f = copy.deepcopy(pf[:,tar_state])
+        pf[:,tar_state] = 0
+        pb = f[int(len(f)/2)]
+        
+        expstep=pb
+        for i in range(lookfwd):
+            f = np.matmul(pf,f)
+            pb = f[int(len(f)/2)]
+            expstep += (i+2)*pb
+            
+        return expstep
+            
+    def compExpectHitSteps(self,tid_s,tid_e,ub_rtn,lb_rtn,lookfwd):
         pc = self.df[OPEN_KEY][tid_s:tid_e+1]
         rtns = np.diff(np.log(pc))
         pm = self.compTransMat_absorb(rtns, ub_rtn, lb_rtn)
         
-        pu = copy.deepcopy(pm)
-        fu = copy.deepcopy(pu[:,tar_state])
-        pu [:,tar_state] = 0
-        pb = fu[int(len(fu)/2)]
- 
-        exstep = pb
-        for i in range(steps):
-            fu = np.matmul(pu,fu)
-            # pb+=fu[int(len(fu)/2)]
-            # ps.append(fu[int(len(fu)/2)])
-            s = (i+2) * fu[int(len(fu)/2)]
-            exstep += s
-            if exstep > 0 and s/exstep < 0.001:
-                print("expected steps converge: ", i,exstep)
-                break
+        sp_up = self.auxExpect1HitStep(pm,-1,lookfwd)
+        sp_dn = self.auxExpect1HitStep(pm, 0,lookfwd)
         
-        return exstep
+        return sp_up,sp_dn,sp_up/sp_dn
         
         
     def compTransMat_absorb(self,rtns,ub_rtn,lb_rtn):

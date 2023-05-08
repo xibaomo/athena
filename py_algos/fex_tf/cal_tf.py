@@ -11,18 +11,16 @@ from tensorflow.keras import regularizers
 import numpy as np
 import sys, os
 from sklearn.preprocessing import *
-mkv_path = os.environ['ATHENA_HOME']+'/py_algos/mkv_svm'
+mkv_path = os.environ['ATHENA_HOME']+'/py_algos/fex_tf'
 sys.path.append(mkv_path)
-from mkvsvmconf import *
-from pkl_predictor import *
+from fexconf import *
 
-mkvconf = MkvSvmConfig(sys.argv[1])
+mkvconf = FexConfig(sys.argv[1])
 
 fm = np.load(mkvconf.getFeatureFile())
 labels = np.load(mkvconf.getLabelFile())
-pklconf = PklPredictorConfig(mkvconf)
 
-ffm = fm[:, 1:-1]
+ffm = fm[:, [1, 2, 3, 6]]
 flbs = labels
 
 test_size = 5
@@ -63,7 +61,7 @@ loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits = True)
 model.compile(optimizer='adam',
               loss = loss_fn,
               metrics=['accuracy'])
-model.fit(x_train, y_train, epochs = 800)
+model.fit(x_train, y_train, epochs = 1000)
 
 model.evaluate(x_train, y_train, verbose = 2)
 model.evaluate(x_test, y_test, verbose = 2)
