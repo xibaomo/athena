@@ -172,8 +172,11 @@ def ___labelHours(df, sid, eid, rtn, lifetime_days):
 
 def labelHours(df, thd, lookfwd):
     ismark = df['<TIME>'].isin(['04:00:00'])
-    #ismark = df['<TIME>'].isin(['04:00:00','12:00:00'])
+    ismark = df['<TIME>'].isin(['04:00:00','12:00:00'])
     hourids = [i for i, d in enumerate(ismark.values) if d]
+    
+    print("marked hours: ",len(hourids))
+    
     hourids = np.array(hourids)
     op = df['<OPEN>'].values
     hi = df['<HIGH>'].values
@@ -355,9 +358,17 @@ if __name__ == "__main__":
     thd = 0.01
     lookfwd = 1440*5
     hourids, labels = labelHours(df, thd, lookfwd)
+    
+    lookback =fexconf.getLookback()
+    lookfwd = fexconf.getLookforward()
 
     print("labeling time (s) ",time.perf_counter()-st)
     print("no lables: ",sum(labels==0))
+    
+    idx = hourids >= lookback
+    hourids = hourids[idx]
+    labels  = labels[idx]
+    
 
     idx = labels!=0
     hourids = hourids[idx]
@@ -368,8 +379,7 @@ if __name__ == "__main__":
     ##### markov
     mkvcal = MkvCalEqnSol(df, fexconf.getNumPartitions())
 
-    lookback =fexconf.getLookback()
-    lookfwd = fexconf.getLookforward()
+    
     fm = np.zeros((len(labels), 7))
     print("computing features...")
     for i in range(len(hourids)):
