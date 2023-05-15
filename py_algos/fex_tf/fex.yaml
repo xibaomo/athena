@@ -3,7 +3,7 @@ FEX:
     NUM_PARTITIONS: 601 # number of partitions between UB & LB returns.
     POSITION_LIFETIME: 5 #days
 
-#----------- Labeling used -------------
+#------------- modifiable -----------    
     LOOKBACK:  8640 #unit: minute
     #LOOKBACK:  1440 #unit: minute
     LOOKFORWARD: 5760

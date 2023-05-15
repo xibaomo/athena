@@ -172,7 +172,7 @@ def ___labelHours(df, sid, eid, rtn, lifetime_days):
 
 def labelHours(df, thd, lookfwd):
     ismark = df['<TIME>'].isin(['04:00:00'])
-    ismark = df['<TIME>'].isin(['04:00:00','12:00:00'])
+    ismark = df['<TIME>'].isin(['04:00:00','08:00:00','12:00:00','16:00:00','20:00:00'])
     hourids = [i for i, d in enumerate(ismark.values) if d]
     
     print("marked hours: ",len(hourids))

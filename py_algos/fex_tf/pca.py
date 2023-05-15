@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 X = np.load('fm.npy')
 y = np.load('labels.npy')
 
-X = X[:, 2:]
+X = X[:, 0:]
 
 # create a PCA object and fit the data
 pca = PCA(n_components = 5)
