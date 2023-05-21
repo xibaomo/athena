@@ -459,15 +459,15 @@ if __name__ == "__main__":
         fm[i, 1] = kurtosis(darr)
         fm[i, 2] = mu
         fm[i, 3] = sd
-        fm[i, 4] = np.abs(spm[0])
+        fm[i, 4] = spm[0].real
         fm[i, 5] = np.abs(spm[1])
         # sp_up, sp_dn, spr = mkvcal.compExpectHitSteps(tid-lookback, tid, rtn, -rtn, lookfwd)
         # # fm[i, 4] = mkvcal.compLimitRtn(tid-lookback, tid, .05, -.05)
         # fm[i, 4] = sp_up
         # fm[i, 5] = sp_dn
 
-        fm[i, 6] = array_range(darr)
-        fm[i, 7] = array_range(arr)
+        fm[i, 6] = np.abs(spm[2])
+        fm[i, 7] = np.abs(spm[3])
         x = np.linspace(0, len(arr), len(arr))
         coeff = np.polyfit(x, arr, 1)
         fm[i, 8] =  coeff[0]

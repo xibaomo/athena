@@ -7,6 +7,7 @@ Created on Tue Oct 25 01:15:35 2022
 """
 
 import tensorflow as tf
+from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras import regularizers
 import numpy as np
 import sys, os
@@ -22,7 +23,7 @@ labels = np.load(mkvconf.getLabelFile())
 
 ffm = fm[:, :]
 #ffm = fm[:, 2:]
-ffm = fm[:, [ 2, 3, 4, 5, 8, 9  ]]
+ffm = fm[:, [ 2, 3, 4, 5   ]]
 flbs = labels
 
 test_size = int(200)
@@ -66,20 +67,27 @@ tf.keras.layers.Dense(ns/4, activation='relu',kernel_regularizer = regularizers.
 ])
 # predictions = model(x_train[:1]).numpy()
 
+checkpoint = ModelCheckpoint('best_model.h5', monitor='val_accuracy', save_best_only = True, mode='max')
 loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits = True)
 model.compile(optimizer='adam',
               loss = loss_fn,
               metrics=['accuracy'])
-model.fit(x_train, y_train, epochs = 200,
+history = model.fit(x_train, y_train, epochs = 200,
         batch_size = 128*4,
-        validation_data=(x_test, y_test))
+        validation_data=(x_test, y_test),
+        callbacks=[checkpoint])
+best_val_accuracy = max(history.history['val_accuracy'])
+print(f"Best accuracy on validation set: {best_val_accuracy}")
 
-model.evaluate(x_train, y_train, verbose = 2)
-model.evaluate(x_test, y_test, verbose = 2)
+best_model = tf.keras.models.load_model('best_model.h5')
+best_model.evaluate(x_train, y_train, verbose = 2)
+best_model.evaluate(x_test, y_test, verbose = 2)
 
-yp = model.predict(x_test)
+yp = best_model.predict(x_test)
 yp = tf.nn.softmax(yp)
 y_pred = tf.argmax(yp, 1).numpy()
 print(y_pred)
 print('y_train dist: ',np.sum(y_train==y_train[0])/len(y_train))
 print('y_test dist: ',np.sum(y_test==y_test[0])/len(y_test))
+
+tf.saved_model.save(best_model, 'saved_model')
