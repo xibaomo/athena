@@ -23,7 +23,7 @@ labels = np.load(mkvconf.getLabelFile())
 
 ffm = fm[:, :]
 #ffm = fm[:, 2:]
-ffm = fm[:, [ 2, 3, 4, 5   ]]
+ffm = fm[:, [0, 1, 2, 3, 4, 5, 6, 7   ]]
 flbs = labels
 
 test_size = int(200)
@@ -90,4 +90,4 @@ print(y_pred)
 print('y_train dist: ',np.sum(y_train==y_train[0])/len(y_train))
 print('y_test dist: ',np.sum(y_test==y_test[0])/len(y_test))
 
-tf.saved_model.save(best_model, 'saved_model')
+#tf.saved_model.save(best_model, 'saved_model')

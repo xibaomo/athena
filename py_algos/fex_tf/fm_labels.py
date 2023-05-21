@@ -455,10 +455,13 @@ if __name__ == "__main__":
 
         arr = arr/arr[0]
         spm = np.fft.fft(arr)
-        fm[i, 0] = skew(darr)
-        fm[i, 1] = kurtosis(darr)
-        fm[i, 2] = mu
-        fm[i, 3] = sd
+        fm[i, 0] = mu
+        fm[i, 1] = sd
+        x = np.linspace(0, len(arr), len(arr))
+        coeff = np.polyfit(x, arr, 1)
+        fm[i, 2] =  coeff[0]
+        fm[i, 3] = coeff[1]
+
         fm[i, 4] = spm[0].real
         fm[i, 5] = np.abs(spm[1])
         # sp_up, sp_dn, spr = mkvcal.compExpectHitSteps(tid-lookback, tid, rtn, -rtn, lookfwd)
@@ -466,13 +469,11 @@ if __name__ == "__main__":
         # fm[i, 4] = sp_up
         # fm[i, 5] = sp_dn
 
-        fm[i, 6] = np.abs(spm[2])
-        fm[i, 7] = np.abs(spm[3])
-        x = np.linspace(0, len(arr), len(arr))
-        coeff = np.polyfit(x, arr, 1)
-        fm[i, 8] =  coeff[0]
-        fm[i, 9] = coeff[1]
+        sn = np.sin(2*np.pi/lookback*x)
+        sn2 = np.sin(2*np.pi/lookback*2.*x)
 
+        fm[i, 6] = np.sum(sn*arr)
+        fm[i, 7] = np.sum(sn2*arr)
         print('{} finished. Elapsed time(s): {}'.format(i,time.perf_counter()-st))
 
     np.save(fexconf.getFeatureFile(), fm)
