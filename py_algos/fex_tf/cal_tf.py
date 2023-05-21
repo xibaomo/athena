@@ -22,10 +22,10 @@ labels = np.load(mkvconf.getLabelFile())
 
 ffm = fm[:, :]
 #ffm = fm[:, 2:]
-ffm = fm[:, [ 2, 3, 4, 5 ]]
+ffm = fm[:, [ 2, 3, 4, 5, 8, 9  ]]
 flbs = labels
 
-test_size = int(50)
+test_size = int(200)
 
 if ( test_size > ffm.shape[0]):
     print("Error: all data size: {}, test size: {}".format(fm.shape[0], test_size))
@@ -44,31 +44,23 @@ x_train = scaler.fit_transform(x_train)
 x_test = scaler.transform(x_test)
 
 s = x_train.shape[1]
-ns = 16*4
+ns = 16*8*8
+drpr = 0.2
 model = tf.keras.models.Sequential([
   #tf.keras.layers.Flatten(input_shape=(1, 2)),
   tf.keras.layers.Dense(ns*2, input_shape=(s, ), activation='relu',kernel_regularizer = regularizers.l2(0.001)),
-  tf.keras.layers.Dropout(0.2),
+  tf.keras.layers.Dropout(drpr),
     tf.keras.layers.Dense(ns, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
-    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dropout(drpr),
 
     tf.keras.layers.Dense(ns, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
-    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dropout(drpr),
 
-    tf.keras.layers.Dense(ns, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
-    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(ns/2, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
+   tf.keras.layers.Dropout(drpr),
 
-    tf.keras.layers.Dense(ns, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
-    tf.keras.layers.Dropout(0.2),
-
-    tf.keras.layers.Dense(ns, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
-    tf.keras.layers.Dropout(0.2),
-
-    tf.keras.layers.Dense(ns, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
-    tf.keras.layers.Dropout(0.2),
-
-   tf.keras.layers.Dense(ns/2, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
-   tf.keras.layers.Dropout(0.2),
+tf.keras.layers.Dense(ns/4, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
+   tf.keras.layers.Dropout(drpr),
 
   tf.keras.layers.Dense(2, activation='softmax')
 ])
@@ -78,8 +70,8 @@ loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits = True)
 model.compile(optimizer='adam',
               loss = loss_fn,
               metrics=['accuracy'])
-model.fit(x_train, y_train, epochs = 1000,
-        batch_size = 256,
+model.fit(x_train, y_train, epochs = 200,
+        batch_size = 128*4,
         validation_data=(x_test, y_test))
 
 model.evaluate(x_train, y_train, verbose = 2)
@@ -90,3 +82,4 @@ yp = tf.nn.softmax(yp)
 y_pred = tf.argmax(yp, 1).numpy()
 print(y_pred)
 print('y_train dist: ',np.sum(y_train==y_train[0])/len(y_train))
+print('y_test dist: ',np.sum(y_test==y_test[0])/len(y_test))

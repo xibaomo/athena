@@ -19,6 +19,7 @@ from scipy.stats import spearmanr
 from scipy.stats import entropy
 from scipy.signal import argrelextrema
 from scipy.signal import savgol_filter
+from scipy.stats import kurtosis, skew
 
 mkv_path = os.environ['ATHENA_HOME']+'/py_algos/markov'
 sys.path.append(mkv_path)
@@ -174,9 +175,9 @@ def labelHours(df, thd, lookfwd):
     ismark = df['<TIME>'].isin(['04:00:00'])
     ismark = df['<TIME>'].isin(['04:00:00','08:00:00','12:00:00','16:00:00','20:00:00'])
     hourids = [i for i, d in enumerate(ismark.values) if d]
-    
+
     print("marked hours: ",len(hourids))
-    
+
     hourids = np.array(hourids)
     op = df['<OPEN>'].values
     hi = df['<HIGH>'].values
@@ -340,6 +341,55 @@ def compare_cdf(*datas):
     plt.title('Cumulative Distribution Function')
     plt.legend()
 
+import scipy.stats as stats
+
+def compCltProb(p, n, mean_return, std_return):
+    expected_total_return = n * mean_return
+    expected_std_return = np.sqrt(n) * std_return
+
+    z_score = (p - expected_total_return) / expected_std_return
+    p_up = 1 - stats.norm.cdf(z_score)
+    p_down = 1-p_up
+
+    return p_up, p_down
+
+def compCltAccumProbUp(rtn, lookfwd, mu, sd): #prob of going beyond with in n
+    s = 0.
+    for i in range(100, lookfwd):
+        p, _ = compCltProb(rtn, i, mu, sd)
+        s+=p
+    return s
+
+def compCltAccumProbDown(rtn, lookfwd, mu, sd): #prob of going below with in n
+    s = 0.
+    for i in range(100, lookfwd):
+        _, p = compCltProb(rtn, i, mu, sd)
+        s+=p
+    return s
+def compCltAveStepsUp(rtn, mu, sd, lookfwd):
+    s = 0.
+    for i in range(100, lookfwd):
+        p_up, _ = compCltProb(rtn, i, mu, sd)
+        s+= i*p_up
+    return s
+
+def compCltAveStepsDown(rtn, mu, sd, lookfwd):
+    s = 0.
+    for i in range(100, lookfwd):
+        _, p_down = compCltProb(rtn, i, mu, sd)
+        s += i*p_down
+    return s
+def array_range(arr):
+    min_val = float('inf')  # Initialize with positive infinity
+    max_val = float('-inf')  # Initialize with negative infinity
+
+    for num in arr:
+        if num < min_val:
+            min_val = num
+        if num > max_val:
+            max_val = num
+
+    return max_val - min_val
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: {} <csv> <mkv.yaml> ".format(sys.argv[0]))
@@ -358,29 +408,27 @@ if __name__ == "__main__":
     thd = 0.01
     lookfwd = 1440*5
     hourids, labels = labelHours(df, thd, lookfwd)
-    
+
     lookback =fexconf.getLookback()
     lookfwd = fexconf.getLookforward()
 
     print("labeling time (s) ",time.perf_counter()-st)
     print("no lables: ",sum(labels==0))
-    
+
     idx = hourids >= lookback
     hourids = hourids[idx]
     labels  = labels[idx]
-    
 
     idx = labels!=0
     hourids = hourids[idx]
     labels  = labels[idx]
     #pdb.set_trace()
-    hourids = hourids.astype(np.int32)  
+    hourids = hourids.astype(np.int32)
 
     ##### markov
     mkvcal = MkvCalEqnSol(df, fexconf.getNumPartitions())
 
-    
-    fm = np.zeros((len(labels), 7))
+    fm = np.zeros((len(labels), 10))
     print("computing features...")
     for i in range(len(hourids)):
         st = time.perf_counter()
@@ -395,27 +443,38 @@ if __name__ == "__main__":
         #rts = np.diff(np.log(ops))
         #fm[i, 0] = sum(rts)
         #fm[i, 1] = np.std(rts)
-        ft = compMkvFeatures(df, hourids[i], mkvcal, fexconf)
-        fm[i, 0] = ft[0][0]
-        fm[i, 1] = ft[0][1]
-        #pu, pd = comp_clt(df, tid, lookback, lookfwd, thd)
-        #pu, pd = comp_clt(df, tid, lookback, 1440, thd/2)
+        # ft = compMkvFeatures(df, hourids[i], mkvcal, fexconf)
+        # fm[i, 0] = ft[0][0]
+        # fm[i, 1] = ft[0][1]
+        # #pu, pd = comp_clt(df, tid, lookback, lookfwd, thd)
+        # #pu, pd = comp_clt(df, tid, lookback, 1440, thd/2)
         arr = op[tid-lookback:tid+1]
         darr = np.diff(np.log(arr))
-        fm[i, 2] = np.sum(darr)
-        fm[i, 3] = np.std(darr)
-        sp_up,sp_dn,spr = mkvcal.compExpectHitSteps(tid-lookback,tid,rtn,-rtn,lookfwd)
-        # fm[i, 4] = mkvcal.compLimitRtn(tid-lookback, tid, .05, -.05)
-        fm[i, 4] = sp_up
-        # pdb.set_trace()
-        fm[i, 5] = sp_dn
+        mu = np.mean(darr)
+        sd = np.std(darr)
 
-        fm[i, 6] = fm[i, 4]/fm[i, 5]
+        arr = arr/arr[0]
+        spm = np.fft.fft(arr)
+        fm[i, 0] = skew(darr)
+        fm[i, 1] = kurtosis(darr)
+        fm[i, 2] = mu
+        fm[i, 3] = sd
+        fm[i, 4] = np.abs(spm[0])
+        fm[i, 5] = np.abs(spm[1])
+        # sp_up, sp_dn, spr = mkvcal.compExpectHitSteps(tid-lookback, tid, rtn, -rtn, lookfwd)
+        # # fm[i, 4] = mkvcal.compLimitRtn(tid-lookback, tid, .05, -.05)
+        # fm[i, 4] = sp_up
+        # fm[i, 5] = sp_dn
 
-        print("{} of {} finished".format(i, len(hourids)))
+        fm[i, 6] = array_range(darr)
+        fm[i, 7] = array_range(arr)
+        x = np.linspace(0, len(arr), len(arr))
+        coeff = np.polyfit(x, arr, 1)
+        fm[i, 8] =  coeff[0]
+        fm[i, 9] = coeff[1]
 
-        print('Elapsed time(s): ',time.perf_counter()-st)
-        
+        print('{} finished. Elapsed time(s): {}'.format(i,time.perf_counter()-st))
+
     np.save(fexconf.getFeatureFile(), fm)
     np.save(fexconf.getLabelFile(), labels)
     print('{} & {} saved'.format(fexconf.getFeatureFile(),fexconf.getLabelFile()))
@@ -428,7 +487,7 @@ if __name__ == "__main__":
         a1 = fm[id1, i]
         a2 = fm[id2, i]
         print("feature {} is same dist: {}".format(i, compare_dist1(a1, a2)))
-        compare_cdf(a1, a2, fm[:, i])
+        compare_cdf(a1, a2)
         print(ks_2samp(fm[id1, i], fm[id2, i]))
 
     # check label distribution

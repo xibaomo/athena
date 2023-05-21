@@ -1,12 +1,15 @@
 import numpy as np
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
-
+from sklearn.preprocessing import *
 # generate some sample data
 X = np.load('fm.npy')
 y = np.load('labels.npy')
 
+scaler = StandardScaler()
 X = X[:, 0:]
+
+X = scaler.fit_transform(X)
 
 # create a PCA object and fit the data
 pca = PCA(n_components = 5)
