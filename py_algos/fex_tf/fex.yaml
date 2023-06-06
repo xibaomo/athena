@@ -5,7 +5,7 @@ FEX:
 
 #------------- modifiable -----------    
     LOOKBACK:  8640 #unit: minute
-    #LOOKBACK:  1440 #unit: minute
+#LOOKBACK:  1440 #unit: minute
     LOOKFORWARD: 5760
     UB_RETURN:  0.01
     LB_RETURN:  auto  # 'auto' gives -UB_RETURN

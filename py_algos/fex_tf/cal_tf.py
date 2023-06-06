@@ -21,9 +21,10 @@ mkvconf = FexConfig(sys.argv[1])
 fm = np.load(mkvconf.getFeatureFile())
 labels = np.load(mkvconf.getLabelFile())
 
-ffm = fm[:, :]
+#ffm = fm[:, :]
 #ffm = fm[:, 2:]
-ffm = fm[:, [0, 1, 2, 3, 4, 5, 6, 7   ]]
+#ffm = fm[:, [0, 1, 2, 3, 4, 5, 6, 7   ]]
+ffm = fm[:, [0, 1, 2, 3, 4, 5   ]]
 flbs = labels
 
 test_size = int(200)
