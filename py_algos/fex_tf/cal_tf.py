@@ -24,7 +24,7 @@ labels = np.load(mkvconf.getLabelFile())
 #ffm = fm[:, :]
 #ffm = fm[:, 2:]
 #ffm = fm[:, [0, 1, 2, 3, 4, 5, 6, 7   ]]
-ffm = fm[:, [0, 1, 3, 4, 5, 6    ]]
+ffm = fm[:, [0, 1, 3, 5, 6    ]]
 flbs = labels
 
 test_size = int(200)

@@ -465,7 +465,7 @@ if __name__ == "__main__":
         spm = np.fft.fft(rsd)
         fm[i, 3] = np.sum(arr)
 
-        fm[i, 4] = spm[0].real
+        fm[i, 4] = np.abs(spm[2])
         fm[i, 5] = np.abs(spm[1])
         # sp_up, sp_dn, spr = mkvcal.compExpectHitSteps(tid-lookback, tid, rtn, -rtn, lookfwd)
         # # fm[i, 4] = mkvcal.compLimitRtn(tid-lookback, tid, .05, -.05)
@@ -475,8 +475,8 @@ if __name__ == "__main__":
         x1 = x*(xmax-x)
         x2 = x*x*(xmax-x)
         x3 = x*x*x*(xmax-x)
-        fm[i, 6] = np.sum(arr*x1)
-        fm[i, 7] = np.sum(arr*x2)
+        fm[i, 6] = np.sum(rsd*x1)
+        fm[i, 7] = np.sum(rsd*x2)
         print('{} finished. Elapsed time(s): {}'.format(i,time.perf_counter()-st))
 
     np.save(fexconf.getFeatureFile(), fm)
