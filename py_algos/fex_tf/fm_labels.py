@@ -456,9 +456,10 @@ if __name__ == "__main__":
         arr = arr/arr[0]-1
         fm[i, 0] = mu
         fm[i, 1] = sd
-        x = np.linspace(0, len(arr), len(arr))
+        xmax = len(arr)-1
+        x = np.linspace(0, len(arr)-1, len(arr))
         #coeff = np.polyfit(x, arr, 1)
-        fm[i, 2] =  arr[-1]/(len(arr)-1)
+        fm[i, 2] =  arr[-1]/(len(arr))
 
         rsd = arr - fm[i, 2]*x
         spm = np.fft.fft(rsd)
@@ -471,11 +472,11 @@ if __name__ == "__main__":
         # fm[i, 4] = sp_up
         # fm[i, 5] = sp_dn
 
-        sn = np.sin(2*np.pi/lookback*x)
-        sn2 = np.sin(2*np.pi/lookback*2.*x)
-
-        fm[i, 6] = np.sum(sn*rsd)
-        fm[i, 7] = np.sum(sn2*rsd)
+        x1 = x*(xmax-x)
+        x2 = x*x*(xmax-x)
+        x3 = x*x*x*(xmax-x)
+        fm[i, 6] = np.sum(arr*x1)
+        fm[i, 7] = np.sum(arr*x2)
         print('{} finished. Elapsed time(s): {}'.format(i,time.perf_counter()-st))
 
     np.save(fexconf.getFeatureFile(), fm)
