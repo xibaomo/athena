@@ -390,6 +390,16 @@ def array_range(arr):
             max_val = num
 
     return max_val - min_val
+
+def print2darray(array_data):
+# Print the 2D array with row and column indices
+    print("{:<8}".format(""),
+      *["{:<8}".format(i) for i in range(len(array_data[0]))])
+
+    for i, row in enumerate(array_data):
+        print("Row {:<4}".format(i),
+          *[f"{element:<8.2f}" for element in row])
+
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: {} <csv> <mkv.yaml> ".format(sys.argv[0]))
@@ -456,12 +466,12 @@ if __name__ == "__main__":
         arr = arr/arr[0]-1
         fm[i, 0] = mu
         fm[i, 1] = sd
-        xmax = len(arr)-1
-        x = np.linspace(0, len(arr)-1, len(arr))
+        xmax = 1
+        x = np.linspace(0, xmax, len(arr))
         #coeff = np.polyfit(x, arr, 1)
-        fm[i, 2] =  arr[-1]/(len(arr))
+        fm[i, 2] =  array_range(arr)
 
-        rsd = arr - fm[i, 2]*x
+        rsd = arr - arr[-1]*x
         spm = np.fft.fft(rsd)
         fm[i, 3] = np.sum(arr)
 
@@ -473,10 +483,11 @@ if __name__ == "__main__":
         # fm[i, 5] = sp_dn
 
         x1 = x*(xmax-x)
-        x2 = x*x*(xmax-x)
-        x3 = x*x*x*(xmax-x)
+        spm = np.fft.fft(arr)
         fm[i, 6] = np.sum(rsd*x1)
-        fm[i, 7] = np.sum(rsd*x2)
+        fm[i, 7] = np.abs(spm[1])
+        fm[i, 8] = np.abs(spm[2])
+        fm[i, 9] = np.abs(spm[3])
         print('{} finished. Elapsed time(s): {}'.format(i,time.perf_counter()-st))
 
     np.save(fexconf.getFeatureFile(), fm)
@@ -496,11 +507,14 @@ if __name__ == "__main__":
 
     # check label distribution
 
+    corr_table = np.zeros((fm.shape[1], fm.shape[1]))
     for i in range(fm.shape[1]):
         for j in range(i+1, fm.shape[1]):
             corr, _ =spearmanr(fm[:, i], fm[:, j])
-            print('corr {} and {}: {}'.format(i,j,corr))
+            #print('corr {} and {}: {}'.format(i,j,corr))
+            corr_table[i, j] = corr
     #print("label dist. identical with whole? ",compare_dist1(labels[idx], labels))
+    print2darray(corr_table)
     plt.show()
 
 

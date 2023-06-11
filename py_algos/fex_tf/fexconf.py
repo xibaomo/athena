@@ -44,3 +44,20 @@ class FexConfig(object):
     def getPredictorType(self):
         return self.yamlDict[self.root]['PREDICTOR_TYPE']
 
+    def getTrainWeight(self):
+        return self.yamlDict[self.root]['TRAIN_WEIGHT']
+
+    def getDataEndPos(self):
+        pos = self.yamlDict[self.root]['DATA_END_POS']
+        if pos == 0:
+            pos = None
+        return pos
+
+    def getAllDataSize(self):
+        return self.yamlDict[self.root]['ALL_DATA_SIZE']
+
+    def getValidSize(self):
+        return self.yamlDict[self.root]['VALID_SIZE']
+
+    def getTestSize(self):
+        return self.yamlDict[self.root]['TEST_SIZE']
