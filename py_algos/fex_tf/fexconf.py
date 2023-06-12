@@ -61,3 +61,6 @@ class FexConfig(object):
 
     def getTestSize(self):
         return self.yamlDict[self.root]['TEST_SIZE']
+
+    def getModelFile(self):
+        return self.yamlDict[self.root]['MODEL_FILE']

@@ -46,7 +46,9 @@ if end_pos is None:
     start_pos = N
 else:
     start_pos = end_pos+N
+
 ffm = fm[-start_pos:-end_pos, [0, 1, 3, 5, 6  ]]
+
 flbs = labels[-start_pos:-end_pos]
 
 valid_size = fexconf.getValidSize()
@@ -74,16 +76,16 @@ x_valid = scaler.transform(x_valid)
 
 s = x_train.shape[1]
 ns = 16*8*8
-drpr = 0.2
+drpr = 0.25
 model = tf.keras.models.Sequential([
   #tf.keras.layers.Flatten(input_shape=(1, 2)),
-  tf.keras.layers.Dense(ns*2, input_shape=(s, ), activation='relu',kernel_regularizer = regularizers.l2(0.001)),
+  tf.keras.layers.Dense(ns*1, input_shape=(s, ), activation='relu',kernel_regularizer = regularizers.l2(0.001)),
   tf.keras.layers.Dropout(drpr),
-    tf.keras.layers.Dense(ns, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
-    tf.keras.layers.Dropout(drpr),
+#    tf.keras.layers.Dense(ns, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
+#    tf.keras.layers.Dropout(drpr),
 
-    tf.keras.layers.Dense(ns, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
-    tf.keras.layers.Dropout(drpr),
+    #tf.keras.layers.Dense(ns, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
+    #tf.keras.layers.Dropout(drpr),
 
     tf.keras.layers.Dense(ns/2, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
    tf.keras.layers.Dropout(drpr),
@@ -97,18 +99,19 @@ tf.keras.layers.Dense(ns/16, activation='relu',kernel_regularizer = regularizers
 
 #checkpoint = ModelCheckpoint('best_model.h5', monitor='val_accuracy', save_best_only = True, mode='max')
 tw = fexconf.getTrainWeight()
-checkpoint = SaveBestModel('best_model.h5',tw)
+mf = fexconf.getModelFile()
+checkpoint = SaveBestModel(mf, tw)
 loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits = True)
 model.compile(optimizer='adam',
               loss = loss_fn,
               metrics=['accuracy'])
 history = model.fit(x_train, y_train, epochs = 400,
-        batch_size = 128*4,
+        batch_size = 128*2,
         validation_data=(x_valid, y_valid),
         callbacks=[checkpoint])
 
 print("Checking performance of the best model: ")
-best_model = tf.keras.models.load_model('best_model.h5')
+best_model = tf.keras.models.load_model(mf)
 _, train_acc = best_model.evaluate(x_train, y_train, verbose = 2)
 _, valid_acc = best_model.evaluate(x_valid, y_valid, verbose = 2)
 score = train_acc*tw + valid_acc*(1-tw)
