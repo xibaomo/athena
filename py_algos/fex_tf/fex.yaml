@@ -14,10 +14,10 @@ FEX:
     LABEL_FILE: labels.npy
 #-------------- training parameters -------------
     TRAIN_WEIGHT: 0.4   # average weight for training accuracy, (1-#) for validation
-    DATA_END_POS: 200 # count from bottom of all data,0 includes the last element
-    ALL_DATA_SIZE: 1300 #train_size+valid_size_test_size
+    DATA_END_POS: 300 # count from bottom of all data,0 includes the last element
+    ALL_DATA_SIZE: 4300 #train_size+valid_size_test_size
     VALID_SIZE: 200
-    TEST_SIZE: 200
+    TEST_SIZE: 100
 
     MODEL_FILE: best_model.h5
 

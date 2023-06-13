@@ -339,7 +339,20 @@ def compare_cdf(*datas):
     plt.xlabel('Data')
     plt.ylabel('CDF')
     plt.title('Cumulative Distribution Function')
-    plt.legend()
+
+def diff_cdf(data1, data2, N = 200):
+    lw = min([np.min(data1), np.min(data2)])
+    hg = max([np.max(data1), np.max(data2)])
+    x = np.linspace(lw, hg, N)
+    dx = 100./N
+
+    s = 0
+    ecdf1 = sm.distributions.ECDF(data1)
+    ecdf2 = sm.distributions.ECDF(data2)
+    for xx in x:
+        d = ecdf1(xx)-ecdf2(xx)
+        s += abs(d)
+    return s*dx
 
 import scipy.stats as stats
 
@@ -415,7 +428,7 @@ if __name__ == "__main__":
     rtn = fexconf.getUBReturn()
 
     st = time.perf_counter()
-    thd = 0.01
+    thd = 0.007
     lookfwd = 1440*5
     hourids, labels = labelHours(df, thd, lookfwd)
 
@@ -423,7 +436,7 @@ if __name__ == "__main__":
     lookfwd = fexconf.getLookforward()
 
     print("labeling time (s) ",time.perf_counter()-st)
-    print("no lables: ",sum(labels==0))
+    print("no lables: ",sum(labels==0)/len(labels))
 
     idx = hourids >= lookback
     hourids = hourids[idx]
@@ -468,14 +481,16 @@ if __name__ == "__main__":
         fm[i, 1] = sd
         xmax = 1
         x = np.linspace(0, xmax, len(arr))
-        #coeff = np.polyfit(x, arr, 1)
-        fm[i, 2] =  array_range(arr)
+        dx = x[2]-x[1]
+        coeff = np.polyfit(x, arr, 1)
+        fm[i, 2] =  coeff[0]
 
         rsd = arr - arr[-1]*x
         spm = np.fft.fft(rsd)
-        fm[i, 3] = np.sum(arr)
+        fm[i, 3] = np.mean(arr)-arr[-1]
+        sn = np.sin(21*np.pi/xmax*x)
 
-        fm[i, 4] = np.abs(spm[2])
+        fm[i, 4] = sum(sn*rsd)*dx
         fm[i, 5] = np.abs(spm[1])
         # sp_up, sp_dn, spr = mkvcal.compExpectHitSteps(tid-lookback, tid, rtn, -rtn, lookfwd)
         # # fm[i, 4] = mkvcal.compLimitRtn(tid-lookback, tid, .05, -.05)
@@ -488,8 +503,8 @@ if __name__ == "__main__":
         fm[i, 7] = np.abs(spm[1])
         fm[i, 8] = np.abs(spm[2])
         fm[i, 9] = np.abs(spm[3])
-        print('{} finished. Elapsed time(s): {}'.format(i,time.perf_counter()-st))
 
+    #print('{} finished. Elapsed time(s): {}'.format(i,time.perf_counter()-st))
     np.save(fexconf.getFeatureFile(), fm)
     np.save(fexconf.getLabelFile(), labels)
     print('{} & {} saved'.format(fexconf.getFeatureFile(),fexconf.getLabelFile()))
@@ -503,7 +518,8 @@ if __name__ == "__main__":
         a2 = fm[id2, i]
         print("feature {} is same dist: {}".format(i, compare_dist1(a1, a2)))
         compare_cdf(a1, a2)
-        print(ks_2samp(fm[id1, i], fm[id2, i]))
+        #print(ks_2samp(fm[id1, i], fm[id2, i]))
+        print("cdf diff: ",diff_cdf(a1, a2))
 
     # check label distribution
 

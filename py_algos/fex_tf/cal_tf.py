@@ -47,7 +47,7 @@ if end_pos is None:
 else:
     start_pos = end_pos+N
 
-ffm = fm[-start_pos:-end_pos, [0, 1, 3, 5, 6  ]]
+ffm = fm[-start_pos:-end_pos, [0, 1, 2, 6  ]]
 
 flbs = labels[-start_pos:-end_pos]
 
