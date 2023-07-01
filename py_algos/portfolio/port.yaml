@@ -1,0 +1,14 @@
+PORTFOLIO:
+    CAPITAL_AMOUT: 10000 # US dollars
+    SYMBOL_FILE: forex_list.csv
+    LOOKFORWARD: 30 #days
+    LOOKBACK: 180 #days
+
+    TARGET_DATE: '2023-03-01' #'' is must
+    NUM_SYMBOLS: 6
+
+GA_MINIMIZER:
+    POPULATION: 200
+    NUM_GENERATION: 100
+    MUTATE_PROB: 0.1
+    CROSS_PROB:
