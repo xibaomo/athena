@@ -469,14 +469,13 @@ if __name__ == "__main__":
         # ft = compMkvFeatures(df, hourids[i], mkvcal, fexconf)
         # fm[i, 0] = ft[0][0]
         # fm[i, 1] = ft[0][1]
-        # #pu, pd = comp_clt(df, tid, lookback, lookfwd, thd)
+        pu, pd = comp_clt(df, tid, lookback, lookfwd, thd)
         # #pu, pd = comp_clt(df, tid, lookback, 1440, thd/2)
         arr = op[tid-lookback:tid+1]
         darr = np.diff(np.log(arr))
         mu = np.mean(darr)
         sd = np.std(darr)
 
-        arr = arr/arr[0]-1
         fm[i, 0] = mu
         fm[i, 1] = sd
         xmax = 1
@@ -485,24 +484,20 @@ if __name__ == "__main__":
         coeff = np.polyfit(x, arr, 1)
         fm[i, 2] =  coeff[0]
 
-        rsd = arr - arr[-1]*x
-        spm = np.fft.fft(rsd)
-        fm[i, 3] = np.mean(arr)-arr[-1]
-        sn = np.sin(21*np.pi/xmax*x)
+        fm[i, 3] = skew(darr)
 
-        fm[i, 4] = sum(sn*rsd)*dx
-        fm[i, 5] = np.abs(spm[1])
+        fm[i, 4] = pu
+        fm[i, 5] = pd
         # sp_up, sp_dn, spr = mkvcal.compExpectHitSteps(tid-lookback, tid, rtn, -rtn, lookfwd)
         # # fm[i, 4] = mkvcal.compLimitRtn(tid-lookback, tid, .05, -.05)
         # fm[i, 4] = sp_up
         # fm[i, 5] = sp_dn
 
-        x1 = x*(xmax-x)
-        spm = np.fft.fft(arr)
-        fm[i, 6] = np.sum(rsd*x1)
-        fm[i, 7] = np.abs(spm[1])
-        fm[i, 8] = np.abs(spm[2])
-        fm[i, 9] = np.abs(spm[3])
+        ecdf = sm.distributions.ECDF(darr)
+        fm[i, 6] = ecdf(0)
+        fm[i, 7] = ecdf(mu)
+        fm[i, 8] = ecdf(-0.001)
+        fm[i, 9] = kurtosis(darr)
 
     #print('{} finished. Elapsed time(s): {}'.format(i,time.perf_counter()-st))
     np.save(fexconf.getFeatureFile(), fm)

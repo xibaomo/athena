@@ -37,6 +37,7 @@ fexconf = FexConfig(sys.argv[1])
 fm = np.load(fexconf.getFeatureFile())
 labels = np.load(fexconf.getLabelFile())
 
+print("feature shape: ",fm.shape)
 #ffm = fm[:, :]
 #ffm = fm[:, 2:]
 #ffm = fm[:, [0, 1, 2, 3, 4, 5, 6, 7   ]]
@@ -47,7 +48,8 @@ if end_pos is None:
 else:
     start_pos = end_pos+N
 
-ffm = fm[-start_pos:-end_pos, [0, 1, 2, 6  ]]
+#ffm = fm[-start_pos:-end_pos, [0, 1, 2, 3, 4, 5, 6, 7  ]]
+ffm = fm[-start_pos:-end_pos, :]
 
 flbs = labels[-start_pos:-end_pos]
 
@@ -76,25 +78,27 @@ x_valid = scaler.transform(x_valid)
 
 s = x_train.shape[1]
 ns = 16*8*8
-drpr = 0.25
+ns = 16
+drpr = 0.2
 model = tf.keras.models.Sequential([
   #tf.keras.layers.Flatten(input_shape=(1, 2)),
   tf.keras.layers.Dense(ns*1, input_shape=(s, ), activation='relu',kernel_regularizer = regularizers.l2(0.001)),
   tf.keras.layers.Dropout(drpr),
-#    tf.keras.layers.Dense(ns, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
+#    tf.keras.layers.Dense(ns*2, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
 #    tf.keras.layers.Dropout(drpr),
 
-    #tf.keras.layers.Dense(ns, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
-    #tf.keras.layers.Dropout(drpr),
+#    tf.keras.layers.Dense(ns, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
+#    tf.keras.layers.Dropout(drpr),
 
     tf.keras.layers.Dense(ns/2, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
    tf.keras.layers.Dropout(drpr),
 
-tf.keras.layers.Dense(ns/16, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
-   tf.keras.layers.Dropout(drpr),
+#tf.keras.layers.Dense(ns/16, activation='relu',kernel_regularizer = regularizers.l2(0.001)),
+#   tf.keras.layers.Dropout(drpr),
 
   tf.keras.layers.Dense(2, activation='softmax')
 ])
+print(model.summary())
 # predictions = model(x_train[:1]).numpy()
 
 #checkpoint = ModelCheckpoint('best_model.h5', monitor='val_accuracy', save_best_only = True, mode='max')
@@ -106,7 +110,7 @@ model.compile(optimizer='adam',
               loss = loss_fn,
               metrics=['accuracy'])
 history = model.fit(x_train, y_train, epochs = 400,
-        batch_size = 128*2,
+        batch_size = 128*4,
         validation_data=(x_valid, y_valid),
         callbacks=[checkpoint])
 
