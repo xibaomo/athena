@@ -21,3 +21,5 @@ class PortfolioConfig(object):
 
     def getSymFile(self):
         return self.yamlDict[self.root]['SYMBOL_FILE']
+    def getMAWindow(self):
+        return self.yamlDict[self.root]['MA_WINDOW']

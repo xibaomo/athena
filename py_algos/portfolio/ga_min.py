@@ -1,9 +1,22 @@
 import pdb
 import random
-
 import numpy as np
+import yaml
 from deap import base, creator, tools, algorithms
 
+class GAMinConfig(object):
+    def __init__(self, cf):
+        self.yamlDict = yaml.load(open(cf), Loader=yaml.FullLoader)
+        self.root = "GA_MINIMIZER"
+
+    def getNumGenerations(self):
+        return self.yamlDict[self.root]['NUM_GENERATION']
+    def getPopulation(self):
+        return self.yamlDict[self.root]['POPULATION']
+    def getCrossProb(self):
+        return self.yamlDict[self.root]['CROSS_PROB']
+    def getMutateProb(self):
+        return self.yamlDict[self.root]['MUTATE_PROB']
 # Define the genetic algorithm
 def ga_minimize(objfunc, params, num_variables, lb=0.,ub=1.,population_size=200, num_generations=50, cross_prob=0.5,mutation_rate=0.1):
     def evaluate(ind):

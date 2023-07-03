@@ -22,7 +22,7 @@ def add_days_to_date(date_str, num_days):
 
     return new_date_str
 
-def rtn_cost(wts,daily_rtns):
+def __rtn_cost(wts,daily_rtns):
     ws = copy.deepcopy(wts)
     ws = np.append(ws,1-np.sum(ws))
     s = 0.
@@ -32,7 +32,13 @@ def rtn_cost(wts,daily_rtns):
     for w,v in zip(ws,monthly_avg_return_ma.iloc[-1,:].values):
         s += w*v
     return s
-
+def rtn_cost(wts,sym_rtns):
+    ws = copy.deepcopy(wts)
+    ws = np.append(ws, 1 - np.sum(ws))
+    s = 0.
+    for w,v in zip(ws,sym_rtns):
+        s += w*v
+    return s
 def std_cost(wts,daily_rtns):
     if np.sum(wts) >= 1.:
         return 100
@@ -66,6 +72,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     portconf = PortfolioConfig(sys.argv[1])
+    gaconf = GAMinConfig(sys.argv[1])
     df = pd.read_csv(portconf.getSymFile(),comment='#')
     NUM_SYMS = portconf.getNumSymbols()
     start_date = add_days_to_date(portconf.getTargetDate(),-portconf.getLookback())
@@ -77,18 +84,23 @@ if __name__ == "__main__":
 
     data = yf.download(syms.tolist(), start = start_date, end = end_date)['Adj Close']
     daily_rtns = data.pct_change()
-
+    ### estimate expectation of return of each symbol
+    monthly_avg_return = daily_rtns.resample('M').mean()
+    # Compute 5-month moving average of monthly average daily return
+    monthly_avg_return_ma = monthly_avg_return.rolling(window=portconf.getMAWindow()).mean()
+    sym_rtns = monthly_avg_return_ma.iloc[-1,:]
     def obj_func(ws,dayrtn):
-        t1 = rtn_cost(ws,dayrtn)
+        t1 = rtn_cost(ws,sym_rtns)
         t2 = std_cost(ws,dayrtn)
         return t2-t1
     # wts = np.ones(NUM_SYMS-1)/float(NUM_SYMS)
     # t1 = rtn_cost(wts,daily_rtns)
     # t2 = std_cost(wts,daily_rtns)
 
-    sol,_ = ga_minimize(obj_func,daily_rtns,len(syms)-1,num_generations=100)
+    sol,_ = ga_minimize(obj_func,daily_rtns,len(syms)-1,num_generations=gaconf.getNumGenerations(),population_size=gaconf.getPopulation(),
+                        cross_prob=gaconf.getCrossProb(),mutation_rate=gaconf.getMutateProb())
 
     print("selected syms: ",picked_rows['<SYM>'].values)
     print("best solution: ",sol,1-np.sum(sol))
-    print("best rtn: {}".format(rtn_cost(sol,daily_rtns)))
+    print("best rtn: {}".format(rtn_cost(sol,sym_rtns)))
     print("best std: {}".format(std_cost(sol, daily_rtns)))
