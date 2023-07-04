@@ -1,4 +1,5 @@
 import pdb
+import multiprocessing
 import random
 import numpy as np
 import yaml
@@ -34,6 +35,8 @@ def ga_minimize(objfunc, params, num_variables, lb=0.,ub=1.,population_size=200,
     toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=1, indpb=mutation_rate)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
+    pool = multiprocessing.Pool()
+    toolbox.register("map", pool.map)
     population = toolbox.population(n=population_size)
 
     # pdb.set_trace()
@@ -55,6 +58,8 @@ def ga_minimize(objfunc, params, num_variables, lb=0.,ub=1.,population_size=200,
     best_solution = tools.selBest(population, k=1)[0]
     best_fitness = best_solution.fitness.values[0]
 
+    delattr(creator, "FitnessMin")
+    delattr(creator, "Individual")
     return best_solution, best_fitness
 
 if __name__ == "__main__":

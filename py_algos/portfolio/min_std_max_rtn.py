@@ -95,6 +95,18 @@ def snap_target_date(date_str,df):
         dt = tar_date - df.index[i]
         if dt.days < 3:
             return i
+def locate_target_date(date_str,df):
+    # pdb.set_trace()
+    tar_date = pd.to_datetime(date_str)
+    prev_days = 1000000
+    for i in range(len(df)):
+        dt = tar_date - df.index[i]
+        if dt.days == 0:
+            return i
+        if prev_days * dt.days < 0:
+            return i
+        prev_days = dt.days
+    return -1
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -112,6 +124,11 @@ if __name__ == "__main__":
     syms = picked_rows['<SYM>'].values + "=X"
 
     data = yf.download(syms.tolist(), start = start_date, end = end_date)['Adj Close']
+    global_tid = locate_target_date(portconf.getTargetDate(),data)
+    if global_tid < 0:
+        print("Failed to find target date");
+        sys.exit(1)
+    print('Target date: ',data.index[global_tid])
     daily_rtns = data.pct_change()
     # pdb.set_trace()
     ### estimate expectation of return of each symbol
@@ -131,11 +148,29 @@ if __name__ == "__main__":
         return (t2*1-t1*1)
 
     for gid in range(3):
+        print("==================== Optimization starts ====================")
         sol,_ = ga_minimize(obj_func,daily_rtns,len(syms)-1,num_generations=gaconf.getNumGenerations(),population_size=gaconf.getPopulation(),
                             cross_prob=gaconf.getCrossProb(),mutation_rate=gaconf.getMutateProb())
 
         print("selected syms: ",picked_rows['<SYM>'].values)
         ss = np.append(sol,1-np.sum(sol))
         print(" ".join(["{:.3f}".format(element) for element in ss]))
-        print("best mean of rtn: {:.6f}".format(rtn_cost(sol,sym_rtns)))
-        print("best std  of rtn: {:.6f}".format(std_cost(sol,cm,sym_std)))
+
+        predicted_mu = rtn_cost(sol,sym_rtns)
+        predicted_std = std_cost(sol,cm,sym_std)
+        print("best mean of rtn: {:.6f}".format(predicted_mu))
+        print("best std  of rtn: {:.6f}".format(predicted_std))
+
+        durtn = len(data)-global_tid -1
+        ub_rtn = (predicted_mu+predicted_std)*durtn
+        lb_rtn = (predicted_mu-predicted_std)*durtn
+        print("predicted return of {} days: [{:.3f},{:.3f}]".format(durtn,lb_rtn,ub_rtn))
+
+        print("********** Verfication **********")
+        invest = portconf.getCapitalAmount()
+        print("predicted profit of ${}: [{:.2f}, {:.2f}]".format(invest,lb_rtn*invest,ub_rtn*invest))
+        start_price = data.iloc[global_tid,:]
+        end_price = data.iloc[-1,:]
+        sym_rtns = (end_price/start_price-1.).values
+        port_rtn = rtn_cost(sol,sym_rtns)
+        print("Actual profit of ${}: {:.2f}".format(invest,port_rtn*invest))
