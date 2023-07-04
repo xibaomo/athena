@@ -110,7 +110,6 @@ if __name__ == "__main__":
 
     picked_rows = df.sample(n=NUM_SYMS)
     syms = picked_rows['<SYM>'].values + "=X"
-    # syms = syms.tolist()
 
     data = yf.download(syms.tolist(), start = start_date, end = end_date)['Adj Close']
     daily_rtns = data.pct_change()
@@ -118,7 +117,6 @@ if __name__ == "__main__":
     ### estimate expectation of return of each symbol
     monthly_avg_return = daily_rtns.resample('M').mean()
     monthly_avg_return_ma = monthly_avg_return.rolling(window=portconf.getMAWindow()).mean()
-    # sym_rtns = monthly_avg_return_ma.iloc[-1,:]
     tid = snap_target_date(portconf.getTargetDate(),monthly_avg_return_ma)
     sym_rtns = monthly_avg_return_ma.iloc[tid,:].values
     # pdb.set_trace()
@@ -130,12 +128,14 @@ if __name__ == "__main__":
     def obj_func(ws,dayrtn):
         t1 = rtn_cost(ws,sym_rtns)
         t2 = std_cost(ws,cm,sym_std)
-        return t2-t1
+        return (t2*1-t1*1)
 
-    sol,_ = ga_minimize(obj_func,daily_rtns,len(syms)-1,num_generations=gaconf.getNumGenerations(),population_size=gaconf.getPopulation(),
-                        cross_prob=gaconf.getCrossProb(),mutation_rate=gaconf.getMutateProb())
+    for gid in range(3):
+        sol,_ = ga_minimize(obj_func,daily_rtns,len(syms)-1,num_generations=gaconf.getNumGenerations(),population_size=gaconf.getPopulation(),
+                            cross_prob=gaconf.getCrossProb(),mutation_rate=gaconf.getMutateProb())
 
-    print("selected syms: ",picked_rows['<SYM>'].values)
-    print("best solution: ",sol,1-np.sum(sol))
-    print("best rtn: {}".format(rtn_cost(sol,sym_rtns)))
-    print("best std: {}".format(std_cost(sol, cm,sym_std)))
+        print("selected syms: ",picked_rows['<SYM>'].values)
+        ss = np.append(sol,1-np.sum(sol))
+        print(" ".join(["{:.3f}".format(element) for element in ss]))
+        print("best mean of rtn: {:.6f}".format(rtn_cost(sol,sym_rtns)))
+        print("best std  of rtn: {:.6f}".format(std_cost(sol,cm,sym_std)))

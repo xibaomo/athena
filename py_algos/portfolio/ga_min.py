@@ -49,7 +49,8 @@ def ga_minimize(objfunc, params, num_variables, lb=0.,ub=1.,population_size=200,
 
         population = toolbox.select(offspring, k=population_size)
 
-        print("generation: {}, best result so far: {}".format(generation,best_perf))
+        if (generation+1) % 100 == 0:
+            print("generation: {}, best result so far: {}".format(generation+1,best_perf))
 
     best_solution = tools.selBest(population, k=1)[0]
     best_fitness = best_solution.fitness.values[0]
