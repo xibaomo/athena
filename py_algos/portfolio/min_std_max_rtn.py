@@ -120,9 +120,16 @@ if __name__ == "__main__":
     start_date = add_days_to_date(portconf.getTargetDate(),-portconf.getLookback())
     end_date   = add_days_to_date(portconf.getTargetDate(),portconf.getLookforward())
 
-    picked_rows = df.sample(n=NUM_SYMS)
-    syms = picked_rows['<SYM>'].values + "=X"
+    syms = portconf.getSymbols()
+    official_syms = None
+    if len(syms)==0:
+        picked_rows = df.sample(n=NUM_SYMS)
+        official_syms = picked_rows['<SYM>'].values
+    else:
+        official_syms = np.array(syms,dtype=object)
+        print("Given sym list: ", syms)
 
+    syms = official_syms + "=X"
     data = yf.download(syms.tolist(), start = start_date, end = end_date)['Adj Close']
     if len(data.keys()) < NUM_SYMS:
         print("Download is not complete. Try again later")
@@ -146,19 +153,30 @@ if __name__ == "__main__":
     cm = daily_rtns.iloc[:global_tid+1,:].corr().values
     monthly_avg_std_ma = monthly_avg_std.rolling(window=portconf.getMAWindow()).mean()
     sym_std = monthly_avg_std_ma.iloc[tid, :].values
+
+    weights = portconf.getSymWeights()
+    cycles = 3 if len(weights) == 0 else 1
+
     def obj_func(ws,dayrtn):
         t1 = rtn_cost(ws,sym_rtns)
         t2 = std_cost(ws,cm,sym_std,weight_bound=portconf.getWeightBound())
         return (t2*1-t1*1)
 
-    for gid in range(3):
-        print("==================== Optimization starts ====================")
-        sol,_ = ga_minimize(obj_func,daily_rtns,len(syms)-1,num_generations=gaconf.getNumGenerations(),population_size=gaconf.getPopulation(),
-                            cross_prob=gaconf.getCrossProb(),mutation_rate=gaconf.getMutateProb())
+    for gid in range(cycles):
+        sol = None
+        if len(weights) == 0:
+            print("==================== Optimization starts ====================")
+            print("sym_rtns: ",sym_rtns)
+            # pdb.set_trace()
+            sol,_ = ga_minimize(obj_func,daily_rtns,len(syms)-1,num_generations=gaconf.getNumGenerations(),population_size=gaconf.getPopulation(),
+                                cross_prob=gaconf.getCrossProb(),mutation_rate=gaconf.getMutateProb())
+        else:
+            sol = np.array(weights)[:-1]
 
-        print("selected syms: ",picked_rows['<SYM>'].values)
+        print('selected syms: ',official_syms.tolist())
         ss = np.append(sol,1-np.sum(sol))
-        print(" ".join(["{:.3f}".format(element) for element in ss]))
+        tmp = ",".join(["{:.3f}".format(element) for element in ss])
+        print("weights: [{}]".format(tmp))
 
         predicted_mu = rtn_cost(sol,sym_rtns)
         predicted_std = std_cost(sol,cm,sym_std)
@@ -175,6 +193,6 @@ if __name__ == "__main__":
         print("predicted profit of ${}: [{:.2f}, {:.2f}]".format(invest,lb_rtn*invest,ub_rtn*invest))
         start_price = data.iloc[global_tid,:]
         end_price = data.iloc[-1,:]
-        sym_rtns = (end_price/start_price-1.).values
-        port_rtn = rtn_cost(sol,sym_rtns)
+        true_sym_rtns = (end_price/start_price-1.).values
+        port_rtn = rtn_cost(sol,true_sym_rtns)
         print("Actual profit of ${}: {:.2f}".format(invest,port_rtn*invest))

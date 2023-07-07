@@ -6,8 +6,12 @@ PORTFOLIO:
     MA_WINDOW: 5
     WEIGHT_BOUND: 0.6
 
-    TARGET_DATE: '2023-06-01' #'' is must
+    TARGET_DATE: '2023-06-01' # '' is must
     NUM_SYMBOLS: 8
+    SYMBOLS: [] # if empty, program will pick symbols randomly
+    WEIGHTS: [] # if empty, program launches optimization
+#    SYMBOLS: ['USDNOK', 'USDSGD', 'USDARS', 'USDCZK', 'USDSEK', 'USDDKK', 'EURUSD', 'USDZAR']
+#    WEIGHTS: [0.193,0.279,0.000,0.153,0.006,0.006,0.361,0.002]
 
 
 
