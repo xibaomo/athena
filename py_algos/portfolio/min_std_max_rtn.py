@@ -65,12 +65,12 @@ def __std_cost(wts,daily_rtns):
                 sj = sds[j]
                 s += wi*wj*cm[i,j]*si*sj
     return np.sqrt(s)
-def std_cost(wts,cm,sym_std):
+def std_cost(wts,cm,sym_std,weight_bound=0.8):
     if np.sum(wts) >= 1.:
         return 100
     ws = copy.deepcopy(wts)
     ws = np.append(ws,1-np.sum(ws))
-    if np.any(ws < 0):
+    if np.any(ws < 0)  or np.any(ws > weight_bound):
         return 100
     s = 0.
     sds = sym_std
@@ -124,6 +124,9 @@ if __name__ == "__main__":
     syms = picked_rows['<SYM>'].values + "=X"
 
     data = yf.download(syms.tolist(), start = start_date, end = end_date)['Adj Close']
+    if len(data.keys()) < NUM_SYMS:
+        print("Download is not complete. Try again later")
+        sys.exit(1)
     global_tid = locate_target_date(portconf.getTargetDate(),data)
     if global_tid < 0:
         print("Failed to find target date");
@@ -134,17 +137,18 @@ if __name__ == "__main__":
     ### estimate expectation of return of each symbol
     monthly_avg_return = daily_rtns.resample('M').mean()
     monthly_avg_return_ma = monthly_avg_return.rolling(window=portconf.getMAWindow()).mean()
+    # pdb.set_trace()
     tid = snap_target_date(portconf.getTargetDate(),monthly_avg_return_ma)
     sym_rtns = monthly_avg_return_ma.iloc[tid,:].values
     # pdb.set_trace()
     ### estimate std of return of each symbol
     monthly_avg_std = daily_rtns.resample('M').std()
-    cm = daily_rtns.corr().values
+    cm = daily_rtns.iloc[:global_tid+1,:].corr().values
     monthly_avg_std_ma = monthly_avg_std.rolling(window=portconf.getMAWindow()).mean()
     sym_std = monthly_avg_std_ma.iloc[tid, :].values
     def obj_func(ws,dayrtn):
         t1 = rtn_cost(ws,sym_rtns)
-        t2 = std_cost(ws,cm,sym_std)
+        t2 = std_cost(ws,cm,sym_std,weight_bound=portconf.getWeightBound())
         return (t2*1-t1*1)
 
     for gid in range(3):
@@ -164,7 +168,7 @@ if __name__ == "__main__":
         durtn = len(data)-global_tid -1
         ub_rtn = (predicted_mu+predicted_std)*durtn
         lb_rtn = (predicted_mu-predicted_std)*durtn
-        print("predicted return of {} days: [{:.3f},{:.3f}]".format(durtn,lb_rtn,ub_rtn))
+        print("predicted monthly return ({} days): [{:.3f},{:.3f}]".format(durtn,lb_rtn,ub_rtn))
 
         print("********** Verfication **********")
         invest = portconf.getCapitalAmount()

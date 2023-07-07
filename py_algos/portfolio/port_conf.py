@@ -23,3 +23,5 @@ class PortfolioConfig(object):
         return self.yamlDict[self.root]['SYMBOL_FILE']
     def getMAWindow(self):
         return self.yamlDict[self.root]['MA_WINDOW']
+    def getWeightBound(self):
+        return self.yamlDict[self.root]['WEIGHT_BOUND']
