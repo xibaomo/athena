@@ -196,3 +196,4 @@ if __name__ == "__main__":
         true_sym_rtns = (end_price/start_price-1.).values
         port_rtn = rtn_cost(sol,true_sym_rtns)
         print("Actual profit of ${}: {:.2f}".format(invest,port_rtn*invest))
+        print("profit quantile: {:.2f}".format((port_rtn-lb_rtn)/(ub_rtn-lb_rtn)))

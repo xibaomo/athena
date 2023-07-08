@@ -6,7 +6,7 @@ PORTFOLIO:
     MA_WINDOW: 5
     WEIGHT_BOUND: 0.6
 
-    TARGET_DATE: '2023-06-01' # '' is must
+    TARGET_DATE: '2022-01-01' # '' is must
     NUM_SYMBOLS: 8
     SYMBOLS: [] # if empty, program will pick symbols randomly
     WEIGHTS: [] # if empty, program launches optimization
