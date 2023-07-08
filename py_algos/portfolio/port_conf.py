@@ -31,3 +31,6 @@ class PortfolioConfig(object):
 
     def getSymWeights(self):
         return self.yamlDict[self.root]['WEIGHTS']
+
+    def getMuWeight(self):
+        return self.yamlDict[self.root]['MU_WEIGHT']

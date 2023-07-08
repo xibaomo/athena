@@ -157,10 +157,11 @@ if __name__ == "__main__":
     weights = portconf.getSymWeights()
     cycles = 3 if len(weights) == 0 else 1
 
+    muw = portconf.getMuWeight()
     def obj_func(ws,dayrtn):
         t1 = rtn_cost(ws,sym_rtns)
         t2 = std_cost(ws,cm,sym_std,weight_bound=portconf.getWeightBound())
-        return (t2*1-t1*1)
+        return (t2*1-t1*muw)
 
     for gid in range(cycles):
         sol = None

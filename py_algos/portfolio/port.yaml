@@ -4,13 +4,14 @@ PORTFOLIO:
     LOOKFORWARD: 31 #days
     LOOKBACK: 180 #days
     MA_WINDOW: 5
-    WEIGHT_BOUND: 0.6
+    WEIGHT_BOUND: 0.6 # upper bound of symbol weight
+    MU_WEIGHT: 1      # cost function is (sigma - MU_WEIGHT*mu)
 
-    TARGET_DATE: '2022-01-01' # '' is must
+    TARGET_DATE: '2023-02-01' # '' is must
     NUM_SYMBOLS: 8
-    SYMBOLS: [] # if empty, program will pick symbols randomly
+#    SYMBOLS: [] # if empty, program will pick symbols randomly
     WEIGHTS: [] # if empty, program launches optimization
-#    SYMBOLS: ['USDNOK', 'USDSGD', 'USDARS', 'USDCZK', 'USDSEK', 'USDDKK', 'EURUSD', 'USDZAR']
+    SYMBOLS: ['USDJPY', 'AUDUSD', 'GBPUSD', 'USDARS', 'USDILS', 'USDSGD', 'NZDUSD', 'USDCHF']
 #    WEIGHTS: [0.193,0.279,0.000,0.153,0.006,0.006,0.361,0.002]
 
 
