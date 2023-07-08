@@ -4,6 +4,7 @@ import random
 import numpy as np
 import yaml
 from deap import base, creator, tools, algorithms
+import time
 
 class GAMinConfig(object):
     def __init__(self, cf):
@@ -41,6 +42,7 @@ def ga_minimize(objfunc, params, num_variables, lb=0.,ub=1.,population_size=200,
 
     # pdb.set_trace()
     best_perf = np.inf
+    tic = time.time()
     for generation in range(num_generations):
         offspring = algorithms.varAnd(population, toolbox, cxpb=cross_prob, mutpb=mutation_rate)
 
@@ -54,6 +56,8 @@ def ga_minimize(objfunc, params, num_variables, lb=0.,ub=1.,population_size=200,
 
         if (generation+1) % 100 == 0:
             print("generation: {}, best result so far: {}".format(generation+1,best_perf))
+            print("Elapsed time: {:.3f} seconds".format(time.time()-tic))
+            tic = time.time()
 
     best_solution = tools.selBest(population, k=1)[0]
     best_fitness = best_solution.fitness.values[0]
