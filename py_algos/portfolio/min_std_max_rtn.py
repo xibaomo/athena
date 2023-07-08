@@ -8,6 +8,7 @@ import os,sys
 from ga_min import *
 from port_conf import *
 from datetime import datetime, timedelta
+from scipy.optimize import minimize
 
 def add_days_to_date(date_str, num_days):
     # Convert string to datetime object
@@ -171,6 +172,11 @@ if __name__ == "__main__":
             # pdb.set_trace()
             sol,_ = ga_minimize(obj_func,daily_rtns,len(syms)-1,num_generations=gaconf.getNumGenerations(),population_size=gaconf.getPopulation(),
                                 cross_prob=gaconf.getCrossProb(),mutation_rate=gaconf.getMutateProb())
+            # Run the optimization using Bobyqa
+            result = minimize(obj_func, sol, args=(daily_rtns), method='Nelder-Mead')
+            sol = result.x
+            print("Final cost: ",result.fun)
+
         else:
             sol = np.array(weights)[:-1]
 
