@@ -9,9 +9,9 @@ PORTFOLIO:
 
     TARGET_DATE: '2023-02-01' # '' is must
     NUM_SYMBOLS: 8
-#    SYMBOLS: [] # if empty, program will pick symbols randomly
+    SYMBOLS: [] # if empty, program will pick symbols randomly
     WEIGHTS: [] # if empty, program launches optimization
-    SYMBOLS: ['USDJPY', 'AUDUSD', 'GBPUSD', 'USDARS', 'USDILS', 'USDSGD', 'NZDUSD', 'USDCHF']
+    SYMBOLS: ['USDARS', 'USDILS', 'USDTRY', 'AUDUSD', 'USDDKK', 'USDZAR', 'NZDUSD', 'USDNOK']
 #    WEIGHTS: [0.193,0.279,0.000,0.153,0.006,0.006,0.361,0.002]
 
 

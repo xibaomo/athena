@@ -76,7 +76,7 @@ def std_cost(wts,cm,sym_std,weight_bound=0.8):
     s = 0.
     sds = sym_std
     for i in range(len(ws)):
-        for j in range(len(ws)):
+        for j in range(i,len(ws)):
             if i == j:
                 w = ws[i]
                 sd = sds[i]
@@ -86,7 +86,7 @@ def std_cost(wts,cm,sym_std,weight_bound=0.8):
                 wj = ws[j]
                 si = sds[i]
                 sj = sds[j]
-                s += wi*wj*cm[i,j]*si*sj
+                s += 2*wi*wj*cm[i,j]*si*sj
     return np.sqrt(s)
 
 def snap_target_date(date_str,df):
@@ -162,7 +162,7 @@ if __name__ == "__main__":
     def obj_func(ws,dayrtn):
         t1 = rtn_cost(ws,sym_rtns)
         t2 = std_cost(ws,cm,sym_std,weight_bound=portconf.getWeightBound())
-        return (t2*1-t1*muw)
+        return (t2*1-t1*muw)*10000
 
     for gid in range(cycles):
         sol = None
@@ -172,10 +172,22 @@ if __name__ == "__main__":
             # pdb.set_trace()
             sol,_ = ga_minimize(obj_func,daily_rtns,len(syms)-1,num_generations=gaconf.getNumGenerations(),population_size=gaconf.getPopulation(),
                                 cross_prob=gaconf.getCrossProb(),mutation_rate=gaconf.getMutateProb())
-            # Run the optimization using Bobyqa
-            result = minimize(obj_func, sol, args=(daily_rtns), method='Nelder-Mead')
+            # Run the optimization using Nelder-Mead
+
+            result = minimize(obj_func, sol, args=(daily_rtns), method='Nelder-Mead',options={'xtol': 1e-6})
             sol = result.x
             print("Final cost: ",result.fun)
+
+            #compute grad
+            # grad = np.zeros(len(sol))
+            # dx = 1e-6
+            # for i in range(len(grad)):
+            #     sol[i] += dx
+            #     f1 = obj_func(sol,daily_rtns)
+            #     sol[i] -= dx
+            #     f2 = obj_func(sol, daily_rtns)
+            #     grad[i] = (f1-f2)/dx
+            # print("Derivative norm: ",np.linalg.norm(grad))
 
         else:
             sol = np.array(weights)[:-1]
