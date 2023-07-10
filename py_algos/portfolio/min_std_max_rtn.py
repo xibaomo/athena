@@ -163,6 +163,11 @@ if __name__ == "__main__":
         t1 = rtn_cost(ws,sym_rtns)
         t2 = std_cost(ws,cm,sym_std,weight_bound=portconf.getWeightBound())
         return (t2*1-t1*muw)*10000
+        # return -2*t1/t2
+        # return (t2-t1)/(t1+t2)
+        # if t1 <= 0:
+        #     return 199
+        # return t2/t1
 
     for gid in range(cycles):
         sol = None
@@ -210,9 +215,13 @@ if __name__ == "__main__":
         print("********** Verfication **********")
         invest = portconf.getCapitalAmount()
         print("predicted profit of ${}: [{:.2f}, {:.2f}]".format(invest,lb_rtn*invest,ub_rtn*invest))
+        q4 = (ub_rtn-lb_rtn)*0.4 + lb_rtn
+        q5 = (ub_rtn+lb_rtn)*0.5
+        q6 = (ub_rtn-lb_rtn)*0.6 + lb_rtn
+        print("predicted profit at [40%,50%,60%]: ${:.2f},${:.2f},${:.2f}".format(invest*q4,invest*q5,invest*q6))
         start_price = data.iloc[global_tid,:]
         end_price = data.iloc[-1,:]
         true_sym_rtns = (end_price/start_price-1.).values
         port_rtn = rtn_cost(sol,true_sym_rtns)
-        print("Actual profit of ${}: {:.2f}".format(invest,port_rtn*invest))
+        print("\033[1m\033[91mActual profit of ${}: {:.2f}\033[0m".format(invest,port_rtn*invest))
         print("profit quantile: {:.2f}".format((port_rtn-lb_rtn)/(ub_rtn-lb_rtn)))
