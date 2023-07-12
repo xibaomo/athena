@@ -111,15 +111,16 @@ def locate_target_date(date_str,df):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: {sys.argv[0]} port.yaml")
+        print("Usage: {sys.argv[0]} port.yaml <date>")
         sys.exit(1)
 
     portconf = PortfolioConfig(sys.argv[1])
     gaconf = GAMinConfig(sys.argv[1])
+    target_date = sys.argv[2]
     df = pd.read_csv(portconf.getSymFile(),comment='#')
     NUM_SYMS = portconf.getNumSymbols()
-    start_date = add_days_to_date(portconf.getTargetDate(),-portconf.getLookback())
-    end_date   = add_days_to_date(portconf.getTargetDate(),portconf.getLookforward())
+    start_date = add_days_to_date(target_date,-portconf.getLookback())
+    end_date   = add_days_to_date(target_date,portconf.getLookforward())
 
     syms = portconf.getSymbols()
     official_syms = None
@@ -135,7 +136,7 @@ if __name__ == "__main__":
     if len(data.keys()) < NUM_SYMS:
         print("Download is not complete. Try again later")
         sys.exit(1)
-    global_tid = locate_target_date(portconf.getTargetDate(),data)
+    global_tid = locate_target_date(target_date,data)
     if global_tid < 0:
         print("Failed to find target date");
         sys.exit(1)
@@ -146,7 +147,7 @@ if __name__ == "__main__":
     monthly_avg_return = daily_rtns.resample('M').mean()
     monthly_avg_return_ma = monthly_avg_return.rolling(window=portconf.getMAWindow()).mean()
     # pdb.set_trace()
-    tid = snap_target_date(portconf.getTargetDate(),monthly_avg_return_ma)
+    tid = snap_target_date(target_date,monthly_avg_return_ma)
     sym_rtns = monthly_avg_return_ma.iloc[tid,:].values
     # pdb.set_trace()
     ### estimate std of return of each symbol

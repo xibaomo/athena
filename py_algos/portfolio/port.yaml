@@ -9,7 +9,7 @@ PORTFOLIO:
     COST_TYPE: 1      # 0: sigma - weight*mu, 1: -mu/sigma
 
 
-    TARGET_DATE: '2022-05-01' # '' is must
+#    TARGET_DATE: '2022-05-01' # '' is must
     NUM_SYMBOLS: 9
     SYMBOLS: [] # if empty, program will pick symbols randomly
     WEIGHTS: [] # if empty, program launches optimization

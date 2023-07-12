@@ -5,8 +5,8 @@ class PortfolioConfig(object):
         self.yamlDict = yaml.load(open(cf), Loader=yaml.FullLoader)
         self.root = "PORTFOLIO"
 
-    def getTargetDate(self):
-        return self.yamlDict[self.root]['TARGET_DATE']
+    # def getTargetDate(self):
+    #     return self.yamlDict[self.root]['TARGET_DATE']
 
     def getLookforward(self):
         return self.yamlDict[self.root]['LOOKFORWARD']
