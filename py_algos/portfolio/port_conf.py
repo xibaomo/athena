@@ -34,3 +34,6 @@ class PortfolioConfig(object):
 
     def getMuWeight(self):
         return self.yamlDict[self.root]['MU_WEIGHT']
+
+    def getCostType(self):
+        return self.yamlDict[self.root]['COST_TYPE']

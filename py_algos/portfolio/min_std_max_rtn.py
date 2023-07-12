@@ -159,27 +159,30 @@ if __name__ == "__main__":
     cycles = 3 if len(weights) == 0 else 1
 
     muw = portconf.getMuWeight()
-    def obj_func(ws,dayrtn):
+    def obj_func(ws,cost_type):
         t1 = rtn_cost(ws,sym_rtns)
         t2 = std_cost(ws,cm,sym_std,weight_bound=portconf.getWeightBound())
-        return (t2*1-t1*muw)*10000
-        # return -2*t1/t2
+        if cost_type == 0:
+            return (t2*1-t1*muw)*10000
+        if cost_type == 1:
+            return -1*t1/t2
         # return (t2-t1)/(t1+t2)
         # if t1 <= 0:
         #     return 199
         # return t2/t1
 
+    cost_type = portconf.getCostType()
     for gid in range(cycles):
         sol = None
         if len(weights) == 0:
             print("==================== Optimization starts ====================")
             print("sym_rtns: ",sym_rtns)
             # pdb.set_trace()
-            sol,_ = ga_minimize(obj_func,daily_rtns,len(syms)-1,num_generations=gaconf.getNumGenerations(),population_size=gaconf.getPopulation(),
+            sol,_ = ga_minimize(obj_func,cost_type,len(syms)-1,num_generations=gaconf.getNumGenerations(),population_size=gaconf.getPopulation(),
                                 cross_prob=gaconf.getCrossProb(),mutation_rate=gaconf.getMutateProb())
             # Run the optimization using Nelder-Mead
 
-            result = minimize(obj_func, sol, args=(daily_rtns), method='Nelder-Mead',options={'xtol': 1e-6})
+            result = minimize(obj_func, sol, args=(cost_type), method='Nelder-Mead',options={'xtol': 1e-6})
             sol = result.x
             print("Final cost: ",result.fun)
 
@@ -212,7 +215,7 @@ if __name__ == "__main__":
         lb_rtn = (predicted_mu-predicted_std)*durtn
         print("predicted monthly return ({} days): [{:.3f},{:.3f}]".format(durtn,lb_rtn,ub_rtn))
 
-        print("********** Verfication **********")
+        print("********** Verification **********")
         invest = portconf.getCapitalAmount()
         print("predicted profit of ${}: [{:.2f}, {:.2f}]".format(invest,lb_rtn*invest,ub_rtn*invest))
         q4 = (ub_rtn-lb_rtn)*0.4 + lb_rtn
