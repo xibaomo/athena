@@ -32,8 +32,8 @@ with open(file_path, 'r') as file:
         # Check if the line contains the key
         if cost_key in line:
             val = getVal(line)
-            if abs(val) > 100:
-                pdb.set_trace()
+            # if abs(val) > 100:
+            #     pdb.set_trace()
             costs.append(getVal(line))
         if sig_key in line:
             sigmas.append(getVal(line))
@@ -41,20 +41,28 @@ with open(file_path, 'r') as file:
         if profit_key in line:
             # pdb.set_trace()
             val = getVal(line)
-            if abs(val)> 10000:
-                pdb.set_trace()
+            # if abs(val)> 10000:
+                # pdb.set_trace()
             profits.append(getVal(line))
 
 sigmas = np.array(sigmas)
 costs = np.array(costs)
 profits = np.array(profits)
+#filter out invalid costs
+idx = costs < 100
+costs = costs[idx]
+sigmas=sigmas[idx]
+profits = profits[idx]
 mp = max(abs(profits))
 idx = np.argmin(costs)
 print("min cost {} at sigma: {}, mu: {}".format(costs[idx],sigmas[idx],-sigmas[idx]*costs[idx]))
 plt.scatter(sigmas, -costs*sigmas, c=profits, cmap='seismic',vmin=-mp,vmax=mp)
-plt.plot(sigmas[idx],-sigmas[idx]*costs[idx],'*')
+plt.plot(sigmas[idx],-sigmas[idx]*costs[idx],'y*')
 plt.colorbar()
-plt.xlim(0, 0.005)
+plt.figure()
+plt.scatter(sigmas, costs, c=profits, cmap='seismic',vmin=-mp,vmax=mp)
+plt.colorbar()
+# plt.xlim(0, 0.005)
 plt.figure()
 plt.plot(sigmas,profits,'.')
 plt.show()

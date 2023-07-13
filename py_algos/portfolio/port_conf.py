@@ -37,3 +37,6 @@ class PortfolioConfig(object):
 
     def getCostType(self):
         return self.yamlDict[self.root]['COST_TYPE']
+
+    def getSigmaBounds(self):
+        return self.yamlDict[self.root]['SIGMA_BOUNDS']

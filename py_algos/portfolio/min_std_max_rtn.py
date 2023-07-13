@@ -10,6 +10,7 @@ from port_conf import *
 from datetime import datetime, timedelta
 from scipy.optimize import minimize
 
+SIGMA_INF = 10000
 def add_days_to_date(date_str, num_days):
     # Convert string to datetime object
     # pdb.set_trace()
@@ -42,11 +43,11 @@ def rtn_cost(wts,sym_rtns):
     return s
 def __std_cost(wts,daily_rtns):
     if np.sum(wts) >= 1.:
-        return 100
+        return SIGMA_INF
     ws = copy.deepcopy(wts)
     ws = np.append(ws,1-np.sum(ws))
     if np.any(ws < 0):
-        return 100
+        return SIGMA_INF
     cm = daily_rtns.corr().values
     s = 0.
     monthly_avg_std = daily_rtns.resample('M').std()
@@ -68,11 +69,11 @@ def __std_cost(wts,daily_rtns):
     return np.sqrt(s)
 def std_cost(wts,cm,sym_std,weight_bound=0.8):
     if np.sum(wts) >= 1.:
-        return 100
+        return SIGMA_INF
     ws = copy.deepcopy(wts)
     ws = np.append(ws,1-np.sum(ws))
     if np.any(ws < 0)  or np.any(ws > weight_bound):
-        return 100
+        return SIGMA_INF
     s = 0.
     sds = sym_std
     for i in range(len(ws)):
@@ -160,17 +161,17 @@ if __name__ == "__main__":
     cycles = 3 if len(weights) == 0 else 1
 
     muw = portconf.getMuWeight()
+    sigma_bounds = portconf.getSigmaBounds()
     def obj_func(ws,cost_type):
         t1 = rtn_cost(ws,sym_rtns)
         t2 = std_cost(ws,cm,sym_std,weight_bound=portconf.getWeightBound())
+
+        if t2 == SIGMA_INF or t2 < sigma_bounds[0] or t2 > sigma_bounds[1]:
+            return SIGMA_INF
         if cost_type == 0:
             return (t2*1-t1*muw)*10000
         if cost_type == 1:
-            return -1*t1/t2
-        # return (t2-t1)/(t1+t2)
-        # if t1 <= 0:
-        #     return 199
-        # return t2/t1
+            return -t1/t2
 
     cost_type = portconf.getCostType()
     for gid in range(cycles):
@@ -184,8 +185,9 @@ if __name__ == "__main__":
             # Run the optimization using Nelder-Mead
 
             result = minimize(obj_func, sol, args=(cost_type), method='Nelder-Mead',options={'xtol': 1e-6})
-            sol = result.x
-            print("Final cost: ",result.fun)
+            if abs(result.fun) < 100:
+                sol = result.x
+            print("Final cost: ",obj_func(sol,cost_type))
 
             #compute grad
             # grad = np.zeros(len(sol))
