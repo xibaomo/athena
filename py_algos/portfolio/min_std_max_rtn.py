@@ -109,6 +109,22 @@ def locate_target_date(date_str,df):
             return i
         prev_days = dt.days
     return -1
+def info_entropy(wts):
+    s = 0.
+    for p in wts:
+        s+=-p*np.log(p)
+    return s
+def check_true_profit(data,global_tid,weights,capital):
+    profits=[]
+    start_price = data.iloc[global_tid,:]
+    for tid in range(global_tid+1,len(data)):
+        cur = data.iloc[tid,:]
+        sym_rtn = cur / start_price - 1
+        port_rtn = rtn_cost(weights,sym_rtn)
+        profits.append(port_rtn*capital)
+
+    print("Profits(low,high,final):${:.2f} ${:.2f} ${:.2f}".format(min(profits),max(profits),profits[-1]))
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -133,7 +149,8 @@ if __name__ == "__main__":
         print("Given sym list: ", syms)
 
     syms = official_syms + "=X"
-    data = yf.download(syms.tolist(), start = start_date, end = end_date)['Adj Close']
+    data = yf.download(syms.tolist(), start = start_date, end = end_date)['Close']
+    official_syms = [s[:-2] for s in data.keys()]
     if len(data.keys()) < NUM_SYMS:
         print("Download is not complete. Try again later")
         sys.exit(1)
@@ -157,6 +174,7 @@ if __name__ == "__main__":
     monthly_avg_std_ma = monthly_avg_std.rolling(window=portconf.getMAWindow()).mean()
     sym_std = monthly_avg_std_ma.iloc[tid, :].values
 
+    # pdb.set_trace()
     weights = portconf.getSymWeights()
     cycles = 3 if len(weights) == 0 else 1
 
@@ -203,17 +221,21 @@ if __name__ == "__main__":
         else:
             sol = np.array(weights)[:-1]
 
-        print('selected syms: ',official_syms.tolist())
+        print('selected syms: ',official_syms)
         ss = np.append(sol,1-np.sum(sol))
         tmp = ",".join(["{:.3f}".format(element) for element in ss])
         print("weights: [{}]".format(tmp))
+        print("entropy: ", info_entropy(ss))
 
         predicted_mu = rtn_cost(sol,sym_rtns)
         predicted_std = std_cost(sol,cm,sym_std)
         print("best mean of rtn: {:.6f}".format(predicted_mu))
         print("best std  of rtn: {:.6f}".format(predicted_std))
 
+
         durtn = len(data)-global_tid -1
+        np.set_printoptions(precision=3)
+
         ub_rtn = (predicted_mu+predicted_std)*durtn
         lb_rtn = (predicted_mu-predicted_std)*durtn
         print("predicted monthly return ({} days): [{:.3f},{:.3f}]".format(durtn,lb_rtn,ub_rtn))
@@ -225,9 +247,15 @@ if __name__ == "__main__":
         q5 = (ub_rtn+lb_rtn)*0.5
         q6 = (ub_rtn-lb_rtn)*0.6 + lb_rtn
         print("predicted profit at [40%,50%,60%]: ${:.2f},${:.2f},${:.2f}".format(invest*q4,invest*q5,invest*q6))
+        check_true_profit(data,global_tid,sol,invest)
         start_price = data.iloc[global_tid,:]
         end_price = data.iloc[-1,:]
         true_sym_rtns = (end_price/start_price-1.).values
+        # print("Start price: ", start_price)
+        # print("End price:   ", end_price)
+        np.set_printoptions(precision=3)
+        print("Estmt. monthly rtns: ", sym_rtns * durtn)
+        print("Actual monthly rtns: ",true_sym_rtns)
         port_rtn = rtn_cost(sol,true_sym_rtns)
         print("\033[1m\033[91mActual profit of ${}: {:.2f}\033[0m".format(invest,port_rtn*invest))
         print("profit quantile: {:.2f}".format((port_rtn-lb_rtn)/(ub_rtn-lb_rtn)))

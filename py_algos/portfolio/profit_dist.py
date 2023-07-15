@@ -55,7 +55,7 @@ sigmas=sigmas[idx]
 profits = profits[idx]
 mp = max(abs(profits))
 idx = np.argmin(costs)
-print("min cost {} at sigma: {}, mu: {}".format(costs[idx],sigmas[idx],-sigmas[idx]*costs[idx]))
+print("min cost {} at sigma: {}, mu: {}, profit: ${:.2f}".format(costs[idx],sigmas[idx],-sigmas[idx]*costs[idx],profits[idx]))
 plt.scatter(sigmas, -costs*sigmas, c=profits, cmap='seismic',vmin=-mp,vmax=mp)
 plt.plot(sigmas[idx],-sigmas[idx]*costs[idx],'y*')
 plt.colorbar()

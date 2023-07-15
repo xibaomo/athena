@@ -7,14 +7,12 @@ PORTFOLIO:
     WEIGHT_BOUND: 0.6 # upper bound of symbol weight
     MU_WEIGHT: 2      # cost function is (sigma - MU_WEIGHT*mu)
     COST_TYPE: 1      # 0: sigma - weight*mu, 1: -mu/sigma
-    SIGMA_BOUNDS: [0.00095,0.0025]
+    SIGMA_BOUNDS: [0.00095,0.025]
 
-
-#    TARGET_DATE: '2022-05-01' # '' is must
-    NUM_SYMBOLS: 9
+    NUM_SYMBOLS: 12
     SYMBOLS: [] # if empty, program will pick symbols randomly
     WEIGHTS: [] # if empty, program launches optimization
-#    SYMBOLS: ['NZDUSD', 'USDARS', 'USDDKK', 'GBPUSD', 'USDTRY', 'EURUSD', 'USDCHF', 'USDSEK']
+#    SYMBOLS: ['USDCZK', 'USDSGD', 'USDDKK', 'USDARS', 'GBPUSD', 'USDILS', 'USDMXN', 'USDJPY', 'AUDUSD']
 #    WEIGHTS:
 
 
