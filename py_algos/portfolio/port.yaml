@@ -9,7 +9,7 @@ PORTFOLIO:
     COST_TYPE: 1      # 0: sigma - weight*mu, 1: -mu/sigma
     SIGMA_BOUNDS: [0.00095,0.025]
 
-    NUM_SYMBOLS: 12
+    NUM_SYMBOLS: 8
     SYMBOLS: [] # if empty, program will pick symbols randomly
     WEIGHTS: [] # if empty, program launches optimization
 #    SYMBOLS: ['USDCZK', 'USDSGD', 'USDDKK', 'USDARS', 'GBPUSD', 'USDILS', 'USDMXN', 'USDJPY', 'AUDUSD']

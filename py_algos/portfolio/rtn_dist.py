@@ -1,12 +1,25 @@
+import pdb
+import sys
 import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
+from statsmodels.tsa.stattools import adfuller
+import numpy as np
 
 # Download historical price data for EUR/USD
-data = yf.download("EURUSD=X", period="24mo", interval="1d")
+df = pd.read_csv('forex_list.csv',comment='#')
+syms = df['<SYM>'].values
+syms = syms +"=X"
+data = yf.download(syms.tolist(), period="6mo", interval="1d")
+rtns = data['Close'].pct_change()
 
-# Compute daily returns
-data['DailyReturn'] = data['Close'].pct_change()
+for sym in rtns.keys():
+    r = rtns[sym].values[1:]
+    res = adfuller(r)
+    print(sym,res[1],np.mean(r))
+
+
+sys.exit(0)
 
 # Compute monthly average daily return
 monthly_avg_return = data['DailyReturn'].resample('M').mean()
