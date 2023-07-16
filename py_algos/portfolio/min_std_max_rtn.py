@@ -10,7 +10,7 @@ from port_conf import *
 from datetime import datetime, timedelta
 from scipy.optimize import minimize
 
-SIGMA_INF = 10000
+SIGMA_INF = 1e6
 def add_days_to_date(date_str, num_days):
     # Convert string to datetime object
     # pdb.set_trace()
@@ -123,7 +123,7 @@ def check_true_profit(data,global_tid,weights,capital):
         port_rtn = rtn_cost(weights,sym_rtn)
         profits.append(port_rtn*capital)
 
-    print("Profits(low,high,final):${:.2f} ${:.2f} ${:.2f}".format(min(profits),max(profits),profits[-1]))
+    print("\033[1m\033[91mProfits(low,high,final):${:.2f} ${:.2f} ${:.2f}\033[0m".format(min(profits),max(profits),profits[-1]))
 
 
 if __name__ == "__main__":
@@ -185,11 +185,12 @@ if __name__ == "__main__":
         t2 = std_cost(ws,cm,sym_std,weight_bound=portconf.getWeightBound())
 
         if t2 == SIGMA_INF or t2 < sigma_bounds[0] or t2 > sigma_bounds[1]:
-            return SIGMA_INF
+            return 1e6
         if cost_type == 0:
             return (t2*1-t1*muw)*10000
         if cost_type == 1:
-            return -t1/t2
+            # return -t1/t2
+            return abs(t1)/t2-t2
 
     cost_type = portconf.getCostType()
     for gid in range(cycles):
@@ -232,7 +233,6 @@ if __name__ == "__main__":
         print("best mean of rtn: {:.6f}".format(predicted_mu))
         print("best std  of rtn: {:.6f}".format(predicted_std))
 
-
         durtn = len(data)-global_tid -1
         np.set_printoptions(precision=3)
 
@@ -251,11 +251,10 @@ if __name__ == "__main__":
         start_price = data.iloc[global_tid,:]
         end_price = data.iloc[-1,:]
         true_sym_rtns = (end_price/start_price-1.).values
-        # print("Start price: ", start_price)
-        # print("End price:   ", end_price)
+
         np.set_printoptions(precision=3)
         print("Estmt. monthly rtns: ", sym_rtns * durtn)
         print("Actual monthly rtns: ",true_sym_rtns)
         port_rtn = rtn_cost(sol,true_sym_rtns)
-        print("\033[1m\033[91mActual profit of ${}: {:.2f}\033[0m".format(invest,port_rtn*invest))
+        # print("\033[1m\033[91mActual profit of ${}: {:.2f}\033[0m".format(invest,port_rtn*invest))
         print("profit quantile: {:.2f}".format((port_rtn-lb_rtn)/(ub_rtn-lb_rtn)))
