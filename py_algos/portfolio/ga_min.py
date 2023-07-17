@@ -24,8 +24,7 @@ def ga_minimize(objfunc, params, num_variables, lb=0.,ub=1.,population_size=200,
     def evaluate(ind):
         return objfunc(ind,params),
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("Individual", list, fitness=creator.FitnessMin,lowerbound=0.,upperbound=1.)
-    # creator.create("Individual", list, fitness=creator.Float, lowerbound=0.0, upperbound=1.0)
+    creator.create("Individual", list, fitness=creator.FitnessMin,lowerbound=0.,upperbound=1./num_variables)
 
     toolbox = base.Toolbox()
     toolbox.register("attribute", random.uniform, lb, ub/num_variables)

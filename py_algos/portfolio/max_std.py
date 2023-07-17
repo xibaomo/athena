@@ -9,6 +9,7 @@ from ga_min import *
 from port_conf import *
 from datetime import datetime, timedelta
 from scipy.optimize import minimize
+from statsmodels.tsa.stattools import adfuller
 
 SIGMA_INF = 1e6
 def add_days_to_date(date_str, num_days):
@@ -112,7 +113,8 @@ def locate_target_date(date_str,df):
 def info_entropy(wts):
     s = 0.
     for p in wts:
-        s+=-p*np.log(p)
+        if p > 0:
+            s+=-p*np.log(p)
     return s
 def check_true_profit(data,global_tid,weights,capital):
     profits=[]
@@ -125,6 +127,15 @@ def check_true_profit(data,global_tid,weights,capital):
 
     print("\033[1m\033[91mProfits(low,high,final):${:.2f} ${:.2f} ${:.2f}\033[0m".format(min(profits),max(profits),profits[-1]))
 
+def check_stationarity(dayrtn,syms,tid):
+    pv = []
+    ss = syms.astype(str)
+    for s in ss:
+        r = dayrtn[s+'=X'].values[1:tid+1]
+        p = adfuller(r)[1]
+        pv.append(p)
+    tmp = ",".join(["{:.4f}".format(element) for element in pv])
+    print("stationary p-val: ",tmp)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -156,24 +167,17 @@ if __name__ == "__main__":
         sys.exit(1)
     global_tid = locate_target_date(target_date,data)
     if global_tid < 0:
-        print("Failed to find target date");
+        print("Failed to find target date")
         sys.exit(1)
     print('Target date: ',data.index[global_tid])
     daily_rtns = data.pct_change()
     # pdb.set_trace()
     ### estimate expectation of return of each symbol
-    monthly_avg_return = daily_rtns.resample('M').mean()
-    monthly_avg_return_ma = monthly_avg_return.rolling(window=portconf.getMAWindow()).mean()
-    # pdb.set_trace()
-    tid = snap_target_date(target_date,monthly_avg_return_ma)
-    sym_rtns = monthly_avg_return_ma.iloc[tid,:].values
+    sym_rtns = daily_rtns.iloc[:global_tid+1].mean().values
     # pdb.set_trace()
     ### estimate std of return of each symbol
-    monthly_avg_std = daily_rtns.resample('M').std()
+    sym_std = daily_rtns.iloc[:global_tid+1].std().values
     cm = daily_rtns.iloc[:global_tid+1,:].corr().values
-    monthly_avg_std_ma = monthly_avg_std.rolling(window=portconf.getMAWindow()).mean()
-    sym_std = monthly_avg_std_ma.iloc[tid, :].values
-
     # pdb.set_trace()
     weights = portconf.getSymWeights()
     cycles = 3 if len(weights) == 0 else 1
@@ -190,14 +194,16 @@ if __name__ == "__main__":
             return (t2*1-t1*muw)*10000
         if cost_type == 1:
             # return -t1/t2
-            return abs(t1)/t2-t2
+            # return 10*abs(t1)-t2
+            return (abs(t1-0e-4)+1e-7)/t2/t2
+            # return abs(t1 - 0.01 / 20)*10 + t2
 
     cost_type = portconf.getCostType()
     for gid in range(cycles):
         sol = None
         if len(weights) == 0:
             print("==================== Optimization starts ====================")
-            print("sym_rtns: ",sym_rtns)
+            # print("sym_rtns: ",sym_rtns)
             # pdb.set_trace()
             sol,_ = ga_minimize(obj_func,cost_type,len(syms)-1,num_generations=gaconf.getNumGenerations(),population_size=gaconf.getPopulation(),
                                 cross_prob=gaconf.getCrossProb(),mutation_rate=gaconf.getMutateProb())
@@ -222,39 +228,45 @@ if __name__ == "__main__":
         else:
             sol = np.array(weights)[:-1]
 
-        print('selected syms: ',official_syms)
+
         ss = np.append(sol,1-np.sum(sol))
+        sort_id = np.argsort(ss)
+        ss = ss[sort_id]
+        # pdb.set_trace()
+        official_syms = np.array(official_syms)[sort_id]
+
+        tmp = ",".join(["{}".format(element) for element in official_syms])
+        print('selected syms: [{}]'.format(tmp))
         tmp = ",".join(["{:.3f}".format(element) for element in ss])
         print("weights: [{}]".format(tmp))
         print("entropy: ", info_entropy(ss))
 
         predicted_mu = rtn_cost(sol,sym_rtns)
         predicted_std = std_cost(sol,cm,sym_std)
-        print("best mean of rtn: {:.6f}".format(predicted_mu))
-        print("best std  of rtn: {:.6f}".format(predicted_std))
+        print("best mean of daily rtn of portfolio: {:.6e}".format(predicted_mu))
+        print("best std  of daily rtn of portfolio: {:.6f}".format(predicted_std))
 
         durtn = len(data)-global_tid -1
         np.set_printoptions(precision=3)
 
         ub_rtn = (predicted_mu+predicted_std)*durtn
         lb_rtn = (predicted_mu-predicted_std)*durtn
-        print("predicted monthly return ({} days): [{:.3f},{:.3f}]".format(durtn,lb_rtn,ub_rtn))
+        print("predicted total return ({} days): [{:.3f},{:.3f}]".format(durtn,lb_rtn,ub_rtn))
 
         print("********** Verification **********")
         invest = portconf.getCapitalAmount()
         print("predicted profit of ${}: [{:.2f}, {:.2f}]".format(invest,lb_rtn*invest,ub_rtn*invest))
-        q4 = (ub_rtn-lb_rtn)*0.4 + lb_rtn
-        q5 = (ub_rtn+lb_rtn)*0.5
-        q6 = (ub_rtn-lb_rtn)*0.6 + lb_rtn
-        print("predicted profit at [40%,50%,60%]: ${:.2f},${:.2f},${:.2f}".format(invest*q4,invest*q5,invest*q6))
+
         check_true_profit(data,global_tid,sol,invest)
         start_price = data.iloc[global_tid,:]
         end_price = data.iloc[-1,:]
         true_sym_rtns = (end_price/start_price-1.).values
 
         np.set_printoptions(precision=3)
-        print("Estmt. monthly rtns: ", sym_rtns * durtn)
-        print("Actual monthly rtns: ",true_sym_rtns)
+        tmp = sym_rtns[sort_id]*durtn
+        print("Estmt. total rtns: ", tmp)
+        print("Actual total rtns: ",true_sym_rtns[sort_id])
+        check_stationarity(daily_rtns,official_syms,global_tid)
         port_rtn = rtn_cost(sol,true_sym_rtns)
         # print("\033[1m\033[91mActual profit of ${}: {:.2f}\033[0m".format(invest,port_rtn*invest))
-        print("profit quantile: {:.2f}".format((port_rtn-lb_rtn)/(ub_rtn-lb_rtn)))
+        print("Portfolio actual total return: {:.3f}".format(port_rtn))

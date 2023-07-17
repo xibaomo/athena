@@ -8,5 +8,5 @@ fi
 for ((i=1; i<=$2; i++))
 do
     echo "################### $i-th run #####################"
-    python min_std_max_rtn.py port.yaml $1
+    python max_std.py port.yaml $1
 done
