@@ -1,13 +1,13 @@
 PORTFOLIO:
     CAPITAL_AMOUNT: 10000 # US dollars
     SYMBOL_FILE: forex_list.csv
-    LOOKFORWARD: 180 #days
-    LOOKBACK: 31 #days
+    LOOKFORWARD: 60 #days
+    LOOKBACK: 180 #days
     MA_WINDOW: 5
     WEIGHT_BOUND: 0.4 # upper bound of symbol weight
     MU_WEIGHT: 2      # cost function is (sigma - MU_WEIGHT*mu)
     COST_TYPE: 1      # 0: sigma - weight*mu, 1: -mu/sigma
-    SIGMA_BOUNDS: [0.001,0.025]
+    SIGMA_BOUNDS: [0.0001,0.025]
 
     NUM_SYMBOLS: 10
     SYMBOLS: [] # if empty, program will pick symbols randomly

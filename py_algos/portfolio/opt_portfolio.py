@@ -1,6 +1,6 @@
 import copy
 import pdb
-
+import re
 import pandas as pd
 import numpy as np
 import yfinance as yf
@@ -137,6 +137,16 @@ def check_stationarity(dayrtn,syms,tid):
     tmp = ",".join(["{:.4f}".format(element) for element in pv])
     print("stationary p-val: ",tmp)
 
+def remove_unstationary(dayrtn,tid):
+    df = pd.DataFrame()
+    # pdb.set_trace()
+    for col in dayrtn.keys():
+        r = dayrtn[col].values[1:tid+1]
+        pv = adfuller(r)[1]
+        if pv < 0.01:
+            df[col] = dayrtn[col]
+    return df
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: {sys.argv[0]} port.yaml <date>")
@@ -153,24 +163,29 @@ if __name__ == "__main__":
     syms = portconf.getSymbols()
     official_syms = None
     if len(syms)==0:
-        picked_rows = df.sample(n=NUM_SYMS)
-        official_syms = picked_rows['<SYM>'].values
+        official_syms = df['<SYM>'].values
     else:
         official_syms = np.array(syms,dtype=object)
         print("Given sym list: ", syms)
 
     syms = official_syms + "=X"
     data = yf.download(syms.tolist(), start = start_date, end = end_date)['Close']
-    official_syms = [s[:-2] for s in data.keys()]
-    if len(data.keys()) < NUM_SYMS:
-        print("Download is not complete. Try again later")
-        sys.exit(1)
-    global_tid = locate_target_date(target_date,data)
+    daily_rtns = data.pct_change()
+    global_tid = locate_target_date(target_date, data)
+    # pdb.set_trace()
+    daily_rtns = remove_unstationary(daily_rtns,global_tid)
+    if len(daily_rtns.keys()) <= NUM_SYMS:
+        print("only {} forexes have stationary history < {}, select all of them".format(daily_rtns.shape[1],NUM_SYMS))
+        NUM_SYMS = daily_rtns.shape[1]
+    else:
+        daily_rtns = daily_rtns.sample(NUM_SYMS,axis=1)
+    official_syms = [s[:-2] for s in daily_rtns.keys()]
+
     if global_tid < 0:
         print("Failed to find target date")
         sys.exit(1)
     print('Target date: ',data.index[global_tid])
-    daily_rtns = data.pct_change()
+
     # pdb.set_trace()
     ### estimate expectation of return of each symbol
     sym_rtns = daily_rtns.iloc[:global_tid+1].mean().values
@@ -193,10 +208,10 @@ if __name__ == "__main__":
         if cost_type == 0:
             return (t2*1-t1*muw)*10000
         if cost_type == 1:
-            # return -t1/t2
+            return -(t1+0e-3)/t2
             # return 10*abs(t1)-t2
-            return (abs(t1-0e-4)+1e-7)/t2/t2
-            # return abs(t1 - 0.01 / 20)*10 + t2
+            # return (abs(t1-2e-4)+1e-7)/t2/t2
+
 
     cost_type = portconf.getCostType()
     for gid in range(cycles):
@@ -205,7 +220,7 @@ if __name__ == "__main__":
             print("==================== Optimization starts ====================")
             # print("sym_rtns: ",sym_rtns)
             # pdb.set_trace()
-            sol,_ = ga_minimize(obj_func,cost_type,len(syms)-1,num_generations=gaconf.getNumGenerations(),population_size=gaconf.getPopulation(),
+            sol,_ = ga_minimize(obj_func,cost_type,daily_rtns.shape[1]-1,num_generations=gaconf.getNumGenerations(),population_size=gaconf.getPopulation(),
                                 cross_prob=gaconf.getCrossProb(),mutation_rate=gaconf.getMutateProb())
             # Run the optimization using Nelder-Mead
 
@@ -236,7 +251,7 @@ if __name__ == "__main__":
         official_syms = np.array(official_syms)[sort_id]
 
         tmp = ",".join(["{}".format(element) for element in official_syms])
-        print('selected syms: [{}]'.format(tmp))
+        print('sorted syms: [{}]'.format(tmp))
         tmp = ",".join(["{:.3f}".format(element) for element in ss])
         print("weights: [{}]".format(tmp))
         print("entropy: ", info_entropy(ss))
@@ -264,9 +279,12 @@ if __name__ == "__main__":
 
         np.set_printoptions(precision=3)
         tmp = sym_rtns[sort_id]*durtn
+        tmp = " ".join(["{:^8.4f}".format(element) for element in tmp])
         print("Estmt. total rtns: ", tmp)
-        print("Actual total rtns: ",true_sym_rtns[sort_id])
+        tmp = " ".join(["{:^8.4f}".format(element) for element in true_sym_rtns[sort_id]])
+        print("Actual total rtns: ",tmp)
         check_stationarity(daily_rtns,official_syms,global_tid)
         port_rtn = rtn_cost(sol,true_sym_rtns)
         # print("\033[1m\033[91mActual profit of ${}: {:.2f}\033[0m".format(invest,port_rtn*invest))
+        print("Actual profit: {:.2f}".format(invest*port_rtn))
         print("Portfolio actual total return: {:.3f}".format(port_rtn))

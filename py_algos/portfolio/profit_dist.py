@@ -11,6 +11,12 @@ sig_key = 'best std'
 sigmas = []
 profit_key = 'Actual profit'
 profits = []
+hprof = []
+lprof =[]
+def extract_prices(string):
+    # pdb.set_trace()
+    prices = re.findall(r'\$-?\d+(?:\.\d{1,2})?', string)
+    return [float(price[1:]) for price in prices]
 def __getVal(line):
     parts = line.split(':')
     # if len(parts) > 1:
@@ -38,6 +44,11 @@ with open(file_path, 'r') as file:
         if sig_key in line:
             sigmas.append(getVal(line))
 
+        if "Profits(" in line:
+            # pdb.set_trace()
+            pcs = extract_prices(line)
+            hprof.append(pcs[1])
+            lprof.append(pcs[0])
         if profit_key in line:
             # pdb.set_trace()
             val = getVal(line)
@@ -47,7 +58,9 @@ with open(file_path, 'r') as file:
 
 sigmas = np.array(sigmas)
 costs = np.array(costs)
-profits = np.array(profits)
+profits = np.array(hprof)
+lprof = np.array(lprof)
+hprof = np.array(hprof)
 #filter out invalid costs
 idx = costs < 100
 costs = costs[idx]
@@ -55,7 +68,8 @@ sigmas=sigmas[idx]
 profits = profits[idx]
 mp = max(abs(profits))
 idx = np.argmin(costs)
-print("min cost {} at sigma: {}, mu: {}, profit: ${:.2f}".format(costs[idx],sigmas[idx],-sigmas[idx]*costs[idx],profits[idx]))
+print(" low profit: [{:.2f},{:.2f},{:.2f}]".format(np.min(lprof),np.mean(lprof),np.max(lprof)))
+print("high profit: [{:.2f},{:.2f},{:.2f}]".format(np.min(hprof),np.mean(hprof),np.max(hprof)))
 plt.scatter(sigmas, -costs*sigmas, c=profits, cmap='seismic',vmin=-mp,vmax=mp)
 plt.plot(sigmas[idx],-sigmas[idx]*costs[idx],'y*')
 plt.colorbar()

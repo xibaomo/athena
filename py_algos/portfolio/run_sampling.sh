@@ -8,5 +8,5 @@ fi
 for ((i=1; i<=$2; i++))
 do
     echo "################### $i-th run #####################"
-    python max_std.py port.yaml $1
+    python opt_portfolio.py port.yaml $1
 done
