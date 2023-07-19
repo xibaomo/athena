@@ -39,6 +39,9 @@ def rtn_cost(wts,sym_rtns):
     ws = copy.deepcopy(wts)
     ws = np.append(ws, 1 - np.sum(ws))
     s = 0.
+    if len(ws) != len(sym_rtns):
+        print("!!!!!!!!!!!Wrong weight!!!!!!!!!!")
+        sys.exit(1)
     for w,v in zip(ws,sym_rtns):
         s += w*v
     return s
@@ -117,6 +120,7 @@ def info_entropy(wts):
             s+=-p*np.log(p)
     return s
 def check_true_profit(data,global_tid,weights,capital):
+
     profits=[]
     start_price = data.iloc[global_tid,:]
     for tid in range(global_tid+1,len(data)):
@@ -179,7 +183,12 @@ if __name__ == "__main__":
         NUM_SYMS = daily_rtns.shape[1]
     else:
         daily_rtns = daily_rtns.sample(NUM_SYMS,axis=1)
-    official_syms = [s[:-2] for s in daily_rtns.keys()]
+    org_syms = [s[:-2] for s in daily_rtns.keys()]
+    print("seleted syms: ",len(org_syms))
+    print(org_syms)
+    df = pd.DataFrame()  # keep track of original prices
+    for k in daily_rtns.keys():
+        df[k] = data[k]
 
     if global_tid < 0:
         print("Failed to find target date")
@@ -210,7 +219,7 @@ if __name__ == "__main__":
         if cost_type == 1:
             return -(t1+0e-3)/t2
             # return 10*abs(t1)-t2
-            # return (abs(t1-2e-4)+1e-7)/t2/t2
+            # return (abs(t1-0e-4)+1e-7)/t2/t2
 
 
     cost_type = portconf.getCostType()
@@ -248,9 +257,9 @@ if __name__ == "__main__":
         sort_id = np.argsort(ss)
         ss = ss[sort_id]
         # pdb.set_trace()
-        official_syms = np.array(official_syms)[sort_id]
+        sort_syms = np.array(org_syms)[sort_id]
 
-        tmp = ",".join(["{}".format(element) for element in official_syms])
+        tmp = ",".join(["{}".format(element) for element in sort_syms])
         print('sorted syms: [{}]'.format(tmp))
         tmp = ",".join(["{:.3f}".format(element) for element in ss])
         print("weights: [{}]".format(tmp))
@@ -272,10 +281,11 @@ if __name__ == "__main__":
         invest = portconf.getCapitalAmount()
         print("predicted profit of ${}: [{:.2f}, {:.2f}]".format(invest,lb_rtn*invest,ub_rtn*invest))
 
-        check_true_profit(data,global_tid,sol,invest)
-        start_price = data.iloc[global_tid,:]
-        end_price = data.iloc[-1,:]
+        check_true_profit(df,global_tid,sol,invest)
+        start_price = df.iloc[global_tid,:]
+        end_price = df.iloc[-1,:]
         true_sym_rtns = (end_price/start_price-1.).values
+        # pdb.set_trace()
 
         np.set_printoptions(precision=3)
         tmp = sym_rtns[sort_id]*durtn
@@ -283,8 +293,9 @@ if __name__ == "__main__":
         print("Estmt. total rtns: ", tmp)
         tmp = " ".join(["{:^8.4f}".format(element) for element in true_sym_rtns[sort_id]])
         print("Actual total rtns: ",tmp)
-        check_stationarity(daily_rtns,official_syms,global_tid)
+
         port_rtn = rtn_cost(sol,true_sym_rtns)
         # print("\033[1m\033[91mActual profit of ${}: {:.2f}\033[0m".format(invest,port_rtn*invest))
         print("Actual profit: {:.2f}".format(invest*port_rtn))
         print("Portfolio actual total return: {:.3f}".format(port_rtn))
+        print("End of cycle")

@@ -7,6 +7,8 @@ import sys, os
 file_path = sys.argv[1] # Replace with the actual file path
 cost_key = 'Final cost'
 costs = []
+mu_key = 'best mean'
+mu = []
 sig_key = 'best std'
 sigmas = []
 profit_key = 'Actual profit'
@@ -27,7 +29,7 @@ def __getVal(line):
 def getVal(line):
     parts = line.split(':')
     line = parts[1]
-    pattern = r"[-+]?[0-9]*\.?[0-9]+"
+    pattern = r"[-+]?[0-9]*\.?[0-9]+[e]?[+-]?\d*"
     matches = re.findall(pattern, line)
     if matches:
         return float(matches[0])
@@ -41,6 +43,11 @@ with open(file_path, 'r') as file:
             # if abs(val) > 100:
             #     pdb.set_trace()
             costs.append(getVal(line))
+        if mu_key in line:
+            v = getVal(line)
+            # if v > 0.001:
+            #     pdb.set_trace()
+            mu.append(getVal(line))
         if sig_key in line:
             sigmas.append(getVal(line))
 
@@ -56,28 +63,35 @@ with open(file_path, 'r') as file:
                 # pdb.set_trace()
             profits.append(getVal(line))
 
+mu = np.array(mu)
 sigmas = np.array(sigmas)
 costs = np.array(costs)
 profits = np.array(hprof)
 lprof = np.array(lprof)
 hprof = np.array(hprof)
 #filter out invalid costs
-idx = costs < 100
+idx = costs < 0.05
 costs = costs[idx]
+mu = mu[idx]
 sigmas=sigmas[idx]
 profits = profits[idx]
+lprof = lprof[idx]
+hprof = hprof[idx]
 mp = max(abs(profits))
 idx = np.argmin(costs)
 print(" low profit: [{:.2f},{:.2f},{:.2f}]".format(np.min(lprof),np.mean(lprof),np.max(lprof)))
 print("high profit: [{:.2f},{:.2f},{:.2f}]".format(np.min(hprof),np.mean(hprof),np.max(hprof)))
-plt.scatter(sigmas, -costs*sigmas, c=profits, cmap='seismic',vmin=-mp,vmax=mp)
-plt.plot(sigmas[idx],-sigmas[idx]*costs[idx],'y*')
+plt.scatter(sigmas, costs, c=lprof, cmap='seismic',vmin=-mp,vmax=mp)
+# plt.plot(sigmas[idx],-sigmas[idx]*costs[idx],'y*')
 plt.colorbar()
 plt.figure()
-plt.scatter(sigmas, costs, c=profits, cmap='seismic',vmin=-mp,vmax=mp)
+plt.scatter(sigmas, costs, c=hprof, cmap='seismic',vmin=-mp,vmax=mp)
+plt.colorbar()
+plt.figure()
+plt.scatter(sigmas, mu, c=hprof, cmap='seismic',vmin=-mp,vmax=mp)
 plt.colorbar()
 # plt.xlim(0, 0.005)
-plt.figure()
-plt.plot(sigmas,profits,'.')
+# plt.figure()
+# plt.plot(sigmas,profits,'.')
 plt.show()
 
