@@ -151,6 +151,36 @@ def remove_unstationary(dayrtn,tid):
             df[col] = dayrtn[col]
     return df
 
+def check_corr(dayrtn):
+    cm = dayrtn.corr().values
+    a = cm.ravel()
+    a = np.sort(a)
+    b = a[:-cm.shape[1]]
+    print("ave coor: ",np.mean(b))
+    print(cm)
+
+def pick_syms(dayrtn,num_syms):
+    syms=[]
+    cm = dayrtn.corr().values
+    a = cm.ravel()
+    sort_id = np.argsort(a)
+    cols = cm.shape[1]
+    for i in range(len(sort_id)):
+        row = int(sort_id[i] / cols)
+        col = sort_id[i] % cols
+        s1 = dayrtn.keys()[row]
+        s2 = dayrtn.keys()[col]
+        if not s1 in syms:
+            syms.append(s1)
+        if not s2 in syms:
+            syms.append(s2)
+        if len(syms) >= num_syms:
+            break
+    df=pd.DataFrame()
+    syms = syms[:num_syms]
+    for sym in syms:
+        df[sym] = dayrtn[sym]
+    return df
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: {sys.argv[0]} port.yaml <date>")
@@ -182,7 +212,10 @@ if __name__ == "__main__":
         print("only {} forexes have stationary history < {}, select all of them".format(daily_rtns.shape[1],NUM_SYMS))
         NUM_SYMS = daily_rtns.shape[1]
     else:
-        daily_rtns = daily_rtns.sample(NUM_SYMS,axis=1)
+        # daily_rtns = daily_rtns.sample(NUM_SYMS,axis=1)
+        daily_rtns = pick_syms(daily_rtns,NUM_SYMS)
+
+    check_corr(daily_rtns)
     org_syms = [s[:-2] for s in daily_rtns.keys()]
     print("seleted syms: ",len(org_syms))
     print(org_syms)
@@ -201,6 +234,8 @@ if __name__ == "__main__":
     # pdb.set_trace()
     ### estimate std of return of each symbol
     sym_std = daily_rtns.iloc[:global_tid+1].std().values
+    print("past std: ",sym_std)
+    print("ave past std: ",np.mean(sym_std))
     cm = daily_rtns.iloc[:global_tid+1,:].corr().values
     # pdb.set_trace()
     weights = portconf.getSymWeights()
@@ -289,9 +324,9 @@ if __name__ == "__main__":
 
         np.set_printoptions(precision=3)
         tmp = sym_rtns[sort_id]*durtn
-        tmp = " ".join(["{:^8.4f}".format(element) for element in tmp])
+        tmp = ", ".join(["{:^8.4f}".format(element) for element in tmp])
         print("Estmt. total rtns: ", tmp)
-        tmp = " ".join(["{:^8.4f}".format(element) for element in true_sym_rtns[sort_id]])
+        tmp = ", ".join(["{:^8.4f}".format(element) for element in true_sym_rtns[sort_id]])
         print("Actual total rtns: ",tmp)
 
         port_rtn = rtn_cost(sol,true_sym_rtns)
