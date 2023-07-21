@@ -119,7 +119,7 @@ def info_entropy(wts):
         if p > 0:
             s+=-p*np.log(p)
     return s
-def check_true_profit(data,global_tid,weights,capital):
+def check_true_profit(data,global_tid,weights,capital,port_mu,port_std,cost):
 
     profits=[]
     start_price = data.iloc[global_tid,:]
@@ -129,7 +129,8 @@ def check_true_profit(data,global_tid,weights,capital):
         port_rtn = rtn_cost(weights,sym_rtn)
         profits.append(port_rtn*capital)
 
-    print("\033[1m\033[91mProfits(low,high,final):${:.2f} ${:.2f} ${:.2f}\033[0m".format(min(profits),max(profits),profits[-1]))
+    print("\033[1m\033[91mProfits(low,high,final): {:^8.2f} {:^8.2f} {:^8.2f}. mu: {:.4e}, std: {:.4e}, cost: {:.4f}\033[0m".\
+          format(min(profits),max(profits),profits[-1],port_mu,port_std,cost))
 
 def check_stationarity(dayrtn,syms,tid):
     pv = []
@@ -156,8 +157,8 @@ def check_corr(dayrtn):
     a = cm.ravel()
     a = np.sort(a)
     b = a[:-cm.shape[1]]
-    print("ave coor: ",np.mean(b))
-    print(cm)
+    print("ave corr: ",np.mean(b))
+    # print(cm)
 
 def pick_syms(dayrtn,num_syms):
     syms=[]
@@ -212,8 +213,8 @@ if __name__ == "__main__":
         print("only {} forexes have stationary history < {}, select all of them".format(daily_rtns.shape[1],NUM_SYMS))
         NUM_SYMS = daily_rtns.shape[1]
     else:
-        # daily_rtns = daily_rtns.sample(NUM_SYMS,axis=1)
-        daily_rtns = pick_syms(daily_rtns,NUM_SYMS)
+        daily_rtns = daily_rtns.sample(NUM_SYMS,axis=1)
+        # daily_rtns = pick_syms(daily_rtns,NUM_SYMS)
 
     check_corr(daily_rtns)
     org_syms = [s[:-2] for s in daily_rtns.keys()]
@@ -271,18 +272,8 @@ if __name__ == "__main__":
             result = minimize(obj_func, sol, args=(cost_type), method='Nelder-Mead',options={'xtol': 1e-6})
             if abs(result.fun) < 100:
                 sol = result.x
-            print("Final cost: ",obj_func(sol,cost_type))
-
-            #compute grad
-            # grad = np.zeros(len(sol))
-            # dx = 1e-6
-            # for i in range(len(grad)):
-            #     sol[i] += dx
-            #     f1 = obj_func(sol,daily_rtns)
-            #     sol[i] -= dx
-            #     f2 = obj_func(sol, daily_rtns)
-            #     grad[i] = (f1-f2)/dx
-            # print("Derivative norm: ",np.linalg.norm(grad))
+            final_cost = obj_func(sol,cost_type)
+            print("Final cost: ",final_cost)
 
         else:
             sol = np.array(weights)[:-1]
@@ -316,7 +307,7 @@ if __name__ == "__main__":
         invest = portconf.getCapitalAmount()
         print("predicted profit of ${}: [{:.2f}, {:.2f}]".format(invest,lb_rtn*invest,ub_rtn*invest))
 
-        check_true_profit(df,global_tid,sol,invest)
+        check_true_profit(df,global_tid,sol,invest,predicted_mu,predicted_std,final_cost)
         start_price = df.iloc[global_tid,:]
         end_price = df.iloc[-1,:]
         true_sym_rtns = (end_price/start_price-1.).values
