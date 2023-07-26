@@ -5,6 +5,7 @@ import networkx as nx
 from datetime import datetime, timedelta
 import yfinance as yf
 import numpy as np
+import matplotlib.pyplot as plt
 
 def getNodes(all_pairs):
     nodes=[]
@@ -58,16 +59,56 @@ def computeLimitRtns(G,src_node,tar_node):
         w = np.log(prices[pair])
 
     wts = []
+    high_score=-1.
+    high_path = None
+    low_score = 1
+    low_path = None
     for path in all_paths:
         total_weight = sum(G[path[i]][path[i + 1]]["weight"] for i in range(len(path) - 1)) + w
-        wts.append(total_weight)
-        # if abs(total_weight) > 0e-4:
-        #     print(" -> ".join(path), f"Total Weight: {total_weight}")
-    wts = np.array(wts)
-    mx = np.max(wts)
-    mi = np.min(wts)
-    score  = mx if abs(mx) >= abs(mi) else mi
-    return mi,mx,score
+        score = total_weight
+        # score = total_weight / len(path)
+        if score > high_score:
+            high_score = score
+            high_path = path
+        if score < low_score:
+            low_score = score
+            low_path = path
+
+    high_path.append(src_node)
+    low_path.append(src_node)
+    return high_score,high_path,low_score,low_path
+
+def findTradePairPosRtn(df,G,path):
+
+    hw = -1
+    hw_edge =[]
+    # find highest weight
+    for i in range(len(path)-1):
+        w = G[path[i]][path[i + 1]]["weight"]
+        if w > hw:
+            hw = w
+            hw_edge = [path[i], path[i+1]]
+    sym,isflip = getTruePair(hw_edge,df)
+    pos_type = -1  # 1 - long, -1 - short
+    if isflip:
+        pos_type = 1
+    return sym,pos_type
+
+def getTruePair(edge,df):
+    isflip = False
+    sym = edge[0] + edge[1]
+    if not sym in df.keys():
+        sym = edge[1] + edge[0]
+        isflip = True
+    return sym,isflip
+
+def plot_double_y(y1,y2):
+    fig, ax1 = plt.subplots()
+    ax1.plot(y1,'*-')
+
+    # Create a second y-axis (right)
+    ax2 = ax1.twinx()
+    ax2.plot(y2,'r.-')
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
@@ -82,7 +123,7 @@ if __name__ == "__main__":
     start_date = add_days_to_date(end_date,-past_days)
 
     syms = all_pairs + '=X'
-    data = yf.download(syms.tolist(), start = start_date, end = end_date,interval='1h')['Close']
+    data = yf.download(syms.tolist(), start = start_date, end = end_date,interval='5m')['Open']
     # data = data.dropna(axis=1)
     syms = data.keys().tolist()
     df = pd.DataFrame()
@@ -93,12 +134,43 @@ if __name__ == "__main__":
         if col[:3] in nodes and col[3:] in nodes:
             df[col] = data[col]
     # pdb.set_trace()
-    prices = df.iloc[3,:]
-    G = createGraph(nodes,prices)
+    # prices = df.iloc[3,:]
+    # G = createGraph(nodes,prices)
+    #
+    # for sym in nodes:
+    #     if sym == 'USD':
+    #         continue
+    #     mi,mx,_ = computeLimitRtns(G,'USD',sym)
+    #     print("USD->{}: min: {:.4e}, max: {:.4e}".format(sym,mi,mx))
 
-    for sym in nodes:
-        if sym == 'USD':
+    tar_node = 'EUR'
+    scores = []
+    tar_prices=[]
+    fwd = 5
+    profits=[]
+    for i in range(len(df)-fwd):
+        prices = df.iloc[i,:]
+        G = createGraph(nodes,prices)
+        try:
+            high_rtn,high_path,low_rtn,low_path= computeLimitRtns(G,'USD',tar_node)
+            scores.append(high_rtn)
+            # only look at high for now
+            if high_rtn > 3e-3:
+                sym,pos_type = findTradePairPosRtn(df,G,high_path)
+
+                sym_rtn = df[sym][i+fwd]/df[sym][i] - 1
+                L = len(high_path)-1
+                print("tid: {}, length: {},  profit: {:.2f}".format(i, len(high_path),sym, pos_type,\
+                                                                                        high_rtn*1e5))
+                # p = sym_rtn*1e5*pos_type
+                # if not np.isnan(p):
+                #     profits.append(p)
+
+        except:
             continue
-        mi,mx,_ = computeLimitRtns(G,'USD',sym)
-        print("USD->{}: min: {:.4e}, max: {:.4e}".format(sym,mi,mx))
+    print ("total profit: {:.2f}".format(sum(profits)))
+
+    plt.plot(scores,'*-')
+    plt.show()
+
 
