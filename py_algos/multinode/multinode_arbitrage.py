@@ -30,6 +30,7 @@ def add_days_to_date(date_str, num_days):
 
     return new_date_str
 def createGraph(nodes,prices):
+    # pdb.set_trace()
     # Create a directed graph
     G = nx.DiGraph()
 
@@ -47,7 +48,7 @@ def createGraph(nodes,prices):
 
     return G
 
-def computeLimitRtns(G,src_node,tar_node):
+def computeLimitRtns(G,src_node,tar_node,prices):
     # pdb.set_trace()
     all_paths = list(nx.all_simple_paths(G, source=src_node, target=tar_node))
 
@@ -152,7 +153,7 @@ if __name__ == "__main__":
         prices = df.iloc[i,:]
         G = createGraph(nodes,prices)
         try:
-            high_rtn,high_path,low_rtn,low_path= computeLimitRtns(G,'USD',tar_node)
+            high_rtn,high_path,low_rtn,low_path= computeLimitRtns(G,'USD',tar_node,prices)
             scores.append(high_rtn)
             # only look at high for now
             if high_rtn > 3e-3:

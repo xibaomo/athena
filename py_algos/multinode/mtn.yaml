@@ -1,0 +1,8 @@
+MULTINODES:
+    END_NODE: EUR
+    FOREX_LIST_FILE: all_pairs.csv  #Contains all forex pairs
+    SELECTED_NODES: ['USD','EUR','JPY','CAD','AUD','NZD','GBP','CHF']
+
+    OPEN_POSITION_RETURN:  0.004 # threshold return of loop to open poositions
+    CLOSE_POSITION_RETURN: 0.001 # threshold to close positions
+
