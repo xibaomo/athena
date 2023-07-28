@@ -89,16 +89,16 @@ def findTradePairPosRtn(df,G,path):
         if w > hw:
             hw = w
             hw_edge = [path[i], path[i+1]]
-    sym,isflip = getTruePair(hw_edge,df)
+    sym,isflip = getTruePair(hw_edge,df.keys())
     pos_type = -1  # 1 - long, -1 - short
     if isflip:
         pos_type = 1
     return sym,pos_type
 
-def getTruePair(edge,df):
+def getTruePair(edge,all_pairs):
     isflip = False
     sym = edge[0] + edge[1]
-    if not sym in df.keys():
+    if not sym in all_pairs:
         sym = edge[1] + edge[0]
         isflip = True
     return sym,isflip

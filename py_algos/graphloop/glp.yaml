@@ -1,4 +1,4 @@
-MULTINODES:
+GRAPHLOOP:
     END_NODE: EUR
     FOREX_LIST_FILE: all_pairs.csv  #Contains all forex pairs
     SELECTED_NODES: ['USD','EUR','JPY','CAD','AUD','NZD','GBP','CHF']

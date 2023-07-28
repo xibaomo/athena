@@ -1,9 +1,9 @@
 import yaml
 
-class MultinodeConfig(object):
-    def __init__(self,cf):
+class GraphloopConfig(object):
+    def __init__(self, cf):
         self.yamlDict = yaml.load(open(cf), Loader=yaml.FullLoader)
-        self.root = "MULTINODES"
+        self.root = "GRAPHLOOP"
 
     def getEndNode(self):
         return self.yamlDict[self.root]['END_NODE']
