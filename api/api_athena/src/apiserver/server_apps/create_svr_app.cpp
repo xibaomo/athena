@@ -23,6 +23,7 @@
 #include "server_apps/robust_pair_trader/robust_pair_trader.h"
 #include "server_apps/multinode_trader/multinode_trader.h"
 #include "server_apps/pair_labeler/pair_labeler.h"
+#include "server_apps/graphloop/graphloop.h"
 
 ServerBaseApp*
 create_server_app(AppType type, const String& configFile)
@@ -55,6 +56,9 @@ create_server_app(AppType type, const String& configFile)
             break;
         case AppType::APP_PAIR_LABELER:
             app = &PairLabeler::getInstance(configFile);
+            break;
+        case AppType::APP_GRAPH_LOOP:
+            app = &GraphLoop::getInstance(configFile);
             break;
         default:
             break;

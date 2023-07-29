@@ -135,6 +135,12 @@
 			<Option target="run_athena" />
 			<Option target="gsl_hist" />
 		</Unit>
+		<Unit filename="src/apiserver/server_apps/graphloop/graphloop.cpp">
+			<Option target="run_athena" />
+		</Unit>
+		<Unit filename="src/apiserver/server_apps/graphloop/graphloop.h">
+			<Option target="run_athena" />
+		</Unit>
 		<Unit filename="src/apiserver/server_apps/minbar_pair/mb_pairtrader.cpp">
 			<Option target="run_athena" />
 			<Option target="gsl_hist" />

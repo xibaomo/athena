@@ -42,6 +42,7 @@ enum AppType {
     APP_PREDICTOR,
     APP_TICKCLASSIFIER,
     APP_PAIR_LABELER, // 8
+    APP_GRAPH_LOOP
 };
 
 #define NUM_MINBAR_FIELDS 7

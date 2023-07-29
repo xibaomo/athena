@@ -36,6 +36,9 @@ enum class FXAct {
     REGISTER_POS,
     CLOSE_POS_INFO,
     DECISION,
-    ALL_POS_INFO
-};
+    ALL_POS_INFO,
+
+    GLP_ALL_SYMS,
+    GLP_NEW_QUOTE
+    };
 #endif // _CLIENT_API_FX_ACTION_H_
