@@ -21,6 +21,7 @@
 #include <sstream>
 #include <string>
 #include <set>
+#include <numpy/arrayobject.h>
 
 /**
  * Use a singleton to initialize and finalize python environment

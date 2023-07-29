@@ -14,4 +14,7 @@ public:
     }
 
     Message processMsg(Message& msg);
+
+    Message procMsg_GLP_ALL_SYMS(Message& msg);
+    Message procMsg_GLP_NEW_QUOTE(Message& msg);
 };
