@@ -3,6 +3,7 @@ from graphloop import createGraph, computeLimitRtns, getTruePair
 import pandas as pd
 import sys, os
 import numpy as np
+import yaml
 import pdb
 glpconf = None
 record_df = pd.DataFrame()
@@ -31,7 +32,9 @@ def generateTradeSyms(path, loop_pos_type,symlib):
 
 def init(config_file):
     global glpconf,record_df
-    glpconf =GraphloopConfig(config_file)
+    yamlroot = yaml.load(open(config_file), Loader=yaml.FullLoader)
+    glpcf = yamlroot['GRAPHLOOP']['CONFIG_FILE']
+    glpconf =GraphloopConfig(glpcf)
 
     forex_df = pd.read_csv(glpconf.getForexListFile(), comment='#')
     nodes = glpconf.getSelectedNodes()
@@ -39,7 +42,7 @@ def init(config_file):
     sym_lib = generateSymLib(nodes, forex_df['<SYM>'])
 
     record_df = pd.DataFrame(columns=sym_lib)
-    return record_df.columns
+    return record_df.columns.tolist()
 def process(timestr, prices):
     global glpconf, record_df
     # df_empty = pd.DataFrame(columns=all_pairs)

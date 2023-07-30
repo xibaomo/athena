@@ -9,7 +9,7 @@ private:
 public:
 
     static GraphLoop& getInstance(const String& cf="") {
-        GraphLoop _ins(cf);
+        static GraphLoop _ins(cf);
         return _ins;
     }
 

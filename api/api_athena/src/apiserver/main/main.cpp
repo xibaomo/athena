@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 
     // argv[1] is config file
     if (argc < 2)
-        Log(LOG_FATAL) << "Usage: api_server <yaml_file>" <<std::endl;
+        Log(LOG_FATAL) << "Usage: "<< argv[0] << " <yaml_file>" <<std::endl;
 
     GeneralConfig* cfg = &GeneralConfig::getInstance();
     cfg->loadConfig(String(argv[1]));

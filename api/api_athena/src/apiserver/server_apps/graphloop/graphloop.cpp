@@ -14,6 +14,8 @@ GraphLoop::GraphLoop(const String& cf) : ServerBaseApp(cf) {
         Log(LOG_FATAL) << "Failed to import module: graphloop_api" << endl;
 
     Log(LOG_INFO) << "Module loaded: graphloop_api" << endl;
+
+    Log(LOG_INFO) << "Graph loop created" << endl;
 }
 
 Message
@@ -39,6 +41,8 @@ GraphLoop::processMsg(Message& msg) {
 
 Message
 GraphLoop::procMsg_GLP_ALL_SYMS(Message& msg) {
+    Log(LOG_INFO) << "Start to get all symbols ..." << endl;
+
     PyObject* init_func = PyObject_GetAttrString(m_mod,"init");
     if(!init_func)
         Log(LOG_FATAL) << "Failed to find py function: init" <<std::endl;
@@ -53,13 +57,18 @@ GraphLoop::procMsg_GLP_ALL_SYMS(Message& msg) {
     SerializePack pack;
 
     Py_ssize_t listSize = PyList_Size(res);
+    size_t offset = 7;
+    Message outmsg(FXAct::GLP_ALL_SYMS,0,offset*listSize);
 
+    char* p = (char*)outmsg.getChar();
     // Extract individual string elements from the list
     for (Py_ssize_t i = 0; i < listSize; ++i) {
         PyObject* pItem = PyList_GetItem(res, i);
         if (PyUnicode_Check(pItem)) {
             const char* strValue = PyUnicode_AsUTF8(pItem);
-            pack.str_vec.push_back(String(strValue));
+            strcpy(p,strValue);
+            p[offset-1]='\0';
+            p+=offset;
         }
         Py_DECREF(pItem);
     }
@@ -69,9 +78,8 @@ GraphLoop::procMsg_GLP_ALL_SYMS(Message& msg) {
     Py_DECREF(cf);
     Py_DECREF(init_func);
 
-    String cmt = serialize(pack);
+    Log(LOG_INFO) << "All symbols returned to client" << endl;
 
-    Message outmsg(FXAct::GLP_ALL_SYMS,cmt);
     return outmsg;
 }
 
