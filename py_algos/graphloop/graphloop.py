@@ -1,4 +1,4 @@
-import pdb
+import pdb,copy
 import pandas as pd
 import sys,os
 import networkx as nx
@@ -48,11 +48,16 @@ def createGraph(nodes,prices):
 
     return G
 
-def computeLimitRtns(G,src_node,tar_node,prices):
+def computeLimitRtns(G,path_list, src_node,tar_node,prices):
     # pdb.set_trace()
-    all_paths = list(nx.all_simple_paths(G, source=src_node, target=tar_node))
+    # allpaths=nx.all_simple_paths(G, source=src_node, target=tar_node)
+    # print("all paths found")
+    # # pdb.set_trace()
+    all_paths = copy.deepcopy(path_list)
 
+    # print("list of all paths created")
     pair = tar_node + src_node
+    w=0.
     if not pair in prices.keys():
         pair = src_node + tar_node
         w = -np.log(prices[pair])

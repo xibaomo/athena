@@ -30,6 +30,15 @@ GraphLoop::processMsg(Message& msg) {
     case FXAct::GLP_NEW_QUOTE:
         outmsg = procMsg_GLP_NEW_QUOTE(msg);
         break;
+    case FXAct::GLP_GET_LOOP:
+        outmsg = procMsg_GLP_GET_LOOP(msg);
+        break;
+    case FXAct::GLP_LOOP_RTN:
+        outmsg = procMsg_GLP_LOOP_RTN(msg);
+        break;
+    case FXAct::GLP_CLEAR_LOOP:
+        outmsg = procMsg_noreply(msg,[this](Message& msg){m_loop.clear();});
+        break;
     default:
         Log(LOG_FATAL) << "Action not recognized: " + to_string((int)act) << std::endl;
         break;
@@ -53,8 +62,6 @@ GraphLoop::procMsg_GLP_ALL_SYMS(Message& msg) {
 
     if(!res || !PyList_Check(res))
         Log(LOG_FATAL) << "Error when calling init()" << endl;
-
-    SerializePack pack;
 
     Py_ssize_t listSize = PyList_Size(res);
     size_t offset = 7;
@@ -88,43 +95,59 @@ GraphLoop::procMsg_GLP_NEW_QUOTE(Message& msg) {
     SerializePack pack;
     unserialize(msg.getComment(),pack);
 
-    PyObject* func = PyObject_GetAttrString(m_mod,"process");
+    PyObject* func = PyObject_GetAttrString(m_mod,"process_quote");
     if(!func)
-        Log(LOG_FATAL) << "Failed to find py function: process" <<std::endl;
+        Log(LOG_FATAL) << "Failed to find py function: process_quote" <<std::endl;
 
-    npy_intp dims[2] = {1,pack.real64_vec.size()};
-    PyObject* pArray = PyArray_SimpleNew(2, dims, NPY_DOUBLE);
-    PyArrayObject* arr = (PyArrayObject*) pArray;
-    real64* data = (real64*)arr->data;
-    for (size_t i =0; i < dims[1]; i++) {
-        data[i] = pack.real64_vec[i];
+    PyObject* price_list = PyList_New(pack.real64_vec.size());
+    for(size_t i=0; i < pack.real64_vec.size(); i++) {
+        PyList_SetItem(price_list,i,Py_BuildValue("d",pack.real64_vec[i]));
     }
-    PyObject* arg1 = Py_BuildValue("s",pack.str_vec[0]);
-    PyObject* args = Py_BuildValue("(OO)",arg1,arr);
+
+
+    PyObject* arg1 = Py_BuildValue("s",pack.str_vec[0].c_str());
+    PyObject* args = Py_BuildValue("(OO)",arg1,price_list);
 
     PyObject* pReturnTuple = PyObject_CallObject(func,args);
+
+    if(!pReturnTuple)
+        Log(LOG_FATAL) << "Execution of py func fails" << std::endl;
 
 // Extract string list
     PyObject* pStringList = PyTuple_GetItem(pReturnTuple, 0);
 
 // Extract int list
     PyObject* pIntList = PyTuple_GetItem(pReturnTuple, 1);
+
+    int nsyms = PyList_Size(pStringList);
+    if (nsyms == 0) {
+        Message outmsg(FXAct::GLP_NEW_QUOTE,sizeof(int),0);
+        int* pv = (int*)outmsg.getData();
+        pv[0] = 0;
+        return outmsg;
+    }
+    size_t offset = 7;
+    Message outmsg(FXAct::GLP_NEW_QUOTE,sizeof(int)*nsyms, offset*nsyms);
+    char* pc = (char*)outmsg.getChar();
+    int* pv = (int*)outmsg.getData();
+
     // Convert string list
-    std::vector<std::string> stringVec;
     for(int i=0; i<PyList_Size(pStringList); i++) {
         PyObject* pItem = PyList_GetItem(pStringList, i);
-        stringVec.push_back(PyUnicode_AsUTF8(pItem));
+        const char* tmp = PyUnicode_AsUTF8(pItem);
+        strcpy(pc,tmp);
+        pc[offset-1] = '\0';
+        pc+=offset;
     }
 
 // Convert int list
-    std::vector<int> intVec;
     for(int i=0; i<PyList_Size(pIntList); i++) {
         PyObject* pItem = PyList_GetItem(pIntList, i);
-        intVec.push_back(PyLong_AsLong(pItem));
+        pv[i] = PyLong_AsLong(pItem);
     }
 
 // Clean up
-    Py_DECREF(pArray);
+    Py_DECREF(price_list);
     Py_DECREF(arg1);
     Py_DECREF(args);
     Py_DECREF(func);
@@ -132,12 +155,71 @@ GraphLoop::procMsg_GLP_NEW_QUOTE(Message& msg) {
     Py_DECREF(pIntList);
     Py_DECREF(pReturnTuple);
 
-    SerializePack outpack;
-    outpack.int32_vec = std::move(intVec);
-    outpack.str_vec = std::move(stringVec);
-
-    String cmt = serialize(outpack);
-
-    Message outmsg(FXAct::GLP_NEW_QUOTE,cmt);
     return outmsg;
 }
+
+Message
+GraphLoop::procMsg_GLP_GET_LOOP(Message& msg) {
+    PyObject* func = PyObject_GetAttrString(m_mod,"get_loop");
+    if(!func)
+        Log(LOG_FATAL) << "Failed to find py function: get_loop" <<std::endl;
+
+    PyObject* res = PyObject_CallObject(func,NULL);
+
+    Py_ssize_t listSize = PyList_Size(res);
+    size_t offset = 4;
+    Message outmsg(FXAct::GLP_GET_LOOP,0,offset*listSize);
+
+    char* p = (char*)outmsg.getChar();
+    // Extract individual string elements from the list
+    for (Py_ssize_t i = 0; i < listSize; ++i) {
+        PyObject* pItem = PyList_GetItem(res, i);
+        if (PyUnicode_Check(pItem)) {
+            const char* strValue = PyUnicode_AsUTF8(pItem);
+            m_loop.push_back(String(strValue));
+            strcpy(p,strValue);
+            p[offset-1]='\0';
+            p+=offset;
+        }
+        Py_DECREF(pItem);
+    }
+    Py_DECREF(res);
+    Py_DECREF(func);
+
+    return outmsg;
+}
+
+Message
+GraphLoop::procMsg_GLP_LOOP_RTN(Message& msg){
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
+
+    //construct a map
+    std::map<String,double> sym2price;
+    for(size_t i =0; i < pack.str_vec.size(); i++) {
+        sym2price[pack.str_vec[i]] = pack.real64_vec[i];
+    }
+
+    double tw = 0.f;
+    for(size_t i=0; i < m_loop.size()-1; i++) {
+        auto& src = m_loop[i];
+        auto& dst = m_loop[i+1];
+        double w;
+        try{
+            String sym = src+dst;
+            double p = sym2price.at(sym);
+            w = std::log(p);
+        } catch(...){
+            String sym = dst+src;
+            double p = sym2price.at(sym);
+            w = -std::log(p);
+        }
+        tw += w;
+    }
+    Message outmsg(FXAct::GLP_LOOP_RTN,sizeof(double),0);
+    double* pv = (double*)outmsg.getData();
+    pv[0] = tw;
+    return outmsg;
+}
+
+

@@ -32,6 +32,8 @@ private:
     std::set<std::string> m_addedModulePaths;
     PyEnviron() {
         Py_Initialize();
+//        if (_import_array() < 0)
+//            std::cerr << "Failed to import pyArray" << std::endl;
         PyRun_SimpleString("import sys");
     }
 public:

@@ -2,9 +2,11 @@
 
 #include "server_apps/server_base_app/server_base_app.h"
 #include <Python.h>
+#include <vector>
 class GraphLoop : public ServerBaseApp {
 private:
     PyObject* m_mod;
+    std::vector<String> m_loop;
     GraphLoop(const String& cf);
 public:
 
@@ -17,4 +19,7 @@ public:
 
     Message procMsg_GLP_ALL_SYMS(Message& msg);
     Message procMsg_GLP_NEW_QUOTE(Message& msg);
+    Message procMsg_GLP_GET_LOOP(Message& msg);
+    Message procMsg_GLP_LOOP_RTN(Message& msg);
+    Message procMsg_GLP_CLEAR_LOOP(Message& msg);
 };
