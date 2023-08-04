@@ -39,6 +39,9 @@ GraphLoop::processMsg(Message& msg) {
     case FXAct::GLP_CLEAR_LOOP:
         outmsg = procMsg_noreply(msg,[this](Message& msg){m_loop.clear();});
         break;
+    case FXAct::GLP_FINISH:
+        outmsg = procMsg_GLP_FINISH(msg);
+        break;
     default:
         Log(LOG_FATAL) << "Action not recognized: " + to_string((int)act) << std::endl;
         break;
@@ -99,14 +102,16 @@ GraphLoop::procMsg_GLP_NEW_QUOTE(Message& msg) {
     if(!func)
         Log(LOG_FATAL) << "Failed to find py function: process_quote" <<std::endl;
 
-    PyObject* price_list = PyList_New(pack.real64_vec.size());
+    PyObject* ask_list = PyList_New(pack.real64_vec.size());
+    PyObject* bid_list = PyList_New(pack.real64_vec.size());
     for(size_t i=0; i < pack.real64_vec.size(); i++) {
-        PyList_SetItem(price_list,i,Py_BuildValue("d",pack.real64_vec[i]));
+        PyList_SetItem(ask_list,i,Py_BuildValue("d",pack.real64_vec[i]));
+        PyList_SetItem(bid_list,i,Py_BuildValue("d",pack.real64_vec1[i]));
     }
 
 
     PyObject* arg1 = Py_BuildValue("s",pack.str_vec[0].c_str());
-    PyObject* args = Py_BuildValue("(OO)",arg1,price_list);
+    PyObject* args = Py_BuildValue("(OOO)",arg1,ask_list,bid_list);
 
     PyObject* pReturnTuple = PyObject_CallObject(func,args);
 
@@ -147,7 +152,8 @@ GraphLoop::procMsg_GLP_NEW_QUOTE(Message& msg) {
     }
 
 // Clean up
-    Py_DECREF(price_list);
+    Py_DECREF(ask_list);
+    Py_DECREF(bid_list);
     Py_DECREF(arg1);
     Py_DECREF(args);
     Py_DECREF(func);
@@ -195,9 +201,9 @@ GraphLoop::procMsg_GLP_LOOP_RTN(Message& msg){
     unserialize(msg.getComment(),pack);
 
     //construct a map
-    std::map<String,double> sym2price;
+    std::map<String,std::pair<double,double>> sym2price;
     for(size_t i =0; i < pack.str_vec.size(); i++) {
-        sym2price[pack.str_vec[i]] = pack.real64_vec[i];
+        sym2price[pack.str_vec[i]] = std::pair<double,double>(pack.real64_vec[i],pack.real64_vec1[i]);
     }
 
     double tw = 0.f;
@@ -207,11 +213,11 @@ GraphLoop::procMsg_GLP_LOOP_RTN(Message& msg){
         double w;
         try{
             String sym = src+dst;
-            double p = sym2price.at(sym);
+            double p = sym2price.at(sym).first;
             w = std::log(p);
         } catch(...){
             String sym = dst+src;
-            double p = sym2price.at(sym);
+            double p = sym2price.at(sym).second;
             w = -std::log(p);
         }
         tw += w;
@@ -222,4 +228,16 @@ GraphLoop::procMsg_GLP_LOOP_RTN(Message& msg){
     return outmsg;
 }
 
+Message
+GraphLoop::procMsg_GLP_FINISH(Message& msg) {
+    PyObject* func = PyObject_GetAttrString(m_mod,"finish");
+    if(!func)
+        Log(LOG_FATAL) << "Failed to find py function: finish" <<std::endl;
+
+    PyObject_CallObject(func,NULL);
+    Py_DECREF(func);
+
+    Message outmsg;
+    return outmsg;
+}
 

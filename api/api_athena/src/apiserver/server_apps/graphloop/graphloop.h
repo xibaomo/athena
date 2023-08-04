@@ -22,4 +22,5 @@ public:
     Message procMsg_GLP_GET_LOOP(Message& msg);
     Message procMsg_GLP_LOOP_RTN(Message& msg);
     Message procMsg_GLP_CLEAR_LOOP(Message& msg);
+    Message procMsg_GLP_FINISH(Message& msg);
 };

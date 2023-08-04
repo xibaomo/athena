@@ -29,8 +29,7 @@ def add_days_to_date(date_str, num_days):
     new_date_str = new_date.strftime('%Y-%m-%d')
 
     return new_date_str
-def createGraph(nodes,prices):
-    # pdb.set_trace()
+def createGraph(nodes,all_syms):
     # Create a directed graph
     G = nx.DiGraph()
 
@@ -38,21 +37,65 @@ def createGraph(nodes,prices):
     for node in nodes:
         G.add_node(node)
 
-    for col in prices.keys():
+    for col in all_syms:
         # pdb.set_trace()
         s1 = col[:3]
         s2 = col[3:]
-        if not np.isnan(prices[col]):
-            G.add_edge(s1,s2,weight=np.log(prices[col]))
-            G.add_edge(s2,s1,weight=-np.log(prices[col]))
+
+        G.add_edge(s1,s2,weight=1)
+        G.add_edge(s2,s1,weight=1)
 
     return G
 
-def computeLimitRtns(G,path_list, src_node,tar_node,prices):
-    # pdb.set_trace()
-    # allpaths=nx.all_simple_paths(G, source=src_node, target=tar_node)
-    # print("all paths found")
-    # # pdb.set_trace()
+def computePathAskRtn(path, ask_dict,bid_dict):
+    rtn = 0.
+    for i in range(len(path)-1):
+        src = path[i]
+        dst = path[i+1]
+        sym = src+dst
+        w=0.
+        if sym in ask_dict.keys():
+            w = np.log(ask_dict[sym])
+        else:
+            sym = dst+src
+            if not sym in bid_dict.keys():
+                # pdb.set_trace()
+                print("ERROR!!!!!!!!!!!!!! sym not found:",sym)
+                sys.exit(1)
+            w = -np.log(bid_dict[sym])
+        rtn+=w
+
+    return rtn
+
+def computePathBidRtn(path, ask_dict,bid_dict):
+    rtn = 0.
+    for i in range(len(path)-1):
+        src = path[i]
+        dst = path[i+1]
+        sym = src+dst
+        w=0.
+        if sym in bid_dict.keys():
+            w = np.log(bid_dict[sym])
+        else:
+            sym = dst+src
+            if not sym in ask_dict.keys():
+                print("ERROR!!!!!!!!!!!!!! sym not found:",sym)
+                sys.exit(1)
+            w = -np.log(ask_dict[sym])
+        rtn+=w
+
+    return rtn
+def computeMinAskRtn(path_list,ask_dict,bid_dict):
+    min_rtn = 999
+    opt_path = path_list[0]
+    for path in path_list:
+        rtn = computePathAskRtn(path,ask_dict,bid_dict)
+        if rtn < min_rtn:
+            min_rtn = rtn
+            opt_path = path
+    return min_rtn,opt_path
+
+def __computeLimitRtns(G,path_list, src_node,tar_node,prices):
     all_paths = copy.deepcopy(path_list)
 
     # print("list of all paths created")

@@ -12,7 +12,7 @@ class GraphloopConfig(object):
         return self.yamlDict[self.root]['FOREX_LIST_FILE']
     def getSelectedNodes(self):
         return self.yamlDict[self.root]['SELECTED_NODES']
-    def getOpenPositionReturn(self):
-        return self.yamlDict[self.root]['OPEN_POSITION_RETURN']
-    def getClosePositionReturn(self):
-        return self.yamlDict[self.root]['CLOSE_POSITION_RETURN']
+    def getBuyThresholdReturn(self):
+        return self.yamlDict[self.root]['BUY_THRESHOLD_RETURN']
+    def getSellThresholdReturn(self):
+        return self.yamlDict[self.root]['SELL_THRESHOLD_RETURN']
