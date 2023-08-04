@@ -76,7 +76,8 @@ def process_quote(timestr, ask_list, bid_list):
     print("graph created")
 
     if glp_box.path_list is None:
-        glp_box.path_list = list(nx.all_simple_paths(G, source='USD', target=glpconf.getEndNode()))
+        path_list = list(nx.all_simple_paths(G, source='USD', target=glpconf.getEndNode()))
+        glp_box.path_list = [path for path in path_list if len(path) > 2]
         for path in glp_box.path_list:
             path.append('USD')
     # high_score, high_path, low_score, low_path = computeLimitRtns(G, glp_box.path_list,'USD',glpconf.getEndNode(),ask_dict,bid_dict)

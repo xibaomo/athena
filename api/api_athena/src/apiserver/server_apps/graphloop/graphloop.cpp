@@ -178,6 +178,7 @@ GraphLoop::procMsg_GLP_GET_LOOP(Message& msg) {
 
     char* p = (char*)outmsg.getChar();
     // Extract individual string elements from the list
+    m_loop.clear();
     for (Py_ssize_t i = 0; i < listSize; ++i) {
         PyObject* pItem = PyList_GetItem(res, i);
         if (PyUnicode_Check(pItem)) {
