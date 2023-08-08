@@ -95,6 +95,15 @@ def computeMinAskRtn(path_list,ask_dict,bid_dict):
             opt_path = path
     return min_rtn,opt_path
 
+def computeMaxBidRtn(path_list,ask_dict,bid_dict):
+    max_rtn = -999
+    opt_path = path_list[0]
+    for path in path_list:
+        rtn = computePathBidRtn(path,ask_dict,bid_dict)
+        if rtn > max_rtn:
+            max_rtn = rtn
+            opt_path = path
+    return max_rtn,opt_path
 def __computeLimitRtns(G,path_list, src_node,tar_node,prices):
     all_paths = copy.deepcopy(path_list)
 

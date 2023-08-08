@@ -1,5 +1,5 @@
 from glpconf import GraphloopConfig
-from graphloop import createGraph, getTruePair, computeMinAskRtn
+from graphloop import createGraph, getTruePair, computeMinAskRtn, computeMaxBidRtn
 import pandas as pd
 import sys, os
 import numpy as np
@@ -13,7 +13,8 @@ class GlpBox(object):
         self.all_syms = None
         self.current_loop = None
         self.path_list = None
-        self.min_ask_rtn = []
+        self.min_ask_rtns = []
+        self.max_bid_rtns = []
 
 glp_box=None
 glpconf = None
@@ -82,12 +83,16 @@ def process_quote(timestr, ask_list, bid_list):
             path.append('USD')
     # high_score, high_path, low_score, low_path = computeLimitRtns(G, glp_box.path_list,'USD',glpconf.getEndNode(),ask_dict,bid_dict)
 
-    min_rtn,opt_path = computeMinAskRtn(glp_box.path_list,ask_dict,bid_dict)
-    print("min ask return: {:.4e}".format(min_rtn),opt_path)
+    min_ask_rtn,opt_path = computeMinAskRtn(glp_box.path_list,ask_dict,bid_dict)
+    print("min ask return: {:.4e}".format(min_ask_rtn),opt_path)
 
-    glp_box.min_ask_rtn.append(min_rtn)
-    if min_rtn > glpconf.getBuyThresholdReturn():
-    # if min_rtn < 9999:
+    max_bid_rtn, opt_path = computeMaxBidRtn(glp_box.path_list, ask_dict, bid_dict)
+    print("max bid return: {:.4e}".format(max_bid_rtn), opt_path)
+
+    glp_box.min_ask_rtns.append(min_ask_rtn)
+    glp_box.max_bid_rtns.append(max_bid_rtn)
+    # if min_ask_rtn > glpconf.getBuyThresholdReturn():
+    if min_ask_rtn < 9999:
         print("No action")
         return [],[]
     print(opt_path)
@@ -101,8 +106,11 @@ def get_loop():
 
 def finish():
     global glp_box
-    data = np.array(glp_box.min_ask_rtn)
+    data = np.array(glp_box.min_ask_rtns)
     df = pd.DataFrame(data,columns=['ask_rtn'])
+    data = np.array(glp_box.max_bid_rtns)
+    if len(data) > 0:
+        df['bid_rtn'] = data
     df.to_csv('online.csv')
     print("data dumped to online.csv")
 if __name__ == "__main__":

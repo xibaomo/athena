@@ -4,13 +4,15 @@ import matplotlib.pyplot as plt
 
 # Create an example array with 1000 points
 df = pd.read_csv('online.csv')
-data_array = df['ask_rtn'].values
+ask = df['ask_rtn'].values
+bid = df['bid_rtn'].values
 
 # Create an array of indices where the vertical lines should be placed
-vertical_lines_indices = np.arange(0, len(data_array), 288)
+vertical_lines_indices = np.arange(0, len(ask), 288)
 
 # Plot the array
-plt.plot(data_array, '*-')
+plt.plot(ask, '*-')
+plt.plot(bid, '*-')
 
 # Add vertical lines at the specified indices
 for index in vertical_lines_indices:
