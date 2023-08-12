@@ -44,6 +44,23 @@ def generateTradeSyms(path, loop_pos_type, all_syms):
             pos_type.append(-loop_pos_type)
 
     return syms, pos_type
+def generatePriceLot(syms,pos_type,ask_dict,bid_dict):
+    price=[]
+    lot = []
+    for sym,pt in zip(syms,pos_type):
+        p=0.
+        if pt > 0:
+            p = ask_dict[sym]
+        else:
+            p = bid_dict[sym]
+        price.append(p)
+        s = 'EUR' + sym[:3]
+        if s in ask_dict.keys():
+            lot.append(ask_dict[s])
+        else:
+            s = sym[:3]+'EUR'
+            lot.append(1./ask_dict[s])
+    return price,lot
 
 def init(config_file):
     global glpconf,glp_box
@@ -86,18 +103,20 @@ def process_quote(timestr, ask_list, bid_list):
     min_ask_rtn,opt_path = computeMinAskRtn(glp_box.path_list,ask_dict,bid_dict)
     print("min ask return: {:.4e}".format(min_ask_rtn),opt_path)
 
-    max_bid_rtn, opt_path = computeMaxBidRtn(glp_box.path_list, ask_dict, bid_dict)
-    print("max bid return: {:.4e}".format(max_bid_rtn), opt_path)
+    # max_bid_rtn, opt_path = computeMaxBidRtn(glp_box.path_list, ask_dict, bid_dict)
+    # print("max bid return: {:.4e}".format(max_bid_rtn), opt_path)
 
     glp_box.min_ask_rtns.append(min_ask_rtn)
-    glp_box.max_bid_rtns.append(max_bid_rtn)
-    # if min_ask_rtn > glpconf.getBuyThresholdReturn():
-    if min_ask_rtn < 9999:
+    # glp_box.max_bid_rtns.append(max_bid_rtn)
+    if min_ask_rtn > glpconf.getBuyThresholdReturn():
+    # if min_ask_rtn < 9999:
         print("No action")
         return [],[]
     print(opt_path)
     glp_box.current_loop = opt_path
     syms, pos_type = generateTradeSyms(opt_path, 1,ask_dict.keys())
+
+    price,lot = generatePriceLot(syms,pos_type,ask_dict,bid_dict)
 
     return syms, pos_type
 def get_loop():
