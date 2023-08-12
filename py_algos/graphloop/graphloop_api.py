@@ -54,6 +54,9 @@ def generatePriceLot(syms,pos_type,ask_dict,bid_dict):
         else:
             p = bid_dict[sym]
         price.append(p)
+        if sym[:3] == 'EUR':
+            lot.append(1.)
+            continue
         s = 'EUR' + sym[:3]
         if s in ask_dict.keys():
             lot.append(ask_dict[s])
