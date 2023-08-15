@@ -2,6 +2,7 @@ GRAPHLOOP:
     END_NODE: EUR
     FOREX_LIST_FILE: all_pairs.csv  #Contains all forex pairs
     SELECTED_NODES: ['USD','EUR','JPY','CAD','AUD','NZD','GBP','CHF']
+#SELECTED_NODES: ['USD','EUR','CAD','AUD','NZD','GBP','CHF']
 
     BUY_THRESHOLD_RETURN:  -0.001 # threshold return to buy loop symbols
     SELL_THRESHOLD_RETURN: 0.001 # threshold to close positions

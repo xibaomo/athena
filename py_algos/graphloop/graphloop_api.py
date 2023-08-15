@@ -115,13 +115,17 @@ def process_quote(timestr, ask_list, bid_list):
     # if min_ask_rtn < 9999:
         print("No action")
         return [],[]
-    print(opt_path)
+    # print(opt_path)
     glp_box.current_loop = opt_path
     syms, pos_type = generateTradeSyms(opt_path, 1,ask_dict.keys())
 
     price,lot = generatePriceLot(syms,pos_type,ask_dict,bid_dict)
 
-    return syms, pos_type
+    print("Trade info:")
+    for sym,pos,pc,lz in zip(syms,pos_type,price,lot):
+        print("{},{:2d},{:10.5f},{:.2f}".format(sym,pos,pc,lz))
+
+    return syms, pos_type, price,lot
 def get_loop():
     global glp_box
     return glp_box.current_loop
@@ -148,12 +152,12 @@ if __name__ == "__main__":
      1.68852, 1.09873, 1.73342, 1.64364, 1.12399, 159.474, 1.9015, 1.23771, 0.86364, 0.59054, 83.78, 0.64996, 1.32827,
      0.90756, 128.886]
     bid = ask
-    syms, pos_type = process_quote("2023-07-28 01:00:00", ask,bid)
+    syms, pos_type, price, lot = process_quote("2023-07-28 01:00:00", ask,bid)
 
     loop = get_loop()
     print("current loop: ",loop)
 
-    for s, p in zip(syms, pos_type):
-        print(s, p)
+    for s, p,pc,lz in zip(syms, pos_type,price,lot):
+        print(s, p, pc,lz)
 
     finish()

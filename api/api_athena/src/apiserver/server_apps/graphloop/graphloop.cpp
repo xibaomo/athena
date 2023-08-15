@@ -124,6 +124,9 @@ GraphLoop::procMsg_GLP_NEW_QUOTE(Message& msg) {
 // Extract int list
     PyObject* pIntList = PyTuple_GetItem(pReturnTuple, 1);
 
+    PyObject* pPrice_list = PyTuple_GetItem(pReturnTuple,2);
+    PyObject* pLot_list = PyTuple_GetItem(pReturnTuple, 3);
+
     int nsyms = PyList_Size(pStringList);
     if (nsyms == 0) {
         Message outmsg(FXAct::GLP_NEW_QUOTE,sizeof(int),0);
@@ -132,9 +135,9 @@ GraphLoop::procMsg_GLP_NEW_QUOTE(Message& msg) {
         return outmsg;
     }
     size_t offset = 7;
-    Message outmsg(FXAct::GLP_NEW_QUOTE,sizeof(int)*nsyms, offset*nsyms);
+    Message outmsg(FXAct::GLP_NEW_QUOTE,sizeof(real64)*nsyms*3, offset*nsyms);
     char* pc = (char*)outmsg.getChar();
-    int* pv = (int*)outmsg.getData();
+    real64* pv = (real64*)outmsg.getData();
 
     // Convert string list
     for(int i=0; i<PyList_Size(pStringList); i++) {
@@ -145,10 +148,18 @@ GraphLoop::procMsg_GLP_NEW_QUOTE(Message& msg) {
         pc+=offset;
     }
 
-// Convert int list
+// Convert data lists
+    size_t pt=0;
     for(int i=0; i<PyList_Size(pIntList); i++) {
+        PyObject* p1 = PyList_GetItem(pPrice_list,i);
+        pv[pt++] = PyFloat_AsDouble(p1);
+        PyObject* p2 = PyList_GetItem(pLot_list,i);
+        pv[pt++] = PyFloat_AsDouble(p2);
         PyObject* pItem = PyList_GetItem(pIntList, i);
-        pv[i] = PyLong_AsLong(pItem);
+        pv[pt++] = (real64)PyLong_AsLong(pItem);
+//        Py_DECREF(p1);
+//        Py_DECREF(p2);
+//        Py_DECREF(pItem);
     }
 
 // Clean up
@@ -160,6 +171,8 @@ GraphLoop::procMsg_GLP_NEW_QUOTE(Message& msg) {
     Py_DECREF(pStringList);
     Py_DECREF(pIntList);
     Py_DECREF(pReturnTuple);
+    Py_DECREF(pPrice_list);
+    Py_DECREF(pLot_list);
 
     return outmsg;
 }
