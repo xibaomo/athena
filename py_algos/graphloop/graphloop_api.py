@@ -87,6 +87,12 @@ def process_quote(timestr, ask_list, bid_list):
     global glpconf, glp_box
     # df_empty = pd.DataFrame(columns=all_pairs)
     print("Processing...",timestr,ask_list)
+    parsed_time = pd.to_datetime(timestr)
+    hour = parsed_time.hour
+    # pdb.set_trace()
+    if hour >= 23 or hour <= 3:
+        print("take no action between 23:00-03:00")
+        return [],[]
 
     all_syms = glp_box.all_syms
     print("creating dict...")
