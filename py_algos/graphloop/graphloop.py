@@ -85,6 +85,38 @@ def computePathBidRtn(path, ask_dict,bid_dict):
         rtn+=w
 
     return rtn
+
+def computePathMidRtn(path,mid_dict):
+    rtn = 0.
+    for i in range(len(path) - 1):
+        src = path[i]
+        dst = path[i + 1]
+        sym = src + dst
+        w = 0.
+        if sym in mid_dict.keys():
+            w = np.log(mid_dict[sym])
+        else:
+            sym = dst + src
+            if not sym in mid_dict.keys():
+                # pdb.set_trace()
+                print("ERROR!!!!!!!!!!!!!! sym not found:", sym)
+                sys.exit(1)
+            w = -np.log(mid_dict[sym])
+        rtn += w
+    return rtn
+def computeMinMidRtn(path_list,ask_dict,bid_dict):
+    mid_dict = {}
+    for key in ask_dict.keys():
+        p = (ask_dict[key] + bid_dict[key])*.5
+        mid_dict[key] = p
+    min_rtn = 999
+    opt_path = path_list[0]
+    for path in path_list:
+        rtn = computePathMidRtn(path, mid_dict)
+        if rtn < min_rtn:
+            min_rtn = rtn
+            opt_path = path
+    return min_rtn, opt_path
 def computeMinAskRtn(path_list,ask_dict,bid_dict):
     min_rtn = 999
     opt_path = path_list[0]
@@ -137,7 +169,6 @@ def __computeLimitRtns(G,path_list, src_node,tar_node,prices):
     return high_score,high_path,low_score,low_path
 
 def findTradePairPosRtn(df,G,path):
-
     hw = -1
     hw_edge =[]
     # find highest weight

@@ -1,5 +1,5 @@
 from glpconf import GraphloopConfig
-from graphloop import createGraph, getTruePair, computeMinAskRtn, computeMaxBidRtn
+from graphloop import *
 import pandas as pd
 import sys, os
 import numpy as np
@@ -109,7 +109,7 @@ def process_quote(timestr, ask_list, bid_list):
             path.append('USD')
     # high_score, high_path, low_score, low_path = computeLimitRtns(G, glp_box.path_list,'USD',glpconf.getEndNode(),ask_dict,bid_dict)
 
-    min_ask_rtn,opt_path = computeMinAskRtn(glp_box.path_list,ask_dict,bid_dict)
+    min_ask_rtn,opt_path = computeMinMidRtn(glp_box.path_list,ask_dict,bid_dict)
     print("min ask return: {:.4e}".format(min_ask_rtn),opt_path)
 
     # max_bid_rtn, opt_path = computeMaxBidRtn(glp_box.path_list, ask_dict, bid_dict)
@@ -122,6 +122,8 @@ def process_quote(timestr, ask_list, bid_list):
         print("No action")
         return [],[]
     # print(opt_path)
+    ask_rtn = computePathAskRtn(opt_path,ask_dict,bid_dict)
+    print("ask rtn: {:.4e}".format(ask_rtn))
     glp_box.current_loop = opt_path
     syms, pos_type = generateTradeSyms(opt_path, 1,ask_dict.keys())
 
@@ -158,7 +160,7 @@ if __name__ == "__main__":
      1.68852, 1.09873, 1.73342, 1.64364, 1.12399, 159.474, 1.9015, 1.23771, 0.86364, 0.59054, 83.78, 0.64996, 1.32827,
      0.90756, 128.886]
     bid = ask
-    syms, pos_type, price, lot = process_quote("2023-07-28 01:00:00", ask,bid)
+    syms, pos_type, price, lot = process_quote("2023-07-28 05:00:00", ask,bid)
 
     loop = get_loop()
     print("current loop: ",loop)
