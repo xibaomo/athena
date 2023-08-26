@@ -15,6 +15,7 @@ class GlpBox(object):
         self.path_list = None
         self.min_ask_rtns = []
         self.max_bid_rtns = []
+        self.trade_times = []
 
 glp_box=None
 glpconf = None
@@ -122,6 +123,7 @@ def process_quote(timestr, ask_list, bid_list):
         print("No action")
         return [],[]
     # print(opt_path)
+    glp_box.trade_times.append(timestr)
     ask_rtn = computePathAskRtn(opt_path,ask_dict,bid_dict)
     print("ask rtn: {:.4e}".format(ask_rtn))
     glp_box.current_loop = opt_path
@@ -133,13 +135,17 @@ def process_quote(timestr, ask_list, bid_list):
     for sym,pos,pc,lz in zip(syms,pos_type,price,lot):
         print("{},{:2d},{:10.5f},{:.2f}".format(sym,pos,pc,lz))
 
+    if not glpconf.isAllowPositions():
+        return [],[],[],[]
     return syms, pos_type, price,lot
 def get_loop():
     global glp_box
     return glp_box.current_loop
 
 def finish():
-    global glp_box
+    global glp_box,glpconf
+    if glpconf.isAllowPositions():
+        return
     data = np.array(glp_box.min_ask_rtns)
     df = pd.DataFrame(data,columns=['ask_rtn'])
     data = np.array(glp_box.max_bid_rtns)
@@ -147,6 +153,11 @@ def finish():
         df['bid_rtn'] = data
     df.to_csv('online.csv')
     print("data dumped to online.csv")
+
+    data = np.array(glp_box.trade_times)
+    df = pd.DataFrame(data,columns=['TRADE_TIME'])
+    df.to_csv('trade_times.csv',index=False)
+    print("trade times dumped to trade_times.csv")
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print('Usage: {} <mtn.yaml>'.format(sys.argv[0]))

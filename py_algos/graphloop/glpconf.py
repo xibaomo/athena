@@ -16,3 +16,6 @@ class GraphloopConfig(object):
         return self.yamlDict[self.root]['BUY_THRESHOLD_RETURN']
     def getSellThresholdReturn(self):
         return self.yamlDict[self.root]['SELL_THRESHOLD_RETURN']
+
+    def isAllowPositions(self):
+        return self.yamlDict[self.root]['ALLOW_POSITIONS']

@@ -5,5 +5,6 @@ GRAPHLOOP:
 #SELECTED_NODES: ['USD','EUR','CAD','AUD','NZD','GBP','CHF']
 
     BUY_THRESHOLD_RETURN:  -0.001 # threshold return to buy loop symbols
+    ALLOW_POSITIONS: true
     SELL_THRESHOLD_RETURN: 0.001 # threshold to close positions
 
