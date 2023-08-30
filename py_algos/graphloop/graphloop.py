@@ -46,6 +46,22 @@ def createGraph(nodes,all_syms):
         G.add_edge(s2,s1,weight=1)
 
     return G
+def createGraphWeight(nodes,all_syms,mid_dict,base=0.):
+    G = nx.DiGraph()
+
+    # Add nodes to the graph
+    for node in nodes:
+        G.add_node(node)
+    for col in all_syms:
+        # pdb.set_trace()
+        s1 = col[:3]
+        s2 = col[3:]
+
+        w = np.log(mid_dict[col])
+        G.add_edge(s1, s2, weight=w-base+.1)
+        G.add_edge(s2, s1, weight=-w-base+.1)
+
+    return G
 
 def computePathAskRtn(path, ask_dict,bid_dict):
     rtn = 0.

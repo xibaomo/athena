@@ -5,6 +5,7 @@ import sys, os
 import numpy as np
 import yaml
 import networkx as nx
+import time
 import pdb
 
 class GlpBox(object):
@@ -66,6 +67,51 @@ def generatePriceLot(syms,pos_type,ask_dict,bid_dict):
             lot.append(1./ask_dict[s])
     return price,lot
 
+def compOptPath(ask_dict,bid_dict):
+    global glp_box,glpconf
+    if glp_box.path_list is None:
+        all_syms = ask_dict.keys()
+        G = createGraph(glpconf.getSelectedNodes(), all_syms)
+        print("graph created")
+        path_list = list(nx.all_simple_paths(G, source='USD', target=glpconf.getEndNode()))
+        glp_box.path_list = [path for path in path_list if len(path) > 2]
+        for path in glp_box.path_list:
+            path.append('USD')
+    # high_score, high_path, low_score, low_path = computeLimitRtns(G, glp_box.path_list,'USD',glpconf.getEndNode(),ask_dict,bid_dict)
+
+    min_rtn,opt_path = computeMinMidRtn(glp_box.path_list,ask_dict,bid_dict)
+    return opt_path,min_rtn
+
+def __compOptPath(ask_dict,bid_dict):
+    global glpconf,glp_box
+    mid_dict = {}
+    for key in ask_dict.keys():
+        p = (ask_dict[key] + bid_dict[key]) * .5
+        mid_dict[key] = p
+    vals = []
+    for k,v in mid_dict.items():
+        w = np.log(v)
+        vals.append(w)
+        vals.append(-w)
+    base = min(vals)
+
+    G = createGraphWeight(glpconf.getSelectedNodes(),mid_dict.keys(),mid_dict,base)
+    # opt_path = nx.bellman_ford_path(G, 'USD', 'EUR')
+    # min_rtn = nx.bellman_ford_path_length(G,'USD','EUR') + np.log(mid_dict['EURUSD'])
+
+    source_node = 'USD'
+    target_node = 'EUR'
+    w = G[source_node][target_node]['weight']
+    G[source_node][target_node]['weight']=999
+    print('finding shortest path from {} to {}...'.format(source_node,target_node))
+    # path = nx.algorithms.shortest_paths.dijkstra_path(G,source_node,target_node)
+    _,path = nx.algorithms.shortest_paths.bidirectional_dijkstra(G, source_node, target_node)
+    print('found')
+    path.append('USD')
+    G[source_node][target_node]['weight'] = w
+    rtn = computePathMidRtn(path,mid_dict)
+    return path,rtn
+
 def init(config_file):
     global glpconf,glp_box
     yamlroot = yaml.load(open(config_file), Loader=yaml.FullLoader)
@@ -90,35 +136,24 @@ def process_quote(timestr, ask_list, bid_list):
     print("Processing...",timestr,ask_list)
     parsed_time = pd.to_datetime(timestr)
     hour = parsed_time.hour
-    # pdb.set_trace()
-    if hour >= 23 or hour <= 3:
-        print("take no action between 23:00-03:00")
-        return [],[]
-
+    # pdb.set_trace(
     all_syms = glp_box.all_syms
     print("creating dict...")
     ask_dict = {all_syms[i]: ask_list[i] for i in range(len(all_syms))}
     bid_dict = {all_syms[i]: bid_list[i] for i in range(len(all_syms))}
     print("dict created")
-    G = createGraph(glpconf.getSelectedNodes(),all_syms)
-    print("graph created")
 
-    if glp_box.path_list is None:
-        path_list = list(nx.all_simple_paths(G, source='USD', target=glpconf.getEndNode()))
-        glp_box.path_list = [path for path in path_list if len(path) > 2]
-        for path in glp_box.path_list:
-            path.append('USD')
-    # high_score, high_path, low_score, low_path = computeLimitRtns(G, glp_box.path_list,'USD',glpconf.getEndNode(),ask_dict,bid_dict)
-
-    min_ask_rtn,opt_path = computeMinMidRtn(glp_box.path_list,ask_dict,bid_dict)
-    print("min ask return: {:.4e}".format(min_ask_rtn),opt_path)
+    tic = time.time()
+    opt_path,min_rtn = compOptPath(ask_dict,bid_dict)
+    print("finding shortest path takes {:.6f}".format(time.time()-tic))
+    print("min return: {:.4e}".format(min_rtn),opt_path)
 
     # max_bid_rtn, opt_path = computeMaxBidRtn(glp_box.path_list, ask_dict, bid_dict)
     # print("max bid return: {:.4e}".format(max_bid_rtn), opt_path)
 
-    glp_box.min_ask_rtns.append(min_ask_rtn)
+    glp_box.min_ask_rtns.append(min_rtn)
     # glp_box.max_bid_rtns.append(max_bid_rtn)
-    if min_ask_rtn > glpconf.getBuyThresholdReturn():
+    if min_rtn > glpconf.getBuyThresholdReturn():
     # if min_ask_rtn < 9999:
         print("No action")
         return [],[]
@@ -167,11 +202,12 @@ if __name__ == "__main__":
     print("all trade pairs: ", symlib, len(symlib))
 
     # prices = np.random.random(28).tolist()
-    ask = [0.94775, 0.64826, 91.955, 1.09646, 0.71346, 0.68353, 96.973, 141.742, 1.53908, 1.45956, 0.99842, 0.88728, 141.62,
-     1.68852, 1.09873, 1.73342, 1.64364, 1.12399, 159.474, 1.9015, 1.23771, 0.86364, 0.59054, 83.78, 0.64996, 1.32827,
-     0.90756, 128.886]
+    ask = [0.90383, 0.61391, 94.74, 0.67844, 0.67833, 104.459, 153.821, 1.5925500000000001, 1.4414500000000001, \
+           0.97777, 0.85903, 150.438, 1.07902, 1.85649, 1.67961, 1.1407, 175.891, 1.2572999999999999, 1.33386, 0.906, 139.319]
     bid = ask
     syms, pos_type, price, lot = process_quote("2023-07-28 05:00:00", ask,bid)
+
+    syms, pos_type, price, lot = process_quote("2023-07-28 05:00:00", ask, bid)
 
     loop = get_loop()
     print("current loop: ",loop)
