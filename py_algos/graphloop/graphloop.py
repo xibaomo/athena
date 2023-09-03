@@ -103,6 +103,7 @@ def computePathBidRtn(path, ask_dict,bid_dict):
     return rtn
 
 def computePathMidRtn(path,mid_dict):
+    # pdb.set_trace()
     rtn = 0.
     for i in range(len(path) - 1):
         src = path[i]

@@ -211,34 +211,23 @@ GraphLoop::procMsg_GLP_GET_LOOP(Message& msg) {
 
 Message
 GraphLoop::procMsg_GLP_LOOP_RTN(Message& msg){
-    SerializePack pack;
-    unserialize(msg.getComment(),pack);
+    PyObject* func = PyObject_GetAttrString(m_mod,"get_loop_rtn");
+    if(!func)
+        Log(LOG_FATAL) << "Failed to find py function: get_loop_rtn" <<std::endl;
 
-    //construct a map
-    std::map<String,std::pair<double,double>> sym2price;
-    for(size_t i =0; i < pack.str_vec.size(); i++) {
-        sym2price[pack.str_vec[i]] = std::pair<double,double>(pack.real64_vec[i],pack.real64_vec1[i]);
+    PyObject* res = PyObject_CallObject(func,NULL);
+    if(!res) {
+        Log(LOG_FATAL) << "Failed to run py funtion: get_loop_rtn" << std::endl;
     }
 
-    double tw = 0.f;
-    for(size_t i=0; i < m_loop.size()-1; i++) {
-        auto& src = m_loop[i];
-        auto& dst = m_loop[i+1];
-        double w;
-        try{
-            String sym = src+dst;
-            double p = sym2price.at(sym).first;
-            w = std::log(p);
-        } catch(...){
-            String sym = dst+src;
-            double p = sym2price.at(sym).second;
-            w = -std::log(p);
-        }
-        tw += w;
-    }
+    double tw = PyFloat_AsDouble(res);
+
     Message outmsg(FXAct::GLP_LOOP_RTN,sizeof(double),0);
     double* pv = (double*)outmsg.getData();
     pv[0] = tw;
+
+    Py_DECREF(res);
+    Py_DECREF(func);
     return outmsg;
 }
 

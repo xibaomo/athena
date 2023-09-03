@@ -13,10 +13,12 @@ class GlpBox(object):
         self.df = None
         self.all_syms = None
         self.current_loop = None
+        self.current_loop_rtn = 0.
         self.path_list = None
         self.min_ask_rtns = []
         self.max_bid_rtns = []
-        self.trade_times = []
+        self.trade_times = {}
+        self.sym2path_list={}
 
 glp_box=None
 glpconf = None
@@ -67,7 +69,7 @@ def generatePriceLot(syms,pos_type,ask_dict,bid_dict):
             lot.append(1./ask_dict[s])
     return price,lot
 
-def compOptPath(ask_dict,bid_dict):
+def __compOptPath(ask_dict,bid_dict):
     global glp_box,glpconf
     if glp_box.path_list is None:
         all_syms = ask_dict.keys()
@@ -80,6 +82,30 @@ def compOptPath(ask_dict,bid_dict):
     # high_score, high_path, low_score, low_path = computeLimitRtns(G, glp_box.path_list,'USD',glpconf.getEndNode(),ask_dict,bid_dict)
 
     min_rtn,opt_path = computeMinMidRtn(glp_box.path_list,ask_dict,bid_dict)
+    return opt_path,min_rtn
+
+def compOptPath(ask_dict,bid_dict):
+    global glp_box,glpconf
+    if len(glp_box.sym2path_list) == 0: # if this is the 1st run, find all loop paths
+        all_syms = ask_dict.keys()
+        G = createGraph(glpconf.getSelectedNodes(), all_syms)
+        for sym in glpconf.getSelectedNodes():
+            if sym == 'USD':
+                continue
+            paths = list(nx.all_simple_paths(G, source='USD', target=sym))
+            path_list = [path for path in paths if len(path) > 6]
+            for path in path_list:
+                path.append('USD')
+            glp_box.sym2path_list[sym] = path_list
+    # find shortest path
+    min_rtn = 999
+    opt_path=[]
+    for sym in glp_box.sym2path_list.keys():
+        path_list = glp_box.sym2path_list[sym]
+        rtn,op = computeMinAskRtn(path_list,ask_dict,bid_dict)
+        if rtn < min_rtn:
+            min_rtn = rtn
+            opt_path = op
     return opt_path,min_rtn
 
 def __compOptPath(ask_dict,bid_dict):
@@ -158,10 +184,12 @@ def process_quote(timestr, ask_list, bid_list):
         print("No action")
         return [],[]
     # print(opt_path)
-    glp_box.trade_times.append(timestr)
+
     ask_rtn = computePathAskRtn(opt_path,ask_dict,bid_dict)
+    glp_box.trade_times[timestr] = ask_rtn
     print("ask rtn: {:.4e}".format(ask_rtn))
     glp_box.current_loop = opt_path
+    glp_box.current_loop_rtn = ask_rtn
     syms, pos_type = generateTradeSyms(opt_path, 1,ask_dict.keys())
 
     price,lot = generatePriceLot(syms,pos_type,ask_dict,bid_dict)
@@ -176,7 +204,9 @@ def process_quote(timestr, ask_list, bid_list):
 def get_loop():
     global glp_box
     return glp_box.current_loop
-
+def get_loop_rtn():
+    global glp_box
+    return glp_box.current_loop_rtn
 def finish():
     global glp_box,glpconf
     if glpconf.isAllowPositions():
@@ -189,8 +219,7 @@ def finish():
     df.to_csv('online.csv')
     print("data dumped to online.csv")
 
-    data = np.array(glp_box.trade_times)
-    df = pd.DataFrame(data,columns=['TRADE_TIME'])
+    df = pd.DataFrame(list(glp_box.trade_times.items()), columns=['TRADE_TIME', 'MIN_ASK_RTN'])
     df.to_csv('trade_times.csv',index=False)
     print("trade times dumped to trade_times.csv")
 if __name__ == "__main__":
@@ -202,8 +231,10 @@ if __name__ == "__main__":
     print("all trade pairs: ", symlib, len(symlib))
 
     # prices = np.random.random(28).tolist()
-    ask = [0.90383, 0.61391, 94.74, 0.67844, 0.67833, 104.459, 153.821, 1.5925500000000001, 1.4414500000000001, \
-           0.97777, 0.85903, 150.438, 1.07902, 1.85649, 1.67961, 1.1407, 175.891, 1.2572999999999999, 1.33386, 0.906, 139.319]
+    ask = [0.8879, 0.58802, 93.268, 1.08173, 0.66902, 0.6628, 105.505, 159.17, 1.64205, 1.459, 0.96736, 0.85313, \
+           153.505, 1.7812000000000001, 1.10401, 1.92441, 1.7127400000000002, 1.1325, 180.0, 2.08668, 1.29421, 0.81976, \
+           0.54253, 86.361, 0.62068, 1.3218, 0.87535, 139.583]
+
     bid = ask
     syms, pos_type, price, lot = process_quote("2023-07-28 05:00:00", ask,bid)
 
@@ -211,6 +242,7 @@ if __name__ == "__main__":
 
     loop = get_loop()
     print("current loop: ",loop)
+    print("current loop rtn: ", get_loop_rtn())
 
     for s, p,pc,lz in zip(syms, pos_type,price,lot):
         print(s, p, pc,lz)
