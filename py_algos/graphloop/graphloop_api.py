@@ -207,6 +207,14 @@ def get_loop():
 def get_loop_rtn():
     global glp_box
     return glp_box.current_loop_rtn
+def compute_slope(list_x,list_y):
+    x = np.array(list_x)
+    y = np.array(list_y)
+    p = np.polyfit(x,y,1)
+    print("x: ",x)
+    print("y: ", y)
+    print("slope: ",p[0])
+    return p[0]
 def finish():
     global glp_box,glpconf
     if glpconf.isAllowPositions():

@@ -42,6 +42,7 @@ enum class FXAct {
     GLP_NEW_QUOTE,
     GLP_GET_LOOP,
     GLP_LOOP_RTN,
+    GLP_PROFIT_SLOPE,
     GLP_CLEAR_LOOP,
     GLP_FINISH
     };

@@ -26,7 +26,6 @@ GraphLoop::processMsg(Message& msg) {
     case FXAct::GLP_ALL_SYMS:
         outmsg = procMsg_GLP_ALL_SYMS(msg);
         break;
-
     case FXAct::GLP_NEW_QUOTE:
         outmsg = procMsg_GLP_NEW_QUOTE(msg);
         break;
@@ -37,7 +36,12 @@ GraphLoop::processMsg(Message& msg) {
         outmsg = procMsg_GLP_LOOP_RTN(msg);
         break;
     case FXAct::GLP_CLEAR_LOOP:
-        outmsg = procMsg_noreply(msg,[this](Message& msg){m_loop.clear();});
+        outmsg = procMsg_noreply(msg,[this](Message& msg) {
+            m_loop.clear();
+        });
+        break;
+    case FXAct::GLP_PROFIT_SLOPE:
+        outmsg = procMsg_GLP_PROFIT_SLOPE(msg);
         break;
     case FXAct::GLP_FINISH:
         outmsg = procMsg_GLP_FINISH(msg);
@@ -210,7 +214,7 @@ GraphLoop::procMsg_GLP_GET_LOOP(Message& msg) {
 }
 
 Message
-GraphLoop::procMsg_GLP_LOOP_RTN(Message& msg){
+GraphLoop::procMsg_GLP_LOOP_RTN(Message& msg) {
     PyObject* func = PyObject_GetAttrString(m_mod,"get_loop_rtn");
     if(!func)
         Log(LOG_FATAL) << "Failed to find py function: get_loop_rtn" <<std::endl;
@@ -229,6 +233,45 @@ GraphLoop::procMsg_GLP_LOOP_RTN(Message& msg){
     Py_DECREF(res);
     Py_DECREF(func);
     return outmsg;
+}
+
+Message
+GraphLoop::procMsg_GLP_PROFIT_SLOPE(Message& msg) {
+    PyObject* func = PyObject_GetAttrString(m_mod,"compute_slope");
+    if(!func)
+        Log(LOG_FATAL) << "Failed to find py function: compute_slope" <<std::endl;
+
+    int np = msg.getDataBytes()/sizeof(real64);
+    real64* pv = (real64*)msg.getData();
+    PyObject* lx = PyList_New(np);
+    PyObject* ly = PyList_New(np);
+    for(size_t i=0; i < np; i++) {
+        PyList_SetItem(lx,i,Py_BuildValue("d",i*1.));
+        PyList_SetItem(ly,i,Py_BuildValue("d",pv[i]));
+    }
+
+    PyObject* args = Py_BuildValue("(OO)",lx,ly);
+
+    PyObject* res = PyObject_CallObject(func,args);
+    if(!res) {
+        Log(LOG_FATAL) << "Failed to run py funtion: compute_slope" << std::endl;
+    }
+
+    double slp = PyFloat_AsDouble(res);
+
+    Message outmsg(sizeof(real64),0);
+    outmsg.setAction(FXAct::GLP_PROFIT_SLOPE);
+    real64* opv = (real64*)outmsg.getData();
+    opv[0] = slp;
+
+    Py_DECREF(lx);
+    Py_DECREF(ly);
+    Py_DECREF(args);
+    Py_DECREF(res);
+    Py_DECREF(func);
+
+    return outmsg;
+
 }
 
 Message
