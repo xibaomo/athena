@@ -43,6 +43,9 @@ GraphLoop::processMsg(Message& msg) {
     case FXAct::GLP_PROFIT_SLOPE:
         outmsg = procMsg_GLP_PROFIT_SLOPE(msg);
         break;
+    case FXAct::GLP_SYM_CLOSE:
+        outmsg = procMsg_GLP_SYM_CLOSE(msg);
+        break;
     case FXAct::GLP_FINISH:
         outmsg = procMsg_GLP_FINISH(msg);
         break;
@@ -269,6 +272,48 @@ GraphLoop::procMsg_GLP_PROFIT_SLOPE(Message& msg) {
     Py_DECREF(args);
     Py_DECREF(res);
     Py_DECREF(func);
+
+    return outmsg;
+
+}
+
+Message
+GraphLoop::procMsg_GLP_SYM_CLOSE(Message& msg){
+    PyObject* func = PyObject_GetAttrString(m_mod,"find_sym_toclose");
+    if(!func)
+        Log(LOG_FATAL) << "Failed to find py function: find_sym_toclose" <<std::endl;
+    SerializePack pack;
+    unserialize(msg.getComment(),pack);
+    for(auto& s : pack.str_vec){
+        cout << s << ", ";
+    }
+    cout<<endl;
+    PyObject* arg1 = PyList_New(pack.real64_vec.size());
+    auto& v = pack.real64_vec;
+    for(size_t i=0;i < v.size();i++){
+        PyList_SetItem(arg1,i,Py_BuildValue("d",v[i]));
+    }
+
+    PyObject* arg2 = Py_BuildValue("i",pack.int32_vec[0]);
+    PyObject* arg3 = Py_BuildValue("i",pack.int32_vec[1]);
+
+    PyObject* args = Py_BuildValue("(OOO)",arg1,arg2,arg3);
+
+    PyObject* res = PyObject_CallObject(func,args);
+    if(!res) {
+        Log(LOG_FATAL) << "Failed to run py funtion: find_sym_toclose" << std::endl;
+    }
+
+    int id = PyLong_AsLong(res);
+
+    Py_DECREF(arg1);
+    Py_DECREF(arg2);
+    Py_DECREF(arg3);
+    Py_DECREF(args);
+    Py_DECREF(res);
+    Py_DECREF(func);
+
+    Message outmsg(FXAct::GLP_SYM_CLOSE,pack.str_vec[id]);
 
     return outmsg;
 

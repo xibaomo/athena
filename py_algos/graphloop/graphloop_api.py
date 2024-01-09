@@ -7,6 +7,8 @@ import yaml
 import networkx as nx
 import time
 import pdb
+import statsmodels.api as sm
+from scipy import stats
 
 class GlpBox(object):
     def __init__(self):
@@ -19,9 +21,18 @@ class GlpBox(object):
         self.max_bid_rtns = []
         self.trade_times = {}
         self.sym2path_list={}
+        self.cur_syms=None
+
 
 glp_box=None
 glpconf = None
+
+def checkDep(x, y):
+    id = y > np.median(y)
+    x1 = x[id]
+    x2 = x[~id]
+    ks_statistic, p_value = stats.ks_2samp(x1, x2)
+    return p_value
 
 def generateSymLib(nodes, forex_list):
     symlib = []
@@ -191,6 +202,7 @@ def process_quote(timestr, ask_list, bid_list):
     glp_box.current_loop = opt_path
     glp_box.current_loop_rtn = ask_rtn
     syms, pos_type = generateTradeSyms(opt_path, 1,ask_dict.keys())
+    glp_box.cur_syms = np.array(syms)
 
     price,lot = generatePriceLot(syms,pos_type,ask_dict,bid_dict)
 
@@ -201,6 +213,54 @@ def process_quote(timestr, ask_list, bid_list):
     if not glpconf.isAllowPositions():
         return [],[],[],[]
     return syms, pos_type, price,lot
+def find_sym_toclose(profit_list,nsyms,ncols):
+    global glp_box
+    sym_base = 200
+    total_cap= sym_base*len(glp_box.cur_syms)
+    isFullLoop = True if nsyms == len(glp_box.cur_syms) else False
+    
+    profit_arr = np.array(profit_list).reshape((nsyms,ncols))
+    profit_arr = profit_arr+sym_base
+    profits = np.transpose(profit_arr)
+    for k in range(profits.shape[1]):
+        y = profits[1:,k]
+        for i in range(1+k,profits.shape[1]):
+            x = profits[:-1,i]
+            pv = checkDep(x,y)
+            print("pval between {} and {}: {}".format(k,i,pv))
+            if pv < 0.02:
+                print("corr: {}".format(np.corrcoef(x,y)))
+
+
+    if isFullLoop:
+        profits = profits / total_cap
+    else:
+        print("TODO: ",len(glp_box.cur_syms))
+    x = profits[:-1,:]
+    y = profits[1:,:]
+    model = sm.OLS(y,x).fit()
+    # print(model.params)
+    P = model.params
+    P[P<0] = 0
+    for i in range(P.shape[0]):
+        P[i,:] = P[i,:]/sum(P[i,:])
+
+    res = profits[-1,:]
+    f0 = profits[0,:]
+    # pdb.set_trace()
+    for i in range(profits.shape[0]-1):
+        res = np.matmul(res,P)
+        f0  = np.matmul(f0,P)
+    latest_profit = profits[-1,:]*total_cap-sym_base
+    fitted_profit = f0*total_cap-sym_base
+    pred_profit = res*total_cap-sym_base
+    np.set_printoptions(floatmode='fixed', precision=2)
+    print("latest profit: ",latest_profit)
+    print("fitted profit: ", fitted_profit)
+    print("pred_profit:   ",pred_profit)
+
+    return np.argmin(pred_profit)
+
 def get_loop():
     global glp_box
     return glp_box.current_loop
@@ -215,6 +275,7 @@ def compute_slope(list_x,list_y):
     print("y: ", y)
     print("slope: ",p[0])
     return p[0]
+
 def finish():
     global glp_box,glpconf
     if glpconf.isAllowPositions():
@@ -254,5 +315,9 @@ if __name__ == "__main__":
 
     for s, p,pc,lz in zip(syms, pos_type,price,lot):
         print(s, p, pc,lz)
+
+    profits = np.random.random((1,8*14*6))*500-250
+    find_sym_toclose(profits.tolist(),8,14*6)
+
 
     finish()
