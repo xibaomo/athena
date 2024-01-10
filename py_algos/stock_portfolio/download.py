@@ -7,10 +7,10 @@ import pdb
 
 DATA_FILE = 'data_downloaded.csv'
 
-def add_days_to_date(date_str, num_days):
+def add_days_to_date(date, num_days):
     # Convert string to datetime object
     # pdb.set_trace()
-    date = datetime.strptime(date_str, '%Y-%m-%d')
+    # date = datetime.strptime(date_str, '%Y-%m-%d')
 
     # Add the specified number of days to the date
     new_date = date + timedelta(days=num_days)
@@ -22,11 +22,12 @@ def add_days_to_date(date_str, num_days):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: {sys.argv[0]} port.yaml <date>")
+        print("Usage: {sys.argv[0]} port.yaml ")
         sys.exit(1)
 
     portconf = PortfolioConfig(sys.argv[1])
-    target_date = sys.argv[2]
+    target_date = portconf.getTargetDate()
+    print("Target date: ", target_date)
     df = pd.read_csv(portconf.getSymFile(), comment='#')
     syms = df['<SYM>'].values
     NUM_SYMS = portconf.getNumSymbols()
