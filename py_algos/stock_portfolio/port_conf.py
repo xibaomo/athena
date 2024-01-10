@@ -6,7 +6,8 @@ class PortfolioConfig(object):
         self.root = "PORTFOLIO"
 
     def getTargetDate(self):
-        return self.yamlDict[self.root]['TARGET_DATE']
+        dt =  self.yamlDict[self.root]['TARGET_DATE']
+        return dt.strftime('%Y-%m-%d')
 
     def getLookforward(self):
         return self.yamlDict[self.root]['LOOKFORWARD']

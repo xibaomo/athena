@@ -1,25 +1,21 @@
 PORTFOLIO:
     CAPITAL_AMOUNT: 10000 # US dollars
     SYMBOL_FILE: sp505.csv
-    TARGET_DATE: 2023-08-01
-    LOOKFORWARD: 60 #days
-    LOOKBACK: 180 #days
+    TARGET_DATE: 2023-11-01
+    LOOKFORWARD: 30 #days
+    LOOKBACK: 90 #days
     MA_WINDOW: 5
     WEIGHT_BOUND: 0.3 # upper bound of symbol weight
     MU_WEIGHT: 2      # cost function is (sigma - MU_WEIGHT*mu)
     COST_TYPE: 1      # 0: sigma - weight*mu, 1: -mu/sigma
-    SIGMA_BOUNDS: [0.00025,0.025]
 
-    NUM_SYMBOLS: 10
-    SYMBOLS: [] # if empty, program will pick symbols randomly
-    WEIGHTS: [] # if empty, program launches optimization
-#    SYMBOLS: [AUDUSD,USDJPY,GBPUSD,USDCNY,USDSEK,NZDUSD,USDZAR,USDCAD,USDCZK,USDMXN]
-#    WEIGHTS:
+    NUM_SYMBOLS: 20
+    WEIGHTS: []
 
 
 
 GA_MINIMIZER:
     POPULATION: 500
-    NUM_GENERATION: 200
+    NUM_GENERATION: 500
     MUTATE_PROB: 0.1
     CROSS_PROB: 0.5
