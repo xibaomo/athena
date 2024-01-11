@@ -64,7 +64,7 @@ def rtn_cost(wts, sym_rtns):
         s += w * v
     return s
 def std_cost(wts, cm, sym_std, weight_bound=0.8):
-    if np.sum(wts) >= 1.:
+    if np.sum(wts) >= 1.01:
         return SIGMA_INF
     ws = copy.deepcopy(wts)
     ws = np.append(ws, 1 - np.sum(ws))
@@ -98,6 +98,20 @@ def check_true_profit(data, global_tid, weights, capital, port_mu, port_std, end
     print(
         "\033[1m\033[91mProfits(low,high,final): {:^8.2f} {:^8.2f} {:^8.2f}. mu: {:.4e}, std: {:.4e}\033[0m". \
         format(min(profits), max(profits), profits[-1], port_mu, port_std))
+def computeRiskShare(wts,cm,sym_std):
+    sd0 = std_cost(wts,cm,sym_std)
+    risk_share=np.zeros(len(wts)+1)
+    dx = 1.e-4
+    for i in range(len(wts)):
+        wts[i] = wts[i]+dx
+        s = std_cost(wts,cm,sym_std)
+        wts[i]-= dx
+        t = -(s - sd0)/dx*wts[i]
+        if abs(t/sd0) > 1:
+            pdb.set_trace()
+        risk_share[i] = t/sd0
+    risk_share[-1] = 1-risk_share.sum()
+    return risk_share
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -205,6 +219,10 @@ if __name__ == "__main__":
         print("Estmt. total rtns: ", tmp)
         tmp = ", ".join(["{:^8.4f}".format(element) for element in true_sym_rtns[sort_id]])
         print("Actual total rtns: ", tmp)
+
+        risk_share = computeRiskShare(sol,cm,sym_std)
+        tmp = ", ".join(["{:^8.3f}".format(element) for element in risk_share])
+        print("Risk share: ",tmp)
 
         port_rtn = rtn_cost(sol, true_sym_rtns)
         # print("\033[1m\033[91mActual profit of ${}: {:.2f}\033[0m".format(invest,port_rtn*invest))
