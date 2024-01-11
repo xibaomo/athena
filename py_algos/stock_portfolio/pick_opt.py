@@ -66,18 +66,18 @@ def std_cost(wts, cm, sym_std, weight_bound=0.8):
                 s += 2 * wi * wj * cm[i, j] * si * sj
     return np.sqrt(s)
 
-def check_true_profit(data, global_tid, weights, capital, port_mu, port_std, cost):
+def check_true_profit(data, global_tid, weights, capital, port_mu, port_std, end_tid):
     profits = []
     start_price = data.iloc[global_tid, :]
-    for tid in range(global_tid + 1, len(data)):
+    for tid in range(global_tid + 1, end_tid+1):
         cur = data.iloc[tid, :]
         sym_rtn = cur / start_price - 1
         port_rtn = rtn_cost(weights, sym_rtn)
         profits.append(port_rtn * capital)
 
     print(
-        "\033[1m\033[91mProfits(low,high,final): {:^8.2f} {:^8.2f} {:^8.2f}. mu: {:.4e}, std: {:.4e}, cost: {:.4f}\033[0m". \
-        format(min(profits), max(profits), profits[-1], port_mu, port_std, cost))
+        "\033[1m\033[91mProfits(low,high,final): {:^8.2f} {:^8.2f} {:^8.2f}. mu: {:.4e}, std: {:.4e}\033[0m". \
+        format(min(profits), max(profits), profits[-1], port_mu, port_std))
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -96,6 +96,7 @@ if __name__ == "__main__":
     daily_rtn = data.pct_change()
     # daily_rtn = daily_rtn.drop(daily_rtn.index[0])
     global_tid = locate_target_date(target_date, data)
+
     if global_tid < 0:
         print("Failed to find target date")
         sys.exit(1)
@@ -162,25 +163,20 @@ if __name__ == "__main__":
         print("best mean of daily rtn of portfolio: {:.6e}".format(predicted_mu))
         print("best std  of daily rtn of portfolio: {:.6f}".format(predicted_std))
 
-        durtn = len(data) - global_tid - 1
-        np.set_printoptions(precision=3)
-
-        ub_rtn = (predicted_mu + predicted_std) * durtn
-        lb_rtn = (predicted_mu - predicted_std) * durtn
-        print("predicted total return ({} days): [{:.3f},{:.3f}]".format(durtn, lb_rtn, ub_rtn))
-
         print("********** Verification **********")
         invest = portconf.getCapitalAmount()
-        print("predicted profit of ${}: [{:.2f}, {:.2f}]".format(invest, lb_rtn * invest, ub_rtn * invest))
 
         # pdb.set_trace()
-        check_true_profit(df, global_tid, sol, invest, predicted_mu, predicted_std, final_cost)
+        end_tid = locate_target_date(end_date, df)
+        check_true_profit(df, global_tid, sol, invest, predicted_mu, predicted_std, end_tid)
         start_price = df.iloc[global_tid, :]
-        end_price = df.iloc[-1, :]
+
+        end_price = df.iloc[end_tid, :]
         true_sym_rtns = (end_price / start_price - 1.).values
         # pdb.set_trace()
 
         np.set_printoptions(precision=3)
+        durtn = end_tid - global_tid
         tmp = sym_rtns[sort_id] * durtn
         tmp = ", ".join(["{:^8.4f}".format(element) for element in tmp])
         print("Estmt. total rtns: ", tmp)
