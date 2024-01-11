@@ -24,7 +24,7 @@ def locate_target_date(date_str, df):
             return i
         prev_days = dt.days
     return -1
-def select_sym_mu_std(daily_rtn,num_sym, option=0): #0: pick ave-mu leading ones
+def __select_sym_mu_std(daily_rtn,num_sym, option=0): #0: pick ave-mu leading ones
     mus = daily_rtn.mean()
     stds= daily_rtn.std()
     score = mus/stds
@@ -33,6 +33,26 @@ def select_sym_mu_std(daily_rtn,num_sym, option=0): #0: pick ave-mu leading ones
     sorted_score = score.sort_values(ascending=False)
     syms = sorted_score.index[:num_sym]
     return syms.tolist()
+
+def select_sym_mu_std(daily_rtn, num_syms, options=0):
+    #use two scores
+    mus = daily_rtn.mean()
+    stds= daily_rtn.std()
+    long_score = mus/stds
+
+    half_lookback = int(len(daily_rtn)/2)
+    half_df = daily_rtn.iloc[-half_lookback:,:]
+    short_score = half_df.mean()/half_df.std()
+
+    score = long_score+short_score
+    thd = 0.2 / 250
+    print("number of syms with ave rtn > {}: {}".format(thd, (mus.values > thd).sum()))
+    sorted_score = score.sort_values(ascending=False)
+    df = sorted_score[:num_syms*2]
+    df = df.sample(n=num_syms)
+    syms = df.index[:num_syms]
+    return syms.tolist()
+
 def rtn_cost(wts, sym_rtns):
     ws = copy.deepcopy(wts)
     ws = np.append(ws, 1 - np.sum(ws))
@@ -81,12 +101,12 @@ def check_true_profit(data, global_tid, weights, capital, port_mu, port_std, end
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: {sys.argv[0]} port.yaml ")
+        print("Usage: {sys.argv[0]} port.yaml <target_date>")
         sys.exit(1)
 
     portconf = PortfolioConfig(sys.argv[1])
     gaconf = GAMinConfig(sys.argv[1])
-    target_date = portconf.getTargetDate()
+    target_date = sys.argv[2] #portconf.getTargetDate()
     data = pd.read_csv(DATA_FILE, comment='#',parse_dates=[0],index_col=0)
     # pdb.set_trace()
     NUM_SYMS = portconf.getNumSymbols()
@@ -116,6 +136,9 @@ if __name__ == "__main__":
 
 ######################## optimization #############################
     def obj_func(ws, cost_type):
+        for w in ws:
+            if w > 1 or w < 0:
+                return SIGMA_INF
         t1 = rtn_cost(ws, sym_rtns)
         t2 = std_cost(ws, cm, sym_std, weight_bound=portconf.getWeightBound())
 
@@ -138,7 +161,7 @@ if __name__ == "__main__":
                                  cross_prob=gaconf.getCrossProb(), mutation_rate=gaconf.getMutateProb())
             # Run the optimization using Nelder-Mead
 
-            result = minimize(obj_func, sol, args=(cost_type), method='Nelder-Mead', options={'xtol': 1e-6})
+            result = minimize(obj_func, sol, args=(cost_type), method='Nelder-Mead', options={'tol': 1e-6})
             if abs(result.fun) < 100:
                 sol = result.x
             final_cost = obj_func(sol, cost_type)
