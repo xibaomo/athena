@@ -65,10 +65,12 @@ def rtn_cost(wts, sym_rtns):
     return s
 def std_cost(wts, cm, sym_std, weight_bound=0.8):
     if np.sum(wts) >= 1.01:
+        # pdb.set_trace()
         return SIGMA_INF
     ws = copy.deepcopy(wts)
     ws = np.append(ws, 1 - np.sum(ws))
-    if np.any(ws < 0) or np.any(ws > weight_bound):
+    if np.any(ws < -0.005) or np.any(ws > weight_bound):
+        # pdb.set_trace()
         return SIGMA_INF
     s = 0.
     sds = sym_std
@@ -101,12 +103,12 @@ def check_true_profit(data, global_tid, weights, capital, port_mu, port_std, end
 def computeRiskShare(wts,cm,sym_std):
     sd0 = std_cost(wts,cm,sym_std)
     risk_share=np.zeros(len(wts)+1)
-    dx = 1.e-4
+    dx = 1.e-5
     for i in range(len(wts)):
         wts[i] = wts[i]+dx
         s = std_cost(wts,cm,sym_std)
         wts[i]-= dx
-        t = -(s - sd0)/dx*wts[i]
+        t = (s - sd0)/dx*wts[i]
         if abs(t/sd0) > 1:
             pdb.set_trace()
         risk_share[i] = t/sd0
@@ -204,6 +206,7 @@ if __name__ == "__main__":
         invest = portconf.getCapitalAmount()
 
         # pdb.set_trace()
+        print("Calculating the true profit on ", end_date)
         end_tid = locate_target_date(end_date, df)
         check_true_profit(df, global_tid, sol, invest, predicted_mu, predicted_std, end_tid)
         start_price = df.iloc[global_tid, :]
