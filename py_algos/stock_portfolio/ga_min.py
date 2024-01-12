@@ -24,11 +24,13 @@ def ga_minimize(objfunc, params, num_variables, lb=0.,ub=1.,population_size=200,
     def evaluate(ind):
         return objfunc(ind,params),
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("Individual", list, fitness=creator.FitnessMin,lowerbound=0.,upperbound=1./num_variables)
+    creator.create("Individual", list, fitness=creator.FitnessMin,lowerbound=0.,upperbound=1.)
 
     toolbox = base.Toolbox()
-    toolbox.register("attribute", random.uniform, lb, ub/num_variables)
-    toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.attribute, n=num_variables)
+    toolbox.register("parameter", random.uniform, 0., 1.)
+
+    toolbox.register("attribute", random.uniform, lb, ub)
+    toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.parameter, n=num_variables)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("evaluate", evaluate)
     toolbox.register("mate", tools.cxTwoPoint)

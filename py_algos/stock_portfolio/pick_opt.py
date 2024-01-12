@@ -53,9 +53,7 @@ def select_sym_mu_std(daily_rtn, num_syms, options=0):
     syms = df.index[:num_syms]
     return syms.tolist()
 
-def rtn_cost(wts, sym_rtns):
-    ws = copy.deepcopy(wts)
-    ws = np.append(ws, 1 - np.sum(ws))
+def rtn_cost(ws, sym_rtns):
     s = 0.
     if len(ws) != len(sym_rtns):
         print("!!!!!!!!!!!Wrong weight!!!!!!!!!!")
@@ -63,15 +61,7 @@ def rtn_cost(wts, sym_rtns):
     for w, v in zip(ws, sym_rtns):
         s += w * v
     return s
-def std_cost(wts, cm, sym_std, weight_bound=0.8):
-    if np.sum(wts) >= 1.01:
-        # pdb.set_trace()
-        return SIGMA_INF
-    ws = copy.deepcopy(wts)
-    ws = np.append(ws, 1 - np.sum(ws))
-    if np.any(ws < -0.005) or np.any(ws > weight_bound):
-        # pdb.set_trace()
-        return SIGMA_INF
+def std_cost(ws, cm, sym_std, weight_bound=0.8):
     s = 0.
     sds = sym_std
     for i in range(len(ws)):
@@ -95,6 +85,8 @@ def check_true_profit(data, global_tid, weights, capital, port_mu, port_std, end
         cur = data.iloc[tid, :]
         sym_rtn = cur / start_price - 1
         port_rtn = rtn_cost(weights, sym_rtn)
+        if np.isnan(port_rtn):
+            pdb.set_trace()
         profits.append(port_rtn * capital)
 
     print(
@@ -102,8 +94,9 @@ def check_true_profit(data, global_tid, weights, capital, port_mu, port_std, end
         format(min(profits), max(profits), profits[-1], port_mu, port_std))
 def computeRiskShare(wts,cm,sym_std):
     sd0 = std_cost(wts,cm,sym_std)
-    risk_share=np.zeros(len(wts)+1)
+    risk_share=np.zeros(len(wts))
     dx = 1.e-5
+
     for i in range(len(wts)):
         wts[i] = wts[i]+dx
         s = std_cost(wts,cm,sym_std)
@@ -112,7 +105,6 @@ def computeRiskShare(wts,cm,sym_std):
         if abs(t/sd0) > 1:
             pdb.set_trace()
         risk_share[i] = t/sd0
-    risk_share[-1] = 1-risk_share.sum()
     return risk_share
 
 if __name__ == "__main__":
@@ -124,6 +116,7 @@ if __name__ == "__main__":
     gaconf = GAMinConfig(sys.argv[1])
     target_date = sys.argv[2] #portconf.getTargetDate()
     data = pd.read_csv(DATA_FILE, comment='#',parse_dates=[0],index_col=0)
+    data = data.dropna(axis=1)
     # pdb.set_trace()
     NUM_SYMS = portconf.getNumSymbols()
     start_date = add_days_to_date(target_date, -portconf.getLookback())
@@ -151,9 +144,15 @@ if __name__ == "__main__":
     cm = daily_rtns.iloc[:global_tid + 1, :].corr().values
 
 ######################## optimization #############################
-    def obj_func(ws, cost_type):
+    def obj_func(wts, cost_type):
+        # pdb.set_trace()
+        ws = np.array(wts)
+        for i in range(len(ws)):
+            if ws[i] < 0:
+                ws[i] = 0.
+        ws = ws/ws.sum()
         for w in ws:
-            if w > 1 or w < 0:
+            if w > portconf.getWeightBound():
                 return SIGMA_INF
         t1 = rtn_cost(ws, sym_rtns)
         t2 = std_cost(ws, cm, sym_std, weight_bound=portconf.getWeightBound())
@@ -172,7 +171,7 @@ if __name__ == "__main__":
         sol = None
         if len(weights) == 0:
             print("==================== Minimization starts ====================")
-            sol, _ = ga_minimize(obj_func, cost_type, daily_rtns.shape[1] - 1,
+            sol, _ = ga_minimize(obj_func, cost_type, daily_rtns.shape[1] ,
                                  num_generations=gaconf.getNumGenerations(), population_size=gaconf.getPopulation(),
                                  cross_prob=gaconf.getCrossProb(), mutation_rate=gaconf.getMutateProb())
             # Run the optimization using Nelder-Mead
@@ -182,19 +181,23 @@ if __name__ == "__main__":
                 sol = result.x
             final_cost = obj_func(sol, cost_type)
             print("Final cost: ", final_cost)
+            sol = np.array(sol)
 
         else:
             sol = np.array(weights)[:-1]
 
-        ss = np.append(sol, 1 - np.sum(sol))
-        sort_id = np.argsort(ss)
-        ss = ss[sort_id]
+        for i in range(len(sol)):
+            if sol[i] < 0:
+                sol[i] = 0
+        sol = sol/sol.sum()
+        sort_id = np.argsort(sol)
+        sorted_sol = sol[sort_id]
         # pdb.set_trace()
         sort_syms = np.array(syms)[sort_id]
 
         tmp = ",".join(["{}".format(element) for element in sort_syms])
         print('sorted syms: [{}]'.format(tmp))
-        tmp = ",".join(["{:.3f}".format(element) for element in ss])
+        tmp = ",".join(["{:.3f}".format(element) for element in sorted_sol])
         print("weights: [{}]".format(tmp))
 
         predicted_mu = rtn_cost(sol, sym_rtns)

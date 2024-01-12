@@ -5,7 +5,7 @@ PORTFOLIO:
     LOOKFORWARD: 30 #days
     LOOKBACK: 180 #days
     MA_WINDOW: 5
-    WEIGHT_BOUND: 0.3 # upper bound of symbol weight
+    WEIGHT_BOUND: 0.2 # upper bound of symbol weight
     MU_WEIGHT: 2      # cost function is (sigma - MU_WEIGHT*mu)
     COST_TYPE: 1      # 0: sigma - weight*mu, 1: -mu/sigma
 
@@ -13,7 +13,7 @@ PORTFOLIO:
     WEIGHTS: []
 
 GA_MINIMIZER:
-    POPULATION: 500
-    NUM_GENERATION: 500
-    MUTATE_PROB: 0.1
+    POPULATION: 1000
+    NUM_GENERATION: 300
+    MUTATE_PROB: 0.05
     CROSS_PROB: 0.5
