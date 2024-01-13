@@ -7,13 +7,13 @@ PORTFOLIO:
     MA_WINDOW: 5
     WEIGHT_BOUND: 0.2 # upper bound of symbol weight
     MU_WEIGHT: 2      # cost function is (sigma - MU_WEIGHT*mu)
-    COST_TYPE: 1      # 0: sigma - weight*mu, 1: -mu/sigma
+    COST_TYPE: 2      # 0: sigma - weight*mu, 1: -mu/sigma
 
     NUM_SYMBOLS: 20
     WEIGHTS: []
 
 GA_MINIMIZER:
-    POPULATION: 1000
-    NUM_GENERATION: 300
+    POPULATION: 100
+    NUM_GENERATION: 100
     MUTATE_PROB: 0.05
     CROSS_PROB: 0.5

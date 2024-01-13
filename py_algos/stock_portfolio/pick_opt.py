@@ -163,6 +163,9 @@ if __name__ == "__main__":
             return (t2 * 1 - t1 * muw) * 10000
         if cost_type == 1:
             return -(t1 + 0e-3) / t2
+        if cost_type == 2:
+            rs = computeRiskShare(ws,cm,sym_std);
+            return np.std(rs)
 
 
     cost_type = portconf.getCostType()

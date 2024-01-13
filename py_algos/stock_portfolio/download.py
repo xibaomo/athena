@@ -27,14 +27,21 @@ if __name__ == "__main__":
 
     target_date = sys.argv[1]
 
-    df = pd.read_csv('sp505.csv', comment='#')
-    syms = df['<SYM>'].values
+    # df = pd.read_csv('sp505.csv', comment='#')
+    # syms = df['<SYM>'].values
 
+    syms = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]['Symbol'].tolist()
+    if len(sys.argv) > 3:
+        df = pd.read_csv(sys.argv[3],comment='#')
+        private_syms = df['<SYM>'].values
+        for s in private_syms:
+            if not s in syms:
+                syms.append(s)
     lookback = int(sys.argv[2])
     start_date = add_days_to_date(target_date, -lookback)
     end_date = target_date
     print("history range: ", start_date, end_date)
-    data = yf.download(syms.tolist(), start=start_date, end=end_date)['Close']
+    data = yf.download(syms, start=start_date, end=end_date)['Close']
 
     print(data)
     if len(data) == 0:
