@@ -10,6 +10,7 @@ from port_conf import *
 from download import add_days_to_date,DATA_FILE
 from datetime import datetime, timedelta
 from scipy.optimize import minimize
+from mkv_absorb import *
 import pdb
 SIGMA_INF = 1e60
 def locate_target_date(date_str, df):
@@ -34,7 +35,7 @@ def __select_sym_mu_std(daily_rtn,num_sym, option=0): #0: pick ave-mu leading on
     syms = sorted_score.index[:num_sym]
     return syms.tolist()
 
-def select_sym_mu_std(daily_rtn, num_syms, options=0):
+def select_syms_mu_std(daily_rtn, num_syms, options=0):
     #use two scores
     mus = daily_rtn.mean()
     stds= daily_rtn.std()
@@ -52,6 +53,22 @@ def select_sym_mu_std(daily_rtn, num_syms, options=0):
     df = df.sample(n=num_syms)
     syms = df.index[:num_syms]
     return syms.tolist()
+
+def select_syms_mkv(daily_rtns, num_syms,lb_rtn,ub_rtn):
+    score = []
+    mkvcal = MkvAbsorbCal(100)
+    for sym in daily_rtns.keys():
+        rtns = daily_rtns[sym]
+        pr,sp = mkvcal.compWinProb(rtns,lb_rtn,ub_rtn)
+        score.append(pr/sp)
+        print("score: {}, {}".format(sym,pr/sp))
+    score = np.array(score)
+    # pdb.set_trace()
+    sorted_id = np.argsort(score)[::-1]
+    all_syms = daily_rtns.keys().values[sorted_id]
+
+    return all_syms[:num_syms].tolist()
+
 
 def rtn_cost(ws, sym_rtns):
     s = 0.
@@ -130,7 +147,8 @@ if __name__ == "__main__":
         print("Failed to find target date")
         sys.exit(1)
 
-    syms = select_sym_mu_std(daily_rtn.iloc[:global_tid+1,:],NUM_SYMS)
+    # syms = select_syms_mu_std(daily_rtn.iloc[:global_tid+1,:],NUM_SYMS)
+    syms = select_syms_mkv(daily_rtn.iloc[:global_tid+1,:],NUM_SYMS,-0.1,0.1)
     daily_rtns = daily_rtn[syms]
     df = data[syms]
     print('number of selected syms: ', len(syms))
@@ -174,11 +192,12 @@ if __name__ == "__main__":
         sol = None
         if len(weights) == 0:
             print("==================== Minimization starts ====================")
-            sol, _ = ga_minimize(obj_func, cost_type, daily_rtns.shape[1] ,
-                                 num_generations=gaconf.getNumGenerations(), population_size=gaconf.getPopulation(),
-                                 cross_prob=gaconf.getCrossProb(), mutation_rate=gaconf.getMutateProb())
+            # sol, _ = ga_minimize(obj_func, cost_type, daily_rtns.shape[1] ,
+            #                      num_generations=gaconf.getNumGenerations(), population_size=gaconf.getPopulation(),
+            #                      cross_prob=gaconf.getCrossProb(), mutation_rate=gaconf.getMutateProb())
             # Run the optimization using Nelder-Mead
-
+            sol = np.ones(NUM_SYMS)
+            sol = sol/sol.sum()
             result = minimize(obj_func, sol, args=(cost_type), method='Nelder-Mead', options={'tol': 1e-6})
             if abs(result.fun) < 100:
                 sol = result.x
