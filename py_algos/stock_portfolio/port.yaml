@@ -9,7 +9,7 @@ PORTFOLIO:
     MU_WEIGHT: 2      # cost function is (sigma - MU_WEIGHT*mu)
     COST_TYPE: 2      # 0: sigma - weight*mu, 1: -mu/sigma
 
-    NUM_SYMBOLS: 40
+    NUM_SYMBOLS: 20
     WEIGHTS: []
 
 GA_MINIMIZER:

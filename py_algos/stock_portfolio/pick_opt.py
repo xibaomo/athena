@@ -198,7 +198,7 @@ if __name__ == "__main__":
             # Run the optimization using Nelder-Mead
             sol = np.ones(NUM_SYMS)
             sol = sol/sol.sum()
-            result = minimize(obj_func, sol, args=(cost_type), method='Nelder-Mead', options={'tol': 1e-6})
+            result = minimize(obj_func, sol, args=(cost_type), method='Nelder-Mead', options={'xatol': 1e-4})
             if abs(result.fun) < 100:
                 sol = result.x
             final_cost = obj_func(sol, cost_type)
