@@ -3,11 +3,11 @@ PORTFOLIO:
     SYMBOL_FILE: sp505.csv
 #    TARGET_DATE: 2023-11-01
     LOOKFORWARD: 30 #days
-    LOOKBACK: 180 #days
+    LOOKBACK: 360 #days
     MA_WINDOW: 5
     WEIGHT_BOUND: 0.2 # upper bound of symbol weight
     MU_WEIGHT: 2      # cost function is (sigma - MU_WEIGHT*mu)
-    COST_TYPE: 2      # 0: sigma - weight*mu, 1: -mu/sigma
+    COST_TYPE: 2      # 0: sigma - weight*mu, 1: -mu/sigma, 2 - equal risk share
 
     NUM_SYMBOLS: 20
     WEIGHTS: []

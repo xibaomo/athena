@@ -11,6 +11,7 @@ from download import add_days_to_date,DATA_FILE
 from datetime import datetime, timedelta
 from scipy.optimize import minimize
 from mkv_absorb import *
+from sym_selection import *
 import pdb
 SIGMA_INF = 1e60
 def locate_target_date(date_str, df):
@@ -60,12 +61,18 @@ def select_syms_mkv(daily_rtns, num_syms,lb_rtn,ub_rtn):
     for sym in daily_rtns.keys():
         rtns = daily_rtns[sym]
         pr,sp = mkvcal.compWinProb(rtns,lb_rtn,ub_rtn)
-        score.append(pr/sp)
-        print("score: {}, {}".format(sym,pr/sp))
+        s1 = pr/sp
+        pr,sp = mkvcal.compWinProb(rtns[-30:],lb_rtn,ub_rtn)
+        s2 = pr/sp
+        score.append(s1+s2)
+        print("{}: {},{}".format(sym,s1,s2))
+        # print("score: {}, {}".format(sym,score[-1]))
     score = np.array(score)
     # pdb.set_trace()
     sorted_id = np.argsort(score)[::-1]
     all_syms = daily_rtns.keys().values[sorted_id]
+    # print(score[sorted_id])
+    # print(all_syms)
 
     return all_syms[:num_syms].tolist()
 
@@ -139,6 +146,8 @@ if __name__ == "__main__":
     start_date = add_days_to_date(target_date, -portconf.getLookback())
     end_date = add_days_to_date(target_date, portconf.getLookforward())
 
+
+    # pdb.set_trace()
     daily_rtn = data.pct_change()
     # daily_rtn = daily_rtn.drop(daily_rtn.index[0])
     global_tid = locate_target_date(target_date, data)
@@ -148,7 +157,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # syms = select_syms_mu_std(daily_rtn.iloc[:global_tid+1,:],NUM_SYMS)
-    syms = select_syms_mkv(daily_rtn.iloc[:global_tid+1,:],NUM_SYMS,-0.1,0.1)
+    # syms = select_syms_mkv(daily_rtn.iloc[:global_tid+1,:],NUM_SYMS,-0.1,0.1)
+    syms = select_syms_corr_dist(data.iloc[:global_tid+1,:],NUM_SYMS)
     daily_rtns = daily_rtn[syms]
     df = data[syms]
     print('number of selected syms: ', len(syms))
