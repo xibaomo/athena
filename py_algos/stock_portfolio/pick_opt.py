@@ -7,7 +7,7 @@ import yfinance as yf
 import os, sys
 from ga_min import *
 from port_conf import *
-from download import add_days_to_date,DATA_FILE
+from download import add_days_to_date, DATA_FILE
 from datetime import datetime, timedelta
 from scipy.optimize import minimize
 from mkv_absorb import *
@@ -26,12 +26,12 @@ def locate_target_date(date_str, df):
             return i
         prev_days = dt.days
     return -1
-def __select_sym_mu_std(daily_rtn,num_sym, option=0): #0: pick ave-mu leading ones
+def __select_sym_mu_std(daily_rtn, num_sym, option=0): #0: pick ave-mu leading ones
     mus = daily_rtn.mean()
     stds= daily_rtn.std()
     score = mus/stds
     thd = 0.2/250
-    print("number of syms with ave rtn > {}: {}".format(thd,(mus.values>thd).sum()))
+    print("number of syms with ave rtn > {}: {}".format(thd, (mus.values>thd).sum()))
     sorted_score = score.sort_values(ascending=False)
     syms = sorted_score.index[:num_sym]
     return syms.tolist()
@@ -43,7 +43,7 @@ def select_syms_mu_std(daily_rtn, num_syms, options=0):
     long_score = mus/stds
 
     half_lookback = int(len(daily_rtn)/2)
-    half_df = daily_rtn.iloc[-half_lookback:,:]
+    half_df = daily_rtn.iloc[-half_lookback:, :]
     short_score = half_df.mean()/half_df.std()
 
     score = long_score+short_score
@@ -55,18 +55,18 @@ def select_syms_mu_std(daily_rtn, num_syms, options=0):
     syms = df.index[:num_syms]
     return syms.tolist()
 
-def select_syms_mkv(daily_rtns, num_syms,lb_rtn,ub_rtn):
+def select_syms_mkv(daily_rtns, num_syms, lb_rtn, ub_rtn):
     score = []
     mkvcal = MkvAbsorbCal(100)
     for sym in daily_rtns.keys():
         rtns = daily_rtns[sym]
-        pr,sp = mkvcal.compWinProb(rtns,lb_rtn,ub_rtn)
+        pr, sp = mkvcal.compWinProb(rtns, lb_rtn, ub_rtn)
         s1 = pr/sp
-        pr,sp = mkvcal.compWinProb(rtns[-30:],lb_rtn,ub_rtn)
+        pr, sp = mkvcal.compWinProb(rtns[-30:], lb_rtn, ub_rtn)
         s2 = pr/sp
         score.append(s1+s2)
-        print("{}: {},{}".format(sym,s1,s2))
-        # print("score: {}, {}".format(sym,score[-1]))
+        print("{}: {}, {}".format(sym, s1, s2))
+        # print("score: {}, {}".format(sym, score[-1]))
     score = np.array(score)
     # pdb.set_trace()
     sorted_id = np.argsort(score)[::-1]
@@ -75,7 +75,6 @@ def select_syms_mkv(daily_rtns, num_syms,lb_rtn,ub_rtn):
     # print(all_syms)
 
     return all_syms[:num_syms].tolist()
-
 
 def rtn_cost(ws, sym_rtns):
     s = 0.
@@ -114,16 +113,16 @@ def check_true_profit(data, global_tid, weights, capital, port_mu, port_std, end
         profits.append(port_rtn * capital)
 
     print(
-        "\033[1m\033[91mProfits(low,high,final): {:^8.2f} {:^8.2f} {:^8.2f}. mu: {:.4e}, std: {:.4e}\033[0m". \
+        "\033[1m\033[91mProfits(low, high, final): {:^8.2f} {:^8.2f} {:^8.2f}. mu: {:.4e}, std: {:.4e}\033[0m". \
         format(min(profits), max(profits), profits[-1], port_mu, port_std))
-def computeRiskShare(wts,cm,sym_std):
-    sd0 = std_cost(wts,cm,sym_std)
+def computeRiskShare(wts, cm, sym_std):
+    sd0 = std_cost(wts, cm, sym_std)
     risk_share=np.zeros(len(wts))
     dx = 1.e-5
 
     for i in range(len(wts)):
         wts[i] = wts[i]+dx
-        s = std_cost(wts,cm,sym_std)
+        s = std_cost(wts, cm, sym_std)
         wts[i]-= dx
         t = (s - sd0)/dx*wts[i]
         if abs(t/sd0) > 1:
@@ -146,7 +145,6 @@ if __name__ == "__main__":
     start_date = add_days_to_date(target_date, -portconf.getLookback())
     end_date = add_days_to_date(target_date, portconf.getLookforward())
 
-
     # pdb.set_trace()
     daily_rtn = data.pct_change()
     # daily_rtn = daily_rtn.drop(daily_rtn.index[0])
@@ -156,9 +154,9 @@ if __name__ == "__main__":
         print("Failed to find target date")
         sys.exit(1)
 
-    # syms = select_syms_mu_std(daily_rtn.iloc[:global_tid+1,:],NUM_SYMS)
-    # syms = select_syms_mkv(daily_rtn.iloc[:global_tid+1,:],NUM_SYMS,-0.1,0.1)
-    syms = select_syms_corr_dist(data.iloc[:global_tid+1,:],NUM_SYMS)
+    # syms = select_syms_mu_std(daily_rtn.iloc[:global_tid+1, :], NUM_SYMS)
+    # syms = select_syms_mkv(daily_rtn.iloc[:global_tid+1, :], NUM_SYMS, -0.1, 0.1)
+    syms = select_syms_corr_dist(data.iloc[:global_tid+1, :], NUM_SYMS, portconf.getShortTermWeight())
     daily_rtns = daily_rtn[syms]
     df = data[syms]
     print('number of selected syms: ', len(syms))
@@ -179,30 +177,18 @@ if __name__ == "__main__":
             if ws[i] < 0:
                 ws[i] = 0.
         ws = ws/ws.sum()
-        for w in ws:
-            if w > portconf.getWeightBound():
-                return SIGMA_INF
-        t1 = rtn_cost(ws, sym_rtns)
-        t2 = std_cost(ws, cm, sym_std, weight_bound=portconf.getWeightBound())
 
-        # if t2 == SIGMA_INF or t2 < sigma_bounds[0] or t2 > sigma_bounds[1]:
-        #     return 1e6
-        if cost_type == 0:
-            return (t2 * 1 - t1 * muw) * 10000
-        if cost_type == 1:
-            return -(t1 + 0e-3) / t2
         if cost_type == 2:
-            rs = computeRiskShare(ws,cm,sym_std);
+            rs = computeRiskShare(ws, cm, sym_std);
             return np.std(rs)
 
-
-    cost_type = portconf.getCostType()
-    weights = portconf.getSymWeights()
+    cost_type = 2
+    #pdb.set_trace()
     for gid in range(1):
         sol = None
-        if len(weights) == 0:
+        if True:
             print("==================== Minimization starts ====================")
-            # sol, _ = ga_minimize(obj_func, cost_type, daily_rtns.shape[1] ,
+            # sol, _ = ga_minimize(obj_func, cost_type, daily_rtns.shape[1],
             #                      num_generations=gaconf.getNumGenerations(), population_size=gaconf.getPopulation(),
             #                      cross_prob=gaconf.getCrossProb(), mutation_rate=gaconf.getMutateProb())
             # Run the optimization using Nelder-Mead
@@ -214,9 +200,6 @@ if __name__ == "__main__":
             final_cost = obj_func(sol, cost_type)
             print("Final cost: ", final_cost)
             sol = np.array(sol)
-
-        else:
-            sol = np.array(weights)[:-1]
 
         for i in range(len(sol)):
             if sol[i] < 0:
@@ -258,12 +241,12 @@ if __name__ == "__main__":
         tmp = ", ".join(["{:^8.4f}".format(element) for element in true_sym_rtns[sort_id]])
         print("Actual total rtns: ", tmp)
 
-        risk_share = computeRiskShare(sol,cm,sym_std)
+        risk_share = computeRiskShare(sol, cm, sym_std)
         tmp = ", ".join(["{:^8.3f}".format(element) for element in risk_share])
         print("Risk share: ",tmp)
 
         port_rtn = rtn_cost(sol, true_sym_rtns)
-        # print("\033[1m\033[91mActual profit of ${}: {:.2f}\033[0m".format(invest,port_rtn*invest))
+        # print("\033[1m\033[91mActual profit of ${}: {:.2f}\033[0m".format(invest, port_rtn*invest))
         print("Actual profit: {:.2f}".format(invest * port_rtn))
         print("Portfolio actual total return: {:.3f}".format(port_rtn))
         print("End of cycle")

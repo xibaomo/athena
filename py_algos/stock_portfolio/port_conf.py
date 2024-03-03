@@ -41,3 +41,6 @@ class PortfolioConfig(object):
 
     def getSigmaBounds(self):
         return self.yamlDict[self.root]['SIGMA_BOUNDS']
+
+    def getShortTermWeight(self):
+        return self.yamlDict[self.root]['SHORT_TERM_WEIGHT']
