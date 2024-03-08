@@ -12,7 +12,7 @@ def __transmat2dist(transmat):
     tmp = np.linalg.inv(tmp)
     sol = np.matmul(row_one, tmp)
     return sol
-def transmat2dist(transmat):
+def transmat2dist(transmat,timesteps=100):
     nsyms = transmat.shape[0]
     x = np.ones([nsyms, 1])
     # pdb.set_trace()
@@ -21,10 +21,10 @@ def transmat2dist(transmat):
             x[i, 0] = 0
 
     t_trans = transmat.transpose()
-    for i in range(100):
+    for i in range(timesteps):
         x = np.matmul(t_trans, x)
     return x.flatten()
-def corr2distScore(cm, df):
+def corr2distScore(cm, df, timesteps):
     nsyms = cm.shape[0]
     # pdb.set_trace()
     transmat = np.zeros((nsyms, nsyms))
@@ -47,7 +47,7 @@ def corr2distScore(cm, df):
             transmat[i, :] = transmat[i, :]/s
 
     # pdb.set_trace()
-    score = transmat2dist(transmat)
+    score = transmat2dist(transmat,timesteps)
     return score
 def check_mutual_info(df, cm):
     c=[]
@@ -68,13 +68,13 @@ def check_mutual_info(df, cm):
     plt.plot(c, s, '.')
     plt.show()
 
-def select_syms_corr_dist(df, num_syms, short_wt=1.2):
+def select_syms_corr_dist(df, num_syms, short_wt=1.2, timesteps=100):
     cm = df.corr().values
     # check_mutual_info(df, cm)
-    s1 = corr2distScore(cm, df)
+    s1 = corr2distScore(cm, df,timesteps)
     df2 = df.iloc[-30:, :]
     cm2 = df2.corr().values
-    s2 = corr2distScore(cm2, df2)
+    s2 = corr2distScore(cm2, df2,timesteps)
     score = np.array(s1+s2*short_wt)
     # pdb.set_trace()
     sorted_id = np.argsort(score)[::-1]

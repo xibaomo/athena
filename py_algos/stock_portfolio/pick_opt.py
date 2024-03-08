@@ -154,9 +154,17 @@ if __name__ == "__main__":
         print("Failed to find target date")
         sys.exit(1)
 
-    # syms = select_syms_mu_std(daily_rtn.iloc[:global_tid+1, :], NUM_SYMS)
-    # syms = select_syms_mkv(daily_rtn.iloc[:global_tid+1, :], NUM_SYMS, -0.1, 0.1)
-    syms = select_syms_corr_dist(data.iloc[:global_tid+1, :], NUM_SYMS, portconf.getShortTermWeight())
+    score_method = portconf.getScoreMethod()
+    if score_method == 0:
+        syms = select_syms_corr_dist(data.iloc[:global_tid+1, :],
+                                     NUM_SYMS,
+                                     portconf.getShortTermWeight(),
+                                     portconf.getTimeSteps())
+    elif score_method == 1:
+        print("not yet implemented for score method > 0")
+        sys.exit(1)
+    else:
+        pass
     daily_rtns = daily_rtn[syms]
     df = data[syms]
     print('number of selected syms: ', len(syms))

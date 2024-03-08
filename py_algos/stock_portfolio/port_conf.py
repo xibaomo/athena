@@ -44,3 +44,8 @@ class PortfolioConfig(object):
 
     def getShortTermWeight(self):
         return self.yamlDict[self.root]['SHORT_TERM_WEIGHT']
+
+    def getScoreMethod(self):
+        return self.yamlDict[self.root]['SCORE_METHOD']
+    def getTimeSteps(self):
+        return self.yamlDict[self.root]['TIME_STEPS']

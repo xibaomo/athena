@@ -1,9 +1,11 @@
 PORTFOLIO:
-    SYMBOL_FILE: sp505.csv
-
     CAPITAL_AMOUNT: 10000 # US dollars
     NUM_SYMBOLS: 20
     LOOKFORWARD: 30 #days
     LOOKBACK: 180 #days
-
+    TIME_STEPS: 100
     SHORT_TERM_WEIGHT: 1.2
+
+    SCORE_METHOD: 0 # 0: use price correlation to compute distribution
+                    # 1: use slope of price 
+                    # 2: use slope of signed volume value
