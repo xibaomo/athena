@@ -1,8 +1,9 @@
 PORTFOLIO:
-    CAPITAL_AMOUNT: 10000 # US dollars
     SYMBOL_FILE: sp505.csv
+
+    CAPITAL_AMOUNT: 10000 # US dollars
+    NUM_SYMBOLS: 20
     LOOKFORWARD: 30 #days
     LOOKBACK: 180 #days
 
     SHORT_TERM_WEIGHT: 1.2
-    NUM_SYMBOLS: 20
