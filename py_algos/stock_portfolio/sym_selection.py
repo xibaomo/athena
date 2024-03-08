@@ -68,7 +68,7 @@ def check_mutual_info(df, cm):
     plt.plot(c, s, '.')
     plt.show()
 
-def select_syms_corr_dist(df, num_syms, short_wt=1.2, timesteps=100):
+def select_syms_corr_dist(df, num_syms, short_wt=1.2, timesteps=100, random_select=False):
     cm = df.corr().values
     # check_mutual_info(df, cm)
     s1 = corr2distScore(cm, df,timesteps)
@@ -83,4 +83,9 @@ def select_syms_corr_dist(df, num_syms, short_wt=1.2, timesteps=100):
     print(score[sorted_id])
     print(score.sum())
 
+    if random_select:
+        print("Randomly pick among top {}".format(num_syms*2))
+        candidates = all_syms[:num_syms*2]
+        np.random.shuffle(candidates)
+        return candidates[:num_syms].tolist()
     return all_syms[:num_syms].tolist()

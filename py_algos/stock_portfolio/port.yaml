@@ -9,3 +9,4 @@ PORTFOLIO:
     SCORE_METHOD: 0 # 0: use price correlation to compute distribution
                     # 1: use slope of price 
                     # 2: use slope of signed volume value
+    RANDOM_SELECT: false  # true: take top scores. false: randomly pick among top 2*NUM_SYMBOLS

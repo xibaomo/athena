@@ -159,7 +159,8 @@ if __name__ == "__main__":
         syms = select_syms_corr_dist(data.iloc[:global_tid+1, :],
                                      NUM_SYMS,
                                      portconf.getShortTermWeight(),
-                                     portconf.getTimeSteps())
+                                     portconf.getTimeSteps(),
+                                     portconf.isRandomSelect())
     elif score_method == 1:
         print("not yet implemented for score method > 0")
         sys.exit(1)

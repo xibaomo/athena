@@ -49,3 +49,5 @@ class PortfolioConfig(object):
         return self.yamlDict[self.root]['SCORE_METHOD']
     def getTimeSteps(self):
         return self.yamlDict[self.root]['TIME_STEPS']
+    def isRandomSelect(self):
+        return self.yamlDict[self.root]['RANDOM_SELECT']
