@@ -10,6 +10,7 @@
 .idea
 *.log
 *.pkl
+*.html
 bin
 obj
 output*
