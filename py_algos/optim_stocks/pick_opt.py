@@ -5,12 +5,12 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 import os, sys
-from ga_min import *
+#from ga_min import *
 from port_conf import *
 from download import add_days_to_date, DATA_FILE
 from datetime import datetime, timedelta
 from scipy.optimize import minimize
-from mkv_absorb import *
+#from mkv_absorb import *
 from sym_selection import *
 import pdb
 SIGMA_INF = 1e60
@@ -136,7 +136,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     portconf = PortfolioConfig(sys.argv[1])
-    gaconf = GAMinConfig(sys.argv[1])
     target_date = sys.argv[2] #portconf.getTargetDate()
     data = pd.read_csv(DATA_FILE, comment='#',parse_dates=[0],index_col=0)
     data = data.dropna(axis=1)
