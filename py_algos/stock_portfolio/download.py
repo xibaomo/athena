@@ -1,4 +1,4 @@
-import os,sys
+import os, sys
 import pandas as pd
 from port_conf import *
 from datetime import datetime, timedelta
@@ -32,11 +32,13 @@ if __name__ == "__main__":
 
     syms = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]['Symbol'].tolist()
     if len(sys.argv) > 3:
-        df = pd.read_csv(sys.argv[3],comment='#')
+        df = pd.read_csv(sys.argv[3], comment='#')
         private_syms = df['<SYM>'].values
         for s in private_syms:
             if not s in syms:
                 syms.append(s)
+                print("sym added: " , s)
+    print("total syms: ", len(syms))
     lookback = int(sys.argv[2])
     start_date = add_days_to_date(target_date, -lookback)
     end_date = target_date
@@ -47,8 +49,8 @@ if __name__ == "__main__":
     if len(data) == 0:
         print("ERROR: download fails")
         sys.exit(1)
-    data.to_csv(DATA_FILE,index=True)
-    
+    data.to_csv(DATA_FILE, index=True)
+
     print("Downloaded data saved: ",DATA_FILE)
 
-    
+
