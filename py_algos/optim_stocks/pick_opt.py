@@ -113,7 +113,7 @@ def check_true_profit(data, global_tid, weights, capital, port_mu, port_std, end
         profits.append(port_rtn * capital)
 
     print(
-        "\033[1m\033[91mProfits(low, high, final): {:^8.2f} {:^8.2f} {:^8.2f}. mu: {:.4e}, std: {:.4e}\033[0m". \
+        "\033[1m\033[91mProfits(low, high, final): {:^8.2f}, {:^8.2f}, {:^8.2f}. mu: {:.4e}, std: {:.4e}\033[0m". \
         format(min(profits), max(profits), profits[-1], port_mu, port_std))
 def computeRiskShare(wts, cm, sym_std):
     sd0 = std_cost(wts, cm, sym_std)
