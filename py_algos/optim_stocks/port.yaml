@@ -6,7 +6,7 @@ PORTFOLIO:
     TIME_STEPS: 100
     SHORT_TERM_WEIGHT: 1.2
 
-    SCORE_METHOD: 0 # 0: use price correlation to compute distribution
+    SCORE_METHOD: 1 # 0: use price correlation to compute distribution
                     # 1: use slope of price 
                     # 2: use slope of signed volume value
     RANDOM_SELECT: 0 # 0: take top scores. 1: randomly pick among top 2*NUM_SYMBOLS

@@ -89,3 +89,57 @@ def select_syms_corr_dist(df, num_syms, short_wt=1.2, timesteps=100, random_sele
         np.random.shuffle(candidates)
         return candidates[:num_syms].tolist()
     return all_syms[:num_syms].tolist()
+
+def normalizeTransmat(transmat):
+    for i in range(transmat.shape[0]):
+        s = sum(transmat[i, :])
+        if s == 0:
+            # print("===================== loner found ==================")
+            transmat[i, i] = 1
+        else:
+            transmat[i, :] = transmat[i, :]/s
+    return transmat
+def computeSlopeTransmat(df):
+    nsyms = len(df.keys())
+    transmat = np.zeros((nsyms, nsyms))
+    for i in range(nsyms):
+        x = df[df.keys()[i]]
+        for j in range(nsyms):
+            if i==j:
+                continue
+            y = df[df.keys()[j]]
+            slope = np.polyfit(x, y, 1)[0]
+            if slope >= 0:
+                continue
+            transmat[i, j] = -slope
+
+    transmat = normalizeTransmat(transmat)
+    return transmat
+def select_syms_by_score(score,all_syms,random_select,num_selected_syms):
+    sorted_id = np.argsort(score)[::-1]
+    sorted_syms = all_syms[sorted_id]
+
+    print(score[sorted_id])
+    print(score.sum())
+
+    if random_select:
+        print("Randomly pick among top {}".format(num_selected_syms * 2))
+        candidates = sorted_syms[:num_selected_syms * 2]
+        np.random.shuffle(candidates)
+        return candidates[:num_selected_syms].tolist()
+    return sorted_syms[:num_selected_syms].tolist()
+def select_syms_price_slope_dist(df, num_syms, short_wt, timesteps, random_select):
+    transmat1 = computeSlopeTransmat(df)
+    s1 = transmat2dist(transmat1,timesteps)
+
+    df2 = df.iloc[-30:,:]
+    transmat2 = computeSlopeTransmat(df2)
+    s2 = transmat2dist(transmat2,timesteps)
+
+    score = np.array(s1 + s2 * short_wt)
+    selected_syms = select_syms_by_score(score,df.keys(),random_select,num_syms)
+
+    return selected_syms
+
+
+
