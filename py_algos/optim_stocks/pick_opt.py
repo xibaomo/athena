@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     portconf = PortfolioConfig(sys.argv[1])
     target_date = sys.argv[2] #portconf.getTargetDate()
-    data = pd.read_csv(DATA_FILE, comment='#',parse_dates=[0],index_col=0)
+    data = pd.read_csv(DATA_FILE, comment='#',header=[0,1],parse_dates=[0],index_col=0)
     data = data.dropna(axis=1)
     # pdb.set_trace()
     NUM_SYMS = portconf.getNumSymbols()
@@ -145,8 +145,6 @@ if __name__ == "__main__":
     end_date = add_days_to_date(target_date, portconf.getLookforward())
 
     # pdb.set_trace()
-    daily_rtn = data.pct_change()
-    # daily_rtn = daily_rtn.drop(daily_rtn.index[0])
     global_tid = locate_target_date(target_date, data)
 
     if global_tid < 0:
@@ -155,13 +153,13 @@ if __name__ == "__main__":
 
     score_method = portconf.getScoreMethod()
     if score_method == 0:
-        syms = select_syms_corr_dist(data.iloc[:global_tid+1, :],
+        syms = select_syms_corr_dist(data['Close'].iloc[:global_tid+1, :],
                                      NUM_SYMS,
                                      portconf.getShortTermWeight(),
                                      portconf.getTimeSteps(),
                                      portconf.isRandomSelect())
     elif score_method == 1:
-        syms = select_syms_price_slope_dist(data.iloc[:global_tid+1,:],
+        syms = select_syms_price_slope_dist(data['Close'].iloc[:global_tid+1,:],
                                             NUM_SYMS,
                                             portconf.getShortTermWeight(),
                                             portconf.getTimeSteps(),
@@ -171,8 +169,10 @@ if __name__ == "__main__":
         sys.exit(1)
     else:
         pass
+
+    daily_rtn = data['Close'].pct_change()
     daily_rtns = daily_rtn[syms]
-    df = data[syms]
+    df = data['Close'][syms]
     print('number of selected syms: ', len(syms))
     print('selected syms: ', syms)
 

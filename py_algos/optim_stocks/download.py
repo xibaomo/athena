@@ -43,7 +43,7 @@ if __name__ == "__main__":
     start_date = add_days_to_date(target_date, -lookback)
     end_date = target_date
     print("history range: ", start_date, end_date)
-    data = yf.download(syms, start=start_date, end=end_date)['Close']
+    data = yf.download(syms, start=start_date, end=end_date)
 
     print(data)
     if len(data) == 0:
