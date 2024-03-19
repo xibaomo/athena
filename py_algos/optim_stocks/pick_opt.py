@@ -162,7 +162,10 @@ if __name__ == "__main__":
     data = data.dropna(axis=1)
     # pdb.set_trace()
 
-    df_close,df_vv = appendVolumeValue(data)
+    need_vol_value = False
+    if portconf.getScoreMethod() >=2:
+        need_vol_value = True
+    df_close,df_volval = appendVolumeValue(data,True)
     NUM_SYMS = portconf.getNumSymbols()
 
     # pdb.set_trace()
@@ -187,6 +190,12 @@ if __name__ == "__main__":
                                             portconf.getTimeSteps(),
                                             portconf.isRandomSelect())
     elif score_method == 2:
+        syms = select_syms_volval_corr_dist(df_volval.iloc[start_tid:global_tid,:],
+                                            NUM_SYMS,
+                                            portconf.getShortTermWeight(),
+                                            portconf.getTimeSteps(),
+                                            portconf.isRandomSelect())
+    elif score_method == 3:
         print("not yet implemented for score method > 0")
         sys.exit(1)
     else:
