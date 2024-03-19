@@ -129,6 +129,27 @@ def computeRiskShare(wts, cm, sym_std):
             pdb.set_trace()
         risk_share[i] = t/sd0
     return risk_share
+def appendVolumeValue(data,cal_vol_value=False):
+    df_close = data['Close']
+    if not cal_vol_value:
+        return df_close,None
+
+    df_vol = data['Volume']
+    df_hi = data['High']
+    df_lw = data['Low']
+    df_typ = (df_hi+df_lw+df_close)/3.
+    df_vv = df_typ.copy()
+    for i in range(len(data)):
+        if i==0:
+            continue
+        for j in range(len(df_close.keys())):
+            # pdb.set_trace()
+            dp = df_close.iloc[i,j] - df_close.iloc[i-1,j]
+            df_vv.iloc[i,j] = dp * df_vol.iloc[i,j]
+
+    df_close = df_close.drop(df_close.index[0])
+    df_vv    = df_vv.drop(df_vv.index[0])
+    return df_close,df_vv
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -140,12 +161,13 @@ if __name__ == "__main__":
     data = pd.read_csv(DATA_FILE, comment='#',header=[0,1],parse_dates=[0],index_col=0)
     data = data.dropna(axis=1)
     # pdb.set_trace()
+
+    df_close,df_vv = appendVolumeValue(data)
     NUM_SYMS = portconf.getNumSymbols()
-    start_date = add_days_to_date(target_date, -portconf.getLookback())
-    end_date = add_days_to_date(target_date, portconf.getLookforward())
 
     # pdb.set_trace()
-    global_tid = locate_target_date(target_date, data)
+    global_tid = locate_target_date(target_date, df_close)
+    start_tid = global_tid - portconf.getLookback()
 
     if global_tid < 0:
         print("Failed to find target date")
@@ -153,13 +175,13 @@ if __name__ == "__main__":
 
     score_method = portconf.getScoreMethod()
     if score_method == 0:
-        syms = select_syms_corr_dist(data['Close'].iloc[:global_tid+1, :],
+        syms = select_syms_corr_dist(df_close.iloc[start_tid:global_tid, :],
                                      NUM_SYMS,
                                      portconf.getShortTermWeight(),
                                      portconf.getTimeSteps(),
                                      portconf.isRandomSelect())
     elif score_method == 1:
-        syms = select_syms_price_slope_dist(data['Close'].iloc[:global_tid+1,:],
+        syms = select_syms_price_slope_dist(df_close.iloc[start_tid:global_tid,:],
                                             NUM_SYMS,
                                             portconf.getShortTermWeight(),
                                             portconf.getTimeSteps(),
@@ -170,9 +192,9 @@ if __name__ == "__main__":
     else:
         pass
 
-    daily_rtn = data['Close'].pct_change()
+    daily_rtn = df_close.pct_change()
     daily_rtns = daily_rtn[syms]
-    df = data['Close'][syms]
+    df = df_close[syms]
     print('number of selected syms: ', len(syms))
     print('selected syms: ', syms)
 
@@ -238,6 +260,7 @@ if __name__ == "__main__":
         invest = portconf.getCapitalAmount()
 
         # pdb.set_trace()
+        end_date = add_days_to_date(target_date, portconf.getLookforward())
         print("Calculating the true profit on ", end_date)
         end_tid = locate_target_date(end_date, df)
         check_true_profit(df, global_tid, sol, invest, predicted_mu, predicted_std, end_tid)
