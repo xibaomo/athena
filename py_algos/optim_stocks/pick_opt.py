@@ -129,7 +129,7 @@ def computeRiskShare(wts, cm, sym_std):
             pdb.set_trace()
         risk_share[i] = t/sd0
     return risk_share
-def appendVolumeValue(data,cal_vol_value=False):
+def appendVolumeValue(data,cal_vol_value=False,vol_value_type=0):
     df_close = data['Close']
     if not cal_vol_value:
         return df_close,None
@@ -144,7 +144,15 @@ def appendVolumeValue(data,cal_vol_value=False):
             continue
         for j in range(len(df_close.keys())):
             # pdb.set_trace()
-            dp = df_close.iloc[i,j] - df_close.iloc[i-1,j]
+            dp = df_typ.iloc[i,j] - df_typ.iloc[i-1,j]
+            if dp < 0 and vol_value_type==1:
+                dp = -df_typ.iloc[i,j]
+            elif dp >= 0 and vol_value_type==1:
+                dp = df_typ.iloc[i,j]
+            elif vol_value_type == 0:
+                dp = dp
+            else:
+                print('error')
             df_vv.iloc[i,j] = dp * df_vol.iloc[i,j]
 
     df_close = df_close.drop(df_close.index[0])
@@ -165,7 +173,7 @@ if __name__ == "__main__":
     need_vol_value = False
     if portconf.getScoreMethod() >=2:
         need_vol_value = True
-    df_close,df_volval = appendVolumeValue(data,True)
+    df_close,df_volval = appendVolumeValue(data,True,portconf.getVolumeValueType())
     NUM_SYMS = portconf.getNumSymbols()
 
     # pdb.set_trace()
@@ -184,18 +192,24 @@ if __name__ == "__main__":
                                      portconf.getTimeSteps(),
                                      portconf.isRandomSelect())
     elif score_method == 1:
-        syms = select_syms_price_slope_dist(df_close.iloc[start_tid:global_tid,:],
+        syms = select_syms_slope_dist(df_close.iloc[start_tid:global_tid,:],
                                             NUM_SYMS,
                                             portconf.getShortTermWeight(),
                                             portconf.getTimeSteps(),
                                             portconf.isRandomSelect())
     elif score_method == 2:
-        syms = select_syms_volval_corr_dist(df_volval.iloc[start_tid:global_tid,:],
+        syms = select_syms_corr_dist(df_volval.iloc[start_tid:global_tid,:],
                                             NUM_SYMS,
                                             portconf.getShortTermWeight(),
                                             portconf.getTimeSteps(),
                                             portconf.isRandomSelect())
     elif score_method == 3:
+        syms = select_syms_slope_dist(df_volval.iloc[start_tid:global_tid, :],
+                                            NUM_SYMS,
+                                            portconf.getShortTermWeight(),
+                                            portconf.getTimeSteps(),
+                                            portconf.isRandomSelect())
+    elif score_method == 4:
         print("not yet implemented for score method > 0")
         sys.exit(1)
     else:

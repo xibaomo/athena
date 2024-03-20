@@ -128,7 +128,7 @@ def select_syms_by_score(score,all_syms,random_select,num_selected_syms):
         np.random.shuffle(candidates)
         return candidates[:num_selected_syms].tolist()
     return sorted_syms[:num_selected_syms].tolist()
-def select_syms_price_slope_dist(df, num_syms, short_wt, timesteps, random_select):
+def select_syms_slope_dist(df, num_syms, short_wt, timesteps, random_select):
     transmat1 = computeSlopeTransmat(df)
     s1 = transmat2dist(transmat1,timesteps)
 
@@ -140,26 +140,3 @@ def select_syms_price_slope_dist(df, num_syms, short_wt, timesteps, random_selec
     selected_syms = select_syms_by_score(score,df.keys(),random_select,num_syms)
 
     return selected_syms
-
-def select_syms_volval_corr_dist(df_vv, num_syms, short_wt, timesteps, random_select):
-    cm = df_vv.corr().values
-    s1 = corr2distScore(cm,df_vv,timesteps)
-
-    df = df_vv.iloc[-30:,:]
-    cm2 = df.corr().values
-    s2 = corr2distScore(cm2,df,timesteps)
-
-    score = np.array(s1 + s2 * short_wt)
-    # pdb.set_trace()
-    sorted_id = np.argsort(score)[::-1]
-    all_syms = df_vv.keys().values[sorted_id]
-
-    print(score[sorted_id])
-    print(score.sum())
-
-    if random_select:
-        print("Randomly pick among top {}".format(num_syms * 2))
-        candidates = all_syms[:num_syms * 2]
-        np.random.shuffle(candidates)
-        return candidates[:num_syms].tolist()
-    return all_syms[:num_syms].tolist()
