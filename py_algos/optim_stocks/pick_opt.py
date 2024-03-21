@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from scipy.optimize import minimize
 #from mkv_absorb import *
 from sym_selection import *
+import multiprocessing
 import pdb
 SIGMA_INF = 1e60
 def locate_target_date(date_str, df):

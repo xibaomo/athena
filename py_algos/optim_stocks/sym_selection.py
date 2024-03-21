@@ -3,6 +3,8 @@ from mkv_absorb import *
 import numpy as np
 from sklearn.feature_selection import mutual_info_regression
 import matplotlib.pyplot as plt
+import multiprocessing
+from functools import partial
 def __transmat2dist(transmat):
     nsyms = transmat.shape[0]
     I = np.eye(nsyms)
@@ -100,19 +102,32 @@ def normalizeTransmat(transmat):
         else:
             transmat[i, :] = transmat[i, :]/s
     return transmat
+def cal_slope(pair):
+    # pdb.set_trace()
+    x,y=pair
+    return np.polyfit(x,y,1)[0]
 def computeSlopeTransmat(df):
+    num_processes = multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(processes=num_processes)
+
     nsyms = len(df.keys())
     transmat = np.zeros((nsyms, nsyms))
     for i in range(nsyms):
-        x = df[df.keys()[i]]
+        x = df[df.keys()[i]].values
+        pairs = [(x,df[s].values) for s in df.keys()]
+        slopes = pool.map(cal_slope,pairs)
         for j in range(nsyms):
-            if i==j:
+            if slopes[j] >=0:
                 continue
-            y = df[df.keys()[j]]
-            slope = np.polyfit(x, y, 1)[0]
-            if slope >= 0:
-                continue
-            transmat[i, j] = -slope
+            transmat[i,j] = -slopes[j]
+        # for j in range(nsyms):
+        #     if i==j:
+        #         continue
+        #     y = df[df.keys()[j]]
+        #     slope = np.polyfit(x, y, 1)[0]
+        #     if slope >= 0:
+        #         continue
+        #     transmat[i, j] = -slope
 
     transmat = normalizeTransmat(transmat)
     return transmat
