@@ -6,7 +6,7 @@ PORTFOLIO:
     TIME_STEPS: 100
     SHORT_TERM_WEIGHT: 1.2
 
-    VOLUME_VALUE_TYPE: 1  # Only works when SCORE_METHOD>=2
+    VOLUME_VALUE_TYPE: 0  # Only works when SCORE_METHOD>=2
                           # 0: multiply volume with  difference of typical price. 1: with typical price
 
     SCORE_METHOD: 3 # 0: use price correlation to compute distribution

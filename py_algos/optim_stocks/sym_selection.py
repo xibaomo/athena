@@ -69,6 +69,7 @@ def check_mutual_info(df, cm):
     plt.show()
 
 def select_syms_corr_dist(df, num_syms, short_wt=1.2, timesteps=100, random_select=False):
+    print("hisotry length: ", len(df))
     cm = df.corr().values
     # check_mutual_info(df, cm)
     s1 = corr2distScore(cm, df,timesteps)
@@ -129,6 +130,7 @@ def select_syms_by_score(score,all_syms,random_select,num_selected_syms):
         return candidates[:num_selected_syms].tolist()
     return sorted_syms[:num_selected_syms].tolist()
 def select_syms_slope_dist(df, num_syms, short_wt, timesteps, random_select):
+    print("hisotry length: ", len(df))
     transmat1 = computeSlopeTransmat(df)
     s1 = transmat2dist(transmat1,timesteps)
 

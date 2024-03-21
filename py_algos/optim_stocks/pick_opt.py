@@ -15,7 +15,7 @@ from sym_selection import *
 import pdb
 SIGMA_INF = 1e60
 def locate_target_date(date_str, df):
-    # pdb.set_trace()
+    print("locating target date: ", date_str)
     tar_date = pd.to_datetime(date_str)
     prev_days = 1000000
     for i in range(len(df)):
@@ -170,10 +170,11 @@ if __name__ == "__main__":
     data = data.dropna(axis=1)
     # pdb.set_trace()
 
+    print("data loaded")
     need_vol_value = False
     if portconf.getScoreMethod() >=2:
         need_vol_value = True
-    df_close,df_volval = appendVolumeValue(data,True,portconf.getVolumeValueType())
+    df_close,df_volval = appendVolumeValue(data,need_vol_value,portconf.getVolumeValueType())
     NUM_SYMS = portconf.getNumSymbols()
 
     # pdb.set_trace()
