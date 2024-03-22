@@ -293,6 +293,7 @@ if __name__ == "__main__":
 
         end_price = df.iloc[end_tid, :]
         true_sym_rtns = (end_price / start_price - 1.).values
+        print('ave true rtn: ', np.mean(true_sym_rtns))
         # pdb.set_trace()
 
         np.set_printoptions(precision=3)

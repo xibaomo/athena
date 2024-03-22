@@ -72,6 +72,7 @@ def check_mutual_info(df, cm):
 
 def select_syms_corr_dist(df, num_syms, short_wt=1.2, timesteps=100, random_select=False):
     print("hisotry length: ", len(df))
+    df = removeCollapsedSym(df)
     cm = df.corr().values
     # check_mutual_info(df, cm)
     s1 = corr2distScore(cm, df,timesteps)
@@ -131,6 +132,18 @@ def computeSlopeTransmat(df):
 
     transmat = normalizeTransmat(transmat)
     return transmat
+
+def removeCollapsedSym(df,thd=.5):
+    # pdb.set_trace()
+    cols = []
+    for i in range(len(df.keys())):
+        init_price = df.iloc[0,i]
+        end_price = df.iloc[-1,i]
+        if end_price/init_price <= thd:
+            cols.append(df.keys()[i])
+    df = df.drop(cols,axis=1)
+    print("removed syms: ", cols)
+    return df
 def select_syms_by_score(score,all_syms,random_select,num_selected_syms):
     sorted_id = np.argsort(score)[::-1]
     sorted_syms = all_syms[sorted_id]
@@ -144,7 +157,9 @@ def select_syms_by_score(score,all_syms,random_select,num_selected_syms):
         np.random.shuffle(candidates)
         return candidates[:num_selected_syms].tolist()
     return sorted_syms[:num_selected_syms].tolist()
+
 def select_syms_slope_dist(df, num_syms, short_wt, timesteps, random_select):
+    df = removeCollapsedSym(df)
     print("hisotry length: ", len(df))
     transmat1 = computeSlopeTransmat(df)
     s1 = transmat2dist(transmat1,timesteps)
