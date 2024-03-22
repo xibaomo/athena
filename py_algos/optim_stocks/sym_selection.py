@@ -170,7 +170,24 @@ def select_syms_slope_dist(df, num_syms, short_wt, timesteps, random_select):
     s2 = transmat2dist(transmat2,timesteps)
 
     score = np.array(s1 + s2 * short_wt)
+    score = score - np.min(score)
     score = score/np.max(score)
-    selected_syms = select_syms_by_score(score,df.keys(),random_select,num_syms)
+
+    # score of stock individual performance
+    score_idv1 = score_by_rtn_per_risk(df)
+    score_idv2 = score_by_rtn_per_risk(df2)
+    score_idv = score_idv1 + score_idv2*short_wt
+    score_idv = score_idv - np.min(score_idv)
+    score_idv = score_idv/np.max(score_idv)
+
+    selected_syms = select_syms_by_score(score+score_idv,df.keys(),random_select,num_syms)
 
     return selected_syms
+
+def score_by_rtn_per_risk(df):
+    daily_rtn = df.pct_change()
+    mu = daily_rtn.mean().values
+    sd = daily_rtn.std().values
+    score = mu/sd
+    # score = score/np.mean(score)
+    return score
