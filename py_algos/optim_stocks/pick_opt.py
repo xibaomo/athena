@@ -289,27 +289,21 @@ if __name__ == "__main__":
         print("Calculating the true profit on ", end_date)
         end_tid = locate_target_date(end_date, df)
         check_true_profit(df, global_tid, sol, invest, predicted_mu, predicted_std, end_tid)
-        start_price = df.iloc[global_tid, :]
+        start_price = df_close.iloc[global_tid, :]
 
-        end_price = df.iloc[end_tid, :]
+        end_price = df_close.iloc[end_tid, :]
         true_sym_rtns = (end_price / start_price - 1.).values
-        print('ave true rtn: ', np.mean(true_sym_rtns))
+
+        print('ave rtn of {} stocks: {:^8.3f}'.format(len(df_close.keys()),np.mean(true_sym_rtns)))
         # pdb.set_trace()
 
-        np.set_printoptions(precision=3)
-        durtn = end_tid - global_tid
-        tmp = sym_rtns[sort_id] * durtn
-        tmp = ", ".join(["{:^8.4f}".format(element) for element in tmp])
-        print("Estmt. total rtns: ", tmp)
-        tmp = ", ".join(["{:^8.4f}".format(element) for element in true_sym_rtns[sort_id]])
-        print("Actual total rtns: ", tmp)
-
+        selected_sym_start_price = df.iloc[global_tid,:]
+        selected_sym_end_price   = df.iloc[end_tid,:]
+        selected_sym_rtn = selected_sym_end_price/selected_sym_start_price - 1.
+        tmp = ", ".join(["{:^8.3f}".format(elem) for elem in selected_sym_rtn])
+        print('actual rtn: ',tmp)
         risk_share = computeRiskShare(sol, cm, sym_std)
         tmp = ", ".join(["{:^8.3f}".format(element) for element in risk_share])
         print("Risk share: ",tmp)
 
-        port_rtn = rtn_cost(sol, true_sym_rtns)
-        # print("\033[1m\033[91mActual profit of ${}: {:.2f}\033[0m".format(invest, port_rtn*invest))
-        print("Actual profit: {:.2f}".format(invest * port_rtn))
-        print("Portfolio actual total return: {:.3f}".format(port_rtn))
         print("End of cycle")

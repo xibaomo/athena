@@ -135,6 +135,7 @@ def computeSlopeTransmat(df):
 
 def removeCollapsedSym(df,thd=.5):
     # pdb.set_trace()
+    return df
     cols = []
     for i in range(len(df.keys())):
         init_price = df.iloc[0,i]
@@ -169,6 +170,7 @@ def select_syms_slope_dist(df, num_syms, short_wt, timesteps, random_select):
     s2 = transmat2dist(transmat2,timesteps)
 
     score = np.array(s1 + s2 * short_wt)
+    score = score/np.max(score)
     selected_syms = select_syms_by_score(score,df.keys(),random_select,num_syms)
 
     return selected_syms
