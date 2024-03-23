@@ -9,7 +9,7 @@ PORTFOLIO:
     VOLUME_VALUE_TYPE: 0  # Only works when SCORE_METHOD>=2
                           # 0: multiply volume with  difference of typical price. 1: with typical price
 
-    SCORE_METHOD: 1 # 0: use price correlation to compute distribution
+    SCORE_METHOD: 0 # 0: use price correlation to compute distribution
                     # 1: use slope of price 
                     # 2: use corr of volume value
                     # 3: use slope of volume value

@@ -183,7 +183,48 @@ def select_syms_slope_dist(df, num_syms, short_wt, timesteps, random_select):
     selected_syms = select_syms_by_score(score+score_idv,df.keys(),random_select,num_syms)
 
     return selected_syms
+def computeSlopeCorrTransmat(df):
+    num_processes = multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(processes=num_processes)
 
+    cm = df.corr().values
+    nsyms = len(df.keys())
+    transmat = np.zeros((nsyms, nsyms))
+    for i in range(nsyms):
+        x = df[df.keys()[i]].values
+        pairs = [(x,df[s].values) for s in df.keys()]
+        slopes = pool.map(cal_slope,pairs)
+        for j in range(nsyms):
+            if slopes[j] >=0 or cm[i,j] >=0:
+                continue
+            transmat[i,j] = slopes[j]*cm[i,j]
+        # for j in range(nsyms):
+        #     if i==j:
+        #         continue
+        #     y = df[df.keys()[j]]
+        #     slope = np.polyfit(x, y, 1)[0]
+        #     if slope >= 0:
+        #         continue
+        #     transmat[i, j] = -slope
+
+    transmat = normalizeTransmat(transmat)
+    return transmat
+def select_syms_corr_slope_dist(df, num_syms, short_wt, timesteps, random_select):
+    print("hisotry length: ", len(df))
+    transmat1 = computeSlopeCorrTransmat(df)
+    s1 = transmat2dist(transmat1, timesteps)
+
+    df2 = df.iloc[-30:, :]
+    transmat2 = computeSlopeCorrTransmat(df2)
+    s2 = transmat2dist(transmat2, timesteps)
+
+    score = np.array(s1 + s2 * short_wt)
+    score = score - np.min(score)
+    score = score / np.max(score)
+
+    selected_syms = select_syms_by_score(score, df.keys(), random_select, num_syms)
+
+    return selected_syms
 def score_by_rtn_per_risk(df):
     daily_rtn = df.pct_change()
     mu = daily_rtn.mean().values

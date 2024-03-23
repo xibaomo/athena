@@ -188,7 +188,7 @@ if __name__ == "__main__":
 
     score_method = portconf.getScoreMethod()
     if score_method == 0:
-        syms = select_syms_corr_dist(df_close.iloc[start_tid:global_tid, :],
+        syms = select_syms_corr_slope_dist(df_close.iloc[start_tid:global_tid, :],
                                      NUM_SYMS,
                                      portconf.getShortTermWeight(),
                                      portconf.getTimeSteps(),
