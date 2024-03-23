@@ -232,3 +232,30 @@ def score_by_rtn_per_risk(df):
     score = mu/sd
     # score = score/np.mean(score)
     return score
+
+def score_corr_slope_dist(df,timesteps,short_wt):
+    transmat1 = computeSlopeCorrTransmat(df)
+    s1 = transmat2dist(transmat1, timesteps)
+
+    df2 = df.iloc[-30:, :]
+    transmat2 = computeSlopeCorrTransmat(df2)
+    s2 = transmat2dist(transmat2, timesteps)
+
+    score = np.array(s1 + s2 * short_wt)
+    score = score - np.min(score)
+    score = score / np.max(score)
+
+    return score
+
+def score_volval_mean_offset(df_vv,short_wt):
+    vv1 = df_vv.sum().values
+    s1 = vv1 - np.mean(vv1)
+
+    vv2 = df_vv.iloc[-30:,:].sum()
+    s2 = vv2 - np.mean(vv2)
+
+    score = s2
+    score = score - np.min(score)
+    score = score/np.max(score)
+
+    return score
