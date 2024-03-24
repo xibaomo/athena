@@ -5,6 +5,8 @@ from sklearn.feature_selection import mutual_info_regression
 import matplotlib.pyplot as plt
 import multiprocessing
 from functools import partial
+
+NUM_PROCS = multiprocessing.cpu_count()-2
 def __transmat2dist(transmat):
     nsyms = transmat.shape[0]
     I = np.eye(nsyms)
@@ -108,8 +110,7 @@ def cal_slope(pair):
     x,y=pair
     return np.polyfit(x,y,1)[0]
 def computeSlopeTransmat(df):
-    num_processes = multiprocessing.cpu_count()
-    pool = multiprocessing.Pool(processes=num_processes)
+    pool = multiprocessing.Pool(processes=NUM_PROCS)
 
     nsyms = len(df.keys())
     transmat = np.zeros((nsyms, nsyms))
@@ -184,8 +185,7 @@ def select_syms_slope_dist(df, num_syms, short_wt, timesteps, random_select):
 
     return selected_syms
 def computeSlopeCorrTransmat(df):
-    num_processes = multiprocessing.cpu_count()
-    pool = multiprocessing.Pool(processes=num_processes)
+    pool = multiprocessing.Pool(processes=NUM_PROCS)
 
     cm = df.corr().values
     nsyms = len(df.keys())
@@ -271,8 +271,8 @@ def score_mkv_speed(dff,scoreconf):
     df = dff.iloc[-lookback:,:]
     daily_rtn = df.pct_change()
     rtns = [daily_rtn[sym].values for sym in df.keys()]
-    num_processes = multiprocessing.cpu_count()
-    pool = multiprocessing.Pool(processes=num_processes)
+
+    pool = multiprocessing.Pool(processes=NUM_PROCS)
     speeds = pool.map(comp_mkv_speed,rtns)
 
     # for rtn in rtns:
