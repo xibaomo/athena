@@ -18,6 +18,7 @@ class MkvAbsorbCal(object):
         self.n_states = nstates
 
     def compWinProb(self, rtns, lb_rtn, ub_rtn):
+        rtns = rtns[~np.isnan(rtns)]
         self.transProbCal = ECDFCal(rtns)
         # print("ECDFCal is used")
         npts = self.n_states

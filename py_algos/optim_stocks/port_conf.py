@@ -54,3 +54,16 @@ class PortfolioConfig(object):
         return self.yamlDict[self.root]['TIME_STEPS']
     def isRandomSelect(self):
         return self.yamlDict[self.root]['RANDOM_SELECT']
+
+class ScoreSettingConfig(object):
+    def __init__(self,portconf):
+        self.yamlDict = portconf.yamlDict
+        self.root = "SCORE_SETTING"
+        return
+
+    def getMarkovSpeedLookback(self):
+        return self.yamlDict[self.root]['MKV_SPEED']['LOOKBACK']
+    def getMarkovSpeedBound(self):
+        return self.yamlDict[self.root]['MKV_SPEED']['BOUND']
+    def getMarkovSpeedPartition(self):
+        return self.yamlDict[self.root]['MKV_SPEED']['PARTITION']

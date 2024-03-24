@@ -172,7 +172,7 @@ if __name__ == "__main__":
     # pdb.set_trace()
 
     print("data loaded")
-    need_vol_value = True
+    need_vol_value = False
     if portconf.getScoreMethod() >=2:
         need_vol_value = True
     df_close,df_volval = appendVolumeValue(data,need_vol_value,portconf.getVolumeValueType())
@@ -187,15 +187,11 @@ if __name__ == "__main__":
         sys.exit(1)
 
     score_method = portconf.getScoreMethod()
+    scoreconf = ScoreSettingConfig(portconf)
     if score_method == 0:
-        # syms = select_syms_corr_slope_dist(df_close.iloc[start_tid:global_tid, :],
-        #                              NUM_SYMS,
-        #                              portconf.getShortTermWeight(),
-        #                              portconf.getTimeSteps(),
-        #                              portconf.isRandomSelect())
         score1 = score_corr_slope_dist(df_close.iloc[start_tid:global_tid,:],
                                        timesteps=portconf.getTimeSteps(),short_wt=portconf.getShortTermWeight())
-        score2 = score_volval_mean_offset(df_volval.iloc[start_tid:global_tid,:],portconf.getShortTermWeight())
+        score2 = score_mkv_speed(df_close.iloc[start_tid:global_tid,:],scoreconf)
         syms = select_syms_by_score(score1+score2,df_close.keys(),portconf.isRandomSelect(),NUM_SYMS)
     elif score_method == 1:
         syms = select_syms_slope_dist(df_close.iloc[start_tid:global_tid,:],

@@ -9,8 +9,15 @@ PORTFOLIO:
     VOLUME_VALUE_TYPE: 0  # Only works when SCORE_METHOD>=2
                           # 0: multiply volume with  difference of typical price. 1: with typical price
 
-    SCORE_METHOD: 0 # 0: use price correlation to compute distribution
+    SCORE_METHOD: 0 # 0: use corr-weighted slope of price + mkv speed
                     # 1: use slope of price 
                     # 2: use corr of volume value
                     # 3: use slope of volume value
     RANDOM_SELECT: 0 # 0: take top scores. 1: randomly pick among top 2*NUM_SYMBOLS
+
+SCORE_SETTING:
+    MKV_SPEED:
+        LOOKBACK: 90
+        BOUND: .1
+        PARTITION: 100
+
