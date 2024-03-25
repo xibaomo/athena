@@ -19,5 +19,5 @@ SCORE_SETTING:
     MKV_SPEED:
         LOOKBACK: 90
         BOUND: .1
-        PARTITION: 100
+        PARTITIONS: 100
 

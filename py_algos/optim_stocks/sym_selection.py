@@ -260,24 +260,23 @@ def score_volval_mean_offset(df_vv,short_wt):
 
     return score
 
-def comp_mkv_speed(rtn_arr):
-    cal=MkvAbsorbCal(100)
-    p,sp = cal.compWinProb(rtn_arr,-.1,.1)
+def comp_mkv_speed(args):
+    scoreconf,rtn_arr = args
+    cal=MkvAbsorbCal(scoreconf.getMarkovSpeedPartitions())
+    bnd = scoreconf.getMarkovSpeedBound()
+    p,sp = cal.compWinProb(rtn_arr,-bnd,bnd)
     if p < .5:
         sp=-sp
-    return .1/sp
+    return bnd/sp
 def score_mkv_speed(dff,scoreconf):
     lookback = scoreconf.getMarkovSpeedLookback()
     df = dff.iloc[-lookback:,:]
     daily_rtn = df.pct_change()
-    rtns = [daily_rtn[sym].values for sym in df.keys()]
+    arg_list = [(scoreconf,daily_rtn[sym].values) for sym in df.keys()]
 
     pool = multiprocessing.Pool(processes=NUM_PROCS)
-    speeds = pool.map(comp_mkv_speed,rtns)
+    speeds = pool.map(comp_mkv_speed,arg_list)
 
-    # for rtn in rtns:
-    #     pdb.set_trace()
-    #     score = comp_mkv_speed(rtn)
     score = np.array(speeds)
     print(score)
     score = score - np.min(score)
