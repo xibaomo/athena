@@ -171,6 +171,7 @@ if __name__ == "__main__":
 
     score_method = portconf.getScoreMethod()
     scoreconf = ScoreSettingConfig(portconf)
+    print("Selected score method: ", score_method)
     if score_method == 0:
         score1 = score_corr_slope_dist(df_close.iloc[start_tid:global_tid,:],
                                        timesteps=portconf.getTimeSteps(),short_wt=portconf.getShortTermWeight())
@@ -262,6 +263,10 @@ if __name__ == "__main__":
         print("best std  of daily rtn of portfolio: {:.6f}".format(predicted_std))
 
         print("********** Verification **********")
+        if(portconf.getLookforward()<=0):
+            print("LOOKFORWARD <= 0, verification skipped")
+            sys.exit(0)
+
         invest = portconf.getCapitalAmount()
 
         # pdb.set_trace()
