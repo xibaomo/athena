@@ -67,3 +67,5 @@ class ScoreSettingConfig(object):
         return self.yamlDict[self.root]['MKV_SPEED']['BOUND']
     def getMarkovSpeedPartitions(self):
         return self.yamlDict[self.root]['MKV_SPEED']['PARTITIONS']
+    def getSpecificHeatLookback(self):
+        return self.yamlDict[self.root]['SPECIFIC_HEAT']['LOOKBACK']

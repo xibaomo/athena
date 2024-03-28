@@ -133,32 +133,15 @@ def computeRiskShare(wts, cm, sym_std):
 def appendVolumeValue(data,cal_vol_value=False,vol_value_type=0):
     df_close = data['Close']
     if not cal_vol_value:
-        return df_close,None
+        return df_close,None,None
 
     df_vol = data['Volume']
     df_hi = data['High']
     df_lw = data['Low']
     df_typ = (df_hi+df_lw+df_close)/3.
-    df_vv = df_typ.copy()
-    for i in range(len(data)):
-        if i==0:
-            continue
-        for j in range(len(df_close.keys())):
-            # pdb.set_trace()
-            dp = df_typ.iloc[i,j] - df_typ.iloc[i-1,j]
-            if dp < 0 and vol_value_type==1:
-                dp = -df_typ.iloc[i,j]
-            elif dp >= 0 and vol_value_type==1:
-                dp = df_typ.iloc[i,j]
-            elif vol_value_type == 0:
-                dp = dp
-            else:
-                print('error')
-            df_vv.iloc[i,j] = dp * df_vol.iloc[i,j]
+    df_vv = df_typ * df_vol
 
-    df_close = df_close.drop(df_close.index[0])
-    df_vv    = df_vv.drop(df_vv.index[0])
-    return df_close,df_vv
+    return df_close,df_vv,df_typ
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -175,7 +158,7 @@ if __name__ == "__main__":
     need_vol_value = False
     if portconf.getScoreMethod() >=2:
         need_vol_value = True
-    df_close,df_volval = appendVolumeValue(data,need_vol_value,portconf.getVolumeValueType())
+    df_close,df_volval,df_typ = appendVolumeValue(data,need_vol_value,portconf.getVolumeValueType())
     NUM_SYMS = portconf.getNumSymbols()
 
     # pdb.set_trace()
@@ -200,11 +183,8 @@ if __name__ == "__main__":
                                             portconf.getTimeSteps(),
                                             portconf.isRandomSelect())
     elif score_method == 2:
-        syms = select_syms_corr_dist(df_volval.iloc[start_tid:global_tid,:],
-                                            NUM_SYMS,
-                                            portconf.getShortTermWeight(),
-                                            portconf.getTimeSteps(),
-                                            portconf.isRandomSelect())
+        scores = score_specific_heat(df_typ.iloc[:global_tid],df_volval.iloc[:global_tid],scoreconf)
+        syms = select_syms_by_score(scores,df_close.keys(),portconf.isRandomSelect(),NUM_SYMS)
     elif score_method == 3:
         syms = select_syms_slope_dist(df_volval.iloc[start_tid:global_tid, :],
                                             NUM_SYMS,

@@ -283,3 +283,30 @@ def score_mkv_speed(dff,scoreconf):
     score = score/np.max(score)
     return score
 
+def score_specific_heat(df_typ,df_volval,scoreconf):
+    lookback = scoreconf.getSpecificHeatLookback()
+    df_typ = df_typ.iloc[-lookback*5:,:]
+    df_volval=df_volval.iloc[-lookback*5:,:]
+    df_sh = df_typ.copy()
+    for i in range(len(df_typ)):
+        for j in range(len(df_typ.keys())):
+            if i==0:
+                continue
+            dp = df_typ.iloc[i,j] - df_typ.iloc[i-1,j]
+            df_sh.iloc[i,j] = dp/df_volval.iloc[i,j]
+
+    scores=np.zeros(len(df_typ.keys()))
+    crs=np.zeros(len(scores))
+    for j in range(len(df_typ.keys())):
+        # pdb.set_trace()
+        sh = df_sh.iloc[:,j].rolling(window=lookback).mean().values
+        tp = df_typ.iloc[:,j].values
+        cr = np.corrcoef(sh[lookback:-1],tp[lookback+1:])[0,1]
+        if cr < 0:
+            cr=0
+        # print(j)
+        scores[j] = sh[-1]
+        crs[j] = cr
+    scores = scores - np.min(scores)
+    scores = scores/np.max(scores)
+    return scores*crs

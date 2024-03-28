@@ -6,10 +6,9 @@ PORTFOLIO:
     TIME_STEPS: 100
     SHORT_TERM_WEIGHT: 1.2
 
-    VOLUME_VALUE_TYPE: 0  # Only works when SCORE_METHOD>=2
-                          # 0: multiply volume with  difference of typical price. 1: with typical price
+    VOLUME_VALUE_TYPE: 0  # useless
 
-    SCORE_METHOD: 0 # 0: use corr-weighted slope of price + mkv speed
+    SCORE_METHOD: 2 # 0: use corr-weighted slope of price + mkv speed
                     # 1: use slope of price 
                     # 2: use corr of volume value
                     # 3: use slope of volume value
@@ -20,4 +19,6 @@ SCORE_SETTING:
         LOOKBACK: 90
         BOUND: .1
         PARTITIONS: 100
+    SPECIFIC_HEAT:
+        LOOKBACK: 20
 
