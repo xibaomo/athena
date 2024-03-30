@@ -7,6 +7,12 @@ import multiprocessing
 from functools import partial
 
 NUM_PROCS = multiprocessing.cpu_count()-2
+
+def standardize(score):
+    # normalize score to range (0,1)
+    score = score - np.min(score)
+    score = score / np.max(score)
+    return score
 def __transmat2dist(transmat):
     nsyms = transmat.shape[0]
     I = np.eye(nsyms)
@@ -293,7 +299,10 @@ def score_specific_heat(df_typ,df_volval,scoreconf):
             if i==0:
                 continue
             dp = df_typ.iloc[i,j] - df_typ.iloc[i-1,j]
-            df_sh.iloc[i,j] = dp/df_volval.iloc[i,j]
+            if df_volval.iloc[i,j]==0:
+                df_sh.iloc[i,j] = 0     #assume buy power is balanced with sell
+            else:
+                df_sh.iloc[i,j] = dp/(df_volval.iloc[i,j])  #avoid divergence
 
     scores=np.zeros(len(df_typ.keys()))
     crs=np.zeros(len(scores))
@@ -307,6 +316,6 @@ def score_specific_heat(df_typ,df_volval,scoreconf):
         # print(j)
         scores[j] = sh[-1]
         crs[j] = cr
-    scores = scores - np.min(scores)
-    scores = scores/np.max(scores)
-    return scores*crs
+    scores = scores *crs
+    scores = standardize(scores)
+    return scores

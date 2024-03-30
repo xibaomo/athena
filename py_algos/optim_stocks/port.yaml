@@ -8,7 +8,7 @@ PORTFOLIO:
 
     VOLUME_VALUE_TYPE: 0  # useless
 
-    SCORE_METHOD: 0 # 0: use corr-weighted slope of price + mkv speed
+    SCORE_METHOD: 2 # 0: use corr-weighted slope of price + mkv speed
                     # 1: use slope of price 
                     # 2: use corr of volume value
                     # 3: use slope of volume value
@@ -16,7 +16,7 @@ PORTFOLIO:
 
 SCORE_SETTING:
     MKV_SPEED:
-        LOOKBACK: 60
+        LOOKBACK: 90
         BOUND: .1
         PARTITIONS: 100
     SPECIFIC_HEAT:
