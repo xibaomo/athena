@@ -319,3 +319,21 @@ def score_specific_heat(df_typ,df_volval,scoreconf):
     scores = scores *crs
     scores = standardize(scores)
     return scores
+
+def score_money_flow(df_close,df_volval,scoreconf):
+    lookback=90
+    sid = len(df_close)-lookback - 1
+    scores = np.zeros(len(df_close.keys()))
+    for j in range(len(df_close.keys())):
+        # pdb.set_trace()
+        money_in=0
+        money_out=0
+        for i in range(sid,len(df_close)):
+            if df_close.iloc[i,j] >=df_close.iloc[i-1,j]:
+                money_in = money_in + df_volval.iloc[i,j]
+            else:
+                money_out = money_out + df_volval.iloc[i,j]
+        scores[j] = money_in/money_out
+
+    scores = standardize(scores)
+    return scores
