@@ -337,3 +337,37 @@ def score_money_flow(df_close,df_volval,scoreconf):
 
     scores = standardize(scores)
     return scores
+
+def dallorvol2transmat(df_typ, df_volval_org):
+    df_volval = df_volval_org.copy()
+    nsyms = len(df_typ.keys())
+    for i in range(len(df_typ)):
+        for j in range(len(df_typ.keys())):
+            if i==0:
+                continue
+            if df_typ.iloc[i,j] < df_typ.iloc[i-1,j]:
+                v = df_volval.iloc[i,j]
+                df_volval.iloc[i,j] = -v
+    transmat = np.zeros([nsyms,nsyms])
+    for row in range(1,len(df_volval)):
+        tmp = np.zeros([nsyms,nsyms])
+        for i in range(nsyms):
+            for j in range(i+1,nsyms):
+                r = df_volval.iloc[row,j]/df_volval.iloc[row,i]
+                if r < 0:
+                    tmp[i,j] = -r
+                    tmp[j,i] = -1./r
+        transmat = transmat + tmp
+        print('transmat done at row ',row)
+    for i in range(nsyms):
+        s = sum(transmat[i,:])
+        transmat[i,:] = transmat[i,:]/s
+    return transmat
+
+def score_dollarvol_dist(df_typ,df_volval):
+    transmat = dallorvol2transmat(df_typ,df_volval)
+    s = transmat2dist((transmat))
+
+    s = standardize(s)
+    return s
+

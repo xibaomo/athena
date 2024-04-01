@@ -176,7 +176,7 @@ if __name__ == "__main__":
         score1 = score_corr_slope_dist(df_close.iloc[start_tid:global_tid,:],
                                        timesteps=portconf.getTimeSteps(),short_wt=portconf.getShortTermWeight())
         score2 = score_mkv_speed(df_close.iloc[start_tid:global_tid,:],scoreconf)
-        syms = select_syms_by_score(score1+score2+score3,df_close.keys(),portconf.isRandomSelect(),NUM_SYMS)
+        syms = select_syms_by_score(score1+score2,df_close.keys(),portconf.isRandomSelect(),NUM_SYMS)
     elif score_method == 1:
         syms = select_syms_slope_dist(df_close.iloc[start_tid:global_tid,:],
                                             NUM_SYMS,
@@ -191,11 +191,9 @@ if __name__ == "__main__":
         score3 = score_money_flow(df_typ.iloc[:global_tid],df_volval.iloc[:global_tid],scoreconf)
         syms = select_syms_by_score(score1+score2+score3, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 3:
-        syms = select_syms_slope_dist(df_volval.iloc[start_tid:global_tid, :],
-                                            NUM_SYMS,
-                                            portconf.getShortTermWeight(),
-                                            portconf.getTimeSteps(),
-                                            portconf.isRandomSelect())
+        start_tid = global_tid-30
+        score = score_dollarvol_dist(df_typ.iloc[start_tid:global_tid],df_volval.iloc[start_tid:global_tid])
+        syms = select_syms_by_score(score, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 4:
         print("not yet implemented for score method > 0")
         sys.exit(1)
@@ -256,10 +254,14 @@ if __name__ == "__main__":
         # pdb.set_trace()
         sort_syms = np.array(syms)[sort_id]
 
-        tmp = ",".join(["{}".format(element) for element in sort_syms])
-        print('sorted syms: [{}]'.format(tmp))
-        tmp = ",".join(["{:.3f}".format(element) for element in sorted_sol])
-        print("weights: [{}]".format(tmp))
+        print("Optimal portfolio:")
+        for i in range(len(sorted_sol)):
+            print("{},{:.3f}".format(sort_syms[i],sorted_sol[i]))
+
+        # tmp = ",".join(["{}".format(element) for element in sort_syms])
+        # print('sorted syms: [{}]'.format(tmp))
+        # tmp = ",".join(["{:.3f}".format(element) for element in sorted_sol])
+        # print("weights: [{}]".format(tmp))
 
         predicted_mu = rtn_cost(sol, sym_rtns)
         predicted_std = std_cost(sol, cm, sym_std)
