@@ -153,6 +153,7 @@ def removeCollapsedSym(df,thd=.5):
     print("removed syms: ", cols)
     return df
 def select_syms_by_score(score,all_syms,random_select,num_selected_syms):
+    # pdb.set_trace()
     sorted_id = np.argsort(score)[::-1]
     sorted_syms = all_syms[sorted_id]
 
@@ -161,9 +162,9 @@ def select_syms_by_score(score,all_syms,random_select,num_selected_syms):
 
     if random_select:
         print("Randomly pick among top {}".format(num_selected_syms * 2))
-        candidates = sorted_syms[:num_selected_syms * 2]
+        candidates = sorted_syms[:num_selected_syms * 2].tolist()
         np.random.shuffle(candidates)
-        return candidates[:num_selected_syms].tolist()
+        return candidates[:num_selected_syms]
     return sorted_syms[:num_selected_syms].tolist()
 
 def select_syms_slope_dist(df, num_syms, short_wt, timesteps, random_select):
