@@ -238,7 +238,7 @@ if __name__ == "__main__":
             # Run the optimization using Nelder-Mead
             sol = np.ones(NUM_SYMS)
             sol = sol/sol.sum()
-            result = minimize(obj_func, sol, args=(cost_type), method='Nelder-Mead', options={'xatol': 1e-4})
+            result = minimize(obj_func, sol, args=(cost_type), method='Nelder-Mead', options={'xatol': 1e-6})
             if abs(result.fun) < 100:
                 sol = result.x
             final_cost = obj_func(sol, cost_type)
@@ -281,8 +281,12 @@ if __name__ == "__main__":
         end_tid = locate_target_date(end_date, df)
         check_true_profit(df, global_tid, sol, invest, predicted_mu, predicted_std, end_tid)
         start_price = df_close.iloc[global_tid, :]
-
         end_price = df_close.iloc[end_tid, :]
+
+        # print("sym, start_date, end_date")
+        # for s in syms:
+        #     print("{}, {}, {}".format(s,df.loc[target_date,s],df.loc[end_date,s]))
+
         true_sym_rtns = (end_price / start_price - 1.).values
 
         print('ave rtn of {} stocks: {:^8.3f}'.format(len(df_close.keys()),np.mean(true_sym_rtns)))

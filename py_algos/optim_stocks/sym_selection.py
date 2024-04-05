@@ -285,9 +285,7 @@ def score_mkv_speed(dff,scoreconf):
     speeds = pool.map(comp_mkv_speed,arg_list)
 
     score = np.array(speeds)
-    print(score)
-    score = score - np.min(score)
-    score = score/np.max(score)
+    score = standardize(score)
     return score
 
 def score_specific_heat(df_typ,df_volval,scoreconf):
@@ -341,6 +339,7 @@ def score_money_flow(df_close,df_volval,scoreconf):
 
 def dallorvol2transmat(df_typ, df_volval_org):
     df_volval = df_volval_org.copy()
+    cm = df_typ.corr().values
     nsyms = len(df_typ.keys())
     for i in range(len(df_typ)):
         for j in range(len(df_typ.keys())):
@@ -354,10 +353,10 @@ def dallorvol2transmat(df_typ, df_volval_org):
         tmp = np.zeros([nsyms,nsyms])
         for i in range(nsyms):
             for j in range(i+1,nsyms):
-                r = df_volval.iloc[row,j]/df_volval.iloc[row,i]
-                if r < 0:
-                    tmp[i,j] = -r
-                    tmp[j,i] = -1./r
+                r = df_volval.iloc[row,j]/df_volval.iloc[row,i]*cm[i,j]
+                if r > 0 and cm[i,j] < 0:
+                    tmp[i,j] = r
+                    tmp[j,i] = 1./r
         transmat = transmat + tmp
         print('transmat done at row ',row)
     for i in range(nsyms):
@@ -366,6 +365,10 @@ def dallorvol2transmat(df_typ, df_volval_org):
     return transmat
 
 def score_dollarvol_dist(df_typ,df_volval):
+    zero_cols = df_volval.columns[(df_volval==0).any()]
+    print("zero cols: ", zero_cols)
+    df_typ = df_typ.drop(zero_cols,axis=1)
+    df_volval = df_volval.drop(zero_cols,axis=1)
     transmat = dallorvol2transmat(df_typ,df_volval)
     s = transmat2dist((transmat))
 
