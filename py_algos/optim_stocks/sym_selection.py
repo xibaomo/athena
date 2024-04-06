@@ -375,3 +375,41 @@ def score_dollarvol_dist(df_typ,df_volval):
     s = standardize(s)
     return s
 
+def cal_linear_offset(x,y):
+    coef = np.polyfit(x,y,1)
+    rem = y - (coef[0]*x + coef[1])
+    sigma = np.std(rem)
+    return rem[-1]/sigma
+def score_by_pair_slope(df_close):
+    cm = df_close.corr().values
+    syms = df_close.keys()
+    sym2score = {}
+    for s in syms:
+        sym2score[s] = 0
+
+    lw = 0
+    for i in range(cm.shape[0]):
+        for j in range(i+1,cm.shape[1]):
+            if cm[i,j] > .85:
+                x = df_close[syms[i]].values
+                y = df_close[syms[j]].values
+                s = cal_linear_offset(x,y)
+                sym2score[syms[j]] += -s
+                if -s < 0 and sym2score[syms[j]] < lw:
+                    lw = sym2score[syms[j]]
+                s = cal_linear_offset(y,x)
+                sym2score[syms[i]] += -s
+                if -s < 0 and sym2score[syms[i]] < lw:
+                    lw = sym2score[syms[i]]
+
+    # sym2score = {key: value for key, value in sym2score.items() if value != 0}
+    for s in sym2score.keys():
+        if sym2score[s] == 0:
+            sym2score[s] = lw
+
+    scores = list(sym2score.values())
+    scores = standardize(scores)
+    return scores
+
+
+

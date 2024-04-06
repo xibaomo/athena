@@ -195,6 +195,10 @@ if __name__ == "__main__":
         score = score_dollarvol_dist(df_typ.iloc[start_tid:global_tid],df_volval.iloc[start_tid:global_tid])
         syms = select_syms_by_score(score, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 4:
+        start_tid = global_tid - 90
+        score = score_by_pair_slope(df_close.iloc[start_tid:global_tid])
+        syms = select_syms_by_score(score, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
+    elif score_method >=5:
         print("not yet implemented for score method > 0")
         sys.exit(1)
     else:
