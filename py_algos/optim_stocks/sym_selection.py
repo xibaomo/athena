@@ -200,6 +200,7 @@ def computeSlopeCorrTransmat(df):
     for i in range(nsyms):
         x = df[df.keys()[i]].values
         pairs = [(x,df[s].values) for s in df.keys()]
+        # pdb.set_trace()
         slopes = pool.map(cal_slope,pairs)
         for j in range(nsyms):
             if slopes[j] >=0 or cm[i,j] >=0:

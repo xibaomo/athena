@@ -163,10 +163,12 @@ if __name__ == "__main__":
 
     # pdb.set_trace()
     global_tid = locate_target_date(target_date, df_close)
-    start_tid = global_tid - portconf.getLookback()
-
     if global_tid < 0:
-        print("Failed to find target date")
+        print("Failed to find target date, re-download history data")
+        sys.exit(1)
+    start_tid = global_tid - portconf.getLookback()
+    if start_tid < 0:
+        print("Lookback exceeds the oldest history. Re-download history data")
         sys.exit(1)
 
     score_method = portconf.getScoreMethod()
@@ -195,9 +197,12 @@ if __name__ == "__main__":
         score = score_dollarvol_dist(df_typ.iloc[start_tid:global_tid],df_volval.iloc[start_tid:global_tid])
         syms = select_syms_by_score(score, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 4:
+        score1 = score_corr_slope_dist(df_close.iloc[start_tid:global_tid, :],
+                                       timesteps=portconf.getTimeSteps(), short_wt=portconf.getShortTermWeight())
+        score2 = score_mkv_speed(df_close.iloc[start_tid:global_tid, :], scoreconf)
         start_tid = global_tid - 90
-        score = score_by_pair_slope(df_close.iloc[start_tid:global_tid])
-        syms = select_syms_by_score(score, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
+        score3 = score_by_pair_slope(df_close.iloc[start_tid:global_tid])
+        syms = select_syms_by_score(score1+score2+score3, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method >=5:
         print("not yet implemented for score method > 0")
         sys.exit(1)
