@@ -418,28 +418,37 @@ def score_by_pair_slope(df_close):
     scores = standardize(scores)
     return scores
 
-def score_net_buy_power(df_close,df_vol,long_lookback, short_lookback):
+def select_syms_net_buy_power(df_close,df_vol,lookback):
     zero_cols = df_vol.columns[(df_vol==0).any()]
     df_vol = df_vol.drop(zero_cols,axis=1)
     df_close=df_close.drop(zero_cols,axis=1)
+    nsyms = len(df_close.keys())
     daily_rtn = df_close.pct_change()
     df_buypower = daily_rtn/df_vol
-    ma_df_buypower = df_buypower.rolling(window=long_lookback).mean()
-    xx = np.array([x for x in range(30)])
-    slopes = np.zeros(len(df_vol.keys()))
-    score1 = ma_df_buypower.iloc[-1,:].values
-    k=0
-    for sym in ma_df_buypower.keys():
-        # pdb.set_trace()
-        coef = np.polyfit(xx,ma_df_buypower[sym].values[-30:],1)
-        slopes[k] = coef[0]
-        k+=1
+    ma_df_buypower = df_buypower.rolling(window=lookback).mean()
+    ma_df_buypower = ma_df_buypower.dropna()
+    mu = ma_df_buypower.mean()
+    sd = ma_df_buypower.std()
     # pdb.set_trace()
-    score = standardize(slopes)
-    # ma_df_buypower = df_buypower.rolling(window=short_lookback).mean()
-    # score2 = ma_df_buypower.iloc[-1,:].values
+    scores = np.zeros(nsyms)
+    for i in range(nsyms):
+        pwr = ma_df_buypower.iloc[-1,i]
+        th = mu.iloc[i] + sd.iloc[i]*2
+        rng = 4*sd.iloc[i]
+        if pwr >= th:
+            scores[i] = 0
+        else:
+            scores[i] = abs(pwr-th)/rng
+
+    # sorted_id = np.argsort(scores)[::-1]
+    # scores = scores[sorted_id]
+    # sorted_syms = df_close.keys()[sorted_id]
     #
-    # score = score1+1.2*score2
-    # score = standardize(score)
-    return score
+    # for i in range(20):
+    #     print("{}: {}".format(sorted_syms[i],scores[i]))
+    # scores = standardize(scores)
+
+    syms = select_syms_by_score(scores,df_close.keys(),0,20)
+    # syms=[]
+    return syms
 

@@ -1,6 +1,8 @@
 import copy
 import pdb
 import re
+
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import yfinance as yf
@@ -116,6 +118,7 @@ def check_true_profit(data, global_tid, weights, capital, port_mu, port_std, end
     print(
         "\033[1m\033[91mProfits(low, high, final): {:^8.2f}, {:^8.2f}, {:^8.2f}. mu: {:.4e}, std: {:.4e}\033[0m". \
         format(min(profits), max(profits), profits[-1], port_mu, port_std))
+    return profits
 def computeRiskShare(wts, cm, sym_std):
     sd0 = std_cost(wts, cm, sym_std)
     risk_share=np.zeros(len(wts))
@@ -198,8 +201,10 @@ if __name__ == "__main__":
         score = score_dollarvol_dist(df_typ.iloc[start_tid:global_tid],df_volval.iloc[start_tid:global_tid])
         syms = select_syms_by_score(score, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 4:
-        score = score_net_buy_power(df_close.iloc[start_tid:global_tid],df_vol.iloc[start_tid:global_tid],60,20)
-        syms = select_syms_by_score(score, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
+        start_tid = global_tid-600
+        syms = select_syms_net_buy_power(df_close.iloc[start_tid:global_tid],df_vol.iloc[start_tid:global_tid],20)
+        if len(syms) == 0:
+            sys.exit(1)
     elif score_method >=5:
         print("not yet implemented for score method > 0")
         sys.exit(1)
@@ -285,7 +290,7 @@ if __name__ == "__main__":
         end_date = add_days_to_date(target_date, portconf.getLookforward())
         print("Calculating the true profit on ", end_date)
         end_tid = locate_target_date(end_date, df)
-        check_true_profit(df, global_tid, sol, invest, predicted_mu, predicted_std, end_tid)
+        pfs = check_true_profit(df, global_tid, sol, invest, predicted_mu, predicted_std, end_tid)
         start_price = df_close.iloc[global_tid, :]
         end_price = df_close.iloc[end_tid, :]
 
@@ -307,4 +312,11 @@ if __name__ == "__main__":
         tmp = ", ".join(["{:^8.3f}".format(element) for element in risk_share])
         print("Risk share: ",tmp)
 
+        plt.plot(pfs,'.-')
+        def on_close(event):
+            plt.pause(0.01)
+        plt.gcf().canvas.mpl_connect('close_event', on_close)
+        plt.show()
+        # plt.pause(60)
+        # plt.close()
         print("End of cycle")
