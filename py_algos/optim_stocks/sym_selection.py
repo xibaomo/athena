@@ -284,6 +284,12 @@ def score_mkv_speed(dff,scoreconf):
 
     pool = multiprocessing.Pool(processes=NUM_PROCS)
     speeds = pool.map(comp_mkv_speed,arg_list)
+    # speeds = np.zeros(len(arg_list))
+    # for i in range(len(arg_list)):
+    #     print(i)
+    #     if i==232:
+    #         pdb.set_trace()
+    #     speeds[i] = comp_mkv_speed(arg_list[i])
 
     score = np.array(speeds)
     score = standardize(score)
@@ -412,5 +418,28 @@ def score_by_pair_slope(df_close):
     scores = standardize(scores)
     return scores
 
-
+def score_net_buy_power(df_close,df_vol,long_lookback, short_lookback):
+    zero_cols = df_vol.columns[(df_vol==0).any()]
+    df_vol = df_vol.drop(zero_cols,axis=1)
+    df_close=df_close.drop(zero_cols,axis=1)
+    daily_rtn = df_close.pct_change()
+    df_buypower = daily_rtn/df_vol
+    ma_df_buypower = df_buypower.rolling(window=long_lookback).mean()
+    xx = np.array([x for x in range(30)])
+    slopes = np.zeros(len(df_vol.keys()))
+    score1 = ma_df_buypower.iloc[-1,:].values
+    k=0
+    for sym in ma_df_buypower.keys():
+        # pdb.set_trace()
+        coef = np.polyfit(xx,ma_df_buypower[sym].values[-30:],1)
+        slopes[k] = coef[0]
+        k+=1
+    # pdb.set_trace()
+    score = standardize(slopes)
+    # ma_df_buypower = df_buypower.rolling(window=short_lookback).mean()
+    # score2 = ma_df_buypower.iloc[-1,:].values
+    #
+    # score = score1+1.2*score2
+    # score = standardize(score)
+    return score
 

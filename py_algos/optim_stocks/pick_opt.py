@@ -156,9 +156,10 @@ if __name__ == "__main__":
 
     print("data loaded")
     need_vol_value = False
-    if portconf.getScoreMethod() >=2:
+    if portconf.getScoreMethod() >=5:
         need_vol_value = True
     df_close,df_volval,df_typ = appendVolumeValue(data,need_vol_value,portconf.getVolumeValueType())
+    df_vol = data['Volume']
     NUM_SYMS = portconf.getNumSymbols()
 
     # pdb.set_trace()
@@ -197,12 +198,8 @@ if __name__ == "__main__":
         score = score_dollarvol_dist(df_typ.iloc[start_tid:global_tid],df_volval.iloc[start_tid:global_tid])
         syms = select_syms_by_score(score, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 4:
-        score1 = score_corr_slope_dist(df_close.iloc[start_tid:global_tid, :],
-                                       timesteps=portconf.getTimeSteps(), short_wt=portconf.getShortTermWeight())
-        score2 = score_mkv_speed(df_close.iloc[start_tid:global_tid, :], scoreconf)
-        start_tid = global_tid - 90
-        score3 = score_by_pair_slope(df_close.iloc[start_tid:global_tid])
-        syms = select_syms_by_score(score1+score2+score3, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
+        score = score_net_buy_power(df_close.iloc[start_tid:global_tid],df_vol.iloc[start_tid:global_tid],60,20)
+        syms = select_syms_by_score(score, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method >=5:
         print("not yet implemented for score method > 0")
         sys.exit(1)

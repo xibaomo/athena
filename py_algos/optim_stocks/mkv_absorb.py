@@ -1,5 +1,6 @@
 import statsmodels.api as sm
 import numpy as np
+import pdb
 
 class ECDFCal(object):  # empirical cdf calculator
     def __init__(self, rtn0):
@@ -47,7 +48,7 @@ class MkvAbsorbCal(object):
             tmp = np.linalg.inv(tmp)
         except:
             print("inversion fails")
-            return 0.5
+            return 0.5,1e10
 
         pr = np.matmul(tmp, Q)
         # ps = np.matmul(tmp,Qsell)

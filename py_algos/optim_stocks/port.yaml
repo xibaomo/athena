@@ -8,7 +8,7 @@ PORTFOLIO:
 
     VOLUME_VALUE_TYPE: 0  # useless
 
-    SCORE_METHOD: 4 # 0: use corr-weighted slope of price + mkv speed
+    SCORE_METHOD: 0 # 0: use corr-weighted slope of price + mkv speed
                     # 1: use slope of price 
                     # 2:
     RANDOM_SELECT: 0 # 0: take top scores. 1: randomly pick among top 2*NUM_SYMBOLS
