@@ -8,9 +8,49 @@ from alpha_vantage.fundamentaldata import FundamentalData
 from sklearn.feature_selection import mutual_info_regression
 from statsmodels.tsa.stattools import adfuller, kpss
 import pdb
-API_KEY='ZHXCW0CK7QJFMHK0'
-NUM_SYMS=50
+import numpy as np
+from scipy.signal import savgol_filter
+import pywt
+import math
+from scipy.stats import spearmanr
 
+def wavelet_smoothing(data, wavelet='db4', level=2):
+    """Smooth a curve using wavelet transform."""
+    # Perform discrete wavelet transform
+    coeffs = pywt.wavedec(data, wavelet, level=level)
+
+    # Threshold the wavelet coefficients
+    threshold = np.std(coeffs[-1]) / 2
+    new_coeffs = [coeff if isinstance(coeff, np.ndarray) else pywt.threshold(coeff, threshold, mode='soft') for coeff in
+                  coeffs]
+
+    # Reconstruct the smoothed signal
+    smoothed_signal = pywt.waverec(new_coeffs, wavelet)
+
+    return smoothed_signal
+
+def savitzky_golay_smoothing(data, window_size, order):
+    """Smooth a curve using the Savitzky-Golay filter."""
+    smoothed_data = savgol_filter(data, window_size, order)
+    return smoothed_data
+
+NUM_SYMS=50
+from scipy.stats import norm
+
+def gaussian_kernel(x, x_data, y_data, h):
+    """Calculate the Gaussian kernel function."""
+    kernel_values = norm.pdf((x - x_data) / h)
+    normalized_kernel = kernel_values / np.sum(kernel_values)
+    smoothed_value = np.sum(normalized_kernel * y_data)
+    return smoothed_value
+
+def gaussian_kernel_smoothing(x_data, y_data, h):
+    """Smooth the data using Gaussian kernel smoothing."""
+    smoothed_data = []
+    for x in x_data:
+        smoothed_value = gaussian_kernel(x, x_data, y_data, h)
+        smoothed_data.append(smoothed_value)
+    return smoothed_data
 def plot_double_y_axis(y1, y2, xlabel='X', y1label='Y1', y2label='Y2', title='Double Y-Axis Plot'):
     fig, ax1 = plt.subplots()
 
@@ -26,6 +66,13 @@ def plot_double_y_axis(y1, y2, xlabel='X', y1label='Y1', y2label='Y2', title='Do
     ax1.axhline(y=mu,linestyle='--')
     ax1.axhline(y=mu+2*sd,linestyle='--')
     ax1.axhline(y=mu-2*sd,linestyle='--')
+    # pdb.set_trace()
+    smdata = y1.copy()
+    x = np.arange(len(y1))
+    smdata[:] = savitzky_golay_smoothing(y1.values,31,2)
+    # smdata[:] = wavelet_smoothing(y1.values,wavelet="db4",level=5)[:len(smdata)]
+
+    ax1.plot(smdata,'y',linewidth=2)
 
     # Create a secondary y-axis and plot the second dataset
     ax2 = ax1.twinx()  
@@ -36,6 +83,7 @@ def plot_double_y_axis(y1, y2, xlabel='X', y1label='Y1', y2label='Y2', title='Do
 
     plt.title(title)
     plt.show()
+
 def add_days_to_date(date_str, num_days):
     # Convert string to datetime object
     # pdb.set_trace()
@@ -54,6 +102,50 @@ def cal_typical_price(data):
     df_close = data['Close']
     df_typ = (df_high+df_low+df_close)/3
     return df_typ
+
+def corr_lookback(lookback,df_sh,df_close):
+    x = df_sh.rolling(window=int(lookback)).mean().values
+    # pdb.set_trace()
+    idx = ~np.isnan(x)
+    x = x[idx]
+    y = df_close.values[idx]
+    # cr =  np.corrcoef(x,y)[0,1]
+    cr,pv = spearmanr(x,y)
+    print("curretn lookback: ", lookback,cr)
+    return -cr
+def optimize_lookback(df_sh,df_close):
+    b = 500
+    a = 10
+    invphi = (math.sqrt(5) - 1) / 2  # 1 / phi
+    invphi2 = (3 - math.sqrt(5)) / 2  # 1 / phi^2
+    (a, b) = (min(a, b), max(a, b))
+    h = b - a
+
+    c = a + invphi2 * h
+    d = a + invphi * h
+    yc = corr_lookback(c,df_sh,df_close)
+    yd = corr_lookback(d,df_sh,df_close)
+
+    while b-a>1:
+        if yc < yd:  # yc > yd to find the maximum
+            b = d
+            d = c
+            yd = yc
+            h = invphi * h
+            c = a + invphi2 * h
+            yc = corr_lookback(c,df_sh,df_close)
+        else:
+            a = c
+            c = d
+            yc = yd
+            h = invphi * h
+            d = a + invphi * h
+            yd = corr_lookback(d,df_sh,df_close)
+
+    print("best lookback: ",b,-corr_lookback(int(b),df_sh,df_close))
+    return int(b)
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: {sys.argv[0]} <date> <lookback_days> <sym> ")
@@ -85,17 +177,21 @@ if __name__ == "__main__":
     # daily_rtn = daily_rtn.drop(zero_cols,axis=1)
 
     df_sh = daily_rtn/df_vol
-    # df_sh = daily_rtn   # pdb.set_trace()
-    lookback=20
+    # df_sh = daily_rtn
+
+    lookback = optimize_lookback(df_sh, df_close)
+    # lookback = 100
     df_sh = df_sh.rolling(window=lookback).mean()
     x=df_sh.iloc[:].values
     idx = ~np.isnan(x)
-    x = x[idx][:-1]
-    y = df_close.values[idx][1:]
-    print(adfuller(x))
+    x = x[idx]
+    y = df_close.values[idx]
+    # print(adfuller(x))
+
     print("corr: ",np.corrcoef(x,y))
-    print("mi: ",mutual_info_regression(x.reshape([-1,1]),y))
+    print("mi: ",mutual_info_regression(x[:-1].reshape([-1,1]),y[1:]))
     plot_double_y_axis(df_sh.iloc[:],df_close.iloc[:])
+    # print("sm corr: ", np.corrcoef(smdata,y))
 
 
 

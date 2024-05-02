@@ -163,6 +163,7 @@ if __name__ == "__main__":
         need_vol_value = True
     df_close,df_volval,df_typ = appendVolumeValue(data,need_vol_value,portconf.getVolumeValueType())
     df_vol = data['Volume']
+    df_sh = df_close.pct_change()/df_vol
     NUM_SYMS = portconf.getNumSymbols()
 
     # pdb.set_trace()
@@ -190,12 +191,10 @@ if __name__ == "__main__":
                                             portconf.getTimeSteps(),
                                             portconf.isRandomSelect())
     elif score_method == 2:
-        score1 = score_corr_slope_dist(df_close.iloc[start_tid:global_tid, :],
-                                       timesteps=portconf.getTimeSteps(), short_wt=portconf.getShortTermWeight())
-        score2 = score_mkv_speed(df_close.iloc[start_tid:global_tid, :], scoreconf)
-        # score3 = score_specific_heat(df_typ.iloc[:global_tid], df_volval.iloc[:global_tid], scoreconf)
-        score3 = score_money_flow(df_typ.iloc[:global_tid],df_volval.iloc[:global_tid],scoreconf)
-        syms = select_syms_by_score(score1+score2+score3, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
+        start_tid = global_tid - 1000
+        # pdb.set_trace()
+        score = score_netbuypower_slope_corr(df_sh.iloc[start_tid:global_tid,:],df_close.iloc[start_tid:global_tid,:])
+        syms = select_syms_by_score(score, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 3:
         start_tid = global_tid-30
         score = score_dollarvol_dist(df_typ.iloc[start_tid:global_tid],df_volval.iloc[start_tid:global_tid])

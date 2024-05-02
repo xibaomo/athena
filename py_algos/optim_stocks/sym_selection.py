@@ -5,6 +5,8 @@ from sklearn.feature_selection import mutual_info_regression
 import matplotlib.pyplot as plt
 import multiprocessing
 from functools import partial
+import math
+from scipy.stats import spearmanr
 
 NUM_PROCS = multiprocessing.cpu_count()-2
 
@@ -452,3 +454,81 @@ def select_syms_net_buy_power(df_close,df_vol,lookback):
     # syms=[]
     return syms
 
+def corr_lookback(lookback,df_sh,df_close):
+    x = df_sh.rolling(window=int(lookback)).mean().values
+    # pdb.set_trace()
+    idx = ~np.isnan(x)
+    x = x[idx]
+    y = df_close.values[idx]
+    # cr =  np.corrcoef(x,y)[0,1]
+    cr,pv = spearmanr(x,y)
+    # print("curretn lookback: ", lookback,cr)
+    return -cr
+def optimize_lookback(df_sh,df_close):
+    b = 500
+    a = 10
+    invphi = (math.sqrt(5) - 1) / 2  # 1 / phi
+    invphi2 = (3 - math.sqrt(5)) / 2  # 1 / phi^2
+    (a, b) = (min(a, b), max(a, b))
+    h = b - a
+
+    c = a + invphi2 * h
+    d = a + invphi * h
+    yc = corr_lookback(c,df_sh,df_close)
+    yd = corr_lookback(d,df_sh,df_close)
+
+    while b-a>1:
+        if yc < yd:  # yc > yd to find the maximum
+            b = d
+            d = c
+            yd = yc
+            h = invphi * h
+            c = a + invphi2 * h
+            yc = corr_lookback(c,df_sh,df_close)
+        else:
+            a = c
+            c = d
+            yc = yd
+            h = invphi * h
+            d = a + invphi * h
+            yd = corr_lookback(d,df_sh,df_close)
+
+    # print("best lookback: ",b,-corr_lookback(int(b),df_sh,df_close))
+    best_cr = -corr_lookback(int(b),df_sh,df_close)
+    return int(b), best_cr
+
+def score_netbuypower_slope_corr_individual(df_sh,df_close):
+    # pdb.set_trace()
+    lookback,cr = optimize_lookback(df_sh,df_close)
+    if cr < 0:
+        return 0
+    ma_sh = df_sh.rolling(window=lookback).mean()
+    N = 31
+    x = np.array([i for i in range(N)])
+    y = ma_sh.values[-N:]
+    p = np.polyfit(x,y,2)
+    fy = np.polyval(p,x)
+    if np.isnan(fy[-1]):
+        return 0
+    if fy[-1] <= 0:
+        return 0
+    df = fy[-1]-fy[-2]
+    if df < 0:
+        return 0
+    if np.isnan(df*cr):
+        pdb.set_trace()
+    return df*cr
+
+def score_netbuypower_slope_corr(df_sh,df_close):
+    nsyms = len(df_sh.keys())
+    scores = np.zeros(nsyms)
+    # pdb.set_trace()
+    for i in range(nsyms):
+        scores[i] = score_netbuypower_slope_corr_individual(df_sh.iloc[:,i],df_close.iloc[:,i])
+        # print(df_sh.keys()[i],scores[i])
+
+    print("Raw scores:")
+    for i in range(nsyms):
+        if np.isnan(scores[i]) or scores[i] > 0:
+            print(df_sh.keys()[i],scores[i])
+    return scores
