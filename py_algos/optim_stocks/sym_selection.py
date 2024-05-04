@@ -499,9 +499,10 @@ def optimize_lookback(df_sh,df_close):
 
 def score_netbuypower_slope_corr_individual(df_sh,df_close):
     # pdb.set_trace()
+    LOW=0
     lookback,cr = optimize_lookback(df_sh,df_close)
-    if cr < 0:
-        return 0
+    if cr < 0.5:
+        return LOW
     ma_sh = df_sh.rolling(window=lookback).mean()
     N = 31
     x = np.array([i for i in range(N)])
@@ -509,15 +510,15 @@ def score_netbuypower_slope_corr_individual(df_sh,df_close):
     p = np.polyfit(x,y,2)
     fy = np.polyval(p,x)
     if np.isnan(fy[-1]):
-        return 0
+        return LOW
     if fy[-1] <= 0:
-        return 0
+        return LOW
     df = fy[-1]-fy[-2]
     if df < 0:
-        return 0
+        return LOW
     if np.isnan(df*cr):
         pdb.set_trace()
-    return df*cr
+    return cr*fy[-1]*df
 
 def score_netbuypower_slope_corr(df_sh,df_close):
     nsyms = len(df_sh.keys())

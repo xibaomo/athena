@@ -13,6 +13,7 @@ from scipy.signal import savgol_filter
 import pywt
 import math
 from scipy.stats import spearmanr
+from scipy.stats import shapiro
 
 def wavelet_smoothing(data, wavelet='db4', level=2):
     """Smooth a curve using wavelet transform."""
@@ -171,17 +172,18 @@ if __name__ == "__main__":
 
     df_typ = cal_typical_price(data)
     df_vol = data['Volume']
+    df_volval = df_typ*df_vol
     daily_rtn = df_typ.pct_change()
     # zero_cols = df_vol.columns[(df_vol==0).any()]
     # df_vol = df_vol.drop(zero_cols,axis=1)
     # daily_rtn = daily_rtn.drop(zero_cols,axis=1)
 
-    df_sh = daily_rtn/df_vol
+    df_sh0 = daily_rtn/df_volval
     # df_sh = daily_rtn
 
-    lookback = optimize_lookback(df_sh, df_close)
+    lookback = optimize_lookback(df_sh0, df_close)
     # lookback = 100
-    df_sh = df_sh.rolling(window=lookback).mean()
+    df_sh = df_sh0.rolling(window=lookback).mean()
     x=df_sh.iloc[:].values
     idx = ~np.isnan(x)
     x = x[idx]

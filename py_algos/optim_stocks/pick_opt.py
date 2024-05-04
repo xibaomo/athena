@@ -138,7 +138,7 @@ def appendVolumeValue(data,cal_vol_value=False,vol_value_type=0):
     if not cal_vol_value:
         return df_close,None,None
 
-    df_vol = data['Volume']
+    df_vol = data['Volume']/1.e12
     df_hi = data['High']
     df_lw = data['Low']
     df_typ = (df_hi+df_lw+df_close)/3.
@@ -158,12 +158,12 @@ if __name__ == "__main__":
     # pdb.set_trace()
 
     print("data loaded")
-    need_vol_value = False
+    need_vol_value = True
     if portconf.getScoreMethod() >=5:
         need_vol_value = True
     df_close,df_volval,df_typ = appendVolumeValue(data,need_vol_value,portconf.getVolumeValueType())
     df_vol = data['Volume']
-    df_sh = df_close.pct_change()/df_vol
+    df_sh = df_close.pct_change()/df_volval
     NUM_SYMS = portconf.getNumSymbols()
 
     # pdb.set_trace()
@@ -311,11 +311,11 @@ if __name__ == "__main__":
         tmp = ", ".join(["{:^8.3f}".format(element) for element in risk_share])
         print("Risk share: ",tmp)
 
-        plt.plot(pfs,'.-')
-        def on_close(event):
-            plt.pause(0.01)
-        plt.gcf().canvas.mpl_connect('close_event', on_close)
-        plt.show()
+        # plt.plot(pfs,'.-')
+        # def on_close(event):
+        #     plt.pause(0.01)
+        # plt.gcf().canvas.mpl_connect('close_event', on_close)
+        # plt.show()
         # plt.pause(60)
         # plt.close()
         print("End of cycle")
