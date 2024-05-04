@@ -1,5 +1,6 @@
 import statsmodels.api as sm
 import numpy as np
+from scipy.stats import norm
 import pdb
 
 class ECDFCal(object):  # empirical cdf calculator
@@ -13,14 +14,29 @@ class ECDFCal(object):  # empirical cdf calculator
         uy = self.compCDF(ub)
         ly = self.compCDF(lb)
         return uy - ly
+class GaussCDFCal(object):
+    def __init__(self,rtn0):
+        self.mean = np.mean(rtn0)
+        self.std  = np.std(rtn0)
+    def compCDF(self,x):
+        return norm.cdf(x,loc=self.mean,scale=self.std)
+    def compRangeProb(self,lb,ub):
+        return self.compCDF(ub) - self.compCDF(lb)
 
 class MkvAbsorbCal(object):
-    def __init__(self,nstates):
+    def __init__(self,nstates,cdf='emp'):
         self.n_states = nstates
+        self.cdfType = cdf
+        self.transProbCal = None
 
     def compWinProb(self, rtns, lb_rtn, ub_rtn):
         rtns = rtns[~np.isnan(rtns)]
-        self.transProbCal = ECDFCal(rtns)
+        if self.cdfType == 'emp':
+            self.transProbCal = ECDFCal(rtns)
+        elif self.cdfType == 'gauss':
+            self.transProbCal = GaussCDFCal(rtns)
+        else:
+            print("Wrong cdf type: ", self.cdfType)
         # print("ECDFCal is used")
         npts = self.n_states
         d = (ub_rtn - lb_rtn) / npts

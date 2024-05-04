@@ -533,3 +533,23 @@ def score_netbuypower_slope_corr(df_sh,df_close):
         if np.isnan(scores[i]) or scores[i] > 0:
             print(df_sh.keys()[i],scores[i])
     return scores
+
+def score_buypower_mkv_speed(df_close,df_volval):
+    df_rtn = df_close.pct_change()
+    df_sh = df_rtn/df_volval
+    mkvcal = MkvAbsorbCal(100,'gauss')
+    # pdb.set_trace()
+    nsyms = len(df_sh.keys())
+    scores = np.zeros(nsyms)
+    for i in range(nsyms):
+        arr = df_sh.iloc[:,i].values[1:]
+        sd = np.std(arr)
+        p,sp = mkvcal.compWinProb(arr,-20*sd,20*sd)
+        if p < 0.5:
+            sp = -sp
+        scores[i] = 1./sp
+        # pdb.set_trace()
+
+    scores = standardize(scores)
+    return scores
+

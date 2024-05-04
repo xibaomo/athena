@@ -138,7 +138,7 @@ def appendVolumeValue(data,cal_vol_value=False,vol_value_type=0):
     if not cal_vol_value:
         return df_close,None,None
 
-    df_vol = data['Volume']/1.e12
+    df_vol = data['Volume']/1.e6
     df_hi = data['High']
     df_lw = data['Low']
     df_typ = (df_hi+df_lw+df_close)/3.
@@ -191,9 +191,9 @@ if __name__ == "__main__":
                                             portconf.getTimeSteps(),
                                             portconf.isRandomSelect())
     elif score_method == 2:
-        start_tid = global_tid - 1000
+        start_tid = global_tid - 180
         # pdb.set_trace()
-        score = score_netbuypower_slope_corr(df_sh.iloc[start_tid:global_tid,:],df_close.iloc[start_tid:global_tid,:])
+        score = score_buypower_mkv_speed(df_close.iloc[start_tid:global_tid,:],df_volval.iloc[start_tid:global_tid,:])
         syms = select_syms_by_score(score, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 3:
         start_tid = global_tid-30
