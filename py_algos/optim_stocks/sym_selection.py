@@ -159,8 +159,9 @@ def select_syms_by_score(score,all_syms,random_select,num_selected_syms):
     sorted_id = np.argsort(score)[::-1]
     sorted_syms = all_syms[sorted_id]
 
-    print(score[sorted_id])
-    print(score.sum())
+    print(sorted_syms[:20])
+    print(score[sorted_id][:20])
+
 
     if random_select:
         print("Randomly pick among top {}".format(num_selected_syms * 2))
@@ -542,14 +543,19 @@ def score_buypower_mkv_speed(df_close,df_volval):
     nsyms = len(df_sh.keys())
     scores = np.zeros(nsyms)
     for i in range(nsyms):
+        # if df_sh.keys()[i] == 'BIZD':
+        #     pdb.set_trace()
         arr = df_sh.iloc[:,i].values[1:]
-        sd = np.std(arr)
-        p,sp = mkvcal.compWinProb(arr,-20*sd,20*sd)
+        arr = arr[~np.isnan(arr)]
+        # mu = abs(np.mean(arr))
+        # sd = np.std(arr)
+        mx = np.max(arr)*10
+        p,sp = mkvcal.compWinProb(arr,-mx,mx)
         if p < 0.5:
             sp = -sp
         scores[i] = 1./sp
         # pdb.set_trace()
 
-    scores = standardize(scores)
+    # scores = standardize(scores)
     return scores
 

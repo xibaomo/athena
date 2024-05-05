@@ -193,8 +193,12 @@ if __name__ == "__main__":
     elif score_method == 2:
         start_tid = global_tid - 180
         # pdb.set_trace()
-        score = score_buypower_mkv_speed(df_close.iloc[start_tid:global_tid,:],df_volval.iloc[start_tid:global_tid,:])
-        syms = select_syms_by_score(score, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
+        score1 = score_buypower_mkv_speed(df_close.iloc[start_tid:global_tid, :],
+                                         df_volval.iloc[start_tid:global_tid, :])
+        # start_tid = global_tid - 22
+        # # pdb.set_trace()
+        # score2 = score_buypower_mkv_speed(df_close.iloc[start_tid:global_tid,:],df_volval.iloc[start_tid:global_tid,:])
+        syms = select_syms_by_score(score1, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 3:
         start_tid = global_tid-30
         score = score_dollarvol_dist(df_typ.iloc[start_tid:global_tid],df_volval.iloc[start_tid:global_tid])

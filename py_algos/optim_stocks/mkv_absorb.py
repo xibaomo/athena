@@ -37,6 +37,7 @@ class MkvAbsorbCal(object):
             self.transProbCal = GaussCDFCal(rtns)
         else:
             print("Wrong cdf type: ", self.cdfType)
+            sys.exit(1)
         # print("ECDFCal is used")
         npts = self.n_states
         d = (ub_rtn - lb_rtn) / npts
