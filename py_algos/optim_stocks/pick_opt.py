@@ -191,7 +191,7 @@ if __name__ == "__main__":
                                             portconf.getTimeSteps(),
                                             portconf.isRandomSelect())
     elif score_method == 2:
-        start_tid = global_tid - 180
+        start_tid = global_tid - 30
         # pdb.set_trace()
         score1 = score_buypower_mkv_speed(df_close.iloc[start_tid:global_tid, :],
                                          df_volval.iloc[start_tid:global_tid, :])

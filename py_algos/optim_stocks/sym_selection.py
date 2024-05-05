@@ -535,25 +535,39 @@ def score_netbuypower_slope_corr(df_sh,df_close):
             print(df_sh.keys()[i],scores[i])
     return scores
 
+def score_buypower_mkvspeed_individual(arr):
+    arr = arr[~np.isnan(arr)]
+    mkvcal = MkvAbsorbCal(100,'gauss')
+    mx = np.max(arr)*10
+    p,sp = mkvcal.compWinProb(arr,-mx,mx)
+    if p < 0.5:
+        sp = -sp
+    return mx/sp
+
 def score_buypower_mkv_speed(df_close,df_volval):
+    pool = multiprocessing.Pool(processes=NUM_PROCS)
     df_rtn = df_close.pct_change()
     df_sh = df_rtn/df_volval
-    mkvcal = MkvAbsorbCal(100,'gauss')
+
+    args = [df_sh[key].values for key in df_sh.keys()]
+    scores = pool.map(score_buypower_mkvspeed_individual,args)
+    scores = np.array(scores)
     # pdb.set_trace()
-    nsyms = len(df_sh.keys())
-    scores = np.zeros(nsyms)
-    for i in range(nsyms):
-        # if df_sh.keys()[i] == 'BIZD':
-        #     pdb.set_trace()
-        arr = df_sh.iloc[:,i].values[1:]
-        arr = arr[~np.isnan(arr)]
-        # mu = abs(np.mean(arr))
-        # sd = np.std(arr)
-        mx = np.max(arr)*10
-        p,sp = mkvcal.compWinProb(arr,-mx,mx)
-        if p < 0.5:
-            sp = -sp
-        scores[i] = 1./sp
+
+    # mkvcal = MkvAbsorbCal(100,'gauss')
+    # pdb.set_trace()
+    # nsyms = len(df_sh.keys())
+    # scores = np.zeros(nsyms)
+    # for i in range(nsyms):
+    #     arr = df_sh.iloc[:,i].values[1:]
+    #     arr = arr[~np.isnan(arr)]
+    #     # mu = abs(np.mean(arr))
+    #     # sd = np.std(arr)
+    #     mx = np.max(arr)*10
+    #     p,sp = mkvcal.compWinProb(arr,-mx,mx)
+    #     if p < 0.5:
+    #         sp = -sp
+    #     scores[i] = mx/sp
         # pdb.set_trace()
 
     # scores = standardize(scores)
