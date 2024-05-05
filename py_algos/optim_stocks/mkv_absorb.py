@@ -1,6 +1,8 @@
 import statsmodels.api as sm
 import numpy as np
 from scipy.stats import norm
+import math
+import sys,os
 import pdb
 
 class ECDFCal(object):  # empirical cdf calculator
@@ -23,6 +25,18 @@ class GaussCDFCal(object):
     def compRangeProb(self,lb,ub):
         return self.compCDF(ub) - self.compCDF(lb)
 
+class LaplaceCDFCal(object):
+    def __init__(self,rtn0):
+        self.mean = np.mean(rtn0)
+        self.scale = np.std(rtn0)/math.sqrt(2.)
+    def compCDF(self,x):
+        if x <= self.mean:
+            return .5*np.exp((x-self.mean)/self.scale)
+        return 1-.5*np.exp((self.mean-x)/self.scale)
+    def compRangeProb(self,lb,ub):
+        return self.compCDF(ub) - self.compCDF(lb)
+
+
 class MkvAbsorbCal(object):
     def __init__(self,nstates,cdf='emp'):
         self.n_states = nstates
@@ -35,6 +49,8 @@ class MkvAbsorbCal(object):
             self.transProbCal = ECDFCal(rtns)
         elif self.cdfType == 'gauss':
             self.transProbCal = GaussCDFCal(rtns)
+        elif self.cdfType == "laplace":
+            self.transProbCal = LaplaceCDFCal(rtns)
         else:
             print("Wrong cdf type: ", self.cdfType)
             sys.exit(1)
