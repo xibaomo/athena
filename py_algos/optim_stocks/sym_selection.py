@@ -273,7 +273,7 @@ def score_volval_mean_offset(df_vv,short_wt):
 
 def comp_mkv_speed(args):
     scoreconf,rtn_arr = args
-    cal=MkvAbsorbCal(scoreconf.getMarkovSpeedPartitions())
+    cal=MkvAbsorbCal(scoreconf.getMarkovSpeedPartitions(),scoreconf.getCDFType())
     bnd = scoreconf.getMarkovSpeedBound()
     p,sp = cal.compWinProb(rtn_arr,-bnd,bnd)
     if p < .5:
@@ -539,9 +539,8 @@ def score_buypower_mkvspeed_individual(arr):
     arr = arr[~np.isnan(arr)]
     mkvcal = MkvAbsorbCal(100,'gauss')
     mx = np.max(arr)*10
-    p,sp = mkvcal.compWinProb(arr,-mx,mx)
-    if p < 0.5:
-        sp = -sp
+    p,sp = mkvcal.compUpAveSteps(arr,-mx,mx)
+
     return mx/sp
 
 def score_buypower_mkv_speed(df_close,df_volval):
@@ -554,22 +553,29 @@ def score_buypower_mkv_speed(df_close,df_volval):
     scores = np.array(scores)
     # pdb.set_trace()
 
-    # mkvcal = MkvAbsorbCal(100,'gauss')
-    # pdb.set_trace()
-    # nsyms = len(df_sh.keys())
-    # scores = np.zeros(nsyms)
-    # for i in range(nsyms):
-    #     arr = df_sh.iloc[:,i].values[1:]
-    #     arr = arr[~np.isnan(arr)]
-    #     # mu = abs(np.mean(arr))
-    #     # sd = np.std(arr)
-    #     mx = np.max(arr)*10
-    #     p,sp = mkvcal.compWinProb(arr,-mx,mx)
-    #     if p < 0.5:
-    #         sp = -sp
-    #     scores[i] = mx/sp
-        # pdb.set_trace()
-
-    # scores = standardize(scores)
+    scores = standardize(scores)
     return scores
 
+def score_price_mkvspeed_individual(arr):
+    mx=.5
+    arr = arr[~np.isnan(arr)]
+    mkvcal = MkvAbsorbCal(100,'laplace')
+    sp = mkvcal.compUpAveSteps(arr,-mx,mx)
+
+    return mx/sp
+
+def score_price_mkv_speed(df_close,df_volval):
+    pool = multiprocessing.Pool(processes=NUM_PROCS)
+    df_rtn = df_close.pct_change()
+
+    args = [df_rtn[key].values for key in df_rtn.keys()]
+    scores = pool.map(score_price_mkvspeed_individual,args)
+    # scores=[]
+    # for i in range(len(args)):
+    #     s = score_price_mkvspeed_individual(args[i])
+    #     scores.append(s)
+    scores = np.array(scores)
+    # pdb.set_trace()
+
+    scores = standardize(scores)
+    return scores

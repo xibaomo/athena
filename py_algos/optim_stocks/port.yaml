@@ -3,21 +3,22 @@ PORTFOLIO:
     NUM_SYMBOLS: 20
     LOOKFORWARD: 30 #days
     LOOKBACK: 180 #days
-    TIME_STEPS: 100
+    TIME_STEPS: 200
     SHORT_TERM_WEIGHT: 1.2
 
     VOLUME_VALUE_TYPE: 0  # useless
 
-    SCORE_METHOD: 2 # 0: use corr-weighted slope of price + mkv speed
+    SCORE_METHOD: 1 # 0: use corr-weighted slope of price + mkv speed
                     # 1: use slope of price 
                     # 2:
     RANDOM_SELECT: 0 # 0: take top scores. 1: randomly pick among top 2*NUM_SYMBOLS
 
 SCORE_SETTING:
     MKV_SPEED:
-        LOOKBACK: 90
+        LOOKBACK: 30
         BOUND: .1
         PARTITIONS: 100
+        CDF_TYPE: 'laplace'
     SPECIFIC_HEAT:
         LOOKBACK: 20
 

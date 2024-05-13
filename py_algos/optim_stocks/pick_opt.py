@@ -185,11 +185,12 @@ if __name__ == "__main__":
         score2 = score_mkv_speed(df_close.iloc[start_tid:global_tid,:],scoreconf)
         syms = select_syms_by_score(score1+score2,df_close.keys(),portconf.isRandomSelect(),NUM_SYMS)
     elif score_method == 1:
-        syms = select_syms_slope_dist(df_close.iloc[start_tid:global_tid,:],
-                                            NUM_SYMS,
-                                            portconf.getShortTermWeight(),
-                                            portconf.getTimeSteps(),
-                                            portconf.isRandomSelect())
+        dff = df_volval
+        score1 = score_corr_slope_dist(dff.iloc[start_tid:global_tid,:],
+                                       timesteps=portconf.getTimeSteps(),short_wt=portconf.getShortTermWeight())
+        # score2 = score_price_mkv_speed(df_close.iloc[global_tid-180:global_tid,:],scoreconf)
+                                          # df_volval.iloc[global_tid-30:global_tid,:])
+        syms = select_syms_by_score(score1, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 2:
         start_tid = global_tid - 30
         # pdb.set_trace()

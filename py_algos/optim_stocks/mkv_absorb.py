@@ -42,9 +42,7 @@ class MkvAbsorbCal(object):
         self.n_states = nstates
         self.cdfType = cdf
         self.transProbCal = None
-
-    def compWinProb(self, rtns, lb_rtn, ub_rtn):
-        rtns = rtns[~np.isnan(rtns)]
+    def createCDFCal(self,rtns):
         if self.cdfType == 'emp':
             self.transProbCal = ECDFCal(rtns)
         elif self.cdfType == 'gauss':
@@ -54,7 +52,9 @@ class MkvAbsorbCal(object):
         else:
             print("Wrong cdf type: ", self.cdfType)
             sys.exit(1)
-        # print("ECDFCal is used")
+    def compWinProb(self, rtns, lb_rtn, ub_rtn):
+        rtns = rtns[~np.isnan(rtns)]
+        self.createCDFCal(rtns)
         npts = self.n_states
         d = (ub_rtn - lb_rtn) / npts
         idxDiff2Prob = {}
@@ -94,3 +94,71 @@ class MkvAbsorbCal(object):
         if p < 0:
             p = 0.
         return p, sp
+
+    def compUpAveSteps(self,rtns,lb,ub):
+        rtns = rtns[~np.isnan(rtns)]
+        self.createCDFCal(rtns)
+        npts = self.n_states
+        d = (ub - lb) / npts
+        idxDiff2Prob = {}
+        for i in range(-npts + 1, npts):
+            p = self.transProbCal.compRangeProb(i * d - d / 2, i * d + d / 2)
+            idxDiff2Prob[i] = p
+
+        C = np.zeros((npts, npts))
+        I = np.identity(npts)
+        Q = np.zeros((npts, 1))
+        one = np.ones((npts, 1))
+        # Qsell = np.zeros((npts,1))
+
+        for i in range(npts):
+            for j in range(npts):
+                C[i, j] = idxDiff2Prob[j - i]
+            Q[i] = self.transProbCal.compRangeProb((npts - i) * d - d / 2, .5)
+        # normalize C and Q
+        for i in range(npts):
+            s = np.sum(C[i,:]) + Q[i]
+            if s == 0:
+                pdb.set_trace()
+            C[i,:] = C[i,:]/s
+            Q[i] = Q[i]/s
+
+        tmp = I - C
+        try:
+            tmp = np.linalg.inv(tmp)
+        except:
+            print("inversion fails")
+            return  1e10
+
+        steps = np.matmul(tmp, one)
+
+        idx = int((0 - lb) / d)
+        sp = steps[idx][0]
+
+        return sp
+
+
+def dp_minimize(candidates,n_choose,cal_f):
+    '''
+    candidates: [(sym1,params1),(sym2,params2),...]
+    n_choose: number of selections
+    cal_f: function to compute cost
+    '''
+    n = len(candidates)
+    k = n_choose
+    dp = [[ 1e10 for _ in range(k+1)] for _ in range(n+1)]
+    chosen = [[[] for _ in range(k+1)] for _ in range(n+1)]
+
+    # build the table bottom-up
+    for i in range(1,n+1):
+        for j in range(1,k+1):
+            if j<=i:
+                args = chosen[i-1][j-1] + [candidates[i-1]]
+                cost = cal_f(args)
+                if cost < dp[i-1][j]:
+                    dp[i][j] = cost
+                    chosen[i][j] = args
+                else:
+                    dp[i][j] = dp[i-1][j]
+                    chosen[i][j] = chosen[i-1][j]
+    return dp[n][k],chosen[n][k]
