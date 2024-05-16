@@ -24,13 +24,14 @@ def __transmat2dist(transmat):
     tmp = np.linalg.inv(tmp)
     sol = np.matmul(row_one, tmp)
     return sol
-def transmat2dist(transmat,timesteps=100):
+def transmat2dist(transmat,timesteps=100,exclude_isolation=True):
     nsyms = transmat.shape[0]
     x = np.ones([nsyms, 1])
     # pdb.set_trace()
-    for i in range(nsyms):
-        if transmat[i, i] == 1:
-            x[i, 0] = 0
+    if exclude_isolation:
+        for i in range(nsyms):
+            if transmat[i, i] == 1:
+                x[i, 0] = 0
 
     t_trans = transmat.transpose()
     for i in range(timesteps):
@@ -159,9 +160,8 @@ def select_syms_by_score(score,all_syms,random_select,num_selected_syms):
     sorted_id = np.argsort(score)[::-1]
     sorted_syms = all_syms[sorted_id]
 
-    print(sorted_syms[:20])
-    print(score[sorted_id][:20])
-
+    print(sorted_syms[:num_selected_syms])
+    print(score[sorted_id][:num_selected_syms])
 
     if random_select:
         print("Randomly pick among top {}".format(num_selected_syms * 2))
@@ -579,3 +579,39 @@ def score_price_mkv_speed(df_close,df_volval):
 
     scores = standardize(scores)
     return scores
+
+def score_return_flow(df_close,risk_free_rtn):
+    df_rtn = df_close.pct_change()
+    df_rtn = df_rtn.dropna()
+    # df_rtn['risk_free'] = risk_free_rtn/250
+    sym_rtn = df_rtn.mean().values
+    sym_std = df_rtn.std().values
+    metrics = sym_rtn/sym_std
+
+    nsyms = df_rtn.shape[1]
+    transmat = np.zeros((nsyms,nsyms))
+    for i in range(nsyms):
+        for j in range(nsyms):
+            if i == j:
+                continue
+            if metrics[j] <= 0:
+                continue
+            if metrics[j] <= metrics[i]:
+                continue
+
+            transmat[i,j] = metrics[j] - metrics[i]
+
+    for i in range(nsyms):
+        s = np.sum(transmat[i,:])
+        if s == 0:
+            transmat[i,i] = 1
+        else:
+            transmat[i,:] = transmat[i,:]/s
+
+    score = transmat2dist(transmat,timesteps=3,exclude_isolation=False)
+    return score
+
+
+
+
+

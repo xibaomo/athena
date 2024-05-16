@@ -191,7 +191,7 @@ if __name__ == "__main__":
         # score2 = score_price_mkv_speed(df_close.iloc[global_tid-180:global_tid,:],scoreconf)
                                           # df_volval.iloc[global_tid-30:global_tid,:])
         syms = select_syms_by_score(score1, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
-    elif score_method == 2:
+    elif score_method == 2: # dp_minimize
         def cal_cost(args): # args: [(sym1,rtns1),(sym2,rtns),...]
             nsyms = len(args)
             len_hist = len(args[0][1])
@@ -213,9 +213,11 @@ if __name__ == "__main__":
         syms = [best_port[i][0] for i in range(len(best_port))]
 
     elif score_method == 3:
-        start_tid = global_tid-30
-        score = score_dollarvol_dist(df_typ.iloc[start_tid:global_tid],df_volval.iloc[start_tid:global_tid])
-        syms = select_syms_by_score(score, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
+        # start_tid = global_tid-30
+        score1 = score_return_flow(df_close.iloc[start_tid:global_tid],portconf.getRiskFreeInterestRate())
+        # score2 = score_return_flow(df_close.iloc[global_tid-30:global_tid],portconf.getRiskFreeInterestRate())
+        all_syms = df_close.keys().tolist()
+        syms = select_syms_by_score(score1, np.array(all_syms), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 4:
         start_tid = global_tid-600
         syms = select_syms_net_buy_power(df_close.iloc[start_tid:global_tid],df_vol.iloc[start_tid:global_tid],20)

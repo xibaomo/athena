@@ -54,6 +54,8 @@ class PortfolioConfig(object):
         return self.yamlDict[self.root]['TIME_STEPS']
     def isRandomSelect(self):
         return self.yamlDict[self.root]['RANDOM_SELECT']
+    def getRiskFreeInterestRate(self):
+        return self.yamlDict[self.root]['RISK_FREE_RATE']
 
 class ScoreSettingConfig(object):
     def __init__(self,portconf):

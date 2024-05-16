@@ -2,13 +2,14 @@ PORTFOLIO:
     CAPITAL_AMOUNT: 10000 # US dollars
     NUM_SYMBOLS: 20
     LOOKFORWARD: 30 #days
-    LOOKBACK: 300 #days
+    LOOKBACK: 180 #days
     TIME_STEPS: 200
     SHORT_TERM_WEIGHT: 1.2
+    RISK_FREE_RATE: 0.05
 
     VOLUME_VALUE_TYPE: 0  # useless
 
-    SCORE_METHOD: 1 # 0: use corr-weighted slope of price + mkv speed
+    SCORE_METHOD: 3 # 0: use corr-weighted slope of price + mkv speed
                     # 1: use slope of price 
                     # 2:
     RANDOM_SELECT: 0 # 0: take top scores. 1: randomly pick among top 2*NUM_SYMBOLS
