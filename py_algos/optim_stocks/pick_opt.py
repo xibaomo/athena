@@ -192,14 +192,26 @@ if __name__ == "__main__":
                                           # df_volval.iloc[global_tid-30:global_tid,:])
         syms = select_syms_by_score(score1, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 2:
-        start_tid = global_tid - 30
-        # pdb.set_trace()
-        score1 = score_buypower_mkv_speed(df_close.iloc[start_tid:global_tid, :],
-                                         df_volval.iloc[start_tid:global_tid, :])
-        # start_tid = global_tid - 22
-        # # pdb.set_trace()
-        # score2 = score_buypower_mkv_speed(df_close.iloc[start_tid:global_tid,:],df_volval.iloc[start_tid:global_tid,:])
-        syms = select_syms_by_score(score1, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
+        def cal_cost(args): # args: [(sym1,rtns1),(sym2,rtns),...]
+            nsyms = len(args)
+            len_hist = len(args[0][1])
+            port_rtns = np.zeros(len_hist)
+            for i in range(len_hist):
+                rtns = [args[j][1][i] for j in range(nsyms)]
+                # pdb.set_trace()
+                port_rtns[i] = np.mean(rtns)
+            mu = np.mean(port_rtns)
+            sd = np.std(port_rtns)
+            return -mu
+
+        df_rtns = df_close.pct_change().iloc[start_tid:global_tid,:]
+        nsyms = len(df_rtns.keys())
+        candidates = [(df_rtns.keys()[i],df_rtns.iloc[:,i].values) for i in range(nsyms)]
+        cost,best_port = dp_minimize(candidates,NUM_SYMS,cal_cost)
+        print("Lowest cost: ", cost)
+        print("Overall cost: ", cal_cost(candidates))
+        syms = [best_port[i][0] for i in range(len(best_port))]
+
     elif score_method == 3:
         start_tid = global_tid-30
         score = score_dollarvol_dist(df_typ.iloc[start_tid:global_tid],df_volval.iloc[start_tid:global_tid])
