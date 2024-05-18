@@ -138,15 +138,18 @@ class MkvAbsorbCal(object):
         return sp
 
 
-def dp_minimize(candidates,n_choose,cal_f):
+def dp_minimize(candidates,cal_f, max_n_choose=-1):
     '''
     candidates: [(sym1,params1),(sym2,params2),...]
     n_choose: number of selections
     cal_f: function to compute cost
     '''
+
     n = len(candidates)
-    k = n_choose
-    dp = [[ 1e10 for _ in range(k+1)] for _ in range(n+1)]
+    k = max_n_choose
+    if k < 0:
+        k = n
+    dp = [[ 1e20 for _ in range(k+1)] for _ in range(n+1)]
     chosen = [[[] for _ in range(k+1)] for _ in range(n+1)]
 
     # build the table bottom-up
@@ -154,11 +157,13 @@ def dp_minimize(candidates,n_choose,cal_f):
         for j in range(1,k+1):
             if j<=i:
                 args = chosen[i-1][j-1] + [candidates[i-1]]
-                cost = cal_f(args)
+                cost,_ = cal_f(args)
                 if cost < dp[i-1][j]:
                     dp[i][j] = cost
                     chosen[i][j] = args
                 else:
                     dp[i][j] = dp[i-1][j]
                     chosen[i][j] = chosen[i-1][j]
-    return dp[n][k],chosen[n][k]
+
+    min_idx = dp[n].index(min(dp[n]))
+    return dp[n][min_idx],chosen[n][min_idx]

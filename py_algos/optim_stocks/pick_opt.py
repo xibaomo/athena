@@ -1,7 +1,7 @@
 import copy
 import pdb
 import re
-
+from scipy.stats import ks_2samp, anderson_ksamp, mannwhitneyu
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -179,6 +179,7 @@ if __name__ == "__main__":
     score_method = portconf.getScoreMethod()
     scoreconf = ScoreSettingConfig(portconf)
     print("Selected score method: ", score_method)
+    OPTIMIZE_PORTFOLIO = True
     if score_method == 0:
         score1 = score_corr_slope_dist(df_close.iloc[start_tid:global_tid,:],
                                        timesteps=portconf.getTimeSteps(),short_wt=portconf.getShortTermWeight())
@@ -194,6 +195,8 @@ if __name__ == "__main__":
     elif score_method == 2: # dp_minimize
         def cal_cost(args): # args: [(sym1,rtns1),(sym2,rtns),...]
             nsyms = len(args)
+            # if nsyms < 2:
+            #     return 0,np.array([])
             len_hist = len(args[0][1])
             port_rtns = np.zeros(len_hist)
             for i in range(len_hist):
@@ -202,15 +205,22 @@ if __name__ == "__main__":
                 port_rtns[i] = np.mean(rtns)
             mu = np.mean(port_rtns)
             sd = np.std(port_rtns)
-            return -mu
+            return -mu/sd, port_rtns
 
         df_rtns = df_close.pct_change().iloc[start_tid:global_tid,:]
         nsyms = len(df_rtns.keys())
         candidates = [(df_rtns.keys()[i],df_rtns.iloc[:,i].values) for i in range(nsyms)]
-        cost,best_port = dp_minimize(candidates,NUM_SYMS,cal_cost)
+        cost,best_port = dp_minimize(candidates,cal_cost,NUM_SYMS)
         print("Lowest cost: ", cost)
-        print("Overall cost: ", cal_cost(candidates))
+        min_cost,portf_rtns = cal_cost(best_port)
+        overall_cost,_ = cal_cost(candidates)
+        print("Overall cost: ", overall_cost)
+        mid = len(portf_rtns)//2
+        print("tested stationality of portfolio returns. p-val: ",ks_2samp(portf_rtns[:mid],portf_rtns[mid:]))
+        # pdb.set_trace()
         syms = [best_port[i][0] for i in range(len(best_port))]
+        NUM_SYMS = len(syms)
+        OPTIMIZE_PORTFOLIO = False
 
     elif score_method == 3:
         # start_tid = global_tid-30
@@ -258,15 +268,15 @@ if __name__ == "__main__":
     cost_type = 2
     #pdb.set_trace()
     for gid in range(1):
-        sol = None
-        if True:
+        sol = np.ones(NUM_SYMS)
+        sol = sol / sol.sum()
+        if OPTIMIZE_PORTFOLIO:
             print("==================== Minimization starts ====================")
             # sol, _ = ga_minimize(obj_func, cost_type, daily_rtns.shape[1],
             #                      num_generations=gaconf.getNumGenerations(), population_size=gaconf.getPopulation(),
             #                      cross_prob=gaconf.getCrossProb(), mutation_rate=gaconf.getMutateProb())
             # Run the optimization using Nelder-Mead
-            sol = np.ones(NUM_SYMS)
-            sol = sol/sol.sum()
+
             result = minimize(obj_func, sol, args=(cost_type), method='Nelder-Mead', options={'xatol': 1e-6})
             if abs(result.fun) < 100:
                 sol = result.x
