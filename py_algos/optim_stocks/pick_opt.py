@@ -193,27 +193,14 @@ if __name__ == "__main__":
                                           # df_volval.iloc[global_tid-30:global_tid,:])
         syms = select_syms_by_score(score1, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 2: # dp_minimize
-        def cal_cost(args): # args: [(sym1,rtns1),(sym2,rtns),...]
-            nsyms = len(args)
-            # if nsyms < 2:
-            #     return 0,np.array([])
-            len_hist = len(args[0][1])
-            port_rtns = np.zeros(len_hist)
-            for i in range(len_hist):
-                rtns = [args[j][1][i] for j in range(nsyms)]
-                # pdb.set_trace()
-                port_rtns[i] = np.mean(rtns)
-            mu = np.mean(port_rtns)
-            sd = np.std(port_rtns)
-            return -mu/sd, port_rtns
-
+        cost_func = cost_return_per_risk
         df_rtns = df_close.pct_change().iloc[start_tid:global_tid,:]
         nsyms = len(df_rtns.keys())
         candidates = [(df_rtns.keys()[i],df_rtns.iloc[:,i].values) for i in range(nsyms)]
-        cost,best_port = dp_minimize(candidates,cal_cost,NUM_SYMS)
+        cost,best_port = dp_minimize(candidates,cost_func,NUM_SYMS)
         print("Lowest cost: ", cost)
-        min_cost,portf_rtns = cal_cost(best_port)
-        overall_cost,_ = cal_cost(candidates)
+        min_cost,portf_rtns = cost_func(best_port)
+        overall_cost,_ = cost_func(candidates)
         print("Overall cost: ", overall_cost)
         mid = len(portf_rtns)//2
         print("tested stationality of portfolio returns. p-val: ",ks_2samp(portf_rtns[:mid],portf_rtns[mid:]))

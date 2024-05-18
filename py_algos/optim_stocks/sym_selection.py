@@ -612,6 +612,19 @@ def score_return_flow(df_close,risk_free_rtn):
     return score
 
 
+def cost_return_per_risk(args):  # args: [(sym1,rtns1),(sym2,rtns),...]
+    nsyms = len(args)
+    # if nsyms < 2:
+    #     return 0,np.array([])
+    len_hist = len(args[0][1])
+    port_rtns = np.zeros(len_hist)
+    for i in range(len_hist):
+        rtns = [args[j][1][i] for j in range(nsyms)]
+        # pdb.set_trace()
+        port_rtns[i] = np.mean(rtns)
+    mu = np.mean(port_rtns)
+    sd = np.std(port_rtns)
+    return -mu / sd, port_rtns
 
 
 
