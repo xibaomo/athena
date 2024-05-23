@@ -154,6 +154,7 @@ def dp_minimize(candidates,cal_f, max_n_choose=-1):
 
     # build the table bottom-up
     for i in range(1,n+1):
+        # print("checking {}th sym out of {}".format(i, n))
         for j in range(1,k+1):
             if j<=i:
                 args = chosen[i-1][j-1] + [candidates[i-1]]
@@ -165,5 +166,13 @@ def dp_minimize(candidates,cal_f, max_n_choose=-1):
                     dp[i][j] = dp[i-1][j]
                     chosen[i][j] = chosen[i-1][j]
 
-    min_idx = dp[n].index(min(dp[n]))
-    return dp[n][min_idx],chosen[n][min_idx]
+    # min_idx = dp[n].index(min(dp[n]))
+    # return dp[n][min_idx],chosen[n][min_idx]
+    minval = 1e20
+    minidx = -1
+    for i in range(len(dp[n])):
+        if dp[n][i] < minval and len(chosen[n][i])>= 10:
+            minval = dp[n][i]
+            minidx = i
+    return minval,chosen[n][minidx]
+

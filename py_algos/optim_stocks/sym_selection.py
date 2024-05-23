@@ -626,5 +626,16 @@ def cost_return_per_risk(args):  # args: [(sym1,rtns1),(sym2,rtns),...]
     sd = np.std(port_rtns)
     return -mu / sd, port_rtns
 
+def cost_mkv_speed(args):
+    nsyms = len(args)
+    len_hist = len(args[0][1])
+    port_rtns = np.zeros(len_hist)
+    for i in range(len_hist):
+        rtns = [args[j][1][i] for j in range(nsyms)]
+        # pdb.set_trace()
+        port_rtns[i] = np.mean(rtns)
 
+    mkvcal = MkvAbsorbCal(100)
+    p,sp = mkvcal.compWinProb(port_rtns,-.15,.1)
+    return -p/sp,port_rtns
 

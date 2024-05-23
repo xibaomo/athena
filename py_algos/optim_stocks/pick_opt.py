@@ -116,7 +116,7 @@ def check_true_profit(data, global_tid, weights, capital, port_mu, port_std, end
         profits.append(port_rtn * capital)
 
     print(
-        "\033[1m\033[91mProfits(low, high, final): {:^8.2f}, {:^8.2f}, {:^8.2f}. mu: {:.4e}, std: {:.4e}\033[0m". \
+        "\033[1m\033[91mProfits(low, high, final): {:^8.2f}, {:^8.2f}, {:^8.2f}, mu: {:.4e}, std: {:.4e}\033[0m". \
         format(min(profits), max(profits), profits[-1], port_mu, port_std))
     return profits
 def computeRiskShare(wts, cm, sym_std):
@@ -134,7 +134,7 @@ def computeRiskShare(wts, cm, sym_std):
         risk_share[i] = t/sd0
     return risk_share
 def appendVolumeValue(data,cal_vol_value=False,vol_value_type=0):
-    df_close = data['Close']
+    df_close = data['Adj Close']
     if not cal_vol_value:
         return df_close,None,None
 
@@ -193,16 +193,17 @@ if __name__ == "__main__":
                                           # df_volval.iloc[global_tid-30:global_tid,:])
         syms = select_syms_by_score(score1, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 2: # dp_minimize
-        cost_func = cost_return_per_risk
+        # cost_func = cost_return_per_risk
+        cost_func = cost_mkv_speed
         df_rtns = df_close.pct_change().iloc[start_tid:global_tid,:]
         nsyms = len(df_rtns.keys())
         candidates = [(df_rtns.keys()[i],df_rtns.iloc[:,i].values) for i in range(nsyms)]
-        cost,best_port = dp_minimize(candidates,cost_func,NUM_SYMS)
+        cost,best_port = dp_minimize(candidates,cost_func,20)
         print("Lowest cost: ", cost)
         min_cost,portf_rtns = cost_func(best_port)
         overall_cost,_ = cost_func(candidates)
         print("Overall cost: ", overall_cost)
-        mid = len(portf_rtns)//2
+        mid = -40
         print("tested stationality of portfolio returns. p-val: ",ks_2samp(portf_rtns[:mid],portf_rtns[mid:]))
         # pdb.set_trace()
         syms = [best_port[i][0] for i in range(len(best_port))]
