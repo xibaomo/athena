@@ -7,6 +7,7 @@ import multiprocessing
 from functools import partial
 import math
 from scipy.stats import spearmanr
+from scipy.stats import ks_2samp, anderson_ksamp, mannwhitneyu
 
 NUM_PROCS = multiprocessing.cpu_count()-2
 
@@ -626,7 +627,7 @@ def cost_return_per_risk(args):  # args: [(sym1,rtns1),(sym2,rtns),...]
     sd = np.std(port_rtns)
     return -mu / sd, port_rtns
 
-def cost_mkv_speed(args):
+def cost_mkv_speed(args,disp_result=False):
     nsyms = len(args)
     len_hist = len(args[0][1])
     port_rtns = np.zeros(len_hist)
@@ -636,6 +637,30 @@ def cost_mkv_speed(args):
         port_rtns[i] = np.mean(rtns)
 
     mkvcal = MkvAbsorbCal(100)
-    p,sp = mkvcal.compWinProb(port_rtns,-.15,.1)
-    return -p/sp,port_rtns
+    p,sp = mkvcal.compWinProb(port_rtns,-.15,.15)
+
+    mid = -40
+    res = ks_2samp(port_rtns[:mid], port_rtns[mid:])
+    if disp_result:
+        print("Up prob: {:.3f}, ave steps: {}".format(p,int(sp)))
+
+    timecost = sp/30. - 1
+    if timecost < 0:
+        timecost=0
+    cost = -p + timecost - res[1]
+    return cost,port_rtns
+def cost_stationary(args,disp_result=False):
+    nsyms = len(args)
+    len_hist = len(args[0][1])
+    port_rtns = np.zeros(len_hist)
+    for i in range(len_hist):
+        rtns = [args[j][1][i] for j in range(nsyms)]
+        # pdb.set_trace()
+        port_rtns[i] = np.mean(rtns)
+
+    mid = -40
+    res = ks_2samp(port_rtns[:mid], port_rtns[mid:])
+    if disp_result:
+        print(res)
+    return -res[1],port_rtns
 

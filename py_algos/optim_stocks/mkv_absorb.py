@@ -138,7 +138,7 @@ class MkvAbsorbCal(object):
         return sp
 
 
-def dp_minimize(candidates,cal_f, max_n_choose=-1):
+def dp_minimize(candidates,cal_f, max_n_choose=-1, min_n_choose=10):
     '''
     candidates: [(sym1,params1),(sym2,params2),...]
     n_choose: number of selections
@@ -171,7 +171,7 @@ def dp_minimize(candidates,cal_f, max_n_choose=-1):
     minval = 1e20
     minidx = -1
     for i in range(len(dp[n])):
-        if dp[n][i] < minval and len(chosen[n][i])>= 10:
+        if dp[n][i] < minval and len(chosen[n][i])>= min_n_choose:
             minval = dp[n][i]
             minidx = i
     return minval,chosen[n][minidx]

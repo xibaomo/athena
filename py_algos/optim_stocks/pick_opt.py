@@ -195,12 +195,13 @@ if __name__ == "__main__":
     elif score_method == 2: # dp_minimize
         # cost_func = cost_return_per_risk
         cost_func = cost_mkv_speed
+        # cost_func = cost_stationary
         df_rtns = df_close.pct_change().iloc[start_tid:global_tid,:]
         nsyms = len(df_rtns.keys())
         candidates = [(df_rtns.keys()[i],df_rtns.iloc[:,i].values) for i in range(nsyms)]
         cost,best_port = dp_minimize(candidates,cost_func,20)
         print("Lowest cost: ", cost)
-        min_cost,portf_rtns = cost_func(best_port)
+        min_cost,portf_rtns = cost_func(best_port,disp_result=True)
         overall_cost,_ = cost_func(candidates)
         print("Overall cost: ", overall_cost)
         mid = -40
