@@ -196,7 +196,11 @@ if __name__ == "__main__":
         # cost_func = cost_return_per_risk
         cost_func = cost_mkv_speed
         # cost_func = cost_stationary
+        df_close=df_close.drop(columns=['NVDA','SMCI','TSLA'])
         df_rtns = df_close.pct_change().iloc[start_tid:global_tid,:]
+        dropped_syms = [s for s in df_rtns.keys() if rtn_per_risk(df_rtns.loc[:,s]) <= 0]
+        print("dropped syms: ", len(dropped_syms))
+        df_rtns = df_rtns.drop(columns=dropped_syms)
         nsyms = len(df_rtns.keys())
         candidates = [(df_rtns.keys()[i],df_rtns.iloc[:,i].values) for i in range(nsyms)]
         cost,best_port = dp_minimize(candidates,cost_func,20)
@@ -208,6 +212,8 @@ if __name__ == "__main__":
         print("tested stationality of portfolio returns. p-val: ",ks_2samp(portf_rtns[:mid],portf_rtns[mid:]))
         # pdb.set_trace()
         syms = [best_port[i][0] for i in range(len(best_port))]
+        rpr = [rtn_per_risk(df_rtns.loc[:,key]) for key in syms ]
+        print("return per risk: ",rpr)
         NUM_SYMS = len(syms)
         OPTIMIZE_PORTFOLIO = False
 

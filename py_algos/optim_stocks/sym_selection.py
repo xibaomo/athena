@@ -664,3 +664,7 @@ def cost_stationary(args,disp_result=False):
         print(res)
     return -res[1],port_rtns
 
+def rtn_per_risk(rtns):
+    mu = np.mean(rtns)
+    sd = np.std(rtns)
+    return mu/sd
