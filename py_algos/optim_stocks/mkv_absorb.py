@@ -1,8 +1,11 @@
+import time
+
 import statsmodels.api as sm
 import numpy as np
 from scipy.stats import norm
 import math
 import sys,os
+import cupy as cp
 import pdb
 
 class ECDFCal(object):  # empirical cdf calculator
@@ -73,13 +76,15 @@ class MkvAbsorbCal(object):
                 C[i, j] = idxDiff2Prob[j - i]
             Q[i] = self.transProbCal.compRangeProb((npts - i) * d - d / 2, .5)
 
-        # pdb.set_trace()
-        # print(C)
         tmp = I - C
-
+        tic = time.time()
+        # pdb.set_trace()
         try:
-            tmp = np.linalg.inv(tmp)
+            tmp = cp.array(tmp)
+            tmp = cp.linalg.inv(tmp)
+            tmp = cp.asnumpy(tmp)
         except:
+            pdb.set_trace()
             print("inversion fails")
             return 0.5,1e10
 
@@ -87,6 +92,7 @@ class MkvAbsorbCal(object):
         # ps = np.matmul(tmp,Qsell)
         steps = np.matmul(tmp, one)
 
+        # print("matrix ops take: ", time.time()-tic)
         idx = int((0 - lb_rtn) / d)
         p = pr[idx][0]
         sp = steps[idx][0]

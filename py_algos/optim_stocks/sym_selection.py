@@ -613,7 +613,7 @@ def score_return_flow(df_close,risk_free_rtn):
     return score
 
 
-def cost_return_per_risk(args):  # args: [(sym1,rtns1),(sym2,rtns),...]
+def cost_return_per_risk(args,disp_result=False):  # args: [(sym1,rtns1),(sym2,rtns),...]
     nsyms = len(args)
     # if nsyms < 2:
     #     return 0,np.array([])
@@ -628,6 +628,7 @@ def cost_return_per_risk(args):  # args: [(sym1,rtns1),(sym2,rtns),...]
     return -mu / sd, port_rtns
 
 def cost_mkv_speed(args,disp_result=False):
+    # tic = time.time()
     nsyms = len(args)
     len_hist = len(args[0][1])
     port_rtns = np.zeros(len_hist)
@@ -636,8 +637,9 @@ def cost_mkv_speed(args,disp_result=False):
         # pdb.set_trace()
         port_rtns[i] = np.mean(rtns)
 
-    mkvcal = MkvAbsorbCal(100)
+    mkvcal = MkvAbsorbCal(500)
     p,sp = mkvcal.compWinProb(port_rtns,-.15,.15)
+    # print("mkv takes: ", time.time()-tic)
 
     mid = -40
     res = ks_2samp(port_rtns[:mid], port_rtns[mid:])

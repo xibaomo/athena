@@ -193,8 +193,8 @@ if __name__ == "__main__":
                                           # df_volval.iloc[global_tid-30:global_tid,:])
         syms = select_syms_by_score(score1, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 2: # dp_minimize
-        # cost_func = cost_return_per_risk
-        cost_func = cost_mkv_speed
+        cost_func = cost_return_per_risk
+        # cost_func = cost_mkv_speed
         # cost_func = cost_stationary
         df_close=df_close.drop(columns=['NVDA','SMCI','TSLA'])
         df_rtns = df_close.pct_change().iloc[start_tid:global_tid,:]
