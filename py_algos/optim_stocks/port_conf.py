@@ -56,6 +56,8 @@ class PortfolioConfig(object):
         return self.yamlDict[self.root]['RANDOM_SELECT']
     def getRiskFreeInterestRate(self):
         return self.yamlDict[self.root]['RISK_FREE_RATE']
+    def getExcludeList(self):
+        return self.yamlDict[self.root]['EXCLUDE_LIST']
 
 class ScoreSettingConfig(object):
     def __init__(self,portconf):
@@ -73,3 +75,23 @@ class ScoreSettingConfig(object):
         return self.yamlDict[self.root]['SPECIFIC_HEAT']['LOOKBACK']
     def getCDFType(self):
         return self.yamlDict[self.root]['MKV_SPEED']['CDF_TYPE']
+
+class DpminConfig(object):
+    def __init__(self,portconf):
+        self.yamlDict = portconf.yamlDict
+        self.root = "DP_MINIMIZE"
+
+    def getCostType(self):
+        return self.yamlDict[self.root]['COST_TYPE']
+    def getMaxNumSyms(self):
+        return self.yamlDict[self.root]['MAX_NUM_SYMS']
+    def getMinNumSyms(self):
+        return self.yamlDict[self.root]['MIN_NUM_SYMS']
+    def getUBReturn(self):
+        return self.yamlDict[self.root]['UB_RETURN']
+    def getLBReturn(self):
+        return self.yamlDict[self.root]['LB_RETURN']
+    def getPartitions(self):
+        return self.yamlDict[self.root]['PARTITIONS']
+    def getStationaryCheckDays(self):
+        return self.yamlDict[self.root]['STATIONARY_CHECK_DAYS']

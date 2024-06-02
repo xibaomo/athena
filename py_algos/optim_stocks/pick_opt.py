@@ -158,6 +158,10 @@ if __name__ == "__main__":
     # pdb.set_trace()
 
     print("data loaded")
+    drop_list = portconf.getExcludeList()
+    if len(drop_list) > 0:
+        data = data.drop(columns=drop_list, level=1)
+        print("drop_list: ",drop_list)
     need_vol_value = True
     if portconf.getScoreMethod() >=5:
         need_vol_value = True
@@ -193,10 +197,16 @@ if __name__ == "__main__":
                                           # df_volval.iloc[global_tid-30:global_tid,:])
         syms = select_syms_by_score(score1, df_close.keys(), portconf.isRandomSelect(), NUM_SYMS)
     elif score_method == 2: # dp_minimize
-        cost_func = cost_return_per_risk
-        # cost_func = cost_mkv_speed
-        # cost_func = cost_stationary
-        df_close=df_close.drop(columns=['NVDA','SMCI','TSLA'])
+        dpminconf = DpminConfig(portconf)
+        cost_func = None
+        if dpminconf.getCostType() == 0:
+            cost_func = cost_mkv_speed
+        elif dpminconf.getCostType() == 1:
+            cost_func = cost_return_per_risk
+        else:
+            print("ERROR! COST_TYPE not supported: ",dpminconf.getCostType())
+            sys.exit(1)
+
         df_rtns = df_close.pct_change().iloc[start_tid:global_tid,:]
         dropped_syms = [s for s in df_rtns.keys() if rtn_per_risk(df_rtns.loc[:,s]) <= 0]
         print("dropped syms: ", len(dropped_syms))
@@ -208,8 +218,8 @@ if __name__ == "__main__":
         min_cost,portf_rtns = cost_func(best_port,disp_result=True)
         overall_cost,_ = cost_func(candidates)
         print("Overall cost: ", overall_cost)
-        mid = -40
-        print("tested stationality of portfolio returns. p-val: ",ks_2samp(portf_rtns[:mid],portf_rtns[mid:]))
+        mid = -dpminconf.getStationaryCheckDays()
+        print("stationarity of portfolio returns: ",ks_2samp(portf_rtns[:mid],portf_rtns[mid:]))
         # pdb.set_trace()
         syms = [best_port[i][0] for i in range(len(best_port))]
         rpr = [rtn_per_risk(df_rtns.loc[:,key]) for key in syms ]

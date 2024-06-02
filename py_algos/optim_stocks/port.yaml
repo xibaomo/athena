@@ -6,15 +6,27 @@ PORTFOLIO:
     TIME_STEPS: 200
     SHORT_TERM_WEIGHT: 1.2
     RISK_FREE_RATE: 0.05
+    EXCLUDE_LIST: ['TSLA','SMCI','NVDA']
 
     VOLUME_VALUE_TYPE: 0  # useless
 
     SCORE_METHOD: 2 # 0: use corr-weighted slope of price + mkv speed
-                    # 1: use slope of price 
-                    # 2:
+                    # 1: use corr-weighted slope of dollar volume
+                    # 2: dp minimize. use dynamic programming to minimize cost
     RANDOM_SELECT: 0 # 0: take top scores. 1: randomly pick among top 2*NUM_SYMBOLS
 
-SCORE_SETTING:
+DP_MINIMIZE: # effective when SCORE_METHOD = 2
+    COST_TYPE: 0  # 0: -(up_prob + consistency prob) + steps. 1: return per risk
+    MAX_NUM_SYMS: 20
+    MIN_NUM_SYMS: 10
+
+    #below only effective when COST_TYPE = 0
+    UB_RETURN: .15
+    LB_RETURN: -.15
+    PARTITIONS: 200
+    STATIONARY_CHECK_DAYS: 40
+
+SCORE_SETTING: # effective when SCORE_METHOD = 0
     MKV_SPEED:
         LOOKBACK: 30
         BOUND: .1

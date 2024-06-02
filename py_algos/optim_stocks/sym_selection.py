@@ -637,7 +637,7 @@ def cost_mkv_speed(args,disp_result=False):
         # pdb.set_trace()
         port_rtns[i] = np.mean(rtns)
 
-    mkvcal = MkvAbsorbCal(500)
+    mkvcal = MkvAbsorbCal(100)
     p,sp = mkvcal.compWinProb(port_rtns,-.15,.15)
     # print("mkv takes: ", time.time()-tic)
 
