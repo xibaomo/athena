@@ -88,10 +88,14 @@ class DpminConfig(object):
     def getMinNumSyms(self):
         return self.yamlDict[self.root]['MIN_NUM_SYMS']
     def getUBReturn(self):
-        return self.yamlDict[self.root]['UB_RETURN']
+        ub = self.yamlDict[self.root]['UB_RETURN']
+        return float(ub)
     def getLBReturn(self):
-        return self.yamlDict[self.root]['LB_RETURN']
+        lb = self.yamlDict[self.root]['LB_RETURN']
+        return float(lb)
     def getPartitions(self):
-        return self.yamlDict[self.root]['PARTITIONS']
+        ps =  self.yamlDict[self.root]['PARTITIONS']
+        return int(ps)
     def getStationaryCheckDays(self):
-        return self.yamlDict[self.root]['STATIONARY_CHECK_DAYS']
+        days = self.yamlDict[self.root]['STATIONARY_CHECK_DAYS']
+        return int(days)

@@ -15,6 +15,7 @@ from scipy.optimize import minimize
 #from mkv_absorb import *
 from sym_selection import *
 import multiprocessing
+import functools
 import pdb
 SIGMA_INF = 1e60
 def locate_target_date(date_str, df):
@@ -200,7 +201,10 @@ if __name__ == "__main__":
         dpminconf = DpminConfig(portconf)
         cost_func = None
         if dpminconf.getCostType() == 0:
-            cost_func = cost_mkv_speed
+            cost_func = functools.partial(cost_mkv_speed,
+                                          partitions=dpminconf.getPartitions(),lb_rtn=dpminconf.getLBReturn(),
+                                          ub_rtn=dpminconf.getUBReturn(),stationary_days=dpminconf.getStationaryCheckDays())
+
         elif dpminconf.getCostType() == 1:
             cost_func = cost_return_per_risk
         else:
@@ -208,12 +212,12 @@ if __name__ == "__main__":
             sys.exit(1)
 
         df_rtns = df_close.pct_change().iloc[start_tid:global_tid,:]
-        dropped_syms = [s for s in df_rtns.keys() if rtn_per_risk(df_rtns.loc[:,s]) <= 0]
-        print("dropped syms: ", len(dropped_syms))
-        df_rtns = df_rtns.drop(columns=dropped_syms)
+        # dropped_syms = [s for s in df_rtns.keys() if rtn_per_risk(df_rtns.loc[:,s]) <= 0]
+        # print("dropped syms: ", len(dropped_syms))
+        # df_rtns = df_rtns.drop(columns=dropped_syms)
         nsyms = len(df_rtns.keys())
         candidates = [(df_rtns.keys()[i],df_rtns.iloc[:,i].values) for i in range(nsyms)]
-        cost,best_port = dp_minimize(candidates,cost_func,20)
+        cost,best_port = dp_minimize(candidates,cost_func,min_n_choose=dpminconf.getMinNumSyms(),max_n_choose=dpminconf.getMaxNumSyms())
         print("Lowest cost: ", cost)
         min_cost,portf_rtns = cost_func(best_port,disp_result=True)
         overall_cost,_ = cost_func(candidates)

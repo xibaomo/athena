@@ -627,7 +627,7 @@ def cost_return_per_risk(args,disp_result=False):  # args: [(sym1,rtns1),(sym2,r
     sd = np.std(port_rtns)
     return -mu / sd, port_rtns
 
-def cost_mkv_speed(args,disp_result=False):
+def cost_mkv_speed(args,partitions=100,lb_rtn=-.15, ub_rtn=.15,stationary_days = 40,disp_result=False):
     # tic = time.time()
     nsyms = len(args)
     len_hist = len(args[0][1])
@@ -637,11 +637,11 @@ def cost_mkv_speed(args,disp_result=False):
         # pdb.set_trace()
         port_rtns[i] = np.mean(rtns)
 
-    mkvcal = MkvAbsorbCal(100)
-    p,sp = mkvcal.compWinProb(port_rtns,-.15,.15)
+    mkvcal = MkvAbsorbCal(partitions)
+    p,sp = mkvcal.compWinProb(port_rtns,lb_rtn,ub_rtn)
     # print("mkv takes: ", time.time()-tic)
 
-    mid = -40
+    mid = -stationary_days
     res = ks_2samp(port_rtns[:mid], port_rtns[mid:])
     if disp_result:
         print("Up prob: {:.3f}, ave steps: {}".format(p,int(sp)))
