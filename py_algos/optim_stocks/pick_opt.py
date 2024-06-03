@@ -217,7 +217,8 @@ if __name__ == "__main__":
         # df_rtns = df_rtns.drop(columns=dropped_syms)
         nsyms = len(df_rtns.keys())
         candidates = [(df_rtns.keys()[i],df_rtns.iloc[:,i].values) for i in range(nsyms)]
-        cost,best_port = dp_minimize(candidates,cost_func,min_n_choose=dpminconf.getMinNumSyms(),max_n_choose=dpminconf.getMaxNumSyms())
+        cost,best_port = dp_minimize(candidates,cost_func,min_n_choose=dpminconf.getMinNumSyms(),
+                                     max_n_choose=dpminconf.getMaxNumSyms(),result_rank=dpminconf.getResultRank())
         print("Lowest cost: ", cost)
         min_cost,portf_rtns = cost_func(best_port,disp_result=True)
         overall_cost,_ = cost_func(candidates)

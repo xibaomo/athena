@@ -99,3 +99,5 @@ class DpminConfig(object):
     def getStationaryCheckDays(self):
         days = self.yamlDict[self.root]['STATIONARY_CHECK_DAYS']
         return int(days)
+    def getResultRank(self):
+        return self.yamlDict[self.root]['RESULT_RANK']
