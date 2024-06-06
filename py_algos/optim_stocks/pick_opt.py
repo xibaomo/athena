@@ -225,6 +225,9 @@ if __name__ == "__main__":
         print("Overall cost: ", overall_cost)
         mid = -dpminconf.getStationaryCheckDays()
         print("stationarity of portfolio returns: ",ks_2samp(portf_rtns[:mid],portf_rtns[mid:]))
+        print("check log_normal: ", check_log_normal(portf_rtns+1))
+        print("check log_laplace: ", check_log_laplace(portf_rtns+1))
+
         # pdb.set_trace()
         syms = [best_port[i][0] for i in range(len(best_port))]
         rpr = [rtn_per_risk(df_rtns.loc[:,key]) for key in syms ]

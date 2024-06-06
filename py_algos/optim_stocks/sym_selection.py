@@ -6,8 +6,9 @@ import matplotlib.pyplot as plt
 import multiprocessing
 from functools import partial
 import math
-from scipy.stats import spearmanr
+from scipy.stats import spearmanr,shapiro
 from scipy.stats import ks_2samp, anderson_ksamp, mannwhitneyu
+import scipy.stats as stats
 
 NUM_PROCS = multiprocessing.cpu_count()-2
 
@@ -670,3 +671,13 @@ def rtn_per_risk(rtns):
     mu = np.mean(rtns)
     sd = np.std(rtns)
     return mu/sd
+
+def check_log_normal(arr):
+    data = np.log(arr)
+    shapiro_test = shapiro(data)
+    return shapiro_test
+def check_log_laplace(arr):
+    log_data = np.log(arr)
+    loc, scale = stats.laplace.fit(log_data)
+    ks_test = stats.kstest(log_data, 'laplace', args=(loc, scale))
+    return ks_test

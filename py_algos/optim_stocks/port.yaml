@@ -12,7 +12,7 @@ PORTFOLIO:
 
     SCORE_METHOD: 2 # 0: use corr-weighted slope of price + mkv speed
                     # 1: use corr-weighted slope of dollar volume
-                    # 2: dp minimize. use dynamic programming to minimize cost
+                    # 2: dp minimize. use dynamic programming to minimize cost. No optimization of ratio.
     RANDOM_SELECT: 0 # 0: take top scores. 1: randomly pick among top 2*NUM_SYMBOLS
 
 DP_MINIMIZE: # effective when SCORE_METHOD = 2
