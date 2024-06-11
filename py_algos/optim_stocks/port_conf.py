@@ -57,7 +57,10 @@ class PortfolioConfig(object):
     def getRiskFreeInterestRate(self):
         return self.yamlDict[self.root]['RISK_FREE_RATE']
     def getExcludeList(self):
-        return self.yamlDict[self.root]['EXCLUDE_LIST']
+        try:
+            return self.yamlDict[self.root]['EXCLUDE_LIST']
+        except:
+            return []
 
 class ScoreSettingConfig(object):
     def __init__(self,portconf):
