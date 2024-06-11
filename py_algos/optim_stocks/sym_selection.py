@@ -628,7 +628,7 @@ def cost_return_per_risk(args,disp_result=False):  # args: [(sym1,rtns1),(sym2,r
     sd = np.std(port_rtns)
     return -mu / sd, port_rtns
 
-def cost_mkv_speed(args,partitions=100,lb_rtn=-.15, ub_rtn=.15,stationary_days = 40,disp_result=False):
+def cost_mkv_speed(args,partitions=100,lb_rtn=-.15, ub_rtn=.15,stationary_days = 40,up_prob_wt=5,disp_result=False):
     # tic = time.time()
     nsyms = len(args)
     len_hist = len(args[0][1])
@@ -650,7 +650,7 @@ def cost_mkv_speed(args,partitions=100,lb_rtn=-.15, ub_rtn=.15,stationary_days =
     timecost = sp/30. - 1
     if timecost < 0:
         timecost=0
-    cost = -p + timecost - res[1]
+    cost = -p*up_prob_wt + timecost - res[1]
     return cost,port_rtns
 def cost_stationary(args,disp_result=False):
     nsyms = len(args)

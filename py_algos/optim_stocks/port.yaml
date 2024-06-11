@@ -25,6 +25,7 @@ DP_MINIMIZE: # effective when SCORE_METHOD = 2
     LB_RETURN: -.15
     PARTITIONS: 200
     STATIONARY_CHECK_DAYS: 40  #recent days used to check stationarity of return series
+    UP_PROB_WEIGHT: 10
     RESULT_RANK: 0  # 0: lowest cost. 1: 2nd lowest cost, so on...
 
 SCORE_SETTING: # effective when SCORE_METHOD = 0
