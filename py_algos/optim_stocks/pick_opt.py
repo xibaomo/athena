@@ -217,6 +217,7 @@ if __name__ == "__main__":
         print("dropped syms: ", len(dropped_syms))
         df_rtns = df_rtns.drop(columns=dropped_syms)
         nsyms = len(df_rtns.keys())
+        print("left syms: ", nsyms)
         candidates = [(df_rtns.keys()[i],df_rtns.iloc[:,i].values) for i in range(nsyms)]
         cost,best_port = dp_minimize(candidates,cost_func,min_n_choose=dpminconf.getMinNumSyms(),
                                      max_n_choose=dpminconf.getMaxNumSyms(),result_rank=dpminconf.getResultRank())

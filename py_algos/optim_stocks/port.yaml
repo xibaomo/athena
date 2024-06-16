@@ -19,14 +19,15 @@ DP_MINIMIZE: # effective when SCORE_METHOD = 2
     COST_TYPE: 0  # 0: -(up_prob + consistency prob) + steps. 1: return per risk
     MAX_NUM_SYMS: 20
     MIN_NUM_SYMS: 10
+    RESULT_RANK: 0  # 0: lowest cost. 1: 2nd lowest cost, so on...
 
     #below only effective when COST_TYPE = 0
     UB_RETURN: .15
-    LB_RETURN: -.15
+    LB_RETURN: -.1
     PARTITIONS: 200
     STATIONARY_CHECK_DAYS: 40  #recent days used to check stationarity of return series
-    UP_PROB_WEIGHT: 3
-    RESULT_RANK: 0  # 0: lowest cost. 1: 2nd lowest cost, so on...
+    UP_PROB_WEIGHT: 2.0
+
 
 SCORE_SETTING: # effective when SCORE_METHOD = 0
     MKV_SPEED:
