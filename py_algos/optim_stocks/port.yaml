@@ -23,10 +23,10 @@ DP_MINIMIZE: # effective when SCORE_METHOD = 2
 
     #below only effective when COST_TYPE = 0
     UB_RETURN: .15
-    LB_RETURN: -.1
+    LB_RETURN: -.15
     PARTITIONS: 200
     STATIONARY_CHECK_DAYS: 40  #recent days used to check stationarity of return series
-    UP_PROB_WEIGHT: 2.0
+    UP_PROB_WEIGHT: 1.0    # weight on probability of hitting UB_RETURN
 
 
 SCORE_SETTING: # effective when SCORE_METHOD = 0

@@ -105,21 +105,27 @@ def std_cost(ws, cm, sym_std, weight_bound=0.8):
                 s += 2 * wi * wj * cm[i, j] * si * sj
     return np.sqrt(s)
 
-def check_true_profit(data, global_tid, weights, capital, port_mu, port_std, end_tid):
+def check_true_profit(data, global_tid, weights, capital, end_tid, portf_rtns):
     profits = []
+    rtns = []
     start_price = data.iloc[global_tid, :]
     for tid in range(global_tid + 1, end_tid+1):
         cur = data.iloc[tid, :]
+        daily_rtns = data.iloc[tid,:]/data.iloc[tid-1,:] - 1.
+        ave_rtn = rtn_cost(weights,daily_rtns)
+        rtns.append(ave_rtn)
         sym_rtn = cur / start_price - 1
         port_rtn = rtn_cost(weights, sym_rtn)
+
         if np.isnan(port_rtn):
             pdb.set_trace()
         profits.append(port_rtn * capital)
 
+    stat_check = ks_2samp(portf_rtns,rtns)
     print(
-        "\033[1m\033[91mProfits(low, high, final): {:^8.2f}, {:^8.2f}, {:^8.2f}, mu: {:.4e}, std: {:.4e}\033[0m". \
-        format(min(profits), max(profits), profits[-1], port_mu, port_std))
-    return profits
+        "\033[1m\033[91mProfits(low, high, final), stat_check: {:^8.2f} {:^8.2f} {:^8.2f} {:^8.4f}\033[0m". \
+        format(min(profits), max(profits), profits[-1], stat_check[1]))
+    return rtns
 def computeRiskShare(wts, cm, sym_std):
     sd0 = std_cost(wts, cm, sym_std)
     risk_share=np.zeros(len(wts))
@@ -333,13 +339,9 @@ if __name__ == "__main__":
         end_date = add_days_to_date(target_date, portconf.getLookforward())
         print("Calculating the true profit on ", end_date)
         end_tid = locate_target_date(end_date, df)
-        pfs = check_true_profit(df, global_tid, sol, invest, predicted_mu, predicted_std, end_tid)
+        new_rtns = check_true_profit(df, global_tid, sol, invest, end_tid,portf_rtns)
         start_price = df_close.iloc[global_tid, :]
         end_price = df_close.iloc[end_tid, :]
-
-        # print("sym, start_date, end_date")
-        # for s in syms:
-        #     print("{}, {}, {}".format(s,df.loc[target_date,s],df.loc[end_date,s]))
 
         true_sym_rtns = (end_price / start_price - 1.).values
 
@@ -355,11 +357,4 @@ if __name__ == "__main__":
         tmp = ", ".join(["{:^8.3f}".format(element) for element in risk_share])
         print("Risk share: ",tmp)
 
-        # plt.plot(pfs,'.-')
-        # def on_close(event):
-        #     plt.pause(0.01)
-        # plt.gcf().canvas.mpl_connect('close_event', on_close)
-        # plt.show()
-        # plt.pause(60)
-        # plt.close()
         print("End of cycle")
