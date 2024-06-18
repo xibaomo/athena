@@ -9,7 +9,7 @@ class PortfolioConfig(object):
         dt =  self.yamlDict[self.root]['TARGET_DATE']
         return dt.strftime('%Y-%m-%d')
 
-    def getLookforward(self):
+    def getLookforwardList(self):
         return self.yamlDict[self.root]['LOOKFORWARD']
 
     def getLookback(self):

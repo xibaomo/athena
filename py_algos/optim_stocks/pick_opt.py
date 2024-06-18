@@ -122,10 +122,11 @@ def check_true_profit(data, global_tid, weights, capital, end_tid, portf_rtns):
         profits.append(port_rtn * capital)
 
     stat_check = ks_2samp(portf_rtns,rtns)
-    print(
-        "\033[1m\033[91mProfits(low, high, final), stat_check: {:^8.2f} {:^8.2f} {:^8.2f} {:^8.4f}\033[0m". \
-        format(min(profits), max(profits), profits[-1], stat_check[1]))
-    return rtns
+    # print(
+    #     "\033[1m\033[91mProfits(low, high, final), stat_check: {:^8.2f} {:^8.2f} {:^8.2f} {:^8.4f}\033[0m". \
+    #     format(min(profits), max(profits), profits[-1], stat_check[1]))
+    return [min(profits),max(profits),profits[-1],stat_check[1]]
+
 def computeRiskShare(wts, cm, sym_std):
     sd0 = std_cost(wts, cm, sym_std)
     risk_share=np.zeros(len(wts))
@@ -329,32 +330,24 @@ if __name__ == "__main__":
         print("best std  of daily rtn of portfolio: {:.6f}".format(predicted_std))
 
         print("********** Verification **********")
-        if(portconf.getLookforward()<=0):
+        fwd_list = portconf.getLookforwardList()
+        if(len(fwd_list)<=0):
             print("LOOKFORWARD <= 0, verification skipped")
             sys.exit(0)
 
         invest = portconf.getCapitalAmount()
 
         # pdb.set_trace()
-        end_date = add_days_to_date(target_date, portconf.getLookforward())
-        print("Calculating the true profit on ", end_date)
-        end_tid = locate_target_date(end_date, df)
-        new_rtns = check_true_profit(df, global_tid, sol, invest, end_tid,portf_rtns)
-        start_price = df_close.iloc[global_tid, :]
-        end_price = df_close.iloc[end_tid, :]
+        res=[]
+        print("forward days: ", fwd_list)
+        for fwd in fwd_list:
+            end_date = add_days_to_date(target_date, fwd)
+            print("Calculating the true profit on ", end_date)
+            end_tid = locate_target_date(end_date, df)
+            new_res = check_true_profit(df, global_tid, sol, invest, end_tid,portf_rtns)
+            res = res + new_res
 
-        true_sym_rtns = (end_price / start_price - 1.).values
-
-        print('ave rtn of {} stocks: {:^8.3f}'.format(len(df_close.keys()),np.mean(true_sym_rtns)))
-        # pdb.set_trace()
-
-        selected_sym_start_price = df.iloc[global_tid,:]
-        selected_sym_end_price   = df.iloc[end_tid,:]
-        selected_sym_rtn = selected_sym_end_price/selected_sym_start_price - 1.
-        tmp = ", ".join(["{:^8.3f}".format(elem) for elem in selected_sym_rtn])
-        print('actual rtn: ',tmp)
-        risk_share = computeRiskShare(sol, cm, sym_std)
-        tmp = ", ".join(["{:^8.3f}".format(element) for element in risk_share])
-        print("Risk share: ",tmp)
-
+        fmt_list = ["{:^8.2f}".format(num) for num in res]
+        fmt_list = " ".join(fmt_list)
+        print("\033[1m\033[91mProfits(low, high, final), stat_check: {}\033[0m".format(fmt_list))
         print("End of cycle")
