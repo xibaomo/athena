@@ -16,8 +16,42 @@ from scipy.optimize import minimize
 from sym_selection import *
 import multiprocessing
 import functools
+from statsmodels.tsa.stattools import adfuller
 import pdb
 SIGMA_INF = 1e60
+
+def plot_double_y_axis(y1, y2, xlabel='X', y1label='Y1', y2label='Y2', title='Double Y-Axis Plot'):
+    fig, ax1 = plt.subplots()
+
+    # Plot the first dataset with primary y-axis
+    color = 'tab:blue'
+    ax1.set_xlabel(xlabel)
+    ax1.set_ylabel(y1label, color=color)
+    ax1.plot(y1,'.-', color=color)
+    ax1.tick_params(axis='y', labelcolor=color)
+
+    # mu = np.mean(y1)
+    # sd = np.std(y1)
+    # ax1.axhline(y=mu,linestyle='--')
+    # ax1.axhline(y=mu+2*sd,linestyle='--')
+    # ax1.axhline(y=mu-2*sd,linestyle='--')
+    # # pdb.set_trace()
+    # smdata = y1.copy()
+    # x = np.arange(len(y1))
+    # smdata[:] = savitzky_golay_smoothing(y1.values,31,2)
+    # # smdata[:] = wavelet_smoothing(y1.values,wavelet="db4",level=5)[:len(smdata)]
+    #
+    # ax1.plot(smdata,'y',linewidth=2)
+
+    # Create a secondary y-axis and plot the second dataset
+    ax2 = ax1.twinx()
+    color = 'tab:red'
+    ax2.set_ylabel(y2label, color=color)
+    ax2.plot(y2, '.-',color=color)
+    ax2.tick_params(axis='y', labelcolor=color)
+
+    plt.title(title)
+    plt.show()
 def locate_target_date(date_str, df):
     print("locating target date: ", date_str)
     tar_date = pd.to_datetime(date_str)
@@ -125,6 +159,21 @@ def check_true_profit(data, global_tid, weights, capital, end_tid, portf_rtns):
     # print(
     #     "\033[1m\033[91mProfits(low, high, final), stat_check: {:^8.2f} {:^8.2f} {:^8.2f} {:^8.4f}\033[0m". \
     #     format(min(profits), max(profits), profits[-1], stat_check[1]))
+    # s=44
+    # res = []
+    # st = len(portf_rtns)
+    # arr = portf_rtns.tolist() + rtns
+    # cal = MkvAbsorbCal(200,cdf='laplace')
+    # for i in range(st,len(arr)):
+    #     # r = ks_2samp(portf_rtns,arr[-s+i:i])[0]
+    #     a=np.array(arr[-s+i:i])
+    #     p,sp = cal.compWinProb(a,-.15,.15)
+    #     res.append(p)
+    # # plt.plot(res,'.')
+    # # pdb.set_trace()
+    # plot_double_y_axis(res,profits)
+    # plt.show()
+
     return [min(profits),max(profits),profits[-1],stat_check[1]]
 
 def computeRiskShare(wts, cm, sym_std):
@@ -211,7 +260,7 @@ if __name__ == "__main__":
             cost_func = functools.partial(cost_mkv_speed,
                                           partitions=dpminconf.getPartitions(),lb_rtn=dpminconf.getLBReturn(),
                                           ub_rtn=dpminconf.getUBReturn(),stationary_days=dpminconf.getStationaryCheckDays(),
-                                          up_prob_wt=dpminconf.getUpProbWeight())
+                                          up_prob_wt=dpminconf.getUpProbWeight(),cdf_type=dpminconf.getCDFType())
 
         elif dpminconf.getCostType() == 1:
             cost_func = cost_return_per_risk
@@ -234,8 +283,7 @@ if __name__ == "__main__":
         print("Overall cost: ", overall_cost)
         mid = -dpminconf.getStationaryCheckDays()
         print("stationarity of portfolio returns: ",ks_2samp(portf_rtns[:mid],portf_rtns[mid:]))
-        print("check log_normal: ", check_log_normal(portf_rtns+1))
-        print("check log_laplace: ", check_log_laplace(portf_rtns+1))
+        print("overall stationarity: ", adfuller(portf_rtns))
 
         # pdb.set_trace()
         syms = [best_port[i][0] for i in range(len(best_port))]

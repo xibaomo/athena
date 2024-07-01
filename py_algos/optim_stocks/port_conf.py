@@ -104,6 +104,7 @@ class DpminConfig(object):
         return int(days)
     def getUpProbWeight(self):
         return self.yamlDict[self.root]['UP_PROB_WEIGHT']
-
     def getResultRank(self):
         return self.yamlDict[self.root]['RESULT_RANK']
+    def getCDFType(self):
+        return self.yamlDict[self.root]['CDF_TYPE']

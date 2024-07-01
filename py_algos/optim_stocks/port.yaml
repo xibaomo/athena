@@ -27,7 +27,8 @@ DP_MINIMIZE: # effective when SCORE_METHOD = 2
     PARTITIONS: 200
     STATIONARY_CHECK_DAYS: 40  #recent days used to check stationarity of return series
     UP_PROB_WEIGHT: 1.0    # weight on probability of hitting UB_RETURN
-
+#    CDF_TYPE: 'emp' # 'emp', 'laplace'
+    CDF_TYPE: 'laplace'
 
 SCORE_SETTING: # effective when SCORE_METHOD = 0
     MKV_SPEED:
