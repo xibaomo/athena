@@ -628,6 +628,18 @@ def cost_return_per_risk(args,disp_result=False):  # args: [(sym1,rtns1),(sym2,r
     sd = np.std(port_rtns)
     return -mu / sd, port_rtns
 
+def series_stat_cost(series,segment_size=60):
+    num_segments = len(series) // segment_size
+    ks_results = []
+    for i in range(num_segments - 1):
+        segment1 = series[i * segment_size:(i + 1) * segment_size]
+        segment2 = series[(i + 1) * segment_size:(i + 2) * segment_size]
+        if (i + 2) * segment_size > len(series):
+            segment2 = series[(i + 1) * segment_size:]
+        ks_stat, p_value = ks_2samp(segment1, segment2)
+        ks_results.append(p_value)
+    return np.mean(ks_results)
+
 def cost_mkv_speed(args,partitions=100,lb_rtn=-.15, ub_rtn=.15,stationary_days = 40,up_prob_wt=5,cdf_type='emp',disp_result=False):
     # tic = time.time()
     nsyms = len(args)
@@ -644,13 +656,14 @@ def cost_mkv_speed(args,partitions=100,lb_rtn=-.15, ub_rtn=.15,stationary_days =
 
     mid = -stationary_days
     res = ks_2samp(port_rtns[:mid], port_rtns[mid:])
-    if disp_result:
-        print("Up prob: {:.3f}, ave steps: {}".format(p,int(sp)))
-
-    timecost = sp/30. - 1
+    timecost = sp/60.
     if timecost < 0:
         timecost=0
-    cost = -p*up_prob_wt + timecost - res[1]
+    stat_cost = series_stat_cost(port_rtns)
+    if disp_result:
+        print("Up prob: {:.3f}, ave steps: {}".format(p,int(sp)))
+        print("stationary cost: ", stat_cost)
+    cost = -p*up_prob_wt + timecost*0.5 - stat_cost
     return cost,port_rtns
 def cost_stationary(args,disp_result=False):
     nsyms = len(args)
