@@ -628,19 +628,33 @@ def cost_return_per_risk(args,disp_result=False):  # args: [(sym1,rtns1),(sym2,r
     sd = np.std(port_rtns)
     return -mu / sd, port_rtns
 
-def series_stat_cost(series,segment_size=60):
+def series_stat_segmentwise(series_,segment_size=60):
+    rem = len(series_) % segment_size
+    series = series_[rem:]
     num_segments = len(series) // segment_size
     ks_results = []
     for i in range(num_segments - 1):
         segment1 = series[i * segment_size:(i + 1) * segment_size]
         segment2 = series[(i + 1) * segment_size:(i + 2) * segment_size]
-        if (i + 2) * segment_size > len(series):
-            segment2 = series[(i + 1) * segment_size:]
+
         ks_stat, p_value = ks_2samp(segment1, segment2)
         ks_results.append(p_value)
     return np.mean(ks_results)
+def comp_stat_score(arr,type=0,seg_size=60):
+    stat_score = None
+    if type == 0:
+        stat_score = 0
+    elif type==1:
+        mid = -seg_size
+        res = ks_2samp(arr[:mid], arr[mid:])
+        stat_score = res[1]
+    elif type == 2:
+        stat_score = series_stat_segmentwise(arr,seg_size)
+    else:
+        print("wrong type of stationary cost: ", type)
 
-def cost_mkv_speed(args,partitions=100,lb_rtn=-.15, ub_rtn=.15,stationary_days = 40,up_prob_wt=5,cdf_type='emp',disp_result=False):
+    return stat_score
+def cost_mkv_speed(args,partitions=100,lb_rtn=-.15, ub_rtn=.15,stat_check_type=0,stationary_days = 40,up_prob_wt=5,cdf_type='emp',disp_result=False):
     # tic = time.time()
     nsyms = len(args)
     len_hist = len(args[0][1])
@@ -654,16 +668,14 @@ def cost_mkv_speed(args,partitions=100,lb_rtn=-.15, ub_rtn=.15,stationary_days =
     p,sp = mkvcal.compWinProb(port_rtns,lb_rtn,ub_rtn)
     # print("mkv takes: ", time.time()-tic)
 
-    mid = -stationary_days
-    res = ks_2samp(port_rtns[:mid], port_rtns[mid:])
-    timecost = sp/60.
+    timecost = sp/30. -1
     if timecost < 0:
         timecost=0
-    stat_cost = series_stat_cost(port_rtns)
+    stat_score= comp_stat_score(port_rtns,stat_check_type,stationary_days)
     if disp_result:
         print("Up prob: {:.3f}, ave steps: {}".format(p,int(sp)))
-        print("stationary cost: ", stat_cost)
-    cost = -p*up_prob_wt + timecost*0.5 - stat_cost
+        print("stationary score: ", stat_score)
+    cost = -p*up_prob_wt + timecost - stat_score
     return cost,port_rtns
 def cost_stationary(args,disp_result=False):
     nsyms = len(args)

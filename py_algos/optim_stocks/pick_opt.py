@@ -259,7 +259,8 @@ if __name__ == "__main__":
         if dpminconf.getCostType() == 0:
             cost_func = functools.partial(cost_mkv_speed,
                                           partitions=dpminconf.getPartitions(),lb_rtn=dpminconf.getLBReturn(),
-                                          ub_rtn=dpminconf.getUBReturn(),stationary_days=dpminconf.getStationaryCheckDays(),
+                                          ub_rtn=dpminconf.getUBReturn(),stat_check_type=dpminconf.getStationaryCheckType(),
+                                          stationary_days=dpminconf.getStationaryCheckDays(),
                                           up_prob_wt=dpminconf.getUpProbWeight(),cdf_type=dpminconf.getCDFType())
 
         elif dpminconf.getCostType() == 1:

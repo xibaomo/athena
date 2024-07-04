@@ -108,3 +108,5 @@ class DpminConfig(object):
         return self.yamlDict[self.root]['RESULT_RANK']
     def getCDFType(self):
         return self.yamlDict[self.root]['CDF_TYPE']
+    def getStationaryCheckType(self):
+        return self.yamlDict[self.root]['STATIONARY_CHECK_TYPE']
