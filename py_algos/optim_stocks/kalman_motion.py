@@ -1,5 +1,5 @@
 import math
-
+import sys,os
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
@@ -10,6 +10,9 @@ from scipy import stats
 from statsmodels.graphics.tsaplots import plot_acf
 from statsmodels.stats.diagnostic import acorr_ljungbox
 import pdb
+folder = os.environ['ATHENA_HOME'] + "/py_algos/py_basics"
+sys.path.append(folder)
+from ga_min import *
 
 def add_days_to_date(date_str, num_days):
     # Convert string to datetime object
@@ -55,43 +58,50 @@ def kalman_motion(Z,R,q=1e-3,dt=1):
         # pdb.set_trace()
         P = np.matmul(np.matmul(tmp,P_),tmp.transpose()) + np.matmul(np.matmul(K,Rm),K.transpose())
 
-    print("FInal P: ",P)
+    # print("FInal P: ",P)
     return states,P
-def calibrate_kalman_args(Z,N=100): #args: dt, R
-    def obj_func(x):
-        dt,R,q = x
-        xs,P = kalman_motion(Z,R,q,dt)
-        price = xs[-N:,0]
-        v = xs[-N:,1]
-        is_pos_on = False
-        p0 = -1.
-        cap = 10000
-        for i in range(N):
-            if v[i] > 0 and not is_pos_on:
-                p0 = price[i]
-                is_pos_on = True
-            if v[i] <= 0  and is_pos_on:
-                is_pos_on = False
-                cap = cap/p0*price[i]
-        if is_pos_on:
+def cal_profit(x,Z,N=-100,cap=10000):
+    dt, R, q = x
+    xs, P = kalman_motion(Z, R, q, dt)
+    price = xs[-N:, 0]
+    v = xs[-N:, 1]
+    is_pos_on = False
+    p0 = -1.
+    transactions=0
+    c0=cap
+    for i in range(N):
+        if v[i] > 0 and not is_pos_on:
+            p0 = price[i]
+            is_pos_on = True
+            transactions+=1
+        if v[i] <= 0 and is_pos_on:
             is_pos_on = False
-            cap = cap/p0*price[-1]
-        return -cap
+            cap = cap / p0 * price[i]
+    if is_pos_on:
+        is_pos_on = False
+        cap = cap / p0 * price[-1]
 
+    print("R,q,profit:{:.2f}, {:.2f}, {:.2f} ".format(R,q,cap-c0))
+    return -(cap-c0),transactions
+def calibrate_kalman_args(Z,N=100):
+    def obj_func(x,params):
+        if len(x)==0:
+            pdb.set_trace()
+        Z,N = params
+        cost,_ = cal_profit(x,Z,N)
+        return cost
 
-    # init_x = np.array([.1,2.5e-3,1.e-6])
-    # bounds = [(0.1,.1),(2.5e-3,2.5e-3),(1e-6,1e-6)]
     init_x = np.array([.1,100,20])
     bounds = [(1e-1,1e-1),(10,1000),(.1,100)]
     # bounds = None
-    result = minimize(obj_func,init_x,bounds=bounds,method='Nelder-Mead',tol=1e-5)
+    result = minimize(obj_func,init_x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
+    # result = ga_minimize(obj_func,(Z,N),3,bounds,population_size=100,num_generations=100)
     print("optimal dt,R: ", result.x)
     print("optimal cost: ", result.fun)
     return result.x
 
-
 def test_stock():
-    syms = ['smci']
+    syms = ['tsm']
     target_date = '2024-08-30'
     back_days = 250
     start_date = add_days_to_date(target_date,-back_days)
