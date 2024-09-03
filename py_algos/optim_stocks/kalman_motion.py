@@ -60,8 +60,10 @@ def kalman_motion(Z,R,q=1e-3,dt=1):
 
     # print("FInal P: ",P)
     return states,P
-def cal_profit(x,Z,N=-100,cap=10000):
+def cal_profit(x,Z,N=100,cap=10000):
     dt, R, q = x
+    if dt <=0 or R <=0 or q <= 0:
+        return np.inf,-1
     xs, P = kalman_motion(Z, R, q, dt)
     price = xs[-N:, 0]
     v = xs[-N:, 1]
@@ -81,9 +83,9 @@ def cal_profit(x,Z,N=-100,cap=10000):
         is_pos_on = False
         cap = cap / p0 * price[-1]
 
-    print("R,q,profit:{:.2f}, {:.2f}, {:.2f} ".format(R,q,cap-c0))
+    # print("R,q,profit:{:.2f}, {:.2f}, {:.2f} ".format(R,q,cap-c0))
     return -(cap-c0),transactions
-def calibrate_kalman_args(Z,N=100):
+def calibrate_kalman_args(Z,N=100,opt_method=0):
     def obj_func(x,params):
         if len(x)==0:
             pdb.set_trace()
@@ -92,16 +94,22 @@ def calibrate_kalman_args(Z,N=100):
         return cost
 
     init_x = np.array([.1,100,20])
-    bounds = [(1e-1,1e-1),(10,1000),(.1,100)]
+    bounds = [(1e-2,1e-0),(.1,100),(.1,100)]
     # bounds = None
-    result = minimize(obj_func,init_x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
-    # result = ga_minimize(obj_func,(Z,N),3,bounds,population_size=100,num_generations=100)
+    result = None
+    if opt_method == 0:
+        result = minimize(obj_func,init_x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
+    elif opt_method == 1:
+        result = ga_minimize(obj_func,(Z,N),3,bounds,population_size=200,num_generations=100)
+    else:
+        print("ERROR! opt_method is not supported")
+
     print("optimal dt,R: ", result.x)
     print("optimal cost: ", result.fun)
     return result.x
 
 def test_stock():
-    syms = ['tsm']
+    syms = ['ibm']
     target_date = '2024-08-30'
     back_days = 250
     start_date = add_days_to_date(target_date,-back_days)
@@ -111,9 +119,11 @@ def test_stock():
     print(df.index[-1])
 
     z = df.values #/ df.values[0]
-    pm = calibrate_kalman_args(z)
+    pm = calibrate_kalman_args(z,opt_method=0)
     xs,_ = kalman_motion(z,R=pm[1],q=pm[2],dt=pm[0])
     # xs,_ = kalman_motion(z,R=100,q=1,dt=.01)
+    pf,trans=cal_profit(pm,z)
+    print("Profit: {:.2f}, trans: {}".format(pf,trans))
     return xs,z
 
 def test_stock_iter():
