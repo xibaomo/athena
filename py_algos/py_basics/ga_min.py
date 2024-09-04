@@ -32,11 +32,11 @@ def ga_minimize(objfunc, params, num_variables, bounds=[], population_size=200, 
         # pdb.set_trace()
         return random.uniform(low, up)
 
-    # def bounded_mutate(individual, indpb):
-    #     for i in range(len(individual)):
-    #         if random.random() < indpb:
-    #             individual[i] = create_bounded_float(bounds[i][0], bounds[i][1])
-    #     return individual,
+    def bounded_mutate(individual, indpb):
+        for i in range(len(individual)):
+            if random.random() < indpb:
+                individual[i] = create_bounded_float(bounds[i][0], bounds[i][1])
+        return individual,
 
     # pdb.set_trace()
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -59,7 +59,8 @@ def ga_minimize(objfunc, params, num_variables, bounds=[], population_size=200, 
     # toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("evaluate", evaluate)
     toolbox.register("mate", tools.cxBlend,alpha=cross_prob)
-    toolbox.register("mutate", tools.mutGaussian,mu=0,sigma=1,indpb=mutation_rate)
+    # toolbox.register("mutate", tools.mutGaussian,mu=0,sigma=1,indpb=mutation_rate)
+    toolbox.register("mutate",bounded_mutate,indpb=mutation_rate)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
     # pool = multiprocessing.Pool()

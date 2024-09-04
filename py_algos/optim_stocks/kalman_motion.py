@@ -63,25 +63,29 @@ def kalman_motion(Z,R,q=1e-3,dt=1):
 def cal_profit(x,Z,N=100,cap=10000):
     dt, R, q = x
     if dt <=0 or R <=0 or q <= 0:
-        return np.inf,-1
+        return np.inf,[]
     xs, P = kalman_motion(Z, R, q, dt)
-    price = xs[-N:, 0]
+    k_eq = xs[-1,-1]
+    price = Z[-N:]
     v = xs[-N:, 1]
     is_pos_on = False
     p0 = -1.
-    transactions=0
+    transactions=[]
     c0=cap
     for i in range(N):
-        if v[i] > 0 and not is_pos_on:
+        if v[i] > 0 and not is_pos_on and abs(xs[i,-1]-k_eq) < 0.01:
             p0 = price[i]
             is_pos_on = True
-            transactions+=1
+            trans = [i,-1]
+            transactions.append(trans)
         if v[i] <= 0 and is_pos_on:
             is_pos_on = False
             cap = cap / p0 * price[i]
+            transactions[-1][1] = i
     if is_pos_on:
         is_pos_on = False
         cap = cap / p0 * price[-1]
+        transactions[-1][1] = N-1
 
     # print("R,q,profit:{:.2f}, {:.2f}, {:.2f} ".format(R,q,cap-c0))
     return -(cap-c0),transactions
@@ -94,7 +98,7 @@ def calibrate_kalman_args(Z,N=100,opt_method=0):
         return cost
 
     init_x = np.array([.1,100,20])
-    bounds = [(1e-2,1e-0),(.1,100),(.1,100)]
+    bounds = [(1e-2,1e-1),(.1,100),(.1,100)]
     # bounds = None
     result = None
     if opt_method == 0:
@@ -104,12 +108,12 @@ def calibrate_kalman_args(Z,N=100,opt_method=0):
     else:
         print("ERROR! opt_method is not supported")
 
-    print("optimal dt,R: ", result.x)
-    print("optimal cost: ", result.fun)
+    # print("optimal dt,R: ", result.x)
+    # print("optimal cost: ", result.fun)
     return result.x
 
 def test_stock():
-    syms = ['ibm']
+    syms = ['mhk']
     target_date = '2024-08-30'
     back_days = 250
     start_date = add_days_to_date(target_date,-back_days)
@@ -123,6 +127,7 @@ def test_stock():
     xs,_ = kalman_motion(z,R=pm[1],q=pm[2],dt=pm[0])
     # xs,_ = kalman_motion(z,R=100,q=1,dt=.01)
     pf,trans=cal_profit(pm,z)
+    print("optimal dt,R,q: ",pm)
     print("Profit: {:.2f}, trans: {}".format(pf,trans))
     return xs,z
 
@@ -176,16 +181,17 @@ if __name__ == "__main__":
     # xs = test_uniform_motion()
     xs,z = test_stock()
     # xs,z = test_stock_iter()
-    xs = xs[10:,:]
-    z = z[10:]
-    fig,axs = plt.subplots(4,1)
+    N=1
+    xs = xs[N:,:]
+    z = z[N:]
+    fig,axs = plt.subplots(3,1)
     axs[0].plot(xs[:,0],'.-')
     axs[0].plot(z,'r.-')
     axs[1].plot(xs[:,1],'.-')
     axs[1].axhline(y=0, color='red', linestyle='-')
-    axs[2].plot(xs[:,2],'.-')
-    axs[2].axhline(y=0, color='red', linestyle='-')
-    axs[3].plot(xs[:,-1],'.-')
+    # axs[2].plot(xs[:,2],'.-')
+    # axs[2].axhline(y=0, color='red', linestyle='-')
+    axs[2].plot(xs[N:,-1],'.-')
 
     print("est vs real: ", np.corrcoef(xs[:,0],z)[0,1])
     print("corr: acc vs v: ", np.corrcoef(xs[:,1],xs[:,2])[0,1])
