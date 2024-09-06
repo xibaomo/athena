@@ -2,7 +2,7 @@ import math
 import sys,os
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,date
 from scipy.stats import spearmanr
 from scipy.optimize import minimize
 import yfinance as yf
@@ -104,7 +104,9 @@ def calibrate_kalman_args(Z,N=100,opt_method=0):
     if opt_method == 0:
         result = minimize(obj_func,init_x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
     elif opt_method == 1:
-        result = ga_minimize(obj_func,(Z,N),3,bounds,population_size=200,num_generations=100)
+        result = ga_minimize(obj_func,(Z,N),3,bounds,population_size=500,num_generations=100)
+        # print("ga result: ", result.x, result.fun)
+        # result = minimize(obj_func,result.x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
     else:
         print("ERROR! opt_method is not supported")
 
@@ -112,9 +114,9 @@ def calibrate_kalman_args(Z,N=100,opt_method=0):
     # print("optimal cost: ", result.fun)
     return result.x
 
-def test_stock():
-    syms = ['mhk']
-    target_date = '2024-08-30'
+def test_stock(sym,target_date=None):
+    syms = [sym]
+    # target_date = '2024-09-5'
     back_days = 250
     start_date = add_days_to_date(target_date,-back_days)
     data = yf.download(syms, start=start_date, end=target_date)
@@ -123,7 +125,7 @@ def test_stock():
     print(df.index[-1])
 
     z = df.values #/ df.values[0]
-    pm = calibrate_kalman_args(z,opt_method=0)
+    pm = calibrate_kalman_args(z,opt_method=1)
     xs,_ = kalman_motion(z,R=pm[1],q=pm[2],dt=pm[0])
     # xs,_ = kalman_motion(z,R=100,q=1,dt=.01)
     pf,trans=cal_profit(pm,z)
@@ -178,10 +180,18 @@ def test_uniform_motion():
     return xs
 
 if __name__ == "__main__":
-    # xs = test_uniform_motion()
-    xs,z = test_stock()
+    if len(sys.argv) < 2:
+        print("Usage: {} <sym> <target_date (current if empty)>".format(sys.argv[0]))
+        sys.exit(1)
+    sym = sys.argv[1]
+    current_date = date.today()
+    target_date = current_date.strftime("%Y-%m-%d")
+    if len(sys.argv)>2:
+        target_date = sys.argv[2]
+
+    xs,z = test_stock(sym,target_date)
     # xs,z = test_stock_iter()
-    N=1
+    N=-100
     xs = xs[N:,:]
     z = z[N:]
     fig,axs = plt.subplots(3,1)

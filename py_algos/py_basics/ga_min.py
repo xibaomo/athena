@@ -69,6 +69,9 @@ def ga_minimize(objfunc, params, num_variables, bounds=[], population_size=200, 
 
     result = algorithms.eaSimple(population, toolbox, cxpb=cross_prob, mutpb=mutation_rate, ngen=num_generations, verbose=True)
 
+    # pool.join()
+    # pool.close()
+
     best_solution = tools.selBest(population, k=1)[0]
     best_fitness = best_solution.fitness.values[0]
 
