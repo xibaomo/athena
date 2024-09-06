@@ -9,6 +9,7 @@ import yfinance as yf
 from scipy import stats
 from statsmodels.graphics.tsaplots import plot_acf
 from statsmodels.stats.diagnostic import acorr_ljungbox
+import functools
 import pdb
 folder = os.environ['ATHENA_HOME'] + "/py_algos/py_basics"
 sys.path.append(folder)
@@ -89,14 +90,14 @@ def cal_profit(x,Z,N=100,cap=10000):
 
     # print("R,q,profit:{:.2f}, {:.2f}, {:.2f} ".format(R,q,cap-c0))
     return -(cap-c0),transactions
-def calibrate_kalman_args(Z,N=100,opt_method=0):
-    def obj_func(x,params):
-        if len(x)==0:
-            pdb.set_trace()
-        Z,N = params
-        cost,_ = cal_profit(x,Z,N)
-        return cost
 
+def obj_func(x,params):
+    if len(x)==0:
+        pdb.set_trace()
+    Z,N = params
+    cost,_ = cal_profit(x,Z,N)
+    return cost,
+def calibrate_kalman_args(Z,N=100,opt_method=0):
     init_x = np.array([.1,100,20])
     bounds = [(1e-2,1e-1),(.1,100),(.1,100)]
     # bounds = None
@@ -104,9 +105,10 @@ def calibrate_kalman_args(Z,N=100,opt_method=0):
     if opt_method == 0:
         result = minimize(obj_func,init_x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
     elif opt_method == 1:
-        result = ga_minimize(obj_func,(Z,N),3,bounds,population_size=500,num_generations=100)
-        # print("ga result: ", result.x, result.fun)
-        # result = minimize(obj_func,result.x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
+        tmp_func = functools.partial(obj_func,params=(Z,N))
+        result = ga_minimize(tmp_func,3,bounds,population_size=500,num_generations=100)
+        print("ga result: ", result.x, result.fun)
+        result = minimize(obj_func,result.x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
     else:
         print("ERROR! opt_method is not supported")
 
