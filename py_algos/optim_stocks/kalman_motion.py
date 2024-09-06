@@ -64,7 +64,7 @@ def kalman_motion(Z,R,q=1e-3,dt=1):
 def cal_profit(x,Z,N=100,cap=10000):
     dt, R, q = x
     if dt <=0 or R <=0 or q <= 0:
-        return np.inf,[]
+        return -1.e20,[]
     xs, P = kalman_motion(Z, R, q, dt)
     k_eq = xs[-1,-1]
     price = Z[-N:]
@@ -89,14 +89,14 @@ def cal_profit(x,Z,N=100,cap=10000):
         transactions[-1][1] = N-1
 
     # print("R,q,profit:{:.2f}, {:.2f}, {:.2f} ".format(R,q,cap-c0))
-    return -(cap-c0),transactions
+    return (cap-c0),transactions
 
 def obj_func(x,params):
     if len(x)==0:
         pdb.set_trace()
     Z,N = params
     cost,_ = cal_profit(x,Z,N)
-    return cost,
+    return -cost,
 def calibrate_kalman_args(Z,N=100,opt_method=0):
     init_x = np.array([.1,100,20])
     bounds = [(1e-2,1e-1),(.1,100),(.1,100)]
@@ -107,8 +107,8 @@ def calibrate_kalman_args(Z,N=100,opt_method=0):
     elif opt_method == 1:
         tmp_func = functools.partial(obj_func,params=(Z,N))
         result = ga_minimize(tmp_func,3,bounds,population_size=500,num_generations=100)
-        print("ga result: ", result.x, result.fun)
-        result = minimize(obj_func,result.x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
+        # print("ga result: ", result.x, result.fun)
+        # result = minimize(obj_func,result.x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
     else:
         print("ERROR! opt_method is not supported")
 

@@ -16,7 +16,7 @@ class SymInfo(object):
 def cal_single_score(Z):
     x = calibrate_kalman_args(Z,100,0)
     profit,_ = cal_profit(x,Z,100)
-    return -profit
+    return profit
 
 def cal_all_scores(df,tid,lookback):
     pool = multiprocessing.Pool(processes=NUM_PROCS)
@@ -41,6 +41,8 @@ if __name__ == "__main__":
 
     df_close = data['Close']
     global_tid = locate_target_date(target_date, df_close)
+    if global_tid < 0:
+        global_tid = len(df_close)-1
     lookback = portconf.getLookback()
 
     syms,profits = cal_all_scores(df_close,global_tid,lookback)

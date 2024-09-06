@@ -63,6 +63,7 @@ def locate_target_date(date_str, df):
         if prev_days * dt.days < 0:
             return i
         prev_days = dt.days
+    print("Cannot find target date. return -1")
     return -1
 def __select_sym_mu_std(daily_rtn, num_sym, option=0): #0: pick ave-mu leading ones
     mus = daily_rtn.mean()

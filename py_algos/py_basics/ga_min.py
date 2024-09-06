@@ -36,7 +36,18 @@ def ga_minimize(objfunc, num_variables, bounds=[], population_size=200, num_gene
         for i in range(len(individual)):
             if random.random() < indpb:
                 individual[i] = create_bounded_float(bounds[i][0], bounds[i][1])
+
         return individual,
+
+    # Custom crossover function that respects bounds
+    def cx_bounded(ind1, ind2):
+        for i in range(len(ind1)):
+            if random.random() < 0.5:
+                ind1[i], ind2[i] = ind2[i], ind1[i]
+                # Enforce bounds after swapping
+                ind1[i] = max(bounds[i][0], min(ind1[i], bounds[i][1]))
+                ind2[i] = max(bounds[i][0], min(ind2[i], bounds[i][1]))
+        return ind1, ind2
 
     # pdb.set_trace()
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -45,11 +56,14 @@ def ga_minimize(objfunc, num_variables, bounds=[], population_size=200, num_gene
     toolbox = base.Toolbox()
     n = len(bounds)
     if n>0 and n == num_variables:
-        for i in range(len(bounds)):
-            toolbox.register(f"attr_float_{i}", create_bounded_float, bounds[i][0], bounds[i][1])
-        attr_floats = [getattr(toolbox, f"attr_float_{i}") for i in range(num_variables)]
+        # for i in range(len(bounds)):
+        #     toolbox.register(f"attr_float_{i}", create_bounded_float, bounds[i][0], bounds[i][1])
+        # attr_floats = [getattr(toolbox, f"attr_float_{i}") for i in range(num_variables)]
+        toolbox.register("attr_float", create_bounded_float)
+        toolbox.register("individual", tools.initCycle, creator.Individual,
+                         [lambda: create_bounded_float(bounds[i][0], bounds[i][1]) for i in range(num_variables)])
 
-        toolbox.register("individual", tools.initCycle, creator.Individual, attr_floats, n=1)
+        # toolbox.register("individual", tools.initCycle, creator.Individual, attr_floats, n=1)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     else:
         # toolbox.register("attribute", random.uniform, lb, ub)
@@ -58,7 +72,8 @@ def ga_minimize(objfunc, num_variables, bounds=[], population_size=200, num_gene
 
     # toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("evaluate", objfunc)
-    toolbox.register("mate", tools.cxBlend,alpha=cross_prob)
+    toolbox.register("mate", cx_bounded)
+    # toolbox.register("mate", tools.cxBlend, alpha=cross_prob)
     # toolbox.register("mutate", tools.mutGaussian,mu=0,sigma=1,indpb=mutation_rate)
     toolbox.register("mutate",bounded_mutate,indpb=mutation_rate)
     toolbox.register("select", tools.selTournament, tournsize=3)
