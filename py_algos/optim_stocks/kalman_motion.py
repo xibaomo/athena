@@ -44,6 +44,7 @@ def kalman_motion(Z,R,q=1e-3,dt=1):
     for i in range(N):
         if i==0:
             continue
+        # pdb.set_trace()
         X_ = np.matmul(F,X)
         P_ = np.matmul(np.matmul(F,P),F.transpose()) + np.matmul(G*Q,G.transpose())
         tmp = np.matmul(np.matmul(H,P_),H.transpose()) + Rm
@@ -63,7 +64,7 @@ def kalman_motion(Z,R,q=1e-3,dt=1):
     return states,P
 def cal_profit(x,Z,N=100,cap=10000):
     dt, R, q = x
-    if dt <=0 or R <=0 or q <= 0:
+    if dt < .01 or dt > .1 or R <=0 or q <= 0:
         return -1.e20,[]
     xs, P = kalman_motion(Z, R, q, dt)
     k_eq = xs[-1,-1]
@@ -74,19 +75,21 @@ def cal_profit(x,Z,N=100,cap=10000):
     transactions=[]
     c0=cap
     for i in range(N):
-        if v[i] > 0 and not is_pos_on and abs(xs[i,-1]-k_eq) < 0.01:
+        if v[i] > 0 and not is_pos_on and abs(xs[i,-1]-k_eq) < 0.02:
             p0 = price[i]
             is_pos_on = True
-            trans = [i,-1]
+            trans = [i,-1,-1]
             transactions.append(trans)
         if v[i] <= 0 and is_pos_on:
             is_pos_on = False
             cap = cap / p0 * price[i]
             transactions[-1][1] = i
+            transactions[-1][2] = price[i]/p0 - 1
     if is_pos_on:
         is_pos_on = False
         cap = cap / p0 * price[-1]
         transactions[-1][1] = N-1
+        transactions[-1][2] = price[-1]/p0-1
 
     # print("R,q,profit:{:.2f}, {:.2f}, {:.2f} ".format(R,q,cap-c0))
     return (cap-c0),transactions
@@ -119,7 +122,7 @@ def calibrate_kalman_args(Z,N=100,opt_method=0):
 def test_stock(sym,target_date=None):
     syms = [sym]
     # target_date = '2024-09-5'
-    back_days = 250
+    back_days = 350
     start_date = add_days_to_date(target_date,-back_days)
     data = yf.download(syms, start=start_date, end=target_date)
     df = data['Close']
@@ -130,6 +133,7 @@ def test_stock(sym,target_date=None):
     pm = calibrate_kalman_args(z,opt_method=1)
     xs,_ = kalman_motion(z,R=pm[1],q=pm[2],dt=pm[0])
     # xs,_ = kalman_motion(z,R=100,q=1,dt=.01)
+    # pdb.set_trace()
     pf,trans=cal_profit(pm,z)
     print("optimal dt,R,q: ",pm)
     print("Profit: {:.2f}, trans: {}".format(pf,trans))

@@ -25,7 +25,7 @@ class Result(object):
         # pdb.set_trace()
         self.x=x_
         self.fun=fun_
-def ga_minimize(objfunc, num_variables, bounds=[], population_size=200, num_generations=50, cross_prob=0.5,mutation_rate=0.2):
+def ga_minimize(objfunc, num_variables, bounds=[], is_parallel=True,population_size=200, num_generations=50, cross_prob=0.5,mutation_rate=0.2):
     # def evaluate(ind):
     #     return objfunc(ind),
     def create_bounded_float(low, up):
@@ -78,14 +78,16 @@ def ga_minimize(objfunc, num_variables, bounds=[], population_size=200, num_gene
     toolbox.register("mutate",bounded_mutate,indpb=mutation_rate)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
-    pool = multiprocessing.Pool()
-    toolbox.register("map", pool.map)
+    if is_parallel:
+        pool = multiprocessing.Pool()
+        toolbox.register("map", pool.map)
     population = toolbox.population(n=population_size)
 
     result = algorithms.eaSimple(population, toolbox, cxpb=cross_prob, mutpb=mutation_rate, ngen=num_generations, verbose=True)
 
-    pool.close()
-    pool.join()
+    if is_parallel:
+        pool.close()
+        pool.join()
 
     best_solution = tools.selBest(population, k=1)[0]
     best_fitness = best_solution.fitness.values[0]
