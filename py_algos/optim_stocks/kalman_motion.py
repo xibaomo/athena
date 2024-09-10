@@ -105,6 +105,7 @@ def calibrate_kalman_args(Z,N=100,opt_method=0):
     bounds = [(1e-2,1e-1),(.1,100),(.1,100)]
     # bounds = None
     result = None
+    # pdb.set_trace()
     if opt_method == 0:
         result = minimize(obj_func,init_x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
     elif opt_method == 1:

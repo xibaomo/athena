@@ -83,7 +83,7 @@ def ga_minimize(objfunc, num_variables, bounds=[], is_parallel=True,population_s
         toolbox.register("map", pool.map)
     population = toolbox.population(n=population_size)
 
-    result = algorithms.eaSimple(population, toolbox, cxpb=cross_prob, mutpb=mutation_rate, ngen=num_generations, verbose=True)
+    result = algorithms.eaSimple(population, toolbox, cxpb=cross_prob, mutpb=mutation_rate, ngen=num_generations, verbose=False)
 
     if is_parallel:
         pool.close()
