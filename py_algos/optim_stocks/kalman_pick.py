@@ -36,9 +36,10 @@ def verify_past_future(df,sym,global_tid,lookback,lookfwd, cap=10000):
     past_profit,_ = cal_profit(x,Z,100)
 
     Z = df[sym].values[global_tid-lookback:global_tid+lookfwd]
-    dt,R,q = x
+    dt,R,q,vth = x
     xs,P = kalman_motion(Z,R=R,q=q,dt=dt)
-    v = xs[:,1]
+    v = xs[:,1]/dt
+    a = xs[:,2]
 
     # if v[lookback] <= 0 or v[lookback]<v[lookback-1]:
     #     return past_profit,v[lookback],-1
@@ -47,7 +48,7 @@ def verify_past_future(df,sym,global_tid,lookback,lookfwd, cap=10000):
     c0 = cap
     trans=[]
     for i in range(lookback+1,len(v)):
-        if v[i] > 0 and v[i]>= v[i-1] and p0 < 0:
+        if v[i] > vth and p0 < 0:
             p0 = Z[i]
             tr = [i-lookback-1,-1,-1]
             trans.append(tr)
@@ -64,6 +65,8 @@ def verify_past_future(df,sym,global_tid,lookback,lookfwd, cap=10000):
 
     # pdb.set_trace()
     print(trans)
+    print(sym)
+    print("dt,R,q,vth: ",dt,R,q,vth)
     fig, axs = plt.subplots(4, 1)
     axs[0].plot(xs[lookback:,0],'.-')
     axs[0].plot(Z[lookback:], 'r.-')
@@ -95,7 +98,7 @@ if __name__ == "__main__":
 
     # syms,profits = cal_all_scores(df_close,global_tid,lookback)
     # syms = df_close.keys()
-    syms = ['AMT']
+    syms = ['CRWD']
     headers = ['sym','dt','R','q','past_profit','future_profit']
     df_res = pd.DataFrame(columns=headers)
 

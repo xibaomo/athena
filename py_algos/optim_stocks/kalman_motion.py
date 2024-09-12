@@ -53,6 +53,7 @@ def kalman_motion(Z,R,q=1e-3,dt=1):
         tmp = Z[i] - np.matmul(H,X_)
         X = X_ + np.matmul(K,tmp)
         states[i,:-1] = X
+        states[i,1] = states[i,0]-states[i-1,0]
         # pdb.set_trace()
         states[i,-1] = K[0][0]
 
@@ -63,24 +64,26 @@ def kalman_motion(Z,R,q=1e-3,dt=1):
     # print("FInal P: ",P)
     return states,P
 def cal_profit(x,Z,N=100,cap=10000):
-    dt, R, q = x
-    if dt < .01 or dt > .1 or R <=0 or q <= 0:
+    dt, R, q,vth = x
+    if dt <0.01 or dt>.1 or R <=0 or q <= 0:
         return -1.e20,[]
     xs, P = kalman_motion(Z, R, q, dt)
+    # return -P[0,0]/R,[]
     k_eq = xs[-1,-1]
     price = Z[-N:]
-    v = xs[-N:, 1]
+    v = xs[-N:, 1]/dt
+    a = xs[-N:,2]
     is_pos_on = False
     p0 = -1.
     transactions=[]
     c0=cap
     for i in range(N):
-        if v[i] > 0 and not is_pos_on and abs(xs[i,-1]-k_eq) < 0.02:
+        if v[i] > vth and not is_pos_on and abs(xs[i,-1]-k_eq) < 0.02:
             p0 = price[i]
             is_pos_on = True
             trans = [i,-1,-1]
             transactions.append(trans)
-        if v[i] <= 0 and is_pos_on:
+        if v[i] < 0 and is_pos_on:
             is_pos_on = False
             cap = cap / p0 * price[i]
             transactions[-1][1] = i
@@ -95,14 +98,14 @@ def cal_profit(x,Z,N=100,cap=10000):
     return (cap-c0),transactions
 
 def obj_func(x,params):
-    if len(x)==0:
-        pdb.set_trace()
+    if x[1]>800 or x[1] < 50:
+        return 9999999,
     Z,N = params
     cost,_ = cal_profit(x,Z,N)
     return -cost,
 def calibrate_kalman_args(Z,N=100,opt_method=0):
-    init_x = np.array([.1,100,20])
-    bounds = [(1e-2,1e-1),(.1,100),(.1,100)]
+    init_x = np.array([0.05,100,1,10])
+    bounds = [(5e-3,1e-1),(50,200),(1e-5,10),(0,100)]
     # bounds = None
     result = None
     # pdb.set_trace()
@@ -110,7 +113,7 @@ def calibrate_kalman_args(Z,N=100,opt_method=0):
         result = minimize(obj_func,init_x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
     elif opt_method == 1:
         tmp_func = functools.partial(obj_func,params=(Z,N))
-        result = ga_minimize(tmp_func,3,bounds,population_size=500,num_generations=100)
+        result = ga_minimize(tmp_func,len(init_x),bounds,population_size=500,num_generations=100)
         # print("ga result: ", result.x, result.fun)
         # result = minimize(obj_func,result.x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
     else:
