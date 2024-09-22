@@ -28,6 +28,89 @@ def add_days_to_date(date_str, num_days):
 
     return new_date_str
 
+def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
+    """
+    Adaptive Kalman Filter with innovation-based estimation of R.
+
+    Args:
+        z: Measurement vector (1D array of length T).
+        F: State transition matrix.
+        H: Measurement matrix.
+        Q: Process noise covariance matrix.
+        R_init: Initial measurement noise covariance (scalar).
+        P0: Initial state covariance matrix.
+        x0: Initial state estimate (1D array).
+        N: Window size for innovation variance estimation.
+
+    Returns:
+        x_est: Estimated states over time (2D array of shape (T, state_dim)).
+        P_est: State covariance estimates over time (3D array of shape (T, state_dim, state_dim)).
+        R_est: Estimated measurement noise covariance over time (1D array of length T).
+    """
+    # Number of measurements
+    T = len(z)
+
+    # State dimension
+    state_dim = F.shape[0]
+
+    # Initialize state and covariance
+    x = x0.reshape(-1, 1)  # Convert to column vector (2D array of shape (state_dim, 1))
+    P = P0
+    R = R_init
+
+    # Store results
+    x_est = np.zeros((T, state_dim))
+    P_est = np.zeros((T, state_dim, state_dim))
+    R_est = np.zeros(T)
+
+    # Store recent innovations for estimating R
+    innovations = np.zeros(N)
+
+    # Adaptive Kalman filtering loop
+    for k in range(T):
+        # Prediction step
+        x_pred = F @ x  # (state_dim, 1)
+        P_pred = F @ P @ F.T + Q
+
+        # Measurement update
+        y = z[k] - (H @ x_pred).item()  # Innovation (residual, scalar)
+        S = H @ P_pred @ H.T + R  # Innovation covariance (scalar)
+        K = P_pred @ H.T / S  # Kalman gain (state_dim, 1)
+        x = x_pred + K * y  # Updated state estimate (state_dim, 1)
+        P = (np.eye(state_dim) - K @ H) @ P_pred  # Updated state covariance (state_dim, state_dim)
+
+        # Save state estimates
+        # pdb.set_trace()
+        x_est[k, :] = x.flatten()  # Store as row in result (convert back to 1D array)
+        P_est[k, :, :] = P
+
+        # Store the innovation for estimating R
+        innovations[k % N] = y ** 2
+
+        # Update measurement noise covariance R based on innovation variance
+        if k >= N:
+            R = np.mean(innovations)  # Estimate R as the mean innovation variance
+
+        # Store estimated R
+        R_est[k] = R
+
+    return x_est, P_est, R_est
+
+
+def adaptive_kalman_motion(Z,q,dt):
+    T = dt
+    F = np.array([[1., T, T ** 2 / 2], [0., 1., T], [0., 0., 1.]])
+    G = np.array([[T ** 3 / 6], [T ** 2 / 2], [1.]])
+    Q = G @ G.T * q/dt
+    H = np.array([[1., 0., 0.]])
+    R_init = 1
+    P0 = np.eye(3)*R_init
+    x0 = np.array([Z[0],0,0])
+
+    states,P_est,R_est = adaptive_kalman_filter(Z,F,H,Q,R_init,P0,x0,N=10)
+
+    return states,P_est
+
 def kalman_motion(Z,R,q=1e-3,dt=1):
     dim = 3
     N = len(Z)
@@ -69,7 +152,8 @@ def cal_profit(x,log_price,N=100,cap=10000):
     dt, R, q = x
     if dt <0.01 or dt>.1 or R <=0 or q <= 0:
         return -1.e20,[]
-    xs, P = kalman_motion(log_price, R, q, dt)
+    # xs, P = kalman_motion(log_price, R, q, dt)
+    xs,P = adaptive_kalman_motion(log_price,q,dt)
     # return -P[0,0]/R,[]
     # vstd = np.sqrt(P[1,1])
     k_eq = xs[-1,-1]
@@ -81,15 +165,17 @@ def cal_profit(x,log_price,N=100,cap=10000):
     p0 = -1.
     transactions=[]
     c0=cap
+    # pdb.set_trace()
     for i in range(1,N):
-        if  s[i] > s[i-1] and not is_pos_on and abs(xs[i,-1]-k_eq) < 0.02:
+        # if  s[i] > s[i-1] and not is_pos_on and abs(xs[i,-1]-k_eq) < 0.02:
+        if v[i] > 0 and v[i] > v[i-1] and not is_pos_on:
             p0 = price[i]
             is_pos_on = True
             trans = [i,-1,-1]
             transactions.append(trans)
         if not is_pos_on:
             continue
-        if s[i] - s[i-1] < -2e-3:# or v[i] < 0:
+        if  v[i] < 0:
             is_pos_on = False
             cap = cap / p0 * price[i]
             transactions[-1][1] = i
@@ -104,16 +190,14 @@ def cal_profit(x,log_price,N=100,cap=10000):
     return (cap-c0),transactions
 
 def obj_func(x,params):
-    if x[1]>50 or x[1] < 1:
-        return 9999999,
-    if x[0] < 0.01 or x[0] > 0.05:
+    if x[0] < 0.001 or x[0] > 0.1:
         return 999999,
     Z,N = params
     cost,_ = cal_profit(x,Z,N)
     return -cost,
 def calibrate_kalman_args(Z,N=100,opt_method=0):
     init_x = np.array([0.05,1,.1])
-    bounds = [(5e-3,1e-1),(.1,3),(1e-5,.1)]
+    bounds = [(1e-3,1e-1),(1.,1.),(1e-6,.01)]
     # bounds = None
     result = None
     # pdb.set_trace()
@@ -143,9 +227,11 @@ def test_stock(sym,target_date=None):
 
     z = np.log(df.values) #/ df.values[0]
     pm = calibrate_kalman_args(z,opt_method=1)
-    xs,_ = kalman_motion(z,R=pm[1],q=pm[2],dt=pm[0])
-    # xs,_ = kalman_motion(z,R=100,q=1,dt=.01)
+    # pm = (0.048, 1, 0.047)
+    # # xs,_ = kalman_motion(z,R=pm[1],q=pm[2],dt=pm[0])
+    xs,_ = adaptive_kalman_motion(z,q=pm[2],dt=pm[0])
     # pdb.set_trace()
+
     pf,trans=cal_profit(pm,z)
     print("optimal dt,R,q: ",pm)
     print("Profit: {:.2f}, trans: {}".format(pf,trans))
