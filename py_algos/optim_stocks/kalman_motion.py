@@ -27,6 +27,7 @@ def add_days_to_date(date_str, num_days):
     new_date_str = new_date.strftime('%Y-%m-%d')
 
     return new_date_str
+
 def kalman_motion(Z,R,q=1e-3,dt=1):
     dim = 3
     N = len(Z)
@@ -53,7 +54,7 @@ def kalman_motion(Z,R,q=1e-3,dt=1):
         tmp = Z[i] - np.matmul(H,X_)
         X = X_ + np.matmul(K,tmp)
         states[i,:-1] = X
-        states[i,1] = states[i,0]-states[i-1,0]
+        # states[i,1] = states[i,0]-states[i-1,0]
         # pdb.set_trace()
         states[i,-1] = K[0][0]
 
@@ -63,27 +64,32 @@ def kalman_motion(Z,R,q=1e-3,dt=1):
 
     # print("FInal P: ",P)
     return states,P
-def cal_profit(x,Z,N=100,cap=10000):
-    dt, R, q,vth = x
+def cal_profit(x,log_price,N=100,cap=10000):
+    Z = np.exp(log_price)
+    dt, R, q = x
     if dt <0.01 or dt>.1 or R <=0 or q <= 0:
         return -1.e20,[]
-    xs, P = kalman_motion(Z, R, q, dt)
+    xs, P = kalman_motion(log_price, R, q, dt)
     # return -P[0,0]/R,[]
+    # vstd = np.sqrt(P[1,1])
     k_eq = xs[-1,-1]
     price = Z[-N:]
-    v = xs[-N:, 1]/dt
+    s = xs[-N:,0]
+    v = xs[-N:, 1]
     a = xs[-N:,2]
     is_pos_on = False
     p0 = -1.
     transactions=[]
     c0=cap
-    for i in range(N):
-        if v[i] > vth and not is_pos_on and abs(xs[i,-1]-k_eq) < 0.02:
+    for i in range(1,N):
+        if  s[i] > s[i-1] and not is_pos_on and abs(xs[i,-1]-k_eq) < 0.02:
             p0 = price[i]
             is_pos_on = True
             trans = [i,-1,-1]
             transactions.append(trans)
-        if v[i] < 0 and is_pos_on:
+        if not is_pos_on:
+            continue
+        if s[i] - s[i-1] < -2e-3:# or v[i] < 0:
             is_pos_on = False
             cap = cap / p0 * price[i]
             transactions[-1][1] = i
@@ -98,14 +104,16 @@ def cal_profit(x,Z,N=100,cap=10000):
     return (cap-c0),transactions
 
 def obj_func(x,params):
-    if x[1]>800 or x[1] < 50:
+    if x[1]>50 or x[1] < 1:
         return 9999999,
+    if x[0] < 0.01 or x[0] > 0.05:
+        return 999999,
     Z,N = params
     cost,_ = cal_profit(x,Z,N)
     return -cost,
 def calibrate_kalman_args(Z,N=100,opt_method=0):
-    init_x = np.array([0.05,100,1,10])
-    bounds = [(5e-3,1e-1),(50,200),(1e-5,10),(0,100)]
+    init_x = np.array([0.05,1,.1])
+    bounds = [(5e-3,1e-1),(.1,3),(1e-5,.1)]
     # bounds = None
     result = None
     # pdb.set_trace()
@@ -113,7 +121,7 @@ def calibrate_kalman_args(Z,N=100,opt_method=0):
         result = minimize(obj_func,init_x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
     elif opt_method == 1:
         tmp_func = functools.partial(obj_func,params=(Z,N))
-        result = ga_minimize(tmp_func,len(init_x),bounds,population_size=500,num_generations=100)
+        result = ga_minimize(tmp_func,len(init_x),bounds,population_size=1000,num_generations=100)
         # print("ga result: ", result.x, result.fun)
         # result = minimize(obj_func,result.x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
     else:
@@ -133,7 +141,7 @@ def test_stock(sym,target_date=None):
     # pdb.set_trace()
     print(df.index[-1])
 
-    z = df.values #/ df.values[0]
+    z = np.log(df.values) #/ df.values[0]
     pm = calibrate_kalman_args(z,opt_method=1)
     xs,_ = kalman_motion(z,R=pm[1],q=pm[2],dt=pm[0])
     # xs,_ = kalman_motion(z,R=100,q=1,dt=.01)
@@ -199,19 +207,19 @@ if __name__ == "__main__":
     if len(sys.argv)>2:
         target_date = sys.argv[2]
 
-    xs,z = test_stock(sym,target_date)
+    xs,zz = test_stock(sym,target_date)
     # xs,z = test_stock_iter()
     N=-100
     xs = xs[N:,:]
-    z = z[N:]
-    fig,axs = plt.subplots(3,1)
+    z = zz[N:]
+    fig,axs = plt.subplots(4,1)
     axs[0].plot(xs[:,0],'.-')
     axs[0].plot(z,'r.-')
     axs[1].plot(xs[:,1],'.-')
     axs[1].axhline(y=0, color='red', linestyle='-')
-    # axs[2].plot(xs[:,2],'.-')
-    # axs[2].axhline(y=0, color='red', linestyle='-')
-    axs[2].plot(xs[N:,-1],'.-')
+    axs[2].plot(xs[:,2],'.-')
+    axs[2].axhline(y=0, color='red', linestyle='-')
+    axs[3].plot(xs[N:,-1],'.-')
 
     print("est vs real: ", np.corrcoef(xs[:,0],z)[0,1])
     print("corr: acc vs v: ", np.corrcoef(xs[:,1],xs[:,2])[0,1])
@@ -223,5 +231,5 @@ if __name__ == "__main__":
     result = acorr_ljungbox(res, lags=[10], return_df=True)
     print("white noise: ", result['lb_pvalue'].values[0])
 
-    plot_acf(res, lags=20)
+    plot_acf(zz, lags=50)
     plt.show()
