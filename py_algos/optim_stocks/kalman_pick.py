@@ -54,8 +54,8 @@ def verify_past_future(df,sym,global_tid,lookback,lookfwd, cap=10000):
     price = df[sym].values[global_tid-lookback:global_tid+lookfwd]
     Z = np.log(price)
     dt,R,q = x
-    xs,P = kalman_motion(Z,R=R,q=q,dt=dt)
-
+    # xs,P = kalman_motion(Z,R=R,q=q,dt=dt)
+    xs,P = adaptive_kalman_motion(Z,q,dt)
     s = xs[:,0]
     v = xs[:,1]
     a = xs[:,2]
@@ -64,12 +64,12 @@ def verify_past_future(df,sym,global_tid,lookback,lookfwd, cap=10000):
     c0 = cap
     trans=[]
     for i in range(lookback,len(v)):
-        if s[i]> s[i-1]  and p0 < 0:
+        if v[i] > 0 and v[i]>v[i-1]  and p0 < 0:
             # pdb.set_trace()
             p0 = price[i]
             tr = [i-lookback,-1,-1]
             trans.append(tr)
-        if s[i] - s[i-1] < -2e-3 and p0 > 0:
+        if v[i] < 0 and p0 > 0:
             # pdb.set_trace()
             print("deal closed: ", s[i]-s[i-1])
             cap = cap/p0*price[i]
