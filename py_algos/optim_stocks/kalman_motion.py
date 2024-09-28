@@ -9,6 +9,7 @@ import yfinance as yf
 from scipy import stats
 from statsmodels.graphics.tsaplots import plot_acf
 from statsmodels.stats.diagnostic import acorr_ljungbox
+from statsmodels.graphics.tsaplots import plot_pacf
 import functools
 import pdb
 folder = os.environ['ATHENA_HOME'] + "/py_algos/py_basics"
@@ -96,6 +97,19 @@ def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
 
     return x_est, P_est, R_est
 
+def kalman2dmotion_adaptive(Z,q,dt):
+    T = dt
+    F = np.array([[1., T], [ 0., 1.]])
+    G = np.array([[T ** 2 / 2.], [1.]])
+    Q = G @ G.T * q/T
+    H = np.array([[1., 0.]])
+    R_init = 1.
+    P0 = np.eye(2)*R_init
+    x0 = np.array([Z[0],0.])
+
+    states,P_est,R_est = adaptive_kalman_filter(Z,F,H,Q,R_init,P0,x0,N=10)
+
+    return states,P_est
 
 def adaptive_kalman_motion(Z,q,dt):
     T = dt
@@ -153,14 +167,14 @@ def cal_profit(x,log_price,N=100,cap=10000):
     if dt <0.01 or dt>.1 or R <=0 or q <= 0:
         return -1.e20,[]
     # xs, P = kalman_motion(log_price, R, q, dt)
-    xs,P = adaptive_kalman_motion(log_price,q,dt)
+    xs,P = kalman2dmotion_adaptive(log_price,q,dt)
     # return -P[0,0]/R,[]
     # vstd = np.sqrt(P[1,1])
     k_eq = xs[-1,-1]
     price = Z[-N:]
     s = xs[-N:,0]
     v = xs[-N:, 1]
-    a = xs[-N:,2]
+    # a = xs[-N:,2]
     is_pos_on = False
     p0 = -1.
     transactions=[]
@@ -197,7 +211,7 @@ def obj_func(x,params):
     return -cost,
 def calibrate_kalman_args(Z,N=100,opt_method=0):
     init_x = np.array([0.05,1,.1])
-    bounds = [(1e-3,1e-1),(1.,1.),(1e-6,.01)]
+    bounds = [(1e-3,5e-2),(1.,1.),(1e-6,.01)]
     # bounds = None
     result = None
     # pdb.set_trace()
@@ -229,7 +243,7 @@ def test_stock(sym,target_date=None):
     pm = calibrate_kalman_args(z,opt_method=1)
     # pm = (0.048, 1, 0.047)
     # # xs,_ = kalman_motion(z,R=pm[1],q=pm[2],dt=pm[0])
-    xs,_ = adaptive_kalman_motion(z,q=pm[2],dt=pm[0])
+    xs,_ = kalman2dmotion_adaptive(z,q=pm[2],dt=pm[0])
     # pdb.set_trace()
 
     pf,trans=cal_profit(pm,z)
@@ -298,24 +312,24 @@ if __name__ == "__main__":
     N=-100
     xs = xs[N:,:]
     z = zz[N:]
-    fig,axs = plt.subplots(4,1)
+    fig,axs = plt.subplots(2,1)
     axs[0].plot(xs[:,0],'.-')
     axs[0].plot(z,'r.-')
     axs[1].plot(xs[:,1],'.-')
     axs[1].axhline(y=0, color='red', linestyle='-')
-    axs[2].plot(xs[:,2],'.-')
-    axs[2].axhline(y=0, color='red', linestyle='-')
-    axs[3].plot(xs[N:,-1],'.-')
+    # axs[2].plot(xs[:,2],'.-')
+    # axs[2].axhline(y=0, color='red', linestyle='-')
+    # axs[3].plot(xs[N:,-1],'.-')
 
-    print("est vs real: ", np.corrcoef(xs[:,0],z)[0,1])
-    print("corr: acc vs v: ", np.corrcoef(xs[:,1],xs[:,2])[0,1])
+    # print("est vs real: ", np.corrcoef(xs[:,0],z)[0,1])
+    # print("corr: acc vs v: ", np.corrcoef(xs[:,1],xs[:,2])[0,1])
     res = xs[-100:,0]-z[-100:]
     print("res mean,var: ", np.mean(res),np.var(res))
 
     s,p_val = stats.normaltest(res)
     print("normal test: ",s,p_val)
-    result = acorr_ljungbox(res, lags=[10], return_df=True)
+    result = acorr_ljungbox(xs[-100:,1], lags=[10], return_df=True)
     print("white noise: ", result['lb_pvalue'].values[0])
 
-    plot_acf(zz, lags=50)
+    plot_pacf(xs[-100:,1], lags=30,method='ywm')
     plt.show()

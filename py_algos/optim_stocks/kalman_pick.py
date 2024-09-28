@@ -36,7 +36,7 @@ def verify_past_future(df,sym,global_tid,lookback,lookfwd, cap=10000):
     print("calibrating for ", sym)
     x = calibrate_kalman_args(Z,100,opt_method=1)
     dt,R,q=x
-    xs,P = kalman_motion(Z,R,q,dt)
+    xs,P = kalman2dmotion_adaptive(Z,q,dt)
     print("std: ", np.sqrt(P[0,0]),np.sqrt(P[1,1]),np.sqrt(P[2,2]))
     # pdb.set_trace()
     past_profit, _ = cal_profit(x, Z, 100)
