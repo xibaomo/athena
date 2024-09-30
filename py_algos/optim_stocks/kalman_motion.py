@@ -211,7 +211,7 @@ def obj_func(x,params):
     return -cost,
 def calibrate_kalman_args(Z,N=100,opt_method=0):
     init_x = np.array([0.05,1,.1])
-    bounds = [(1e-3,5e-2),(1.,1.),(1e-6,.01)]
+    bounds = [(1e-3,5e-2),(1.,1.),(1e-6,1.e-2)]
     # bounds = None
     result = None
     # pdb.set_trace()
@@ -243,12 +243,13 @@ def test_stock(sym,target_date=None):
     pm = calibrate_kalman_args(z,opt_method=1)
     # pm = (0.048, 1, 0.047)
     # # xs,_ = kalman_motion(z,R=pm[1],q=pm[2],dt=pm[0])
-    xs,_ = kalman2dmotion_adaptive(z,q=pm[2],dt=pm[0])
+    xs,p_est = kalman2dmotion_adaptive(z,q=pm[2],dt=pm[0])
     # pdb.set_trace()
 
     pf,trans=cal_profit(pm,z)
     print("optimal dt,R,q: ",pm)
     print("Profit: {:.2f}, trans: {}".format(pf,trans))
+    print("estimated var: ",p_est[-5:,:])
     return xs,z
 
 def test_stock_iter():
