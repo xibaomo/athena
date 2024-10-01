@@ -60,7 +60,7 @@ def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
     R = R_init
 
     # Store results
-    x_est = np.zeros((T, state_dim))
+    x_est = np.zeros((T, state_dim+1))
     P_est = np.zeros((T, state_dim, state_dim))
     R_est = np.zeros(T)
 
@@ -82,7 +82,9 @@ def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
 
         # Save state estimates
         # pdb.set_trace()
-        x_est[k, :] = x.flatten()  # Store as row in result (convert back to 1D array)
+        x_est[k, :state_dim] = x.flatten()  # Store as row in result (convert back to 1D array)
+        # pdb.set_trace()
+        x_est[k,state_dim] = K[0][0]
         P_est[k, :, :] = P
 
         # Store the innovation for estimating R
@@ -165,7 +167,7 @@ def cal_profit(x,log_price,N=100,cap=10000):
     Z = np.exp(log_price)
     dt, R, q = x
     if dt <0.01 or dt>.1 or R <=0 or q <= 0:
-        return -1.e20,[]
+        return -1.e20,[],99999.
     # xs, P = kalman_motion(log_price, R, q, dt)
     xs,P = kalman2dmotion_adaptive(log_price,q,dt)
     # return -P[0,0]/R,[]
@@ -201,17 +203,22 @@ def cal_profit(x,log_price,N=100,cap=10000):
         transactions[-1][2] = price[-1]/p0-1
 
     # print("R,q,profit:{:.2f}, {:.2f}, {:.2f} ".format(R,q,cap-c0))
-    return (cap-c0),transactions
+    err = xs[-N:,0] - log_price[-N:]
+    sd = np.std(err)
+    return (cap-c0),transactions,sd
 
 def obj_func(x,params):
     if x[0] < 0.001 or x[0] > 0.1:
         return 999999,
     Z,N = params
-    cost,_ = cal_profit(x,Z,N)
-    return -cost,
+    cost,trans,sd = cal_profit(x,Z,N)
+    if len(trans)==0:
+        return 0,
+    return -cost/sd/len(trans),
+    # return -cost/sd,
 def calibrate_kalman_args(Z,N=100,opt_method=0):
     init_x = np.array([0.05,1,.1])
-    bounds = [(1e-3,5e-2),(1.,1.),(1e-6,1.e-2)]
+    bounds = [(1e-3,5e-2),(1.,1.),(1e-5,1.e-2)]
     # bounds = None
     result = None
     # pdb.set_trace()
@@ -246,9 +253,10 @@ def test_stock(sym,target_date=None):
     xs,p_est = kalman2dmotion_adaptive(z,q=pm[2],dt=pm[0])
     # pdb.set_trace()
 
-    pf,trans=cal_profit(pm,z)
+    pf,trans,sd=cal_profit(pm,z)
     print("optimal dt,R,q: ",pm)
     print("Profit: {:.2f}, trans: {}".format(pf,trans))
+    print("std of err: ", sd)
     print("estimated var: ",p_est[-5:,:])
     return xs,z
 
@@ -313,14 +321,14 @@ if __name__ == "__main__":
     N=-100
     xs = xs[N:,:]
     z = zz[N:]
-    fig,axs = plt.subplots(2,1)
+    fig,axs = plt.subplots(3,1)
     axs[0].plot(xs[:,0],'.-')
     axs[0].plot(z,'r.-')
     axs[1].plot(xs[:,1],'.-')
     axs[1].axhline(y=0, color='red', linestyle='-')
     # axs[2].plot(xs[:,2],'.-')
     # axs[2].axhline(y=0, color='red', linestyle='-')
-    # axs[3].plot(xs[N:,-1],'.-')
+    axs[2].plot(xs[N:,-1],'.-')
 
     # print("est vs real: ", np.corrcoef(xs[:,0],z)[0,1])
     # print("corr: acc vs v: ", np.corrcoef(xs[:,1],xs[:,2])[0,1])
