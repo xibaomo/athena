@@ -92,7 +92,10 @@ def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
 
         # Update measurement noise covariance R based on innovation variance
         if k >= N:
+            # pdb.set_trace()
             R = np.mean(innovations)  # Estimate R as the mean innovation variance
+            R = R - (H@P_pred@H.T).flatten()[0]
+            R = max(R,1.e-6)
 
         # Store estimated R
         R_est[k] = R
@@ -109,7 +112,7 @@ def kalman2dmotion_adaptive(Z,q,dt=0.05):
     P0 = np.eye(2)*R_init
     x0 = np.array([Z[0],0.])
 
-    states,P_est,R_est = adaptive_kalman_filter(Z,F,H,Q,R_init,P0,x0,N=10)
+    states,P_est,R_est = adaptive_kalman_filter(Z,F,H,Q,R_init,P0,x0,N=20)
 
     return states,P_est
 
@@ -251,8 +254,8 @@ def test_stock(sym,target_date=None):
     pm = calibrate_kalman_args(z,opt_method=1)
 
     # pdb.set_trace()
+    # pm = [1e-5]
     xs,p_est = kalman2dmotion_adaptive(z,q=pm[0])
-    # pdb.set_trace()
 
     pf,trans,sd=cal_profit(pm,z)
     print("optimal dt,R,q: ",pm)
