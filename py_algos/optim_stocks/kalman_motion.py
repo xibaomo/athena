@@ -243,13 +243,17 @@ def calibrate_kalman_args(Z,N=100,opt_method=0):
 def test_stock(sym,target_date=None):
     syms = [sym]
     # target_date = '2024-09-5'
+    if target_date is None:
+        target_date = datetime.today().strftime('%Y-%m-%d')
     back_days = 350
     start_date = add_days_to_date(target_date,-back_days)
-    data = yf.download(syms, start=start_date, end=target_date)
-    df = data['Close']
+    # data = yf.download(syms, start=start_date, end=target_date)
+    data = yf.Ticker(sym).history(start=start_date, end=target_date, interval='1d')
     # pdb.set_trace()
-    print(df.index[-1])
+    df = data['Close']
 
+    # print(df.index[-1])
+    print(data.iloc[-1,:])
     z = np.log(df.values) #/ df.values[0]
     pm = calibrate_kalman_args(z,opt_method=1)
 
@@ -320,6 +324,8 @@ if __name__ == "__main__":
     target_date = current_date.strftime("%Y-%m-%d")
     if len(sys.argv)>2:
         target_date = sys.argv[2]
+    else:
+        target_date = None
 
     xs,zz = test_stock(sym,target_date)
     # xs,z = test_stock_iter()
