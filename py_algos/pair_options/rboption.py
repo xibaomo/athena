@@ -19,7 +19,7 @@ cur_price = float(r.stocks.get_latest_price(ticker)[0])
 def get_option_chain(ticker,target_date=None):
     if target_date is None:
         today = datetime.today()
-        target_date = today + timedelta(days=1)
+        target_date = today + timedelta(days=30)
     print("target date: ", target_date.strftime("%Y-%m-%d"))
     # Get option instruments for the given ticker
     option_instruments = r.options.find_tradable_options(ticker)
@@ -79,30 +79,46 @@ for opt in options:
         put_opts.append(opt)
 
 maxprof=-999999
-mi=-1
-mj=-1
 call_profit=0
 put_profit=0
 
 r = 0.05
 print("Latest price: ",cur_price)
-for i in range(len(call_opts)):
-    for j in range(len(put_opts)):
-        ys = float(put_opts[j]['strike_price'])
-        xs = float(call_opts[i]['strike_price'])
-        f  = float(call_opts[i]['ask_price'])
-        g  = float(put_opts[j]['ask_price'])
-        # p = ys-xs - f - g
-        call_prof = cur_price*(1+r) - xs - f - g
-        put_prof = ys - cur_price*(1-r) -f -g
-        p = (call_prof+put_prof)*.5
-        if p > maxprof and g+f < 1000.:
-            maxprof = p
-            mi = i
-            mj = j
-            call_profit = call_prof
-            put_profit = put_prof
-print(f"max profit: {maxprof}, call: {call_profit}, put: {put_profit}")
+# for i in range(len(call_opts)):
+#     for j in range(len(put_opts)):
+#         ys = float(put_opts[j]['strike_price'])
+#         xs = float(call_opts[i]['strike_price'])
+#         f  = float(call_opts[i]['ask_price'])
+#         g  = float(put_opts[j]['ask_price'])
+#         # p = ys-xs - f - g
+#         call_prof = cur_price*(1+r) - xs - f - g
+#         put_prof = ys - cur_price*(1-r) -f -g
+#         p = (call_prof+put_prof)*.5
+#         if p > maxprof and g+f < 1000.:
+#             maxprof = p
+#             mi = i
+#             mj = j
+#             call_profit = call_prof
+#             put_profit = put_prof
+max_put = -9999
+min_call = 9999
+mi,mj=-1,-1
+for i in range(len(put_opts)): #maximize
+    tmp = float(put_opts[i]['strike_price']) - 2 * float(put_opts[i]['ask_price'])
+    if tmp > max_put:
+        max_put = tmp 
+        mj = i 
+for i in range(len(call_opts)): # minimize
+    tmp = float(call_opts[i]['strike_price']) + 2* float(call_opts[i]['ask_price'])
+    if tmp < min_call:
+        min_call = tmp 
+        mi = i 
+
+max_expect_prof = (2*r*cur_price + max_put - min_call)*.5
+call_profit = (1+r)*cur_price - float(call_opts[mi]['strike_price']) - float(call_opts[mi]['ask_price']) - float(put_opts[mj]['ask_price'])
+put_profit = float(put_opts[mj]['strike_price']) - (1-r)*cur_price - float(call_opts[mi]['ask_price']) - float(put_opts[mj]['ask_price'])
+        
+print(f"max expected profit: {max_expect_prof}, call: {call_profit}, put: {put_profit}")
 print(call_opts[mi])
 print(put_opts[mj])
 # Log out after done
