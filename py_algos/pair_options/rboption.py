@@ -19,8 +19,8 @@ cur_price = float(r.stocks.get_latest_price(ticker)[0])
 def get_option_chain(ticker,target_date=None):
     if target_date is None:
         today = datetime.today()
-        target_date = today + timedelta(days=30)
-    print("target date: ", target_date.strftime("%Y-%m-%d"))
+        target_date = today + timedelta(days=15)
+    print("Earliest expiration date: ", target_date.strftime("%Y-%m-%d"))
     # Get option instruments for the given ticker
     option_instruments = r.options.find_tradable_options(ticker)
 
