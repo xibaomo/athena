@@ -85,24 +85,8 @@ maxprof=-999999
 call_profit=0
 put_profit=0
 
-r = 0.061
+r = 0.05
 print("Latest price: ",cur_price)
-# for i in range(len(call_opts)):
-#     for j in range(len(put_opts)):
-#         ys = float(put_opts[j]['strike_price'])
-#         xs = float(call_opts[i]['strike_price'])
-#         f  = float(call_opts[i]['ask_price'])
-#         g  = float(put_opts[j]['ask_price'])
-#         # p = ys-xs - f - g
-#         call_prof = cur_price*(1+r) - xs - f - g
-#         put_prof = ys - cur_price*(1-r) -f -g
-#         p = (call_prof+put_prof)*.5
-#         if p > maxprof and g+f < 1000.:
-#             maxprof = p
-#             mi = i
-#             mj = j
-#             call_profit = call_prof
-#             put_profit = put_prof
 max_put = -9999
 min_call = 9999
 mi,mj=-1,-1
