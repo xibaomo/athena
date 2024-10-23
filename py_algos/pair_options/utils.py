@@ -1,0 +1,82 @@
+import robin_stocks.robinhood as rh
+from datetime import datetime,timedelta
+import pandas_market_calendars as mcal
+import pandas as pd
+DATE_FORMAT ="%Y-%m-%d"
+
+def download_from_robinhood(ticker,interval='day',span='year'):
+    historical_data = rh.stocks.get_stock_historicals(ticker, interval=interval, span=span)
+    # Convert the historical data into a DataFrame
+    df = pd.DataFrame(historical_data)
+
+    # Convert the 'begins_at' column to datetime
+    df['begins_at'] = pd.to_datetime(df['begins_at'])
+
+    # Rename columns for better readability
+    df.rename(columns={
+        'begins_at': 'Date',
+        'open_price': 'Open',
+        'close_price': 'Close',
+        'high_price': 'High',
+        'low_price': 'Low',
+        'volume': 'Volume'
+    }, inplace=True)
+
+    # Convert price columns to numeric values
+    price_columns = ['Open', 'Close', 'High', 'Low']
+    df[price_columns] = df[price_columns].apply(pd.to_numeric)
+
+    return df
+
+def count_trading_days(start_date=None, end_date=None, exchange='NYSE'):
+    """
+    Calculate the number of trading days between two dates for a given exchange.
+
+    Args:
+        start_date (str): The start date in 'YYYY-MM-DD' format.
+        end_date (str): The end date in 'YYYY-MM-DD' format.
+        exchange (str): The exchange to consider (default is 'NYSE').
+
+    Returns:
+        int: The number of trading days between the two dates.
+    """
+    if start_date is None:
+        today = datetime.today()
+        start_date = today.strftime("%Y-%m-%d")
+    # Get the exchange calendar (default is NYSE)
+    if exchange.upper() == 'NYSE':
+        cal = mcal.get_calendar('NYSE')
+    elif exchange.upper() == 'NASDAQ':
+        cal = mcal.get_calendar('NASDAQ')
+    # Add other exchanges as needed
+
+    # Get the valid trading days between start and end date
+    trading_days = cal.valid_days(start_date=start_date, end_date=end_date)
+
+    # Return the number of trading days
+    return len(trading_days)
+
+def natural_days_between_dates(start_date=None, end_date=None, date_format=DATE_FORMAT):
+    """
+    Calculate the number of days between two date strings.
+
+    Args:
+        start_date (str): The starting date as a string.
+        end_date (str): The ending date as a string.
+        date_format (str): The format in which the dates are provided. Default is "%Y-%m-%d".
+
+    Returns:
+        int: The number of days between the two dates.
+    """
+    if start_date is None:
+        today = datetime.today()
+        start_date = today.strftime("%Y-%m-%d")
+    # Convert date strings to datetime objects
+    start = datetime.strptime(start_date, date_format)
+    end = datetime.strptime(end_date, date_format)
+
+    # Calculate the difference in days
+    delta = end - start
+    return delta.days
+
+

@@ -4,17 +4,20 @@ import time
 import random
 from datetime import datetime,timedelta
 
-import robin_stocks.robinhood as r
+import robin_stocks.robinhood as rh
+from utils import *
+from mkv_cal import *
 import getpass
+
 
 # Login to Robinhood
 username = os.getenv("BROKER_USERNAME")
 password = os.getenv("BROKER_PASSWD")
-r.login(username, password)
+rh.login(username, password)
 data_file='options.pkl'
 
 ticker = sys.argv[1]
-cur_price = float(r.stocks.get_latest_price(ticker)[0])
+cur_price = float(rh.stocks.get_latest_price(ticker)[0])
 # Function to get the option chain for a given stock ticker
 def get_option_chain(ticker,target_date=None):
     if target_date is None:
@@ -22,7 +25,7 @@ def get_option_chain(ticker,target_date=None):
         target_date = today + timedelta(days=15)
     print("Earliest expiration date: ", target_date.strftime("%Y-%m-%d"))
     # Get option instruments for the given ticker
-    option_instruments = r.options.find_tradable_options(ticker)
+    option_instruments = rh.options.find_tradable_options(ticker)
 
     if not option_instruments:
         print(f"No options available for {ticker}")
@@ -38,7 +41,7 @@ def get_option_chain(ticker,target_date=None):
             option['ask_price'] = -1
             continue
         for i in range(1): #try once
-            option_market_data = r.options.get_option_market_data_by_id(option['id'])
+            option_market_data = rh.options.get_option_market_data_by_id(option['id'])
             # if len(option_market_data) > 0:
             #     break
             # time.sleep(random.random())
@@ -61,9 +64,9 @@ def get_option_chain(ticker,target_date=None):
 
 data_file = ticker + "_" + data_file
 
-options=get_option_chain(ticker)
-with open(data_file, 'wb') as f:
-    pickle.dump(options,f)
+# options=get_option_chain(ticker)
+# with open(data_file, 'wb') as f:
+#     pickle.dump(options,f)
 
 with open(data_file,'rb') as f:
     options = pickle.load(f)
@@ -82,7 +85,7 @@ maxprof=-999999
 call_profit=0
 put_profit=0
 
-r = 0.05
+r = 0.061
 print("Latest price: ",cur_price)
 # for i in range(len(call_opts)):
 #     for j in range(len(put_opts)):
@@ -121,4 +124,18 @@ put_profit = float(put_opts[mj]['strike_price']) - (1-r)*cur_price - float(call_
 print(f"max expected profit: {max_expect_prof}, call: {call_profit}, put: {put_profit}")
 print(call_opts[mi])
 print(put_opts[mj])
+
+date1 = call_opts[mi]['expiration_date']
+date2 = put_opts[mj]['expiration_date']
+days1 = count_trading_days(end_date=date1)
+days2 = count_trading_days(end_date=date2)
+
+days = days1 if days1 < days2 else days2
+print("workdays to expire: ", days)
+
+df = download_from_robinhood(ticker)
+
+pbu,pbd = compProb1stHidBounds(ticker,df,days,ub_rtn=r,lb_rtn=-r)
+print(f"1st-hit probability: {pbu:.3f},{pbd:.3f}, total: {pbu+pbd:.3f}")
+
 # Log out after done
