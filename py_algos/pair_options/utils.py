@@ -56,6 +56,21 @@ def count_trading_days(start_date=None, end_date=None, exchange='NYSE'):
     # Return the number of trading days
     return len(trading_days)
 
+class TradeDaysCounter(object):
+    def __init__(self,exchange='NYSE'):
+        if exchange.upper() == 'NYSE':
+            self.cal = mcal.get_calendar('NYSE')
+        elif exchange.upper() == 'NASDAQ':
+            self.cal = mcal.get_calendar('NASDAQ')
+    def countTradeDays(self,end_date,start_date=None):
+        if start_date is None:
+            today = datetime.today()
+            start_date = today.strftime("%Y-%m-%d")
+        trading_days = self.cal.valid_days(start_date=start_date, end_date=end_date)
+
+        # Return the number of trading days
+        return len(trading_days)
+
 def natural_days_between_dates(start_date=None, end_date=None, date_format=DATE_FORMAT):
     """
     Calculate the number of days between two date strings.

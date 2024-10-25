@@ -59,21 +59,88 @@ def get_option_chain(ticker,target_date=None):
     print("calls: {}, puts: {}".format(ncalls,nputs))
     return option_instruments
 
+class FirstHitProbCal(object):
+    def __init__(self,rtns,nstates,r):
+        self.expireDate2probs = {}
+        self.mkvcal = MkvAbsorbCal(nstates)
+        self.mkvcal.buildTransMat(rtns,-r,r)
+        d = 2*r/nstates
+        self.mid = int(r/d)
+    def get1stHitProbs(self,expire_date):
+        if expire_date in self.expireDate2probs:
+            return self.expireDate2probs[expire_date]
+
+        steps = count_trading_days(end_date=expire_date)
+        pbu, pbd = self.mkvcal.comp1stHitProb(steps, self.mid, -2, -1)
+        res = [pbu,pbd]
+        self.expireDate2probs[expire_date] = res
+        return res
+
+def computeBestPair(cur_price, rb, ticker, lookback, call_opts,put_opts):
+    df = download_from_robinhood(ticker)
+    rtns = df['Close'].pct_change().values[-lookback:]
+    mi = -1
+    mj = -1
+    max_prof = -999999
+    probcal = FirstHitProbCal(rtns,500,rb)
+    # cur_price = float(rh.stocks.get_latest_price(ticker)[0])
+    print("Latest price: ", cur_price)
+    call_profit = -1
+    put_profit = -1
+    for i in range(len(call_opts)):
+        callopt = call_opts[i]
+        # pu = probcal.get1stHitProbs(callopt['expiration_date'])[0]
+        callcost = float(callopt['ask_price'])
+        call_prof = (1+rb)*cur_price - float(callopt['strike_price']) - float(callopt['ask_price'])
+        call_days = callopt['days']
+        for j in range(len(put_opts)):
+            putopt = put_opts[j]
+            put_days = putopt['days']
+            expire_date = callopt['expiration_date'] if call_days < put_days else putopt['expiration_date']
+            pu,pd = probcal.get1stHitProbs(expire_date)
+            tmp_up = call_prof - float(putopt['ask_price'])
+            tmp_dw = float(putopt['strike_price']) - cur_price*(1-rb) - float(putopt['ask_price']) - callcost
+
+            expect_prof = tmp_up * pu + tmp_dw * pd
+            if expect_prof > max_prof and pu+pd>=.7 and tmp_up*tmp_dw>0:
+                max_prof = expect_prof
+                mi = i
+                mj = j
+                # print("max expected profit: ", max_prof)
+                call_profit = tmp_up
+                put_profit = tmp_dw
+
+    print(f"\033[91moptimal expected profit: {max_prof:.2f}, {call_profit:.2f}, {put_profit:.2f}\033[0m")
+    # pdb.set_trace()
+    days1 = call_opts[mi]['days']
+    days2 = put_opts[mj]['days']
+    expire_date = call_opts[mi]['expiration_date'] if days1 < days2 else put_opts[mj]['expiration_date']
+    print("trade days: ", days1 if days1 < days2 else days2)
+    pu,pd = probcal.get1stHitProbs(expire_date)
+    print(f"up,down probs: {pu:.3f}, {pd:.3f}, {pu+pd:.3f}")
+
+    print(call_opts[mi])
+    print(put_opts[mj])
+    return mi,mj
+
 # Example usage: Get option chain for a stock ticker (e.g., 'AAPL')
 # Log into Robinhood using the credentials
 
 data_file = ticker + "_" + data_file
 
-# options=get_option_chain(ticker)
-# with open(data_file, 'wb') as f:
-#     pickle.dump(options,f)
+options=get_option_chain(ticker)
+with open(data_file, 'wb') as f:
+    pickle.dump(options,f)
 
 with open(data_file,'rb') as f:
     options = pickle.load(f)
 
 call_opts=[]
 put_opts=[]
+days_counter = TradeDaysCounter()
 for opt in options:
+    days = days_counter.countTradeDays(opt['expiration_date'])
+    opt['days'] = days
     if opt['ask_price'] < 0:
         continue
     if opt['type'] == 'call':
@@ -81,45 +148,15 @@ for opt in options:
     if opt['type'] == 'put':
         put_opts.append(opt)
 
+print("call put options are ready")
 maxprof=-999999
 call_profit=0
 put_profit=0
 
-r = 0.05
-print("Latest price: ",cur_price)
-max_put = -9999
-min_call = 9999
-mi,mj=-1,-1
-for i in range(len(put_opts)): #maximize
-    tmp = float(put_opts[i]['strike_price']) - 2 * float(put_opts[i]['ask_price'])
-    if tmp > max_put:
-        max_put = tmp 
-        mj = i 
-for i in range(len(call_opts)): # minimize
-    tmp = float(call_opts[i]['strike_price']) + 2* float(call_opts[i]['ask_price'])
-    if tmp < min_call:
-        min_call = tmp 
-        mi = i 
-
-max_expect_prof = (2*r*cur_price + max_put - min_call)*.5
-call_profit = (1+r)*cur_price - float(call_opts[mi]['strike_price']) - float(call_opts[mi]['ask_price']) - float(put_opts[mj]['ask_price'])
-put_profit = float(put_opts[mj]['strike_price']) - (1-r)*cur_price - float(call_opts[mi]['ask_price']) - float(put_opts[mj]['ask_price'])
-        
-print(f"max expected profit: {max_expect_prof}, call: {call_profit}, put: {put_profit}")
-print(call_opts[mi])
-print(put_opts[mj])
-
-date1 = call_opts[mi]['expiration_date']
-date2 = put_opts[mj]['expiration_date']
-days1 = count_trading_days(end_date=date1)
-days2 = count_trading_days(end_date=date2)
-
-days = days1 if days1 < days2 else days2
-print("workdays to expire: ", days)
-
-df = download_from_robinhood(ticker)
-
-pbu,pbd = compProb1stHidBounds(ticker,df,days,ub_rtn=r,lb_rtn=-r)
-print(f"1st-hit probability: {pbu:.3f},{pbd:.3f}, total: {pbu+pbd:.3f}")
+r = 0.02
+for i in range(8):
+    rb = 0.02*i +0.02
+    print("r = ",rb)
+    mi,mj = computeBestPair(cur_price, rb,ticker,70,call_opts,put_opts)
 
 # Log out after done
