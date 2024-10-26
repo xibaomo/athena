@@ -1,14 +1,16 @@
+import pdb
+
 import robin_stocks.robinhood as rh
 from datetime import datetime,timedelta
 import pandas_market_calendars as mcal
 import pandas as pd
 DATE_FORMAT ="%Y-%m-%d"
 
-def download_from_robinhood(ticker,interval='day',span='year'):
+def download_from_robinhood(ticker,interval='hour',span='3month'):
     historical_data = rh.stocks.get_stock_historicals(ticker, interval=interval, span=span)
     # Convert the historical data into a DataFrame
     df = pd.DataFrame(historical_data)
-
+    # pdb.set_trace()
     # Convert the 'begins_at' column to datetime
     df['begins_at'] = pd.to_datetime(df['begins_at'])
 
@@ -25,7 +27,7 @@ def download_from_robinhood(ticker,interval='day',span='year'):
     # Convert price columns to numeric values
     price_columns = ['Open', 'Close', 'High', 'Low']
     df[price_columns] = df[price_columns].apply(pd.to_numeric)
-
+    # pdb.set_trace()
     return df
 
 def count_trading_days(start_date=None, end_date=None, exchange='NYSE'):

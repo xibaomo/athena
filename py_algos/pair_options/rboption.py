@@ -9,7 +9,7 @@ from utils import *
 from mkv_cal import *
 import getpass
 
-
+BARS_PER_DAY=6
 # Login to Robinhood
 username = os.getenv("BROKER_USERNAME")
 password = os.getenv("BROKER_PASSWD")
@@ -60,29 +60,29 @@ def get_option_chain(ticker,target_date=None):
     return option_instruments
 
 class FirstHitProbCal(object):
-    def __init__(self,rtns,nstates,r):
+    def __init__(self,rtns,nstates,ub_rtn, lb_rtn):
         self.expireDate2probs = {}
         self.mkvcal = MkvAbsorbCal(nstates)
-        self.mkvcal.buildTransMat(rtns,-r,r)
-        d = 2*r/nstates
-        self.mid = int(r/d)
+        self.mkvcal.buildTransMat(rtns,lb_rtn,ub_rtn)
+        d = (ub_rtn-lb_rtn)/nstates
+        self.mid = int(-lb_rtn/d)
     def get1stHitProbs(self,expire_date):
         if expire_date in self.expireDate2probs:
             return self.expireDate2probs[expire_date]
 
-        steps = count_trading_days(end_date=expire_date)
+        steps = count_trading_days(end_date=expire_date)*BARS_PER_DAY
         pbu, pbd = self.mkvcal.comp1stHitProb(steps, self.mid, -2, -1)
         res = [pbu,pbd]
         self.expireDate2probs[expire_date] = res
         return res
 
-def computeBestPair(cur_price, rb, ticker, lookback, call_opts,put_opts):
-    df = download_from_robinhood(ticker)
-    rtns = df['Close'].pct_change().values[-lookback:]
+def computeBestPair(ub_rtn, lb_rtn, cur_price, df, call_opts,put_opts):
+    # df = download_from_robinhood(ticker)
+    rtns = df['Close'].pct_change().values[1:]
     mi = -1
     mj = -1
     max_prof = -999999
-    probcal = FirstHitProbCal(rtns,500,rb)
+    probcal = FirstHitProbCal(rtns,500,ub_rtn,lb_rtn)
     # cur_price = float(rh.stocks.get_latest_price(ticker)[0])
     print("Latest price: ", cur_price)
     call_profit = -1
@@ -91,7 +91,7 @@ def computeBestPair(cur_price, rb, ticker, lookback, call_opts,put_opts):
         callopt = call_opts[i]
         # pu = probcal.get1stHitProbs(callopt['expiration_date'])[0]
         callcost = float(callopt['ask_price'])
-        call_prof = (1+rb)*cur_price - float(callopt['strike_price']) - float(callopt['ask_price'])
+        call_prof = (1+ub_rtn)*cur_price - float(callopt['strike_price']) - float(callopt['ask_price'])
         call_days = callopt['days']
         for j in range(len(put_opts)):
             putopt = put_opts[j]
@@ -99,7 +99,7 @@ def computeBestPair(cur_price, rb, ticker, lookback, call_opts,put_opts):
             expire_date = callopt['expiration_date'] if call_days < put_days else putopt['expiration_date']
             pu,pd = probcal.get1stHitProbs(expire_date)
             tmp_up = call_prof - float(putopt['ask_price'])
-            tmp_dw = float(putopt['strike_price']) - cur_price*(1-rb) - float(putopt['ask_price']) - callcost
+            tmp_dw = float(putopt['strike_price']) - cur_price*(1+lb_rtn) - float(putopt['ask_price']) - callcost
 
             expect_prof = tmp_up * pu + tmp_dw * pd
             if expect_prof > max_prof and pu+pd>=.7 and tmp_up*tmp_dw>0:
@@ -128,9 +128,9 @@ def computeBestPair(cur_price, rb, ticker, lookback, call_opts,put_opts):
 
 data_file = ticker + "_" + data_file
 
-options=get_option_chain(ticker)
-with open(data_file, 'wb') as f:
-    pickle.dump(options,f)
+# options=get_option_chain(ticker)
+# with open(data_file, 'wb') as f:
+#     pickle.dump(options,f)
 
 with open(data_file,'rb') as f:
     options = pickle.load(f)
@@ -153,10 +153,11 @@ maxprof=-999999
 call_profit=0
 put_profit=0
 
+df = download_from_robinhood(ticker)
 r = 0.02
 for i in range(8):
     rb = 0.02*i +0.02
     print("r = ",rb)
-    mi,mj = computeBestPair(cur_price, rb,ticker,70,call_opts,put_opts)
+    mi,mj = computeBestPair(rb, -rb, cur_price, df, call_opts,put_opts)
 
 # Log out after done
