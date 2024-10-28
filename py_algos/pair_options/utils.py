@@ -4,7 +4,12 @@ import robin_stocks.robinhood as rh
 from datetime import datetime,timedelta
 import pandas_market_calendars as mcal
 import pandas as pd
+import yfinance as yf
 DATE_FORMAT ="%Y-%m-%d"
+
+def download_from_yfinance(ticker,interval='1h',period='1y'):
+    df = yf.download(ticker, period=period, interval=interval)
+    return df,7
 
 def download_from_robinhood(ticker,interval='hour',span='3month'):
     historical_data = rh.stocks.get_stock_historicals(ticker, interval=interval, span=span)
@@ -28,7 +33,7 @@ def download_from_robinhood(ticker,interval='hour',span='3month'):
     price_columns = ['Open', 'Close', 'High', 'Low']
     df[price_columns] = df[price_columns].apply(pd.to_numeric)
     # pdb.set_trace()
-    return df
+    return df,6 #BARS_PER_DAY
 
 def count_trading_days(start_date=None, end_date=None, exchange='NYSE'):
     """

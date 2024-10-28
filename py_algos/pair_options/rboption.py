@@ -10,7 +10,6 @@ from utils import *
 from mkv_cal import *
 import getpass
 
-BARS_PER_DAY=6
 # Login to Robinhood
 username = os.getenv("BROKER_USERNAME")
 password = os.getenv("BROKER_PASSWD")
@@ -23,7 +22,7 @@ cur_price = float(rh.stocks.get_latest_price(ticker)[0])
 def get_option_chain(ticker,target_date=None):
     if target_date is None:
         today = datetime.today()
-        target_date = today + timedelta(days=15)
+        target_date = today + timedelta(days=3)
     print("Earliest expiration date: ", target_date.strftime("%Y-%m-%d"))
     # Get option instruments for the given ticker
     option_instruments = rh.options.find_tradable_options(ticker)
@@ -67,17 +66,17 @@ class FirstHitProbCal(object):
         self.mkvcal.buildTransMat(rtns,lb_rtn,ub_rtn)
         d = (ub_rtn-lb_rtn)/nstates
         self.mid = int(-lb_rtn/d)
-    def get1stHitProbs(self,expire_date):
+    def get1stHitProbs(self,expire_date,bars_per_day):
         if expire_date in self.expireDate2probs:
             return self.expireDate2probs[expire_date]
 
-        steps = count_trading_days(end_date=expire_date)*BARS_PER_DAY
+        steps = count_trading_days(end_date=expire_date)*bars_per_day
         pbu, pbd = self.mkvcal.comp1stHitProb(steps, self.mid, -2, -1)
         res = [pbu,pbd]
         self.expireDate2probs[expire_date] = res
         return res
 
-def computeBestPair(ub_rtn, lb_rtn, cur_price, df, call_opts,put_opts):
+def computeBestPair(ub_rtn, lb_rtn, cur_price, df, bars_per_day, call_opts,put_opts):
     # df = download_from_robinhood(ticker)
     rtns = df['Close'].pct_change().values[1:]
     mi = -1
@@ -99,7 +98,7 @@ def computeBestPair(ub_rtn, lb_rtn, cur_price, df, call_opts,put_opts):
             putcost = float(putopt['ask_price'])
             put_days = putopt['days']
             expire_date = callopt['expiration_date'] if call_days < put_days else putopt['expiration_date']
-            pu,pd = probcal.get1stHitProbs(expire_date)
+            pu,pd = probcal.get1stHitProbs(expire_date,bars_per_day)
             tmp_up = call_prof - putcost
             tmp_dw = float(putopt['strike_price']) - cur_price*(1+lb_rtn) - putcost - callcost
             trade_days = call_days if call_days<put_days else put_days
@@ -122,7 +121,7 @@ def computeBestPair(ub_rtn, lb_rtn, cur_price, df, call_opts,put_opts):
     days2 = put_opts[mj]['days']
     expire_date = call_opts[mi]['expiration_date'] if days1 < days2 else put_opts[mj]['expiration_date']
 
-    pu,pd = probcal.get1stHitProbs(expire_date)
+    pu,pd = probcal.get1stHitProbs(expire_date,bars_per_day)
     print(f"up,down probs: {pu:.3f}, {pd:.3f}, {pu+pd:.3f}")
     print("trade days: ", days1 if days1<days2 else days2)
 
@@ -135,9 +134,9 @@ def computeBestPair(ub_rtn, lb_rtn, cur_price, df, call_opts,put_opts):
 
 data_file = ticker + "_" + data_file
 
-options=get_option_chain(ticker)
-with open(data_file, 'wb') as f:
-    pickle.dump(options,f)
+# options=get_option_chain(ticker)
+# with open(data_file, 'wb') as f:
+#     pickle.dump(options,f)
 
 with open(data_file,'rb') as f:
     options = pickle.load(f)
@@ -162,12 +161,12 @@ maxprof=-999999
 call_profit=0
 put_profit=0
 
-df = download_from_robinhood(ticker)
+df,bars_per_day = download_from_robinhood(ticker)
 def obj_func(x,params):
     cur_price,df,call_opts,put_ops = params
     rb = x[0]
     # pdb.set_trace()
-    mdp,mi,mj = computeBestPair(rb,-rb,cur_price,df,call_opts,put_opts)
+    mdp,mi,mj = computeBestPair(rb,-rb,cur_price,df,bars_per_day,call_opts,put_opts)
     print(f"rtn bound: {rb}, max daily return: {mdp}")
     return -mdp
 # bounds=[(0.05,0.15)]
@@ -181,7 +180,7 @@ dps = []
 rbs = [x*0.01+0.03 for x in range(15)]
 for rb in rbs:
     print("r = ",rb)
-    mdp, mi,mj = computeBestPair(rb, -rb, cur_price, df, call_opts,put_opts)
+    mdp, mi,mj = computeBestPair(rb, -rb, cur_price, df, bars_per_day, call_opts,put_opts)
     dps.append(mdp)
 
 import matplotlib.pyplot as plt
