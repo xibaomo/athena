@@ -9,7 +9,9 @@ DATE_FORMAT ="%Y-%m-%d"
 
 def download_from_yfinance(ticker,interval='1h',period='1y'):
     df = yf.download(ticker, period=period, interval=interval)
-    return df,7
+    bars_per_day=7
+    print("History downloaded. Days: ",len(df)/bars_per_day)
+    return df,bars_per_day
 
 def download_from_robinhood(ticker,interval='hour',span='3month'):
     historical_data = rh.stocks.get_stock_historicals(ticker, interval=interval, span=span)

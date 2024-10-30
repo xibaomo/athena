@@ -14,6 +14,7 @@ def compute_ave_dist_diff(lookback_days, lookfwd_days, bars_per_day, rtns):
     lookback = lookback_days*bars_per_day
     lookfwd = lookfwd_days*bars_per_day
 
+
     ds = []
     for i in range(lookback,len(rtns)-lookfwd):
         t1 = rtns[i-lookback:i]
@@ -36,7 +37,7 @@ def calibrate_lookback_days(rtns,lookfwd_days, lookback_days_range,bars_per_day)
             lb = mid
     return lb
 def plot_ave_distdiff(lb_days,ub_days,lookfwd_days, bars_per_day,rtns):
-    xs = np.arange(lb_days,ub_days,10)
+    xs = np.arange(lb_days,ub_days,5)
     ys = []
     for x in xs:
         y = compute_ave_dist_diff(x,lookfwd_days,bars_per_day,rtns)
@@ -45,24 +46,31 @@ def plot_ave_distdiff(lb_days,ub_days,lookfwd_days, bars_per_day,rtns):
     plt.plot(xs,ys,'.-')
     plt.xlabel('lookback days')
     plt.ylabel('Ave dist diff')
-    plt.show()
+    plt.show(block=False)
 if __name__ == "__main__":
     if len(sys.argv) < 4:
-        print("Usage: {} <ticker> <days> <rtn>".format(sys.argv[0]))
+        print("Usage: {} <ticker> <fwd_days> <rtn_bound> [lookback_days_lb] [lookback_days_ub]".format(sys.argv[0]))
         sys.exit(1)
 
     ticker = sys.argv[1]
     fwd_days = int(sys.argv[2])
     ub_rtn = float(sys.argv[3])
+    lookback_days_lb = 22
+    if len(sys.argv) > 4:
+        lookback_days_lb = int(sys.argv[4])
+    lookback_days_ub = 22*12
+    if len(sys.argv) > 5:
+        lookback_days_ub = int(sys.argv[5])
     lb_rtn = -ub_rtn
     # df = download_from_robinhood(ticker)
-    df,bars_per_day = download_from_yfinance(ticker)
+    df,bars_per_day = download_from_yfinance(ticker,period='2y')
 
-    rtns = df['Close'].pct_change().values
+    rtns = df['Open'].pct_change().values
 
-    plot_ave_distdiff(22,22*10,fwd_days,bars_per_day,rtns)
+    plot_ave_distdiff(22,22*12,fwd_days,bars_per_day,rtns)
 
-    lookback_days = calibrate_lookback_days(rtns,fwd_days,[22,22*10],bars_per_day)
+    print(f"Calibrating lookback days between [{lookback_days_lb},{lookback_days_ub}]")
+    lookback_days = calibrate_lookback_days(rtns,fwd_days,[lookback_days_lb,lookback_days_ub],bars_per_day)
     print(f"optmized lookback days: {lookback_days}")
 
     steps = fwd_days*bars_per_day
