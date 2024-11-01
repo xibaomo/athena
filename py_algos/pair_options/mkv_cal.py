@@ -229,12 +229,12 @@ def dp_minimize(candidates,cal_f, max_n_choose=-1, min_n_choose=10, result_rank=
     choice = chosen[n][idx+min_n_choose]
     return minval,choice
 
-def compProb1stHidBounds(ticker,df, steps, lookback,ub_rtn=0.05,lb_rtn=-0.05):
+def compProb1stHidBounds(ticker,rtns, steps,ub_rtn=0.05,lb_rtn=-0.05):
     ns = 500
     mkvcal = MkvAbsorbCal(ns)
-    rtns = df['Close'].pct_change().values[-lookback:]
+    # rtns = df['Close'].pct_change().values[-lookback:]
     # pdb.set_trace()
-    print(f"{len(rtns)}-tradehour volatility: {np.std(rtns):.5f}")
+    # print(f"{len(rtns)}-tradehour volatility: {np.std(rtns):.5f}")
     mkvcal.buildTransMat(rtns,lb_rtn,ub_rtn)
     d = (ub_rtn-lb_rtn)/ns
     mid = int((0-lb_rtn)/d)

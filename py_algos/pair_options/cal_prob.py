@@ -1,3 +1,4 @@
+import pdb
 import sys,os
 import robin_stocks.robinhood as rh
 from datetime import datetime,timedelta
@@ -13,10 +14,8 @@ from utils import *
 def compute_ave_dist_diff(lookback_days, lookfwd_days, bars_per_day, rtns):
     lookback = lookback_days*bars_per_day
     lookfwd = lookfwd_days*bars_per_day
-
-
     ds = []
-    for i in range(lookback,len(rtns)-lookfwd):
+    for i in np.arange(lookback,len(rtns)-lookfwd,bars_per_day):
         t1 = rtns[i-lookback:i]
         t2 = rtns[i:i+lookfwd]
         d,p = stats.ks_2samp(t1,t2)
@@ -46,7 +45,27 @@ def plot_ave_distdiff(lb_days,ub_days,lookfwd_days, bars_per_day,rtns):
     plt.plot(xs,ys,'.-')
     plt.xlabel('lookback days')
     plt.ylabel('Ave dist diff')
-    plt.show(block=False)
+    # plt.show(block=False)
+
+def prepare_rtns(df,bars_per_day):
+    opens = df['Open'].values
+    highs = df['High'].values
+    lows  = df['Low'].values
+    pcs = np.zeros(len(df)*2)
+    k=0
+    for i in range(len(opens)):
+        pcs[k] = opens[i]
+        k+=1
+        pcs[k] = (highs[i]+lows[i])*.5
+        k+=1
+    # pdb.set_trace()
+    rtns = np.zeros_like(pcs)
+    for i in range(1,len(rtns)):
+        rtns[i] = (pcs[i]-pcs[i-1])/pcs[i-1]
+
+    rtns = rtns[bars_per_day*2:]
+    return rtns,bars_per_day*2
+
 if __name__ == "__main__":
     if len(sys.argv) < 4:
         print("Usage: {} <ticker> <fwd_days> <rtn_bound> [lookback_days_lb] [lookback_days_ub]".format(sys.argv[0]))
@@ -66,15 +85,18 @@ if __name__ == "__main__":
     df,bars_per_day = download_from_yfinance(ticker,period='2y')
 
     rtns = df['Open'].pct_change().values
-
-    plot_ave_distdiff(22,22*12,fwd_days,bars_per_day,rtns)
+    rtns,bars_per_day = prepare_rtns(df,bars_per_day)
+    print(f"length of returns: {len(rtns)}, bars per day: {bars_per_day}")
+    plot_ave_distdiff(22*2,22*12,fwd_days,bars_per_day,rtns)
 
     print(f"Calibrating lookback days between [{lookback_days_lb},{lookback_days_ub}]")
     lookback_days = calibrate_lookback_days(rtns,fwd_days,[lookback_days_lb,lookback_days_ub],bars_per_day)
     print(f"optmized lookback days: {lookback_days}")
 
     steps = fwd_days*bars_per_day
-    pu,pd = compProb1stHidBounds(ticker,df,steps,lookback=lookback_days*bars_per_day, ub_rtn=ub_rtn,lb_rtn=-ub_rtn)
+    lookback=lookback_days*bars_per_day
+    pu,pd = compProb1stHidBounds(ticker,rtns[-lookback:],steps,ub_rtn=ub_rtn,lb_rtn=-ub_rtn)
     print(f"{fwd_days}-day probability of hitting {ub_rtn*100:.2f}%: {pu:.4}, hitting {lb_rtn*100:.2f}%: {pd:.4f}")
     print(f"sum: {pu + pd:.4f}")
 
+    plt.show()
