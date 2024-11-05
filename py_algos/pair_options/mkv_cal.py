@@ -229,7 +229,7 @@ def dp_minimize(candidates,cal_f, max_n_choose=-1, min_n_choose=10, result_rank=
     choice = chosen[n][idx+min_n_choose]
     return minval,choice
 
-def compProb1stHidBounds(ticker,rtns, steps,ub_rtn=0.05,lb_rtn=-0.05):
+def compProb1stHidBounds(rtns, steps,ub_rtn=0.05,lb_rtn=-0.05):
     ns = 500
     mkvcal = MkvAbsorbCal(ns)
     # rtns = df['Close'].pct_change().values[-lookback:]
