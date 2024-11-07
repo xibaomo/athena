@@ -15,7 +15,7 @@ import pdb
 folder = os.environ['ATHENA_HOME'] + "/py_algos/py_basics"
 sys.path.append(folder)
 from ga_min import *
-
+DT=.05
 def add_days_to_date(date_str, num_days):
     # Convert string to datetime object
     # pdb.set_trace()
@@ -102,7 +102,7 @@ def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
 
     return x_est, P_est, R_est
 
-def kalman2dmotion_adaptive(Z,q,dt=0.05):
+def kalman2dmotion_adaptive(Z,q,dt=0.01):
     T = dt
     F = np.array([[1., T], [ 0., 1.]])
     G = np.array([[T ** 2 / 2.], [1.]])
@@ -115,6 +115,42 @@ def kalman2dmotion_adaptive(Z,q,dt=0.05):
     states,P_est,R_est = adaptive_kalman_filter(Z,F,H,Q,R_init,P0,x0,N=20)
 
     return states,P_est
+def kalman2dmotion(Z,R,q,dt):
+    dim = 2
+    N = len(Z)
+    states = np.zeros((N,dim+1))
+    T = dt
+    F = np.array([[1., T], [0., 1.]])
+    G = np.array([[T ** 2 / 2.], [1.]])
+    Q = G @ G.T * q / T
+    H = np.array([[1., 0.]])
+    P = np.eye(2)*10
+    X = np.array([Z[0],1.])
+    Rm = np.array([[R]])
+
+    for i in range(N):
+        if i==0:
+            continue
+        # pdb.set_trace()
+        X_ = F @ X
+        P_ = F @ P @ F.T + Q
+        tmp = H @ P_ @ H.T + Rm
+        # pdb.set_trace()
+        # K = np.matmul(np.matmul(P_,H.transpose()),np.linalg.inv(tmp))
+        K = P_ @ H.T @ np.linalg.inv(tmp)
+        tmp = Z[i] - H @ X_
+        X = X_ + K @ tmp
+        states[i,:-1] = X
+
+        states[i,-1] = K[0][0]
+
+        tmp = np.eye(dim) - K@H
+        # pdb.set_trace()
+        # P = np.matmul(np.matmul(tmp,P_),tmp.transpose()) + np.matmul(np.matmul(K,Rm),K.transpose())
+        P = tmp@P_@tmp.T + K@Rm@K.T
+
+    return states,P
+
 
 def adaptive_kalman_motion(Z,q,dt):
     T = dt
@@ -214,15 +250,36 @@ def cal_profit(x,log_price,N=100,cap=10000):
 
 def obj_func(x,params):
     Z,N = params
+    R, = x
+    xs,P = kalman2dmotion(Z,R,q=1e-5,dt=DT)
+
+    nu = Z[-N:] - xs[-N:,0]
+    mu = np.mean(nu)
+    var = np.var(nu)
+
+    cost =  abs(mu) + (abs(var/R-1))
+    return cost,
+def ___obj_func(x,params):
+    Z,N = params
     cost,trans,sd = cal_profit(x,Z,N)
     if len(trans)==0:
         return 0,
     return -cost/len(trans),
     # return -cost/sd,
     # return sd,
+def __obj_func(x,params):
+    Z,N = params
+    q,=x
+    xs, P = kalman2dmotion_adaptive(Z, q)
+    # pdb.set_trace()
+    res = Z[-N:] - xs[-N:,0]
+    lb_test = acorr_ljungbox(res, lags=[20], return_df=True)
+
+    return lb_test['lb_stat'].values[0],
+
 def calibrate_kalman_args(Z,N=100,opt_method=0):
-    init_x = np.array([.1])
-    bounds = [(1e-5,1.e-3)]
+    init_x = np.array([1e-3])
+    bounds = [(1e-5,1.e-2)]
     # bounds = None
     result = None
     # pdb.set_trace()
@@ -236,8 +293,8 @@ def calibrate_kalman_args(Z,N=100,opt_method=0):
     else:
         print("ERROR! opt_method is not supported")
 
-    # print("optimal dt,R: ", result.x)
-    # print("optimal cost: ", result.fun)
+    print("optimal dt,R: ", result.x)
+    print("optimal cost: ", result.fun)
     return result.x
 
 def test_stock(sym,target_date=None):
@@ -259,14 +316,15 @@ def test_stock(sym,target_date=None):
 
     # pdb.set_trace()
     # pm = [1e-5]
-    xs,p_est = kalman2dmotion_adaptive(z,q=pm[0])
+    # xs,p_est = kalman2dmotion_adaptive(z,q=pm[0])
+    xs,p = kalman2dmotion(z,R=pm[0],q=1e-5,dt=DT)
 
-    pf,trans,sd=cal_profit(pm,z)
+    # pf,trans,sd=cal_profit(pm,z)
     print("optimal dt,R,q: ",pm)
-    print("Profit: {:.2f}, trans: {}".format(pf,trans))
-    print("ave profit: {:.2f}".format(pf/len(trans)))
-    print("std of err: ", sd)
-    print("estimated var: ",p_est[-5:,:])
+    # print("Profit: {:.2f}, trans: {}".format(pf,trans))
+    # print("ave profit: {:.2f}".format(pf/len(trans)))
+    # print("std of err: ", sd)
+    # print("estimated var: ",p_est[-5:,:])
     return xs,z
 
 def test_stock_iter():
