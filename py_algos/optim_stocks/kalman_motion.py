@@ -203,6 +203,43 @@ def kalman3dmotion(Z,R,q,dt):
 
     # print("FInal P: ",P)
     return states,P
+
+def kalman4dmotion(Z,R,q,dt):
+    dim = 4
+    N = len(Z)
+    Rm = np.array([[R]])
+    states = np.zeros((N, dim + 1))
+    T = dt
+    X = np.zeros(dim)
+    X[0] = Z[0]
+    P = np.eye(dim) * R
+    # pdb.set_trace()
+    F = np.array([[1., T, T ** 2 / 2, T**3/6], [0., 1., T, T**2/2], [0., 0., 1., T],[0,0,0,1]])
+    G = np.array([[T ** 5 / 20, T**4/8, T**3/6, T**2/6], [T ** 4/8, T**3/3, T**2/2, T/ 2], [T**3/6, T**2/2, T,1.],[T**2/6, T/2, 1,1]])
+    QQ = q*G
+    H = np.array([[1., 0., 0.,0.]])
+    for i in range(N):
+        if i == 0:
+            continue
+        # pdb.set_trace()
+        X_ = np.matmul(F, X)
+        P_ = np.matmul(np.matmul(F, P), F.transpose()) + QQ
+        tmp = np.matmul(np.matmul(H, P_), H.transpose()) + Rm
+        # pdb.set_trace()
+        K = np.matmul(np.matmul(P_, H.transpose()), np.linalg.inv(tmp))
+        tmp = Z[i] - np.matmul(H, X_)
+        X = X_ + np.matmul(K, tmp)
+        states[i, :-1] = X
+        # states[i,1] = states[i,0]-states[i-1,0]
+        # pdb.set_trace()
+        states[i, -1] = K[0][0]
+
+        tmp = np.eye(dim) - np.matmul(K, H)
+        # pdb.set_trace()
+        P = np.matmul(np.matmul(tmp, P_), tmp.transpose()) + np.matmul(np.matmul(K, Rm), K.transpose())
+
+    # print("FInal P: ",P)
+    return states, P
 def cal_profit(x,log_price,N=100,cap=10000):
     Z = np.exp(log_price)
     q, = x
@@ -250,7 +287,7 @@ def cal_profit(x,log_price,N=100,cap=10000):
     return (cap-c0),transactions,sd
 
 
-KALMAN_FUNC = kalman2dmotion
+KALMAN_FUNC = kalman3dmotion
 def obj_func(x,params):
     Z,N = params
     R,dt = x
@@ -404,11 +441,12 @@ if __name__ == "__main__":
     axs[2].plot(xs[:,2],'.-')
     axs[2].axhline(y=0, color='red', linestyle='-')
 
-    axs[3].plot(xs[N:,-1],'.-')
+    # axs[3].plot(xs[N:,-1],'.-')
 
     # print("est vs real: ", np.corrcoef(xs[:,0],z)[0,1])
     # print("corr: acc vs v: ", np.corrcoef(xs[:,1],xs[:,2])[0,1])
     res = xs[-100:,0]-z[-100:]
+    axs[3].plot(res,'.-')
     R_res = np.var(res)
     print(f"res mean: {np.mean(res):.3e},var: {R_res:.3e} ")
 
