@@ -12,10 +12,11 @@ from statsmodels.stats.diagnostic import acorr_ljungbox
 from statsmodels.graphics.tsaplots import plot_pacf
 import functools
 import pdb
+from statsmodels.tsa.stattools import pacf
 folder = os.environ['ATHENA_HOME'] + "/py_algos/py_basics"
 sys.path.append(folder)
 from ga_min import *
-Q=1e-4
+Q=1e-5
 def add_days_to_date(date_str, num_days):
     # Convert string to datetime object
     # pdb.set_trace()
@@ -166,7 +167,7 @@ def adaptive_kalman_motion(Z,q,dt):
 
     return states,P_est
 
-def kalman_motion(Z,R,q=1e-3,dt=1):
+def kalman3dmotion(Z,R,q,dt):
     dim = 3
     N = len(Z)
     Rm = np.array([[R]])
@@ -248,17 +249,24 @@ def cal_profit(x,log_price,N=100,cap=10000):
     # ps = P[-N//2:,0,0]
     return (cap-c0),transactions,sd
 
+
+KALMAN_FUNC = kalman2dmotion
 def obj_func(x,params):
     Z,N = params
     R,dt = x
-    xs,P = kalman2dmotion(Z,R,q=Q,dt=dt)
+    # xs,P = kalman2dmotion(Z,R,q=Q,dt=dt)
+    xs, P = KALMAN_FUNC(Z, R, q=Q, dt=dt)
 
     nu = Z[-N:] - xs[-N:,0]
     mu = np.mean(nu)
     var = np.var(nu)
 
-    cost =  abs(mu) + (abs(var/R-1))
+    partial_autocorr = pacf(nu, method='ywm', nlags=5)
+
+    # pdb.set_trace()
+    cost =  abs(mu) + (abs(var/R-1)) + partial_autocorr[1]
     return cost,
+    # ax
 def ___obj_func(x,params):
     Z,N = params
     cost,trans,sd = cal_profit(x,Z,N)
@@ -314,7 +322,7 @@ def test_stock(sym,target_date=None):
     z = np.log(df.values) #/ df.values[0]
     pm = calibrate_kalman_args(z,opt_method=1)
 
-    xs,p = kalman2dmotion(z,R=pm[0],q=Q,dt=pm[1])
+    xs,p = KALMAN_FUNC(z,R=pm[0],q=Q,dt=pm[1])
 
     # pf,trans,sd=cal_profit(pm,z)
     print(f"optimal R: {pm[0]:.4e},dt: {pm[1]:.4e}")
@@ -387,15 +395,16 @@ if __name__ == "__main__":
     N=-100
     xs = xs[N:,:]
     z = zz[N:]
-    fig,axs = plt.subplots(3,1)
+    fig,axs = plt.subplots(4,1)
     axs[0].plot(xs[:,0],'.-')
     axs[0].plot(z,'r.-')
     rv = xs[:,1]*pm[1]
     axs[1].plot(rv,'.-')
     axs[1].axhline(y=0, color='red', linestyle='-')
-    # axs[2].plot(xs[:,2],'.-')
-    # axs[2].axhline(y=0, color='red', linestyle='-')
-    axs[2].plot(xs[N:,-1],'.-')
+    axs[2].plot(xs[:,2],'.-')
+    axs[2].axhline(y=0, color='red', linestyle='-')
+
+    axs[3].plot(xs[N:,-1],'.-')
 
     # print("est vs real: ", np.corrcoef(xs[:,0],z)[0,1])
     # print("corr: acc vs v: ", np.corrcoef(xs[:,1],xs[:,2])[0,1])
