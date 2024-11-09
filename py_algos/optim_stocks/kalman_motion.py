@@ -15,7 +15,7 @@ import pdb
 folder = os.environ['ATHENA_HOME'] + "/py_algos/py_basics"
 sys.path.append(folder)
 from ga_min import *
-DT=.05
+Q=1e-4
 def add_days_to_date(date_str, num_days):
     # Convert string to datetime object
     # pdb.set_trace()
@@ -250,8 +250,8 @@ def cal_profit(x,log_price,N=100,cap=10000):
 
 def obj_func(x,params):
     Z,N = params
-    R, = x
-    xs,P = kalman2dmotion(Z,R,q=1e-5,dt=DT)
+    R,dt = x
+    xs,P = kalman2dmotion(Z,R,q=Q,dt=dt)
 
     nu = Z[-N:] - xs[-N:,0]
     mu = np.mean(nu)
@@ -278,8 +278,8 @@ def __obj_func(x,params):
     return lb_test['lb_stat'].values[0],
 
 def calibrate_kalman_args(Z,N=100,opt_method=0):
-    init_x = np.array([1e-3])
-    bounds = [(1e-5,1.e-2)]
+    init_x = np.array([1e-3,.1])
+    bounds = [(Q,1.e-1),(1e-4,.1)]
     # bounds = None
     result = None
     # pdb.set_trace()
@@ -293,7 +293,7 @@ def calibrate_kalman_args(Z,N=100,opt_method=0):
     else:
         print("ERROR! opt_method is not supported")
 
-    print("optimal dt,R: ", result.x)
+    # print("optimal R,dt: ", result.x)
     print("optimal cost: ", result.fun)
     return result.x
 
@@ -302,7 +302,7 @@ def test_stock(sym,target_date=None):
     # target_date = '2024-09-5'
     if target_date is None:
         target_date = datetime.today().strftime('%Y-%m-%d')
-    back_days = 350
+    back_days = 400
     start_date = add_days_to_date(target_date,-back_days)
     # data = yf.download(syms, start=start_date, end=target_date)
     data = yf.Ticker(sym).history(start=start_date, end=target_date, interval='1d')
@@ -310,22 +310,19 @@ def test_stock(sym,target_date=None):
     df = data['Close']
 
     # print(df.index[-1])
-    print(data.iloc[-1,:])
+    print("length of history: ", len(df))
     z = np.log(df.values) #/ df.values[0]
     pm = calibrate_kalman_args(z,opt_method=1)
 
-    # pdb.set_trace()
-    # pm = [1e-5]
-    # xs,p_est = kalman2dmotion_adaptive(z,q=pm[0])
-    xs,p = kalman2dmotion(z,R=pm[0],q=1e-5,dt=DT)
+    xs,p = kalman2dmotion(z,R=pm[0],q=Q,dt=pm[1])
 
     # pf,trans,sd=cal_profit(pm,z)
-    print("optimal dt,R,q: ",pm)
+    print(f"optimal R: {pm[0]:.4e},dt: {pm[1]:.4e}")
     # print("Profit: {:.2f}, trans: {}".format(pf,trans))
     # print("ave profit: {:.2f}".format(pf/len(trans)))
     # print("std of err: ", sd)
     # print("estimated var: ",p_est[-5:,:])
-    return xs,z
+    return xs,z,pm
 
 def test_stock_iter():
     syms = ['smci']
@@ -385,7 +382,7 @@ if __name__ == "__main__":
     else:
         target_date = None
 
-    xs,zz = test_stock(sym,target_date)
+    xs,zz,pm = test_stock(sym,target_date)
     # xs,z = test_stock_iter()
     N=-100
     xs = xs[N:,:]
@@ -393,7 +390,8 @@ if __name__ == "__main__":
     fig,axs = plt.subplots(3,1)
     axs[0].plot(xs[:,0],'.-')
     axs[0].plot(z,'r.-')
-    axs[1].plot(xs[:,1],'.-')
+    rv = xs[:,1]*pm[1]
+    axs[1].plot(rv,'.-')
     axs[1].axhline(y=0, color='red', linestyle='-')
     # axs[2].plot(xs[:,2],'.-')
     # axs[2].axhline(y=0, color='red', linestyle='-')
@@ -402,12 +400,15 @@ if __name__ == "__main__":
     # print("est vs real: ", np.corrcoef(xs[:,0],z)[0,1])
     # print("corr: acc vs v: ", np.corrcoef(xs[:,1],xs[:,2])[0,1])
     res = xs[-100:,0]-z[-100:]
-    print("res mean,var: ", np.mean(res),np.var(res))
+    R_res = np.var(res)
+    print(f"res mean: {np.mean(res):.3e},var: {R_res:.3e} ")
+
+    print("\033[31mR_pred/R_res: {}\033[0m".format(pm[0]/R_res))
 
     s,p_val = stats.normaltest(res)
     print("normal test: ",s,p_val)
-    result = acorr_ljungbox(xs[-100:,1], lags=[10], return_df=True)
+    result = acorr_ljungbox(res[-100:], lags=[10], return_df=True)
     print("white noise: ", result['lb_pvalue'].values[0])
 
-    plot_pacf(xs[-100:,1], lags=30,method='ywm')
+    plot_pacf(res[-100:], lags=30,method='ywm')
     plt.show()
