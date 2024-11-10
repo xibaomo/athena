@@ -16,7 +16,15 @@ from statsmodels.tsa.stattools import pacf
 folder = os.environ['ATHENA_HOME'] + "/py_algos/py_basics"
 sys.path.append(folder)
 from ga_min import *
+from scipy.interpolate import UnivariateSpline
+from scipy.interpolate import CubicSpline
+
 Q=1e-5
+
+def compute_smoothness(arr):
+    v = arr - np.min(arr)
+    v = v/np.max(v)
+    return np.std(np.diff(v,2))
 def add_days_to_date(date_str, num_days):
     # Convert string to datetime object
     # pdb.set_trace()
@@ -29,6 +37,47 @@ def add_days_to_date(date_str, num_days):
     new_date_str = new_date.strftime('%Y-%m-%d')
 
     return new_date_str
+
+def fft_derivative(y, dx=1):
+    """
+    Computes the derivative of a 1D array using FFT.
+
+    Parameters:
+        y (np.array): The input 1D array (function values).
+        dx (float): The spacing between points in the input array (default is 1.0).
+
+    Returns:
+        np.array: The derivative of the input array.
+    """
+    n = len(y)  # Number of points in the input array
+    k = np.fft.fftfreq(n, d=dx) * 2 * np.pi  # Frequency array (angular frequencies)
+
+    # Perform FFT of the input array
+    y_fft = np.fft.fft(y)
+
+    # Multiply by ik to compute the derivative in Fourier space
+    y_derivative_fft = 1j * k * y_fft
+
+    # Perform the inverse FFT to get the derivative in the spatial domain
+    y_derivative = np.fft.ifft(y_derivative_fft)
+
+    # Return the real part of the derivative (imaginary part should be negligible)
+    return np.real(y_derivative)
+
+def __comp_grad(y):
+    x = [x for x in range(len(y))]
+    x = np.array(x)
+
+    spline = CubicSpline(x, y)
+
+    # Compute the derivative at each point
+    y_derivative = spline.derivative()(x)
+
+    return y_derivative
+
+def comp_grad(y):
+    return np.diff(y)
+
 
 def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
     """
@@ -151,8 +200,6 @@ def kalman2dmotion(Z,R,q,dt):
         P = tmp@P_@tmp.T + K@Rm@K.T
 
     return states,P
-
-
 def adaptive_kalman_motion(Z,q,dt):
     T = dt
     F = np.array([[1., T, T ** 2 / 2], [0., 1., T], [0., 0., 1.]])
@@ -166,7 +213,6 @@ def adaptive_kalman_motion(Z,q,dt):
     states,P_est,R_est = adaptive_kalman_filter(Z,F,H,Q,R_init,P0,x0,N=10)
 
     return states,P_est
-
 def kalman3dmotion(Z,R,q,dt):
     dim = 3
     N = len(Z)
@@ -203,7 +249,6 @@ def kalman3dmotion(Z,R,q,dt):
 
     # print("FInal P: ",P)
     return states,P
-
 def kalman4dmotion(Z,R,q,dt):
     dim = 4
     N = len(Z)
@@ -240,7 +285,7 @@ def kalman4dmotion(Z,R,q,dt):
 
     # print("FInal P: ",P)
     return states, P
-def cal_profit(x,log_price,N=100,cap=10000):
+def __cal_profit(x,log_price,N=100,cap=10000):
     Z = np.exp(log_price)
     q, = x
     if  q <= 0:
@@ -285,9 +330,42 @@ def cal_profit(x,log_price,N=100,cap=10000):
     sd = np.mean(err**2)
     # ps = P[-N//2:,0,0]
     return (cap-c0),transactions,sd
+def cal_profit(xs,prices,N=100,cap = 10000):
+    # v = np.diff(xs[-N-1:,0])
+    v = comp_grad(xs[-N-1:,0])
+    price = prices[-N:]
+    transactions=[]
+    is_pos_on = False
+    p0=0
+    c0 = cap
+    # pdb.set_trace()
+    for i in range(1,N):
+        # if  s[i] > s[i-1] and not is_pos_on and abs(xs[i,-1]-k_eq) < 0.02:
+        if v[i] > 0 and v[i] > v[i-1] and not is_pos_on:
+            p0 = price[i]
+            is_pos_on = True
+            trans = [i,-1,-1]
+            transactions.append(trans)
+        if not is_pos_on:
+            continue
+        if  v[i] < 0:
+            is_pos_on = False
+            cap = cap / p0 * price[i]
+            transactions[-1][1] = i
+            transactions[-1][2] = price[i]/p0 - 1
+    if is_pos_on:
+        is_pos_on = False
+        cap = cap / p0 * price[-1]
+        transactions[-1][1] = N-1
+        transactions[-1][2] = price[-1]/p0-1
 
+    if len(transactions)> 0:
+        print(transactions)
+        print(f"Protift -- total: ${cap-c0:.2f}, ave: ${(cap-c0)/len(transactions):.2f}")
+    else:
+        print(f"Total profit: $0.00")
 
-KALMAN_FUNC = kalman3dmotion
+KALMAN_FUNC = kalman2dmotion
 def obj_func(x,params):
     Z,N = params
     R,dt = x
@@ -298,10 +376,14 @@ def obj_func(x,params):
     mu = np.mean(nu)
     var = np.var(nu)
 
-    partial_autocorr = pacf(nu, method='ywm', nlags=5)
+    # partial_autocorr = pacf(nu, method='ywm', nlags=5)
+    v = xs[-N:,1]
 
-    # pdb.set_trace()
-    cost =  abs(mu) + (abs(var/R-1)) + partial_autocorr[1]
+    # smoothness = compute_smoothness(v)
+    # cost =  abs(mu) + (abs(var/R-1))  + R*1e3+smoothness*50
+
+    s,pval = stats.normaltest(nu)
+    cost =  abs(var/R-1) - pval
     return cost,
     # ax
 def ___obj_func(x,params):
@@ -324,7 +406,7 @@ def __obj_func(x,params):
 
 def calibrate_kalman_args(Z,N=100,opt_method=0):
     init_x = np.array([1e-3,.1])
-    bounds = [(Q,1.e-1),(1e-4,.1)]
+    bounds = [(Q,1.e-1),(1e-3,.5)]
     # bounds = None
     result = None
     # pdb.set_trace()
@@ -357,16 +439,22 @@ def test_stock(sym,target_date=None):
     # print(df.index[-1])
     print("length of history: ", len(df))
     z = np.log(df.values) #/ df.values[0]
+    rtns = np.diff(z)
+    result = acorr_ljungbox(rtns, lags=[10], return_df=True)
+    print("is rtns white noise: ", result['lb_pvalue'].values[0])
+    plot_pacf(rtns,lags=10,method='ywm')
+
     pm = calibrate_kalman_args(z,opt_method=1)
 
     xs,p = KALMAN_FUNC(z,R=pm[0],q=Q,dt=pm[1])
 
     # pf,trans,sd=cal_profit(pm,z)
     print(f"optimal R: {pm[0]:.4e},dt: {pm[1]:.4e}")
-    # print("Profit: {:.2f}, trans: {}".format(pf,trans))
-    # print("ave profit: {:.2f}".format(pf/len(trans)))
-    # print("std of err: ", sd)
-    # print("estimated var: ",p_est[-5:,:])
+    v = xs[-100:,1]
+    smoothness = compute_smoothness(v)
+    print("smoothness of v: ",smoothness)
+
+    cal_profit(xs,df.values)
     return xs,z,pm
 
 def test_stock_iter():
@@ -428,14 +516,17 @@ if __name__ == "__main__":
         target_date = None
 
     xs,zz,pm = test_stock(sym,target_date)
+
     # xs,z = test_stock_iter()
     N=-100
-    xs = xs[N:,:]
+    xs = xs[N-1:,:]
     z = zz[N:]
     fig,axs = plt.subplots(4,1)
     axs[0].plot(xs[:,0],'.-')
     axs[0].plot(z,'r.-')
     rv = xs[:,1]*pm[1]
+    # rv = np.diff(xs[:,0])
+    # rv = comp_grad(xs[:,0])
     axs[1].plot(rv,'.-')
     axs[1].axhline(y=0, color='red', linestyle='-')
     axs[2].plot(xs[:,2],'.-')
@@ -457,5 +548,7 @@ if __name__ == "__main__":
     result = acorr_ljungbox(res[-100:], lags=[10], return_df=True)
     print("white noise: ", result['lb_pvalue'].values[0])
 
-    plot_pacf(res[-100:], lags=30,method='ywm')
+    # plot_pacf(res[-100:], lags=30,method='ywm')
+    # plot_acf(res[-100:],lags=30)
+    # plt.hist(res)
     plt.show()
