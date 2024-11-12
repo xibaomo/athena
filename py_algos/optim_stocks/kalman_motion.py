@@ -19,7 +19,7 @@ from ga_min import *
 from scipy.interpolate import UnivariateSpline
 from scipy.interpolate import CubicSpline
 
-Q=1e-5
+Q=1e-4
 
 def compute_smoothness(arr):
     v = arr - np.min(arr)
@@ -171,7 +171,7 @@ def kalman2dmotion(Z,R,q,dt):
     states = np.zeros((N,dim+1))
     T = dt
     F = np.array([[1., T], [0., 1.]])
-    G = np.array([[T ** 2 / 2.], [1.]])
+    G = np.array([[T ** 2 / 2.], [T]])
     Q = G @ G.T * q / T
     H = np.array([[1., 0.]])
     P = np.eye(2)*10
@@ -224,7 +224,7 @@ def kalman3dmotion(Z,R,q,dt):
     P = np.eye(dim)*R
     # pdb.set_trace()
     F = np.array([[1., T, T**2/2],[0., 1., T],[0., 0., 1.]])
-    G = np.array([[T**3/6],[T**2/2],[1.]])
+    G = np.array([[T**3/6],[T**2/2],[T]])
     Q = q/dt
     H = np.array([[1.,0.,0.]])
     for i in range(N):
@@ -332,7 +332,8 @@ def __cal_profit(x,log_price,N=100,cap=10000):
     return (cap-c0),transactions,sd
 def cal_profit(xs,prices,N=100,cap = 10000):
     # v = np.diff(xs[-N-1:,0])
-    v = comp_grad(xs[-N-1:,0])
+    # v = comp_grad(xs[-N-1:,0])
+    v = xs[-N:,1]
     price = prices[-N:]
     transactions=[]
     is_pos_on = False
@@ -365,10 +366,11 @@ def cal_profit(xs,prices,N=100,cap = 10000):
     else:
         print(f"Total profit: $0.00")
 
-KALMAN_FUNC = kalman2dmotion
+KALMAN_FUNC = kalman4dmotion
 def obj_func(x,params):
     Z,N = params
     R,dt = x
+
     # xs,P = kalman2dmotion(Z,R,q=Q,dt=dt)
     xs, P = KALMAN_FUNC(Z, R, q=Q, dt=dt)
 
@@ -383,7 +385,7 @@ def obj_func(x,params):
     # cost =  abs(mu) + (abs(var/R-1))  + R*1e3+smoothness*50
 
     s,pval = stats.normaltest(nu)
-    cost =  abs(var/R-1) - pval
+    cost =  abs(var/R-1) - pval + P[1,1]
     return cost,
     # ax
 def ___obj_func(x,params):
@@ -406,7 +408,7 @@ def __obj_func(x,params):
 
 def calibrate_kalman_args(Z,N=100,opt_method=0):
     init_x = np.array([1e-3,.1])
-    bounds = [(Q,1.e-1),(1e-3,.5)]
+    bounds = [(1e-5,1.e-1),(.1,.1)]
     # bounds = None
     result = None
     # pdb.set_trace()
@@ -429,7 +431,7 @@ def test_stock(sym,target_date=None):
     # target_date = '2024-09-5'
     if target_date is None:
         target_date = datetime.today().strftime('%Y-%m-%d')
-    back_days = 400
+    back_days = 150
     start_date = add_days_to_date(target_date,-back_days)
     # data = yf.download(syms, start=start_date, end=target_date)
     data = yf.Ticker(sym).history(start=start_date, end=target_date, interval='1d')
@@ -442,6 +444,9 @@ def test_stock(sym,target_date=None):
     rtns = np.diff(z)
     result = acorr_ljungbox(rtns, lags=[10], return_df=True)
     print("is rtns white noise: ", result['lb_pvalue'].values[0])
+    # Q = np.var(rtns)
+    print(f"var of rtns : {np.var(rtns):.3e}")
+    print(f"var of diff rtns : {np.var(np.diff(rtns)):.3e}")
     plot_pacf(rtns,lags=10,method='ywm')
 
     pm = calibrate_kalman_args(z,opt_method=1)
@@ -537,7 +542,7 @@ if __name__ == "__main__":
     # print("est vs real: ", np.corrcoef(xs[:,0],z)[0,1])
     # print("corr: acc vs v: ", np.corrcoef(xs[:,1],xs[:,2])[0,1])
     res = xs[-100:,0]-z[-100:]
-    axs[3].plot(res,'.-')
+    axs[3].plot(xs[N:,-1],'.-')
     R_res = np.var(res)
     print(f"res mean: {np.mean(res):.3e},var: {R_res:.3e} ")
 
