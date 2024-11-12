@@ -260,8 +260,9 @@ def kalman4dmotion(Z,R,q,dt):
     P = np.eye(dim) * R
     # pdb.set_trace()
     F = np.array([[1., T, T ** 2 / 2, T**3/6], [0., 1., T, T**2/2], [0., 0., 1., T],[0,0,0,1]])
-    G = np.array([[T ** 5 / 20, T**4/8, T**3/6, T**2/6], [T ** 4/8, T**3/3, T**2/2, T/ 2], [T**3/6, T**2/2, T,1.],[T**2/6, T/2, 1,1]])
-    QQ = q*G
+    # G = np.array([[T ** 5 / 20, T**4/8, T**3/6, T**2/6], [T ** 4/8, T**3/3, T**2/2, T/ 2], [T**3/6, T**2/2, T,1.],[T**2/6, T/2, 1,1]])
+    G = np.array([[T**4/24,T**3/6,T**2/2,T]]).T
+    QQ = G@G.T* q/T
     H = np.array([[1., 0., 0.,0.]])
     for i in range(N):
         if i == 0:
@@ -366,13 +367,17 @@ def cal_profit(xs,prices,N=100,cap = 10000):
     else:
         print(f"Total profit: $0.00")
 
-KALMAN_FUNC = kalman4dmotion
+KALMAN_FUNC = kalman2dmotion
 def obj_func(x,params):
     Z,N = params
-    R,dt = x
+    Ri,qi,dt = x
+    R = 10**Ri
+    q = 10**qi
+    if R < q:
+        return 9999,
 
     # xs,P = kalman2dmotion(Z,R,q=Q,dt=dt)
-    xs, P = KALMAN_FUNC(Z, R, q=Q, dt=dt)
+    xs, P = KALMAN_FUNC(Z, R, q=q, dt=dt)
 
     nu = Z[-N:] - xs[-N:,0]
     mu = np.mean(nu)
@@ -407,8 +412,8 @@ def __obj_func(x,params):
     return lb_test['lb_stat'].values[0],
 
 def calibrate_kalman_args(Z,N=100,opt_method=0):
-    init_x = np.array([1e-3,.1])
-    bounds = [(1e-5,1.e-1),(.1,.1)]
+    init_x = np.array([1e-4,2e-4,.1])
+    bounds = [(-5,-2),(-5,-3),(.2,.2)]
     # bounds = None
     result = None
     # pdb.set_trace()
@@ -444,20 +449,17 @@ def test_stock(sym,target_date=None):
     rtns = np.diff(z)
     result = acorr_ljungbox(rtns, lags=[10], return_df=True)
     print("is rtns white noise: ", result['lb_pvalue'].values[0])
-    # Q = np.var(rtns)
+    # Q = np.var(rtns)/10
     print(f"var of rtns : {np.var(rtns):.3e}")
-    print(f"var of diff rtns : {np.var(np.diff(rtns)):.3e}")
-    plot_pacf(rtns,lags=10,method='ywm')
+    print(f"var of diff2 rtns : {np.var(np.diff(rtns,2)):.3e}")
+    # plot_pacf(rtns,lags=10,method='ywm')
 
     pm = calibrate_kalman_args(z,opt_method=1)
 
-    xs,p = KALMAN_FUNC(z,R=pm[0],q=Q,dt=pm[1])
+    xs,p = KALMAN_FUNC(z,R=10**pm[0],q=10**pm[1],dt=pm[2])
 
     # pf,trans,sd=cal_profit(pm,z)
-    print(f"optimal R: {pm[0]:.4e},dt: {pm[1]:.4e}")
-    v = xs[-100:,1]
-    smoothness = compute_smoothness(v)
-    print("smoothness of v: ",smoothness)
+    print(f"optimal R: {10**pm[0]:.4e},q: {10**pm[1]:.4e}")
 
     cal_profit(xs,df.values)
     return xs,z,pm
@@ -529,7 +531,7 @@ if __name__ == "__main__":
     fig,axs = plt.subplots(4,1)
     axs[0].plot(xs[:,0],'.-')
     axs[0].plot(z,'r.-')
-    rv = xs[:,1]*pm[1]
+    rv = xs[:,1]*10**pm[2]
     # rv = np.diff(xs[:,0])
     # rv = comp_grad(xs[:,0])
     axs[1].plot(rv,'.-')
@@ -546,14 +548,15 @@ if __name__ == "__main__":
     R_res = np.var(res)
     print(f"res mean: {np.mean(res):.3e},var: {R_res:.3e} ")
 
-    print("\033[31mR_pred/R_res: {}\033[0m".format(pm[0]/R_res))
+    print("\033[31mR_pred/R_res: {}\033[0m".format(10**pm[0]/R_res))
 
     s,p_val = stats.normaltest(res)
     print("normal test: ",s,p_val)
-    result = acorr_ljungbox(res[-100:], lags=[10], return_df=True)
+    rs = res[-100:] - np.mean(res[-100:])
+    result = acorr_ljungbox(rs, lags=[10], return_df=True)
     print("white noise: ", result['lb_pvalue'].values[0])
 
-    # plot_pacf(res[-100:], lags=30,method='ywm')
+    plot_pacf(rs, lags=30,method='ywm')
     # plot_acf(res[-100:],lags=30)
     # plt.hist(res)
     plt.show()
