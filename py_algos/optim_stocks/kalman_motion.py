@@ -347,6 +347,57 @@ def kalman5dmotion(Z,R,q,dt):
 
     # print("FInal P: ",P)
     return states, P
+def kalmanNdmotion(Z,R,q,dt,dim=2):
+    N = len(Z)
+    Rm = np.array([[R]])
+    states = np.zeros((N, dim + 1))
+    T = dt
+    X = np.zeros(dim)
+    X[0] = Z[0]
+    P = np.eye(dim) * R
+    # pdb.set_trace()
+    F = np.zeros((dim,dim))
+    for i in range(dim-1):
+        F[i,i+1] = 1.
+    Phi = np.eye(dim)
+
+    # fill matrix Phi
+    for i in range(1,dim):
+        f = 1./math.factorial(i)
+        Phi = Phi + np.linalg.matrix_power(F,i) * (T**i)
+
+    # fill column vector G
+    G = np.zeros((dim,1))
+    for i in range(dim):
+        f = 1./math.factorial(dim-i)
+        G[i,0] = f * (T**(dim-i))
+
+    QQ = G @ G.T * q / T
+    # H = np.array([[1., 0., 0., 0., 0]])
+    H = np.zeros((1,dim))
+    H[0,0]=1.
+    for i in range(N):
+        if i == 0:
+            continue
+        # pdb.set_trace()
+        X_ = np.matmul(Phi, X)
+        P_ = np.matmul(np.matmul(Phi, P), Phi.transpose()) + QQ
+        tmp = np.matmul(np.matmul(H, P_), H.transpose()) + Rm
+        # pdb.set_trace()
+        K = np.matmul(np.matmul(P_, H.transpose()), np.linalg.inv(tmp))
+        tmp = Z[i] - np.matmul(H, X_)
+        X = X_ + np.matmul(K, tmp)
+        states[i, :-1] = X
+        # states[i,1] = states[i,0]-states[i-1,0]
+        # pdb.set_trace()
+        states[i, -1] = K[0][0]
+
+        tmp = np.eye(dim) - np.matmul(K, H)
+        # pdb.set_trace()
+        P = np.matmul(np.matmul(tmp, P_), tmp.transpose()) + np.matmul(np.matmul(K, Rm), K.transpose())
+
+    # print("FInal P: ",P)
+    return states, P
 def __cal_profit(x,log_price,N=100,cap=10000):
     Z = np.exp(log_price)
     q, = x
@@ -428,7 +479,7 @@ def cal_profit(xs,prices,N=60,cap = 10000):
     else:
         print(f"Total profit: $0.00")
 
-KALMAN_FUNC = kalman5dmotion
+KALMAN_FUNC = kalmanNdmotion
 def obj_func(x,params):
     Z,N = params
     Ri,qi,dt = x
@@ -527,13 +578,15 @@ def test_stock(sym,target_date=None):
 
     # pf,trans,sd=cal_profit(pm,z)
     print(f"optimal R: {10**pm[0]:.4e},q: {10**pm[1]:.4e}")
+    print("variance of log-price: ", p[0,0])
 
     cal_profit(xs,df.values)
 
     n = 5
     x = [x for x in range(n)]
-    p = np.polyfit(x,xs[-n:,1],1)
-    print(f"ave speed of last {n} days: {np.mean(xs[-n:,1]):.4e}, slope: {p[0]:.4e}")
+    p1 = np.polyfit(x,xs[-n:,0],1)
+    p2 = np.polyfit(x,xs[-n:,1],1)
+    print(f"ave speed of last {n} days: {p1[0]:.4e}, slope: {p2[0]:.4e}")
 
     return xs,z,pm
 
