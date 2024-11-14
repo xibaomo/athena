@@ -78,6 +78,27 @@ def __comp_grad(y):
 def comp_grad(y):
     return np.diff(y)
 
+def estimate_poly_order(y,max_order=20,tol=1e-1,rel_tol=1e-1):
+    def cost(x,y,order):
+        p = np.polyfit(x,y,order)
+        pfit = np.poly1d(p)
+        err = y - pfit(x)
+        mse = np.sqrt(np.mean(err**2))
+
+        return mse
+    x = np.linspace(0,1,len(y))
+    x = (x-np.mean(x))/np.std(x)
+    err = cost(x,y,1)
+    n = 2
+    while n < max_order:
+        new_err = cost(x,y,n)
+        if new_err < tol:# and abs(new_err-err)/err < rel_tol:
+            break
+        # print(abs(err-new_err)/err)
+        print(f"{new_err}")
+        err = new_err
+        n+=1
+    return n,cost(x,y,n)
 
 def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
     """
@@ -286,6 +307,46 @@ def kalman4dmotion(Z,R,q,dt):
 
     # print("FInal P: ",P)
     return states, P
+def kalman5dmotion(Z,R,q,dt):
+    dim = 5
+    N = len(Z)
+    Rm = np.array([[R]])
+    states = np.zeros((N, dim + 1))
+    T = dt
+    X = np.zeros(dim)
+    X[0] = Z[0]
+    P = np.eye(dim) * R
+    # pdb.set_trace()
+    F = np.array([[1., T, T ** 2 / 2, T ** 3 / 6, T**4/24],
+                  [0., 1., T, T ** 2 / 2, T**3/6],
+                  [0., 0., 1., T, T**2/2],
+                  [0, 0, 0, 1, T],
+                  [0, 0, 0, 0, 1]])
+    G = np.array([[T**5/120, T ** 4 / 24, T ** 3 / 6, T ** 2 / 2, T]]).T
+    QQ = G @ G.T * q / T
+    H = np.array([[1., 0., 0., 0.,0]])
+    for i in range(N):
+        if i == 0:
+            continue
+        # pdb.set_trace()
+        X_ = np.matmul(F, X)
+        P_ = np.matmul(np.matmul(F, P), F.transpose()) + QQ
+        tmp = np.matmul(np.matmul(H, P_), H.transpose()) + Rm
+        # pdb.set_trace()
+        K = np.matmul(np.matmul(P_, H.transpose()), np.linalg.inv(tmp))
+        tmp = Z[i] - np.matmul(H, X_)
+        X = X_ + np.matmul(K, tmp)
+        states[i, :-1] = X
+        # states[i,1] = states[i,0]-states[i-1,0]
+        # pdb.set_trace()
+        states[i, -1] = K[0][0]
+
+        tmp = np.eye(dim) - np.matmul(K, H)
+        # pdb.set_trace()
+        P = np.matmul(np.matmul(tmp, P_), tmp.transpose()) + np.matmul(np.matmul(K, Rm), K.transpose())
+
+    # print("FInal P: ",P)
+    return states, P
 def __cal_profit(x,log_price,N=100,cap=10000):
     Z = np.exp(log_price)
     q, = x
@@ -331,7 +392,7 @@ def __cal_profit(x,log_price,N=100,cap=10000):
     sd = np.mean(err**2)
     # ps = P[-N//2:,0,0]
     return (cap-c0),transactions,sd
-def cal_profit(xs,prices,N=100,cap = 10000):
+def cal_profit(xs,prices,N=60,cap = 10000):
     # v = np.diff(xs[-N-1:,0])
     # v = comp_grad(xs[-N-1:,0])
     v = xs[-N:,1]
@@ -367,7 +428,7 @@ def cal_profit(xs,prices,N=100,cap = 10000):
     else:
         print(f"Total profit: $0.00")
 
-KALMAN_FUNC = kalman3dmotion
+KALMAN_FUNC = kalman5dmotion
 def obj_func(x,params):
     Z,N = params
     Ri,qi,dt = x
@@ -436,7 +497,7 @@ def test_stock(sym,target_date=None):
     # target_date = '2024-09-5'
     if target_date is None:
         target_date = datetime.today().strftime('%Y-%m-%d')
-    back_days = 150
+    back_days = 250
     start_date = add_days_to_date(target_date,-back_days)
     # data = yf.download(syms, start=start_date, end=target_date)
     data = yf.Ticker(sym).history(start=start_date, end=target_date, interval='1d')
@@ -446,6 +507,12 @@ def test_stock(sym,target_date=None):
     # print(df.index[-1])
     print("length of history: ", len(df))
     z = np.log(df.values) #/ df.values[0]
+
+    # n,acc = estimate_poly_order(z,40)
+    # print(f"est poly order: {n}, residual: {acc}")
+    # x = np.linspace(0,1,len(z))
+    # p = np.polyfit(x,z,n)
+    # pdb.set_trace()
     rtns = np.diff(z)
     result = acorr_ljungbox(rtns, lags=[10], return_df=True)
     print("is rtns white noise: ", result['lb_pvalue'].values[0])
@@ -531,7 +598,7 @@ if __name__ == "__main__":
     xs,zz,pm = test_stock(sym,target_date)
 
     # xs,z = test_stock_iter()
-    N=-100
+    N=-60
     xs = xs[N-1:,:]
     z = zz[N:]
     fig,axs = plt.subplots(4,1)
@@ -549,7 +616,7 @@ if __name__ == "__main__":
 
     # print("est vs real: ", np.corrcoef(xs[:,0],z)[0,1])
     # print("corr: acc vs v: ", np.corrcoef(xs[:,1],xs[:,2])[0,1])
-    res = xs[-100:,0]-z[-100:]
+    res = xs[N:,0]-z[N:]
     axs[3].plot(xs[N:,-1],'.-')
     R_res = np.var(res)
     print(f"res mean: {np.mean(res):.3e},var: {R_res:.3e} ")
@@ -558,11 +625,11 @@ if __name__ == "__main__":
 
     s,p_val = stats.normaltest(res)
     print("normal test: ",s,p_val)
-    rs = res[-100:] - np.mean(res[-100:])
+    rs = res[N:] - np.mean(res[N:])
     result = acorr_ljungbox(rs, lags=[10], return_df=True)
     print("white noise: ", result['lb_pvalue'].values[0])
 
-    plot_pacf(rs, lags=30,method='ywm')
+    plot_pacf(rs, lags=10,method='ywm')
     # plot_acf(res[-100:],lags=30)
     # plt.hist(res)
     plt.show()
