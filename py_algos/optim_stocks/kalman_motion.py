@@ -367,7 +367,7 @@ def cal_profit(xs,prices,N=100,cap = 10000):
     else:
         print(f"Total profit: $0.00")
 
-KALMAN_FUNC = kalman2dmotion
+KALMAN_FUNC = kalman3dmotion
 def obj_func(x,params):
     Z,N = params
     Ri,qi,dt = x
@@ -413,7 +413,7 @@ def __obj_func(x,params):
 
 def calibrate_kalman_args(Z,N=100,opt_method=0):
     init_x = np.array([1e-4,2e-4,.1])
-    bounds = [(-5,-2),(-5,-3),(.2,.2)]
+    bounds = [(-4,-1),(-5,-3),(.2,.2)]
     # bounds = None
     result = None
     # pdb.set_trace()
@@ -462,6 +462,12 @@ def test_stock(sym,target_date=None):
     print(f"optimal R: {10**pm[0]:.4e},q: {10**pm[1]:.4e}")
 
     cal_profit(xs,df.values)
+
+    n = 5
+    x = [x for x in range(n)]
+    p = np.polyfit(x,xs[-n:,1],1)
+    print(f"ave speed of last {n} days: {np.mean(xs[-n:,1]):.4e}, slope: {p[0]:.4e}")
+
     return xs,z,pm
 
 def test_stock_iter():
