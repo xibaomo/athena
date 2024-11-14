@@ -19,8 +19,6 @@ from ga_min import *
 from scipy.interpolate import UnivariateSpline
 from scipy.interpolate import CubicSpline
 
-Q=1e-4
-
 def compute_smoothness(arr):
     v = arr - np.min(arr)
     v = v/np.max(v)
@@ -99,6 +97,19 @@ def estimate_poly_order(y,max_order=20,tol=1e-1,rel_tol=1e-1):
         err = new_err
         n+=1
     return n,cost(x,y,n)
+
+def estimate_kalman_dim(z,max_dim=20):
+    # pdb.set_trace()
+    #check which order of differencing gives minimum variance
+    min_mu = 9999
+    opt_dim = -1
+    for i in range(1,max_dim+1):
+        mu = abs(np.mean(np.diff(z,i)))
+        if mu < min_mu:
+            opt_dim = i
+            min_mu = mu
+    print(f"optimal diff order: {opt_dim}, min abs(mean): {(min_mu)}")
+    return opt_dim
 
 def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
     """
@@ -347,7 +358,7 @@ def kalman5dmotion(Z,R,q,dt):
 
     # print("FInal P: ",P)
     return states, P
-def kalmanNdmotion(Z,R,q,dt,dim=2):
+def kalmanNdmotion(Z,R,q,dt,dim=-1):
     N = len(Z)
     Rm = np.array([[R]])
     states = np.zeros((N, dim + 1))
@@ -481,15 +492,14 @@ def cal_profit(xs,prices,N=60,cap = 10000):
 
 KALMAN_FUNC = kalmanNdmotion
 def obj_func(x,params):
-    Z,N = params
+    Z,N,kalman_dim = params
     Ri,qi,dt = x
     R = 10**Ri
     q = 10**qi
     if R < q:
         return 9999,
 
-    # xs,P = kalman2dmotion(Z,R,q=Q,dt=dt)
-    xs, P = KALMAN_FUNC(Z, R, q=q, dt=dt)
+    xs, P = KALMAN_FUNC(Z, R, q=q, dt=dt,dim=kalman_dim)
 
     nu = Z[-N:] - xs[-N:,0]
     mu = np.mean(nu)
@@ -523,17 +533,17 @@ def __obj_func(x,params):
 
     return lb_test['lb_stat'].values[0],
 
-def calibrate_kalman_args(Z,N=100,opt_method=0):
+def calibrate_kalman_args(Z,N=50,opt_method=0,kalman_dim=-1):
     init_x = np.array([1e-4,2e-4,.1])
-    bounds = [(-4,-1),(-5,-3),(.2,.2)]
+    bounds = [(-5,-1),(-5,-3),(.2,.2)]
     # bounds = None
     result = None
     # pdb.set_trace()
     if opt_method == 0:
-        result = minimize(obj_func,init_x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
+        result = minimize(obj_func,init_x,args=((Z,N,kalman_dim),),bounds=bounds,method='COBYLA',tol=1e-5)
     elif opt_method == 1:
-        tmp_func = functools.partial(obj_func,params=(Z,N))
-        result = ga_minimize(tmp_func,len(init_x),bounds,population_size=1000,num_generations=100)
+        tmp_func = functools.partial(obj_func,params=(Z,N,kalman_dim))
+        result = ga_minimize(tmp_func,len(init_x),bounds,population_size=2000,num_generations=100)
         # print("ga result: ", result.x, result.fun)
         # result = minimize(obj_func,result.x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
     else:
@@ -548,7 +558,7 @@ def test_stock(sym,target_date=None):
     # target_date = '2024-09-5'
     if target_date is None:
         target_date = datetime.today().strftime('%Y-%m-%d')
-    back_days = 250
+    back_days = 100
     start_date = add_days_to_date(target_date,-back_days)
     # data = yf.download(syms, start=start_date, end=target_date)
     data = yf.Ticker(sym).history(start=start_date, end=target_date, interval='1d')
@@ -558,12 +568,10 @@ def test_stock(sym,target_date=None):
     # print(df.index[-1])
     print("length of history: ", len(df))
     z = np.log(df.values) #/ df.values[0]
-
-    # n,acc = estimate_poly_order(z,40)
-    # print(f"est poly order: {n}, residual: {acc}")
-    # x = np.linspace(0,1,len(z))
-    # p = np.polyfit(x,z,n)
     # pdb.set_trace()
+
+    kalman_dim = estimate_kalman_dim(z)
+    print("Optimal kalman order: ", kalman_dim)
     rtns = np.diff(z)
     result = acorr_ljungbox(rtns, lags=[10], return_df=True)
     print("is rtns white noise: ", result['lb_pvalue'].values[0])
@@ -572,9 +580,9 @@ def test_stock(sym,target_date=None):
     print(f"var of diff2 rtns : {np.var(np.diff(rtns,2)):.3e}")
     # plot_pacf(rtns,lags=10,method='ywm')
 
-    pm = calibrate_kalman_args(z,opt_method=1)
+    pm = calibrate_kalman_args(z,opt_method=1,kalman_dim=kalman_dim)
 
-    xs,p = KALMAN_FUNC(z,R=10**pm[0],q=10**pm[1],dt=pm[2])
+    xs,p = KALMAN_FUNC(z,R=10**pm[0],q=10**pm[1],dt=pm[2],dim=kalman_dim)
 
     # pf,trans,sd=cal_profit(pm,z)
     print(f"optimal R: {10**pm[0]:.4e},q: {10**pm[1]:.4e}")
