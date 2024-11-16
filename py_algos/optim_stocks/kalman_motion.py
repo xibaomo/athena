@@ -598,7 +598,7 @@ def test_stock(sym,target_date=None):
 
     # pf,trans,sd=cal_profit(pm,z)
     print(f"optimal R: {10**pm[0]:.4e},q: {10**pm[1]:.4e}")
-    print("variance of log-price: ", p[0,0])
+    print("est. variance of log-price: ", p[0,0])
 
     cal_profit(xs,prices, N= verify_len)
 
