@@ -76,7 +76,7 @@ def __comp_grad(y):
 def comp_grad(y):
     return np.diff(y)
 
-def estimate_poly_order(y,max_order=20,tol=1e-1,rel_tol=1e-1):
+def __estimate_poly_order(y,max_order=20,tol=1e-1,rel_tol=1e-1):
     def cost(x,y,order):
         p = np.polyfit(x,y,order)
         pfit = np.poly1d(p)
