@@ -454,9 +454,8 @@ def __cal_profit(x,log_price,N=100,cap=10000):
     sd = np.mean(err**2)
     # ps = P[-N//2:,0,0]
     return (cap-c0),transactions,sd
-def cal_profit(xs,prices,N=60,cap = 10000):
-    # v = np.diff(xs[-N-1:,0])
-    # v = comp_grad(xs[-N-1:,0])
+def cal_profit(xs,prices,N,cap = 10000):
+    # pdb.set_trace()
     v = xs[-N:,1]
     price = prices[-N:]
     transactions=[]
@@ -552,7 +551,19 @@ def calibrate_kalman_args(Z,N=50,opt_method=0,kalman_dim=-1):
     # print("optimal R,dt: ", result.x)
     print("optimal cost: ", result.fun)
     return result.x
-
+def expand_price(data):
+    p = np.zeros(len(data)*2)
+    hi = data['High'].values
+    lw = data['Low'].values
+    cls = data['Close'].values
+    k=0
+    for i in range(len(data)):
+        mid = (hi[i]+lw[i])*.5
+        p[k] = mid
+        k+=1
+        p[k] = cls[i]
+        k+=1
+    return p
 def test_stock(sym,target_date=None):
     syms = [sym]
     # target_date = '2024-09-5'
@@ -564,10 +575,10 @@ def test_stock(sym,target_date=None):
     data = yf.Ticker(sym).history(start=start_date, end=target_date, interval='1d')
     # pdb.set_trace()
     df = data['Close']
+    prices = expand_price(data)
 
-    # print(df.index[-1])
-    print("length of history: ", len(df))
-    z = np.log(df.values) #/ df.values[0]
+    print("length of history: ", len(prices))
+    z = np.log(prices) #/ df.values[0]
     # pdb.set_trace()
 
     kalman_dim = estimate_kalman_dim(z)
@@ -580,7 +591,8 @@ def test_stock(sym,target_date=None):
     print(f"var of diff2 rtns : {np.var(np.diff(rtns,2)):.3e}")
     # plot_pacf(rtns,lags=10,method='ywm')
 
-    pm = calibrate_kalman_args(z,opt_method=1,kalman_dim=kalman_dim)
+    verify_len = 50
+    pm = calibrate_kalman_args(z,N = verify_len, opt_method=1,kalman_dim=kalman_dim)
 
     xs,p = KALMAN_FUNC(z,R=10**pm[0],q=10**pm[1],dt=pm[2],dim=kalman_dim)
 
@@ -588,7 +600,7 @@ def test_stock(sym,target_date=None):
     print(f"optimal R: {10**pm[0]:.4e},q: {10**pm[1]:.4e}")
     print("variance of log-price: ", p[0,0])
 
-    cal_profit(xs,df.values)
+    cal_profit(xs,prices, N= verify_len)
 
     n = 5
     x = [x for x in range(n)]
@@ -659,7 +671,7 @@ if __name__ == "__main__":
     xs,zz,pm = test_stock(sym,target_date)
 
     # xs,z = test_stock_iter()
-    N=-60
+    N=-50
     xs = xs[N-1:,:]
     z = zz[N:]
     fig,axs = plt.subplots(4,1)
