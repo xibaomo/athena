@@ -542,7 +542,7 @@ def calibrate_kalman_args(Z,N=50,opt_method=0,kalman_dim=-1):
         result = minimize(obj_func,init_x,args=((Z,N,kalman_dim),),bounds=bounds,method='COBYLA',tol=1e-5)
     elif opt_method == 1:
         tmp_func = functools.partial(obj_func,params=(Z,N,kalman_dim))
-        result = ga_minimize(tmp_func,len(init_x),bounds,population_size=2000,num_generations=100)
+        result = ga_minimize(tmp_func,len(init_x),bounds,population_size=1000,num_generations=100)
         # print("ga result: ", result.x, result.fun)
         # result = minimize(obj_func,result.x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
     else:
@@ -569,7 +569,7 @@ def test_stock(sym,target_date=None):
     # target_date = '2024-09-5'
     if target_date is None:
         target_date = datetime.today().strftime('%Y-%m-%d')
-    back_days = 100
+    back_days = 250
     start_date = add_days_to_date(target_date,-back_days)
     # data = yf.download(syms, start=start_date, end=target_date)
     data = yf.Ticker(sym).history(start=start_date, end=target_date, interval='1d')

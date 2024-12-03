@@ -63,13 +63,19 @@ def calibrate_lookback_days(rtns,lookfwd_days, lookback_days_range,bars_per_day)
 def plot_varylookback_distdiff(lb_days,ub_days,lookfwd_days, bars_per_day,rtns):
     xs = np.arange(lb_days,ub_days,5)
     ys = []
+    mindiff = 99999
+    best_lk = -1
     for x in xs:
         y = compute_latest_dist_diff(x,lookfwd_days,bars_per_day,rtns)
         ys.append(y)
+        if y < mindiff:
+            mindiff = y
+            best_lk = x
 
     plt.plot(xs,ys,'.-')
     plt.xlabel('lookback days')
     plt.ylabel('Ave dist diff')
+    return best_lk,mindiff
     # plt.show(block=False)
 
 def plot_recent_dist_diff(lookback_days, lookfwd_days, bars_per_day, rtns,recent_days=100):
@@ -114,10 +120,10 @@ if __name__ == "__main__":
     ticker = sys.argv[1]
     fwd_days = int(sys.argv[2])
     ub_rtn = float(sys.argv[3])
-    lookback_days_lb = 10
+    lookback_days_lb = 0
     if len(sys.argv) > 4:
         lookback_days_lb = int(sys.argv[4])
-    lookback_days_ub = 22*12
+    lookback_days_ub = 0
     if len(sys.argv) > 5:
         lookback_days_ub = int(sys.argv[5])
     lb_rtn = -ub_rtn
@@ -127,10 +133,11 @@ if __name__ == "__main__":
     rtns = df['Open'].pct_change().values
     rtns,bars_per_day = prepare_rtns(df,bars_per_day)
     print(f"length of returns: {len(rtns)}, bars per day: {bars_per_day}")
-    plot_varylookback_distdiff(10,22*12,fwd_days,bars_per_day,rtns)
+    lookback_days,mindiff = plot_varylookback_distdiff(10,22*12,fwd_days,bars_per_day,rtns)
 
-    print(f"Calibrating lookback days between [{lookback_days_lb},{lookback_days_ub}]")
-    lookback_days = calibrate_lookback_days(rtns,fwd_days,[lookback_days_lb,lookback_days_ub],bars_per_day)
+    if lookback_days_ub > 0 and lookback_days_lb>0:
+        print(f"Calibrating lookback days between [{lookback_days_lb},{lookback_days_ub}]")
+        lookback_days = calibrate_lookback_days(rtns,fwd_days,[lookback_days_lb,lookback_days_ub],bars_per_day)
     print(f"optmized lookback days: {lookback_days}")
 
     ecdf = ECDF(rtns[-fwd_days * bars_per_day:])
