@@ -154,4 +154,12 @@ if __name__ == "__main__":
     print(f"{fwd_days}-day probability of hitting {ub_rtn*100:.2f}%: {pu:.4}, hitting {lb_rtn*100:.2f}%: {pd:.4f}")
     print(f"sum: {pu + pd:.4f}")
 
+
+    N = 14*10
+    plt.figure()
+    df,_ = download_from_yfinance(ticker,interval='30m',period='1mo')
+    x = (df['High'].values[-N:] + df['Low'].values[-N:])*.5
+    y = df['Volume'].values[-N:]*1e-6
+    plt.stem(x,y,'.')
+    print("latest: ", df.iloc[-1,:])
     plt.show()

@@ -104,11 +104,17 @@ def estimate_kalman_dim(z,max_dim=20):
     min_mu = 9999
     opt_dim = -1
     for i in range(1,max_dim+1):
-        mu = abs(np.mean(np.diff(z,i)))
+        arr = np.diff(z,i)
+        mu = abs(np.mean(arr))
+        # mu = np.ptp(arr)
         if mu < min_mu:
             opt_dim = i
             min_mu = mu
-    print(f"optimal diff order: {opt_dim}, min abs(mean): {(min_mu)}")
+    arr = np.diff(z,opt_dim)
+    print(f"optimal diff order: {opt_dim}, min abs(mean): {(min_mu)}, var: {np.var(arr)}")
+    # pdb.set_trace()
+    plt.figure()
+    plt.plot(arr,'.')
     return opt_dim
 
 def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
@@ -375,7 +381,7 @@ def kalmanNdmotion(Z,R,q,dt,dim=-1):
     # fill matrix Phi
     for i in range(1,dim):
         f = 1./math.factorial(i)
-        Phi = Phi + np.linalg.matrix_power(F,i) * (T**i)
+        Phi = Phi + f*np.linalg.matrix_power(F,i) * (T**i)
 
     # fill column vector G
     G = np.zeros((dim,1))
