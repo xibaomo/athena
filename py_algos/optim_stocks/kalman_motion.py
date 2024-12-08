@@ -103,19 +103,23 @@ def estimate_kalman_dim(z,max_dim=20):
     #check which order of differencing gives minimum variance
     min_mu = 9999
     opt_dim = -1
-    for i in range(1,max_dim+1):
+    for i in range(2,max_dim+1):
         arr = np.diff(z,i)
         mu = abs(np.mean(arr))
-        # mu = np.ptp(arr)
+        # mu = np.var(arr)
+        # mu = np.max(abs(arr))
         if mu < min_mu:
             opt_dim = i
             min_mu = mu
     arr = np.diff(z,opt_dim)
-    print(f"optimal diff order: {opt_dim}, min abs(mean): {(min_mu)}, var: {np.var(arr)}")
+    q = np.var(arr)
+    print(f"optimal diff order: {opt_dim}, min abs(mean): {(np.mean(arr))}, var: {np.var(arr)}")
+    arr1 = np.diff(z,opt_dim-1)
+    print(f"upper level abs mean: {np.mean(abs(arr1))}")
     # pdb.set_trace()
     plt.figure()
     plt.plot(arr,'.')
-    return opt_dim
+    return opt_dim,q
 
 def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
     """
@@ -497,29 +501,19 @@ def cal_profit(xs,prices,N,cap = 10000):
 
 KALMAN_FUNC = kalmanNdmotion
 def obj_func(x,params):
-    Z,N,kalman_dim = params
-    Ri,qi,dt = x
-    R = 10**Ri
-    q = 10**qi
-    if R < q:
-        return 9999,
+    Z,N,kalman_dim,q,dt = params
+    R, = x
 
     xs, P = KALMAN_FUNC(Z, R, q=q, dt=dt,dim=kalman_dim)
 
     nu = Z[-N:] - xs[-N:,0]
-    mu = np.mean(nu)
+    # mu = np.mean(nu)
     var = np.var(nu)
-
-    # partial_autocorr = pacf(nu, method='ywm', nlags=5)
     v = xs[-N:,1]
-
-    # smoothness = compute_smoothness(v)
-    # cost =  abs(mu) + (abs(var/R-1))  + R*1e3+smoothness*50
-
-    s,pval = stats.normaltest(nu)
-    cost =  abs(var/R-1) - pval + P[1,1]
+    # s,pval = stats.normaltest(nu)
+    cost =  abs(var/R-1) #- pval + P[1,1]
     return cost,
-    # ax
+
 def ___obj_func(x,params):
     Z,N = params
     cost,trans,sd = cal_profit(x,Z,N)
@@ -538,16 +532,16 @@ def __obj_func(x,params):
 
     return lb_test['lb_stat'].values[0],
 
-def calibrate_kalman_args(Z,N=50,opt_method=0,kalman_dim=-1):
-    init_x = np.array([1e-4,2e-4,.1])
-    bounds = [(-5,-1),(-5,-3),(.2,.2)]
+def calibrate_kalman_args(Z,N=50,opt_method=0, kalman_dim=-1, q=-1, dt = 0.1):
+    init_x = np.array([1e-4])
+    bounds = [(1e-5,1e-2)]
     # bounds = None
     result = None
     # pdb.set_trace()
     if opt_method == 0:
-        result = minimize(obj_func,init_x,args=((Z,N,kalman_dim),),bounds=bounds,method='COBYLA',tol=1e-5)
+        result = minimize(obj_func,init_x,args=((Z,N,kalman_dim,q,dt),),bounds=bounds,method='COBYLA',tol=1e-5)
     elif opt_method == 1:
-        tmp_func = functools.partial(obj_func,params=(Z,N,kalman_dim))
+        tmp_func = functools.partial(obj_func,params=(Z,N,kalman_dim,q,dt))
         result = ga_minimize(tmp_func,len(init_x),bounds,population_size=1000,num_generations=100)
         # print("ga result: ", result.x, result.fun)
         # result = minimize(obj_func,result.x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
@@ -587,7 +581,7 @@ def test_stock(sym,target_date=None):
     z = np.log(prices) #/ df.values[0]
     # pdb.set_trace()
 
-    kalman_dim = estimate_kalman_dim(z)
+    kalman_dim,q = estimate_kalman_dim(z)
     print("Optimal kalman order: ", kalman_dim)
     rtns = np.diff(z)
     result = acorr_ljungbox(rtns, lags=[10], return_df=True)
@@ -598,12 +592,12 @@ def test_stock(sym,target_date=None):
     # plot_pacf(rtns,lags=10,method='ywm')
 
     verify_len = 50
-    pm = calibrate_kalman_args(z,N = verify_len, opt_method=1,kalman_dim=kalman_dim)
+    pm = calibrate_kalman_args(z,N = verify_len, opt_method=0,kalman_dim=kalman_dim, q=q)
 
-    xs,p = KALMAN_FUNC(z,R=10**pm[0],q=10**pm[1],dt=pm[2],dim=kalman_dim)
+    xs,p = KALMAN_FUNC(z,R=pm[0],q=q,dt=.1,dim=kalman_dim)
 
     # pf,trans,sd=cal_profit(pm,z)
-    print(f"optimal R: {10**pm[0]:.4e},q: {10**pm[1]:.4e}")
+    print(f"optimal R: {pm[0]:.4e},q: {q:.4e}")
     print("est. variance of log-price: ", p[0,0])
 
     cal_profit(xs,prices, N= verify_len)
@@ -676,16 +670,14 @@ if __name__ == "__main__":
 
     xs,zz,pm = test_stock(sym,target_date)
 
-    # xs,z = test_stock_iter()
     N=-50
     xs = xs[N-1:,:]
     z = zz[N:]
     fig,axs = plt.subplots(4,1)
     axs[0].plot(xs[:,0],'.-')
     axs[0].plot(z,'r.-')
-    rv = xs[:,1]*10**pm[2]
-    # rv = np.diff(xs[:,0])
-    # rv = comp_grad(xs[:,0])
+    rv = xs[:,1]
+
     axs[1].plot(rv,'.-')
     axs[1].axhline(y=0, color='red', linestyle='-')
     axs[2].plot(xs[:,2],'.-')
@@ -700,7 +692,7 @@ if __name__ == "__main__":
     R_res = np.var(res)
     print(f"res mean: {np.mean(res):.3e},var: {R_res:.3e} ")
 
-    print("\033[31mR_pred/R_res: {}\033[0m".format(10**pm[0]/R_res))
+    print("\033[31mR_pred/R_res: {}\033[0m".format(pm[0]/R_res))
 
     s,p_val = stats.normaltest(res)
     print("normal test: ",s,p_val)
