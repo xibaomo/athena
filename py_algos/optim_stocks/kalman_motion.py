@@ -98,7 +98,7 @@ def __estimate_poly_order(y,max_order=20,tol=1e-1,rel_tol=1e-1):
         n+=1
     return n,cost(x,y,n)
 
-def estimate_kalman_dim(z,max_dim=20):
+def estimate_kalman_dim(z,max_dim=4):
     # pdb.set_trace()
     #check which order of differencing gives minimum variance
     min_mu = 9999
@@ -394,30 +394,23 @@ def kalmanNdmotion(Z,R,q,dt,dim=-1):
         G[i,0] = f * (T**(dim-i))
 
     QQ = G @ G.T * q / T
-    # H = np.array([[1., 0., 0., 0., 0]])
     H = np.zeros((1,dim))
     H[0,0]=1.
-    for i in range(N):
-        if i == 0:
-            continue
-        # pdb.set_trace()
+    for i in range(1,N):
         X_ = np.matmul(Phi, X)
         P_ = np.matmul(np.matmul(Phi, P), Phi.transpose()) + QQ
         tmp = np.matmul(np.matmul(H, P_), H.transpose()) + Rm
-        # pdb.set_trace()
+
         K = np.matmul(np.matmul(P_, H.transpose()), np.linalg.inv(tmp))
         tmp = Z[i] - np.matmul(H, X_)
         X = X_ + np.matmul(K, tmp)
         states[i, :-1] = X
-        # states[i,1] = states[i,0]-states[i-1,0]
-        # pdb.set_trace()
         states[i, -1] = K[0][0]
 
         tmp = np.eye(dim) - np.matmul(K, H)
-        # pdb.set_trace()
+
         P = np.matmul(np.matmul(tmp, P_), tmp.transpose()) + np.matmul(np.matmul(K, Rm), K.transpose())
 
-    # print("FInal P: ",P)
     return states, P
 def __cal_profit(x,log_price,N=100,cap=10000):
     Z = np.exp(log_price)
@@ -503,7 +496,6 @@ KALMAN_FUNC = kalmanNdmotion
 def obj_func(x,params):
     Z,N,kalman_dim,q,dt = params
     R, = x
-
     xs, P = KALMAN_FUNC(Z, R, q=q, dt=dt,dim=kalman_dim)
 
     nu = Z[-N:] - xs[-N:,0]
@@ -533,7 +525,7 @@ def __obj_func(x,params):
     return lb_test['lb_stat'].values[0],
 
 def calibrate_kalman_args(Z,N=50,opt_method=0, kalman_dim=-1, q=-1, dt = 0.1):
-    init_x = np.array([1e-4])
+    init_x = np.array([2e-4])
     bounds = [(1e-5,1e-2)]
     # bounds = None
     result = None
@@ -569,7 +561,7 @@ def test_stock(sym,target_date=None):
     # target_date = '2024-09-5'
     if target_date is None:
         target_date = datetime.today().strftime('%Y-%m-%d')
-    back_days = 250
+    back_days = 180
     start_date = add_days_to_date(target_date,-back_days)
     # data = yf.download(syms, start=start_date, end=target_date)
     data = yf.Ticker(sym).history(start=start_date, end=target_date, interval='1d')
@@ -601,6 +593,9 @@ def test_stock(sym,target_date=None):
     print("est. variance of log-price: ", p[0,0])
 
     cal_profit(xs,prices, N= verify_len)
+
+    plt.figure()
+    plt.plot(data['Volume'].values[-60:]*1e-6,'.-')
 
     n = 5
     x = [x for x in range(n)]
@@ -671,7 +666,7 @@ if __name__ == "__main__":
     xs,zz,pm = test_stock(sym,target_date)
 
     N=-50
-    xs = xs[N-1:,:]
+    xs = xs[N:,:]
     z = zz[N:]
     fig,axs = plt.subplots(4,1)
     axs[0].plot(xs[:,0],'.-')
