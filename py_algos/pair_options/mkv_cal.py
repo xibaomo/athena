@@ -39,6 +39,39 @@ class LaplaceCDFCal(object):
     def compRangeProb(self,lb,ub):
         return self.compCDF(ub) - self.compCDF(lb)
 
+class MkvRegularCal(object):
+    def __init__(self,nstates):
+        self.n_states = nstates
+    def buildTransMat(self,rtns,lb_rtn,ub_rtn):
+        rtns = rtns[~np.isnan(rtns)]
+        self.transProbCal = ECDFCal(rtns)
+        npts = self.n_states
+        d = (ub_rtn - lb_rtn) / npts
+        idxDiff2Prob = {}
+        for i in range(-npts + 1, npts):
+            p = self.transProbCal.compRangeProb(i * d - d / 2, i * d + d / 2)
+            idxDiff2Prob[i] = p
+        P = np.zeros((npts, npts))
+
+        for i in range(npts):
+            for j in range(npts):
+                P[i, j] = idxDiff2Prob[j - i]
+
+        # normalization
+        for i in range(npts):
+            s = 0.
+            for j in range(npts):
+                s += P[i, j]
+            if s == 0:
+                pdb.set_trace()
+            P[i, :] = P[i, :] / s
+        self.transMat = P.copy()
+        return P
+    def compMultiStepProb(self,steps, rtns,lb_rtn,ub_rtn):
+        P = self.buildTransMat(rtns,lb_rtn,ub_rtn)
+        PWP = np.linalg.matrix_power(P,steps)
+        mid = PWP.shape[0]//2
+        return PWP[mid,:]
 
 class MkvAbsorbCal(object):
     def __init__(self,nstates,cdf='emp'):
