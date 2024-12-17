@@ -9,6 +9,7 @@ from mkv_cal import MkvRegularCal
 import pandas as pd
 from utils import TradeDaysCounter,download_from_yfinance
 from cal_prob import prepare_rtns,compute_latest_dist_diff
+import matplotlib.pyplot as plt
 
 import robin_stocks.robinhood as rh
 # Login to Robinhood
@@ -47,6 +48,10 @@ def calibrateStrikePrice(df_options, steps, rtns, cur_price, lb_rtn=-.25, ub_rtn
     sorted_df = df_options.sort_values(by='strike_price')
     cal = MkvRegularCal(nstates=nstates)
     probs = cal.compMultiStepProb(steps=steps, rtns=rtns, lb_rtn=lb_rtn, ub_rtn=ub_rtn)
+    print(f"sum of probs: {np.sum(probs)}")
+    # x = np.linspace(-.25,.25,500)
+    # plt.plot(x,probs,'.')
+    # plt.show()
     best_rtn = -9999
     best_strike = -1
     for i in range(len(sorted_df)):
@@ -56,8 +61,8 @@ def calibrateStrikePrice(df_options, steps, rtns, cur_price, lb_rtn=-.25, ub_rtn
             continue
         strike_rtn = strike/cur_price
         bid = sorted_df['bid_price'].values[i]
-        if bid == 0:
-            continue
+        # if bid == 0:
+        #     continue
         bid_rtn = sorted_df['bid_price'].values[i]/cur_price
         exp_rtn = compExpectedReturn(probs,strike_rtn,bid_rtn, lb_rtn, ub_rtn, nstates)
         print(f"{strike}, , {bid}, {exp_rtn}")
@@ -99,6 +104,7 @@ if __name__ == "__main__":
     df, bars_per_day = download_from_yfinance(ticker, period='2y')
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
     trade_days = TradeDaysCounter().countTradeDays(exp_date)
+    print(f"trading days: {trade_days}")
     steps = trade_days*bars_per_day
 
     lookback_days = findBestLookbackDays(22,22*18,trade_days,bars_per_day,rtns)
