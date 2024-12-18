@@ -18,6 +18,7 @@ sys.path.append(folder)
 from ga_min import *
 from scipy.interpolate import UnivariateSpline
 from scipy.interpolate import CubicSpline
+from statsmodels.tsa.arima.model import ARIMA
 
 def compute_smoothness(arr):
     v = arr - np.min(arr)
@@ -119,6 +120,10 @@ def estimate_kalman_dim(z,max_dim=4):
     # pdb.set_trace()
     plt.figure()
     plt.plot(arr,'.')
+    # cr1 = np.corrcoef(arr[1:],arr[:-1])[0,1]
+    # cr2 = np.corrcoef(arr[2:],arr[:-2])[0,1]
+    # pdb.set_trace()
+    print(f"Corr of lag 1-9: ",[np.corrcoef(arr[i:],arr[:-i])[0,1] for i in range(1,10)])
     return opt_dim,q
 
 def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
@@ -412,6 +417,73 @@ def kalmanNdmotion(Z,R,q,dt,dim=-1):
         P = np.matmul(np.matmul(tmp, P_), tmp.transpose()) + np.matmul(np.matmul(K, Rm), K.transpose())
 
     return states, P
+
+def kalmanNdmotion_arima(Z,R,q,dt,dim=-1):
+    #ARIMA
+    model = ARIMA(np.diff(Z,dim),order=(1,0,0))
+    fitted_model = model.fit()
+    # pdb.set_trace()
+    psi = fitted_model.params[1]
+    q = fitted_model.params[2]
+    print(f"residual variance: {q:.4e}")
+    # plot_acf(fitted_model.resid,lags=10)
+
+    N = len(Z)
+    Rm = np.array([[R]])
+
+    T = dt
+    # X = np.zeros(dim)
+    # X[0] = Z[0]
+    # P = np.eye(dim) * R
+    # pdb.set_trace()
+    F = np.zeros((dim,dim))
+    for i in range(dim-1):
+        F[i,i+1] = 1.
+    Phi_s = np.eye(dim)
+
+    # fill matrix Phi
+    for i in range(1,dim):
+        f = 1./math.factorial(i)
+        Phi_s = Phi_s + f*np.linalg.matrix_power(F,i) * (T**i)
+
+    # fill column vector G
+    G_s = np.zeros((dim,1))
+    for i in range(dim):
+        f = 1./math.factorial(dim-i)
+        G_s[i,0] = f * (T**(dim-i))
+
+    dim+=1
+    Phi = np.zeros((dim,dim))
+    G = np.zeros((dim,1))
+    Phi[:dim-1,:dim-1] = Phi_s
+    # pdb.set_trace()
+    Phi[:dim-1,-1] = G_s.flatten()
+    Phi[-1,-1] = psi
+    G[-1,0] = 1
+    QQ = G @ G.T * q
+    H = np.zeros((1,dim))
+    H[0,0]=1.
+    X = np.zeros((dim,1))
+    X[0,0]=Z[0]
+    P = np.eye(dim)*R
+    states = np.zeros((N, dim + 1))
+    # pdb.set_trace()
+    for i in range(1,N):
+        X_ = np.matmul(Phi, X)
+        P_ = np.matmul(np.matmul(Phi, P), Phi.transpose()) + QQ
+        tmp = np.matmul(np.matmul(H, P_), H.transpose()) + Rm
+
+        K = np.matmul(np.matmul(P_, H.transpose()), np.linalg.inv(tmp))
+        tmp = Z[i] - np.matmul(H, X_)
+        X = X_ + np.matmul(K, tmp)
+        states[i, :-1] = X.flatten()
+        states[i, -1] = K[0][0]
+
+        tmp = np.eye(dim) - np.matmul(K, H)
+
+        P = np.matmul(np.matmul(tmp, P_), tmp.transpose()) + np.matmul(np.matmul(K, Rm), K.transpose())
+
+    return states, P
 def __cal_profit(x,log_price,N=100,cap=10000):
     Z = np.exp(log_price)
     q, = x
@@ -492,7 +564,8 @@ def cal_profit(xs,prices,N,cap = 10000):
     else:
         print(f"Total profit: $0.00")
 
-KALMAN_FUNC = kalmanNdmotion
+# KALMAN_FUNC = kalmanNdmotion
+KALMAN_FUNC = kalmanNdmotion_arima
 def obj_func(x,params):
     Z,N,kalman_dim,q,dt = params
     R, = x
