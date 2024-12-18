@@ -101,29 +101,35 @@ def __estimate_poly_order(y,max_order=20,tol=1e-1,rel_tol=1e-1):
 
 def estimate_kalman_dim(z,max_dim=5):
     # pdb.set_trace()
-    #check which order of differencing gives minimum variance
-    min_mu = 9999
+
+    min_q = 9999
     opt_dim = -1
+    psi = -1
     for i in range(2,max_dim+1):
         arr = np.diff(z,i)
-        mu = abs(np.mean(arr))
+        model = ARIMA(arr, order=(1, 0, 0))
+        fitted_model = model.fit()
+        q = fitted_model.params[2]
+        # mu = abs(np.mean(arr))
         # mu = np.var(arr)
         # mu = np.max(abs(arr))
-        if mu < min_mu:
+        if q < min_q:
             opt_dim = i
-            min_mu = mu
+            min_q = q
     arr = np.diff(z,opt_dim)
-    q = np.var(arr)
-    print(f"optimal diff order: {opt_dim}, min abs(mean): {(np.mean(arr))}, var: {np.var(arr)}")
+    # q = np.var(arr)
+    print(f"optimal diff order: {opt_dim}, abs(mean): {(np.mean(arr))}, q: {min_q:.4e}")
     arr1 = np.diff(z,opt_dim-1)
     print(f"upper level abs mean: {np.mean(abs(arr1))}")
-    plot_pacf(arr,lags=10,method='ywm')
+    # plot_pacf(arr,lags=10,method='ywm')
+    plot_acf(arr,lags=10)
 
     model = ARIMA(arr, order=(1, 0, 0))
     fitted_model = model.fit()
     psi = fitted_model.params[1]
     q   = fitted_model.params[2]
-    plot_pacf(fitted_model.resid,lags=10,method='ywm')
+    # plot_pacf(fitted_model.resid,lags=10,method='ywm')
+    plot_acf(fitted_model.resid,lags=10)
     return opt_dim,psi,q
 
 def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
@@ -418,7 +424,7 @@ def kalmanNdmotion(Z,R,q,dt,dim=-1):
 
     return states, P
 
-def kalmanNdmotion_arima(Z,R,psi,q,dt,dim=-1):
+def kalmanNdmotion_ar1(Z,R,psi,q,dt,dim=-1):
     #ARIMA
     # model = ARIMA(np.diff(Z,dim),order=(1,0,0))
     # fitted_model = model.fit()
@@ -565,7 +571,7 @@ def cal_profit(xs,prices,N,cap = 10000):
         print(f"Total profit: $0.00")
 
 # KALMAN_FUNC = kalmanNdmotion
-KALMAN_FUNC = kalmanNdmotion_arima
+KALMAN_FUNC = kalmanNdmotion_ar1
 def obj_func(x,params):
     Z,N,kalman_dim,psi,q,dt = params
     R, = x
@@ -599,7 +605,7 @@ def __obj_func(x,params):
 
 def calibrate_kalman_args(Z,N=50,opt_method=0, kalman_dim=-1, psi=-1, q=-1, dt = 0.1):
     init_x = np.array([2e-4])
-    bounds = [(1e-5,1e-2)]
+    bounds = [(1e-6,1e-2)]
     # bounds = None
     result = None
     # pdb.set_trace()
@@ -657,9 +663,10 @@ def test_stock(sym,target_date=None):
     # plot_pacf(rtns,lags=10,method='ywm')
 
     verify_len = 50
-    pm = calibrate_kalman_args(z,N = verify_len, opt_method=0,kalman_dim=kalman_dim, psi=psi,q=q)
+    T = 1./4.
+    pm = calibrate_kalman_args(z,N = verify_len, opt_method=0,kalman_dim=kalman_dim, psi=psi,q=q,dt=T)
 
-    xs,p = KALMAN_FUNC(z,R=pm[0],psi=psi,q=q,dt=.1,dim=kalman_dim)
+    xs,p = KALMAN_FUNC(z,R=pm[0],psi=psi,q=q,dt=T,dim=kalman_dim)
 
     # pf,trans,sd=cal_profit(pm,z)
     print(f"optimal R: {pm[0]:.4e},q: {q:.4e}")
