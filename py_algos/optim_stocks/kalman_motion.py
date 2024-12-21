@@ -118,9 +118,9 @@ def estimate_kalman_dim(z,max_dim=5):
             min_q = q
     arr = np.diff(z,opt_dim)
     # q = np.var(arr)
-    print(f"optimal diff order: {opt_dim}, abs(mean): {(np.mean(arr))}, q: {min_q:.4e}")
+    print(f"optimal diff order: {opt_dim}, abs(mean): {(np.mean(arr)):.4e}, q: {min_q:.4e}")
     arr1 = np.diff(z,opt_dim-1)
-    print(f"upper level abs mean: {np.mean(abs(arr1))}")
+    print(f"upper level abs mean: {np.mean(abs(arr1)):.4e}")
     # plot_pacf(arr,lags=10,method='ywm')
     plot_acf(arr,lags=10)
 
@@ -646,8 +646,8 @@ def test_stock(sym,target_date=None):
     data = yf.Ticker(sym).history(start=start_date, end=target_date, interval='1d')
     # pdb.set_trace()
     df = data['Close']
-    prices = expand_price(data)
-
+    # prices = expand_price(data)
+    prices = data['Close'].values
     print("length of history: ", len(prices))
     z = np.log(prices) #/ df.values[0]
     # pdb.set_trace()
