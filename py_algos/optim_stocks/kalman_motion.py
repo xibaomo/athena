@@ -101,15 +101,15 @@ def __estimate_poly_order(y,max_order=20,tol=1e-1,rel_tol=1e-1):
 
 def estimate_kalman_dim(z,max_dim=5):
     # pdb.set_trace()
-
+    order = (2,0,1)
     min_q = 9999
     opt_dim = -1
     psi = -1
     for i in range(2,max_dim+1):
         arr = np.diff(z,i)
-        model = ARIMA(arr, order=(1, 0, 0))
+        model = ARIMA(arr, order=order)
         fitted_model = model.fit()
-        q = fitted_model.params[2]
+        q = fitted_model.params[-1]
         # mu = abs(np.mean(arr))
         # mu = np.var(arr)
         # mu = np.max(abs(arr))
@@ -121,15 +121,16 @@ def estimate_kalman_dim(z,max_dim=5):
     print(f"optimal diff order: {opt_dim}, abs(mean): {(np.mean(arr)):.4e}, q: {min_q:.4e}")
     arr1 = np.diff(z,opt_dim-1)
     print(f"upper level abs mean: {np.mean(abs(arr1)):.4e}")
-    # plot_pacf(arr,lags=10,method='ywm')
-    plot_acf(arr,lags=10)
+    plot_pacf(arr,lags=20,method='ywm')
+    plot_acf(arr,lags=20)
 
-    model = ARIMA(arr, order=(1, 0, 0))
+    model = ARIMA(arr, order=order)
     fitted_model = model.fit()
+    # pdb.set_trace()
     psi = fitted_model.params[1]
-    q   = fitted_model.params[2]
-    # plot_pacf(fitted_model.resid,lags=10,method='ywm')
-    plot_acf(fitted_model.resid,lags=10)
+    q   = fitted_model.params[-1]
+    plot_pacf(fitted_model.resid,lags=20,method='ywm')
+    # plot_acf(fitted_model.resid,lags=10)
     return opt_dim,psi,q
 
 def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
