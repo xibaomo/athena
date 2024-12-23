@@ -99,14 +99,14 @@ def __estimate_poly_order(y,max_order=20,tol=1e-1,rel_tol=1e-1):
         n+=1
     return n,cost(x,y,n)
 
-def estimate_kalman_dim(z,max_dim=5):
+def estimate_kalman_dim(z,max_dim=5, dt=0.1):
     # pdb.set_trace()
     order = (2,0,1)
     min_q = 9999
     opt_dim = -1
-    psi = -1
+    # psi = -1
     for i in range(2,max_dim+1):
-        arr = np.diff(z,i)
+        arr = np.diff(z,i)/(dt**i)
         model = ARIMA(arr, order=order)
         fitted_model = model.fit()
         q = fitted_model.params[-1]
@@ -116,10 +116,11 @@ def estimate_kalman_dim(z,max_dim=5):
         if q < min_q:
             opt_dim = i
             min_q = q
-    arr = np.diff(z,opt_dim)
+    arr = np.diff(z,opt_dim)/(dt**opt_dim)
+    pdb.set_trace()
     # q = np.var(arr)
     print(f"optimal diff order: {opt_dim}, abs(mean): {(np.mean(arr)):.4e}, q: {min_q:.4e}")
-    arr1 = np.diff(z,opt_dim-1)
+    arr1 = np.diff(z,opt_dim-1)/(dt**(opt_dim-1))
     print(f"upper level abs mean: {np.mean(abs(arr1)):.4e}")
     plot_pacf(arr,lags=20,method='ywm')
     plot_acf(arr,lags=20)
@@ -127,11 +128,11 @@ def estimate_kalman_dim(z,max_dim=5):
     model = ARIMA(arr, order=order)
     fitted_model = model.fit()
     # pdb.set_trace()
-    psi = fitted_model.params[1]
-    q   = fitted_model.params[-1]
+    # psi = fitted_model.params[1]
+    # q   = fitted_model.params[-1]
     plot_pacf(fitted_model.resid,lags=20,method='ywm')
     # plot_acf(fitted_model.resid,lags=10)
-    return opt_dim,psi,q
+    return opt_dim,fitted_model.params
 
 def adaptive_kalman_filter(z, F, H, Q, R_init, P0, x0, N):
     """
@@ -380,7 +381,8 @@ def kalman5dmotion(Z,R,q,dt):
 
     # print("FInal P: ",P)
     return states, P
-def kalmanNdmotion(Z,R,q,dt,dim=-1):
+def kalmanNdmotion(Z,R,params,dt,dim=-1):
+    q = params[-1]
     N = len(Z)
     Rm = np.array([[R]])
     states = np.zeros((N, dim + 1))
@@ -425,7 +427,7 @@ def kalmanNdmotion(Z,R,q,dt,dim=-1):
 
     return states, P
 
-def kalmanNdmotion_ar1(Z,R,psi,q,dt,dim=-1):
+def kalmanNdmotion_ar1(Z,R,params, dt,dim=-1):
     #ARIMA
     # model = ARIMA(np.diff(Z,dim),order=(1,0,0))
     # fitted_model = model.fit()
@@ -435,6 +437,8 @@ def kalmanNdmotion_ar1(Z,R,psi,q,dt,dim=-1):
     # print(f"residual variance: {q:.4e}")
     # plot_acf(fitted_model.resid,lags=10)
 
+    q = params[-1]
+    psi = params[1]
     N = len(Z)
     Rm = np.array([[R]])
 
@@ -491,6 +495,85 @@ def kalmanNdmotion_ar1(Z,R,psi,q,dt,dim=-1):
         P = np.matmul(np.matmul(tmp, P_), tmp.transpose()) + np.matmul(np.matmul(K, Rm), K.transpose())
 
     return states, P
+def kalman2dmotion_ar2(Z,R,params, dt,dim=2):
+    dim=4
+    N = len(Z)
+    Rm = np.array([[R]])
+    Phi = np.zeros((dim,dim))
+    Phi[0,0] = 1.
+    Phi[0,1] = dt
+    Phi[0,2] = dt*dt/2
+    Phi[1,1] = 1.
+    Phi[1,2] = dt
+    Phi[2,2] = params[1]
+    Phi[2,3] = params[2]
+
+    Phi[3,2] = 1.
+    G = np.zeros((dim,1))
+    G[2,0] = 1.
+    H = np.zeros((1,dim))
+    H[0,0] = 1.
+    X = np.zeros((dim, 1))
+    X[0, 0] = Z[0]
+    P = np.eye(dim) * R
+    states = np.zeros((N, dim + 1))
+    QQ = G @ G.T * params[-1]/dt
+    for i in range(1,N):
+        X_ = np.matmul(Phi, X)
+        P_ = np.matmul(np.matmul(Phi, P), Phi.transpose()) + QQ
+        tmp = np.matmul(np.matmul(H, P_), H.transpose()) + Rm
+
+        K = np.matmul(np.matmul(P_, H.transpose()), np.linalg.inv(tmp))
+        tmp = Z[i] - np.matmul(H, X_)
+        X = X_ + np.matmul(K, tmp)
+        states[i, :-1] = X.flatten()
+        states[i, -1] = K[0][0]
+
+        tmp = np.eye(dim) - np.matmul(K, H)
+
+        P = np.matmul(np.matmul(tmp, P_), tmp.transpose()) + np.matmul(np.matmul(K, Rm), K.transpose())
+
+    return states, P
+def kalman2dmotion_arima201(Z,R,params, dt,dim=2):
+    dim=5
+    N = len(Z)
+    Rm = np.array([[R]])
+    Phi = np.zeros((dim,dim))
+    Phi[0,0] = 1.
+    Phi[0,1] = dt
+    Phi[1,1] = 1.
+    Phi[1,2] = 1.
+    Phi[2,2] = params[1]
+    Phi[2,3] = params[2]
+    Phi[2,4] = params[3]
+    Phi[3,2] = 1.
+    G = np.zeros((dim,1))
+    G[2,0] = 1.
+    G[4,0] = 1.
+    H = np.zeros((1,dim))
+    H[0,0] = 1.
+    X = np.zeros((dim, 1))
+    X[0, 0] = Z[0]
+    P = np.eye(dim) * R
+    states = np.zeros((N, dim + 1))
+    QQ = G @ G.T * params[-1]
+    for i in range(1,N):
+        X_ = np.matmul(Phi, X)
+        P_ = np.matmul(np.matmul(Phi, P), Phi.transpose()) + QQ
+        tmp = np.matmul(np.matmul(H, P_), H.transpose()) + Rm
+
+        K = np.matmul(np.matmul(P_, H.transpose()), np.linalg.inv(tmp))
+        tmp = Z[i] - np.matmul(H, X_)
+        X = X_ + np.matmul(K, tmp)
+        states[i, :-1] = X.flatten()
+        states[i, -1] = K[0][0]
+
+        tmp = np.eye(dim) - np.matmul(K, H)
+
+        P = np.matmul(np.matmul(tmp, P_), tmp.transpose()) + np.matmul(np.matmul(K, Rm), K.transpose())
+
+    return states, P
+
 def __cal_profit(x,log_price,N=100,cap=10000):
     Z = np.exp(log_price)
     q, = x
@@ -571,12 +654,14 @@ def cal_profit(xs,prices,N,cap = 10000):
     else:
         print(f"Total profit: $0.00")
 
-# KALMAN_FUNC = kalmanNdmotion
-KALMAN_FUNC = kalmanNdmotion_ar1
+KALMAN_FUNC = kalmanNdmotion
+# KALMAN_FUNC = kalmanNdmotion_ar1
+# KALMAN_FUNC = kalman2dmotion_arima201
+# KALMAN_FUNC = kalman2dmotion_ar2
 def obj_func(x,params):
-    Z,N,kalman_dim,psi,q,dt = params
+    Z,N,kalman_dim,arma_pms,dt = params
     R, = x
-    xs, P = KALMAN_FUNC(Z, R, psi,q=q, dt=dt,dim=kalman_dim)
+    xs, P = KALMAN_FUNC(Z, R, params=arma_pms, dt=dt,dim=kalman_dim)
 
     nu = Z[-N:] - xs[-N:,0]
     # mu = np.mean(nu)
@@ -604,16 +689,16 @@ def __obj_func(x,params):
 
     return lb_test['lb_stat'].values[0],
 
-def calibrate_kalman_args(Z,N=50,opt_method=0, kalman_dim=-1, psi=-1, q=-1, dt = 0.1):
+def calibrate_kalman_args(Z,N=50,opt_method=0, kalman_dim=-1, arma_pms=None, dt = 0.1):
     init_x = np.array([2e-4])
     bounds = [(1e-6,1e-2)]
     # bounds = None
     result = None
     # pdb.set_trace()
     if opt_method == 0:
-        result = minimize(obj_func,init_x,args=((Z,N,kalman_dim,psi,q,dt),),bounds=bounds,method='COBYLA',tol=1e-5)
+        result = minimize(obj_func,init_x,args=((Z,N,kalman_dim,arma_pms,dt),),bounds=bounds,method='COBYLA',tol=1e-5)
     elif opt_method == 1:
-        tmp_func = functools.partial(obj_func,params=(Z,N,kalman_dim,psi,q,dt))
+        tmp_func = functools.partial(obj_func,params=(Z,N,kalman_dim,arma_pms,dt))
         result = ga_minimize(tmp_func,len(init_x),bounds,population_size=1000,num_generations=100)
         # print("ga result: ", result.x, result.fun)
         # result = minimize(obj_func,result.x,args=((Z,N),),bounds=bounds,method='COBYLA',tol=1e-5)
@@ -653,7 +738,7 @@ def test_stock(sym,target_date=None):
     z = np.log(prices) #/ df.values[0]
     # pdb.set_trace()
 
-    kalman_dim,psi,q = estimate_kalman_dim(z)
+    kalman_dim,arma_pms = estimate_kalman_dim(z)
     print("Optimal kalman order: ", kalman_dim)
     rtns = np.diff(z)
     result = acorr_ljungbox(rtns, lags=[10], return_df=True)
@@ -665,12 +750,12 @@ def test_stock(sym,target_date=None):
 
     verify_len = 50
     T = 1./4.
-    pm = calibrate_kalman_args(z,N = verify_len, opt_method=0,kalman_dim=kalman_dim, psi=psi,q=q,dt=T)
+    pm = calibrate_kalman_args(z,N = verify_len, opt_method=0,kalman_dim=kalman_dim, arma_pms=arma_pms,dt=T)
 
-    xs,p = KALMAN_FUNC(z,R=pm[0],psi=psi,q=q,dt=T,dim=kalman_dim)
+    xs,p = KALMAN_FUNC(z,R=pm[0],params=arma_pms,dt=T,dim=kalman_dim)
 
     # pf,trans,sd=cal_profit(pm,z)
-    print(f"optimal R: {pm[0]:.4e},q: {q:.4e}")
+    print(f"optimal R: {pm[0]:.4e},q: {arma_pms[-1]:.4e}")
     print("est. variance of log-price: ", p[0,0])
 
     cal_profit(xs,prices, N= verify_len)
