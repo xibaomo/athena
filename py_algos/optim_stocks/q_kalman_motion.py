@@ -425,6 +425,7 @@ def obj_func(x,params):
     # cost = abs(np.var(inno[-N:]))
     cost = abs(xs[-1,-1]-0.4)
     # nu = Z[-N:] - xs[-N:,0]
+    # cost = abs(np.mean(inno[-N:]))
 
     # s,pval = stats.normaltest(nu)
 
