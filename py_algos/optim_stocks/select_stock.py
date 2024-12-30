@@ -1,6 +1,8 @@
 import os,sys
 import pandas as pd
+import numpy as np
 import pdb
+from kalman_tracker import KalmanTracker
 from download import DATA_FILE
 
 def compute_trading_value(df,lookback=25,target_date=-1):
@@ -17,7 +19,15 @@ def compute_trading_value(df,lookback=25,target_date=-1):
     dff['close'] = df['Close'].iloc[-1,:]
     return dff
 
-
+def kalman_addon(data,df):
+    ktcal = KalmanTracker()
+    df_close = data['Close']
+    for ticker in df_close.keys():
+        p = df_close[ticker].values
+        v,acc = ktcal.estimateMotion(np.log(p))
+        df.loc[ticker,'v'] = v
+        df.loc[ticker,'acc'] = acc
+    return df
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -30,7 +40,11 @@ if __name__ == "__main__":
     data = data.dropna(axis=1)
     df = compute_trading_value(data)
     sorted_df = df.sort_values(by='tv', ascending=True, ignore_index=False)
-    df = sorted_df.iloc[-100:,:]
+    # df = sorted_df.iloc[-100:,:]
     g = df['rtn'].values/df['tv'].values
     df['growth'] = g
     df = df.sort_values(by='growth', ascending=True, ignore_index=False)
+
+    df = kalman_addon(data,df)
+    df = df.loc[~((df['v'] < 0) | (df['acc'] < 0))]
+    df = df.sort_values(by='acc', ascending=True, ignore_index=False)
