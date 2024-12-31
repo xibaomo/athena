@@ -122,10 +122,10 @@ class KalmanTracker(object):
 
         xs,inno = self.kalmanNdMotion(z,R=Rz,q=pm[0],dim=kdim)
 
-        v = xs[:,1]
+        vs = xs[:,1]
         x = [x for x in range(lookback)]
-        p = np.polyfit(x,v[-lookback:],1)
-        return v[-1],p[0]
+        p = np.polyfit(x,vs[-lookback:],1)
+        return vs,p[0]
 def add_days_to_date(date_str, num_days):
     # Convert string to datetime object
     # pdb.set_trace()
@@ -154,5 +154,5 @@ if __name__ == "__main__":
     z = np.log(data['Close'].values)
 
     kt = KalmanTracker()
-    v,acc = kt.estimateMotion(z)
-    print(f"v: {v}, acc: {acc}")
+    vs,acc = kt.estimateMotion(z)
+    print(f"v: {vs[-1]}, acc: {acc}")
