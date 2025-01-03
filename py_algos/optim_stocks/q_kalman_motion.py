@@ -514,7 +514,22 @@ def test_stock(sym,target_date=None):
     p2 = np.polyfit(x,xs[-n:,1],1)
     print(f"ave speed of last {n} days: {p1[0]:.4e}, slope: {p2[0]:.4e}")
 
-    return xs,z,Rz
+    return xs,z,Rz,data
+def compVWAP(df,lookback=10):
+    x = (df['High'].values + df['Low'].values) * .5
+    y = df['Volume'].values
+    vwap = np.zeros(len(df))
+    scl = np.zeros(len(df))
+    for i in range (lookback,len(df)):
+        tx = x[i-lookback:i]
+        ty = y[i-lookback:i]
+        vwap[i] = np.sum(tx*ty)/np.sum(ty)
+
+        lw = np.min(tx)
+        hi = np.max(tx)
+        scl[i] = (vwap[i]-lw)/(hi-lw)
+
+    return vwap,scl
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -528,7 +543,8 @@ if __name__ == "__main__":
     else:
         target_date = None
 
-    xs,zz,rz = test_stock(sym,target_date)
+    xs,zz,rz,data = test_stock(sym,target_date)
+    vwap,scl = compVWAP(data,lookback=10)
 
     N=-50
     xs = xs[N:,:]
@@ -536,17 +552,16 @@ if __name__ == "__main__":
     fig,axs = plt.subplots(4,1)
     axs[0].plot(xs[:,0],'.-')
     axs[0].plot(z,'r.-')
+    axs[0].plot(np.log(vwap[N:]),'g')
+    # axs[0].plot(np.log(ma[N:]),'c')
+    # pdb.set_trace()
+    # axs[0].axhline(y=np.log(vwap), color='red', linestyle='--')
     rv = xs[:,1]
 
     axs[1].plot(rv,'.-')
     axs[1].axhline(y=0, color='red', linestyle='-')
-    axs[2].plot(xs[:,2],'.-')
-    axs[2].axhline(y=0, color='red', linestyle='-')
 
-    # axs[3].plot(xs[N:,-1],'.-')
-
-    # print("est vs real: ", np.corrcoef(xs[:,0],z)[0,1])
-    # print("corr: acc vs v: ", np.corrcoef(xs[:,1],xs[:,2])[0,1])
+    axs[2].plot(scl[N:],'.-')
     res = xs[N:,0]-z[N:]
     axs[3].plot(xs[N:,-1],'.-')
     R_res = np.var(res)
