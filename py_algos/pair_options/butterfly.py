@@ -91,11 +91,8 @@ def compExpRevenue(probs, cur_price, strike, gap,drtn,lb_rtn):
     lw_rtn = (strike-gap)/cur_price - 1.
     hi_rtn = (strike+gap)/cur_price - 1.
     # mid_rtn = strike/cur_price -1.
-    lw = int((lw_rtn-lb_rtn)//drtn)
-    hi = int((hi_rtn-lb_rtn)//drtn)
-    if hi >= len(probs):
-        hi = len(probs)-1
-    # mid= (mid_rtn-lb_rtn)//drtn
+    lw = int((lw_rtn-lb_rtn)/drtn)
+    hi = int((hi_rtn-lb_rtn)/drtn)
 
     # pdb.set_trace()
     s = 0
@@ -110,36 +107,50 @@ def compExpRevenue(probs, cur_price, strike, gap,drtn,lb_rtn):
     return s
 
 def findOptimalButterfly(df,cur_price,rtns,steps,ns=500):
+    df = df.sort_values(by='strike_price')
     cal = MkvRegularCal(nstates=ns)
     ask = df['ask_price'].values
     strike = df['strike_price'].values
-    lb_rtn = strike[0]/cur_price - 1. - 0.01
-    ub_rtn = strike[-1]/cur_price - 1. + 0.01
+    lb_rtn = strike[0]/cur_price - 1.
+    ub_rtn = strike[-1]/cur_price - 1.
     probs = cal.compMultiStepProb(steps, rtns,lb_rtn,ub_rtn)
-    drtn = (ub_rtn-lb_rtn)/ns
+    drtn = (ub_rtn-lb_rtn)/(ns-1)
+    print(f"rtn interval: {drtn}")
 
+    # x = np.linspace(lb_rtn,ub_rtn,ns)
+    # plt.plot(x,probs,'.-')
+    # plt.show()
+    print(f"sum of probs: {np.sum(probs)}")
     max_rtn = -99999999
     center_strike = -1
     bestgap = 0
     for i in range(1,len(df)):
         pd = i-1
-        pu = i+1
-        while pu < len(df) and pd >= 0:
+        while pd >= 0:
+            pu = i + 1
+            while pu < len(df):
+                if strike[i]*2 == strike[pu] + strike[pd]:
+                    break
+                pu += 1
+            if pu == len(df):
+                pd -= 1
+                continue
+            #compute expected revenue
             gap = strike[i] - strike[pd]
-            cost = ask[pu] + ask[pd] - df['bid_price'].values[i]*2
-            exp_rev = compExpRevenue(probs,cur_price,strike[i],gap,drtn,lb_rtn)
+            cost = ask[pu] + ask[pd] - df['bid_price'].values[i] * 2
+            exp_rev = compExpRevenue(probs, cur_price, strike[i], gap, drtn, lb_rtn)
             profit = exp_rev - cost
-            r = profit
-            if cost < 0 and strike[i]==200:
-                pdb.set_trace()
-            if r > max_rtn and cost < 1:
+            r = profit/cost
+
+            if r > max_rtn and cost > 1 and cost < 5:
+            # if r > max_rtn:
                 max_rtn = r
                 center_strike = strike[i]
                 bestgap = gap
                 bestcost = cost
-            pu+=1
-            pd-=1
-    print(f"max profit: {max_rtn}, cost: {bestcost}")
+            pd -= 1
+
+    print(f"max exp rtn: {max_rtn}, cost: {bestcost}")
     print(f"center strike: {center_strike}, gap: {bestgap}")
 
 if __name__ == "__main__":

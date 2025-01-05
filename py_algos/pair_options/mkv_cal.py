@@ -46,7 +46,7 @@ class MkvRegularCal(object):
         rtns = rtns[~np.isnan(rtns)]
         self.transProbCal = ECDFCal(rtns)
         npts = self.n_states
-        d = (ub_rtn - lb_rtn) / npts
+        d = (ub_rtn - lb_rtn) / (npts-1)
         idxDiff2Prob = {}
         for i in range(-npts + 1, npts):
             p = self.transProbCal.compRangeProb(i * d - d / 2, i * d + d / 2)
@@ -69,9 +69,12 @@ class MkvRegularCal(object):
         return P
     def compMultiStepProb(self,steps, rtns,lb_rtn,ub_rtn):
         P = self.buildTransMat(rtns,lb_rtn,ub_rtn)
+        drtn = (ub_rtn-lb_rtn)/(self.n_states-1)
         PWP = np.linalg.matrix_power(P,steps)
-        mid = PWP.shape[0]//2
-        return PWP[mid,:]
+        idx = int((0-lb_rtn)/drtn)
+        if idx < 0:
+            pdb.set_trace()
+        return PWP[idx,:]
 
 class MkvAbsorbCal(object):
     def __init__(self,nstates,cdf='emp'):
