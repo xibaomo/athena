@@ -33,19 +33,24 @@ def get_option_chain(ticker, expiration_date, type='call'):
     df['strike_price'] = df['strike_price'].astype(float)
     df['bid_price']  = df['bid_price'].astype(float)
     df['ask_price'] = df['ask_price'].astype(float)
+    df = df.sort_values(by='strike_price')
     return df
 
 def compExpectedReturn(probs, strike_rtn,bid_rtn, lb_rtn,ub_rtn,nstates=500):
-    d = (ub_rtn-lb_rtn)/nstates
+    d = (ub_rtn-lb_rtn)/(nstates-1)
     exp_rtn = 0.
     for i in range(nstates):
-        r = lb_rtn+i*d+.5*d + 1
+        r = lb_rtn+i*d+ 1
         if r > strike_rtn:
             r = strike_rtn
         exp_rtn += (r+bid_rtn)*probs[i]
     return exp_rtn
-def calibrateStrikePrice(df_options, steps, rtns, cur_price, lb_rtn=-.25, ub_rtn=.25, nstates=500):
-    sorted_df = df_options.sort_values(by='strike_price')
+def calibrateStrikePrice(df_options, steps, rtns, cur_price, nstates=500):
+    df = df_options.sort_values(by='strike_price')
+    strikes = df['strike_price'].values
+    print(f"max strike: {strikes[-1]}")
+    lb_rtn = strikes[0] / cur_price - 1.
+    ub_rtn = strikes[-1] / cur_price - 1.
     cal = MkvRegularCal(nstates=nstates)
     probs = cal.compMultiStepProb(steps=steps, rtns=rtns, lb_rtn=lb_rtn, ub_rtn=ub_rtn)
     print(f"sum of probs: {np.sum(probs)}")
@@ -54,22 +59,23 @@ def calibrateStrikePrice(df_options, steps, rtns, cur_price, lb_rtn=-.25, ub_rtn
     # plt.show()
     best_rtn = -9999
     best_strike = -1
-    for i in range(len(sorted_df)):
+    for i in range(len(df)):
         # pdb.set_trace()
-        strike = sorted_df['strike_price'].values[i]
-        if strike < cur_price:
-            continue
+        strike = strikes[i]
+        # if strike < cur_price:
+        #     continue
         strike_rtn = strike/cur_price
-        bid = sorted_df['bid_price'].values[i]
+        bid = df['bid_price'].values[i]
         # if bid == 0:
         #     continue
-        bid_rtn = sorted_df['bid_price'].values[i]/cur_price
+        bid_rtn = df['bid_price'].values[i]/cur_price
         exp_rtn = compExpectedReturn(probs,strike_rtn,bid_rtn, lb_rtn, ub_rtn, nstates)
-        print(f"{strike}, , {bid}, {exp_rtn}")
+        # print(f"{strike},  {bid}, {exp_rtn-1}")
         if exp_rtn > best_rtn:
             best_rtn = exp_rtn
             best_strike = strike
-    print(f"Best strike: {best_strike}, highest rtn: {best_rtn}")
+            best_bid = bid
+    print(f"Best strike: {best_strike}, best bid: {best_bid}, highest expected rtn: {best_rtn-1}")
 
 def findBestLookbackDays(lb_days, ub_days, fwd_days,bars_per_day, rtns, intvl=5):
     xs = np.arange(lb_days, ub_days, intvl)

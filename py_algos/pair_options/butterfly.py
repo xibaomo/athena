@@ -84,7 +84,7 @@ def findBestLookbackDays(lb_days, ub_days, fwd_days,bars_per_day, rtns, intvl=5)
         if y < mindiff:
             mindiff = y
             best_lk = x
-    print(f"Best lookback: {best_lk}, min_diff: {mindiff:.3f}")
+    print(f"Best lookback days: {best_lk}, min_diff: {mindiff:.3f}")
     return best_lk
 
 def compExpRevenue(probs, cur_price, strike, gap,drtn,lb_rtn):
