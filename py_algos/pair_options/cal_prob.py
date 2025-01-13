@@ -30,6 +30,19 @@ def compute_latest_dist_diff(lookback_days,lookfwd_days,bars_per_day,rtns):
     t2 = rtns[-lookfwd:]
     d,p = stats.ks_2samp(t1,t2)
     return d
+def findBestLookbackDays(lb_days, ub_days, fwd_days,bars_per_day, rtns, intvl=5):
+    xs = np.arange(lb_days, ub_days, intvl)
+    ys = []
+    mindiff = 99999
+    best_lk = -1
+    for x in xs:
+        y = compute_latest_dist_diff(x, fwd_days, bars_per_day, rtns)
+        ys.append(y)
+        if y < mindiff:
+            mindiff = y
+            best_lk = x
+    print(f"Best lookback: {best_lk}, min_diff: {mindiff:.3f}")
+    return best_lk
 
 def verify_prob(rtns, lookback_days, lookfwd_days,bars_per_day, rtn_bound):
     lookback = lookback_days*bars_per_day
@@ -113,19 +126,20 @@ def prepare_rtns(df,bars_per_day):
     return rtns,bars_per_day*2
 
 if __name__ == "__main__":
-    if len(sys.argv) < 4:
-        print("Usage: {} <ticker> <fwd_days> <rtn_bound> [lookback_days_lb] [lookback_days_ub]".format(sys.argv[0]))
+    if len(sys.argv) < 5:
+        print("Usage: {} <ticker> <expiration_date> <cur_price> <future_price>".format(sys.argv[0]))
         sys.exit(1)
 
     ticker = sys.argv[1]
-    fwd_days = int(sys.argv[2])
-    ub_rtn = float(sys.argv[3])
-    lookback_days_lb = 0
-    if len(sys.argv) > 4:
-        lookback_days_lb = int(sys.argv[4])
-    lookback_days_ub = 0
-    if len(sys.argv) > 5:
-        lookback_days_ub = int(sys.argv[5])
+    exp_date = sys.argv[2]
+    cur_price = float(sys.argv[3])
+    future_price = float(sys.argv[4])
+    ub_rtn = future_price/cur_price - 1.
+    if ub_rtn < 0:
+        print("ERROR: rtn_bound must be > 0")
+        sys.exit(1)
+    fwd_days = TradeDaysCounter().countTradeDays(exp_date)
+    print(f"trading days: {fwd_days}")
     lb_rtn = -ub_rtn
     # df = download_from_robinhood(ticker)
     df,bars_per_day = download_from_yfinance(ticker,period='2y')
@@ -135,10 +149,10 @@ if __name__ == "__main__":
     print(f"length of returns: {len(rtns)}, bars per day: {bars_per_day}")
     lookback_days,mindiff = plot_varylookback_distdiff(10,22*12,fwd_days,bars_per_day,rtns)
 
-    if lookback_days_ub > 0 and lookback_days_lb>0:
-        print(f"Calibrating lookback days between [{lookback_days_lb},{lookback_days_ub}]")
-        lookback_days = calibrate_lookback_days(rtns,fwd_days,[lookback_days_lb,lookback_days_ub],bars_per_day)
+
     print(f"optmized lookback days: {lookback_days}")
+
+    lookback_days = findBestLookbackDays(22, 22 * 18, fwd_days, bars_per_day, rtns)
 
     ecdf = ECDF(rtns[-fwd_days * bars_per_day:])
     plt.figure()

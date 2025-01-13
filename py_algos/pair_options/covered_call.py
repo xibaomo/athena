@@ -8,7 +8,7 @@ import numpy as np
 from mkv_cal import MkvRegularCal
 import pandas as pd
 from utils import TradeDaysCounter,download_from_yfinance
-from cal_prob import prepare_rtns,compute_latest_dist_diff
+from cal_prob import prepare_rtns,compute_latest_dist_diff,findBestLookbackDays
 import matplotlib.pyplot as plt
 
 import robin_stocks.robinhood as rh
@@ -77,19 +77,19 @@ def calibrateStrikePrice(df_options, steps, rtns, cur_price, nstates=500):
             best_bid = bid
     print(f"Best strike: {best_strike}, best bid: {best_bid}, highest expected rtn: {best_rtn-1}")
 
-def findBestLookbackDays(lb_days, ub_days, fwd_days,bars_per_day, rtns, intvl=5):
-    xs = np.arange(lb_days, ub_days, intvl)
-    ys = []
-    mindiff = 99999
-    best_lk = -1
-    for x in xs:
-        y = compute_latest_dist_diff(x, fwd_days, bars_per_day, rtns)
-        ys.append(y)
-        if y < mindiff:
-            mindiff = y
-            best_lk = x
-    print(f"Best lookback: {best_lk}, min_diff: {mindiff:.3f}")
-    return best_lk
+# def findBestLookbackDays(lb_days, ub_days, fwd_days,bars_per_day, rtns, intvl=5):
+#     xs = np.arange(lb_days, ub_days, intvl)
+#     ys = []
+#     mindiff = 99999
+#     best_lk = -1
+#     for x in xs:
+#         y = compute_latest_dist_diff(x, fwd_days, bars_per_day, rtns)
+#         ys.append(y)
+#         if y < mindiff:
+#             mindiff = y
+#             best_lk = x
+#     print(f"Best lookback: {best_lk}, min_diff: {mindiff:.3f}")
+#     return best_lk
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print(f"Usage: {sys.argv[0]} <ticker> <target_date> [lb_rtn] [ub_rtn]")
