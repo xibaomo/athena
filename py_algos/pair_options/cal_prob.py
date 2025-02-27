@@ -136,8 +136,7 @@ if __name__ == "__main__":
     future_price = float(sys.argv[4])
     ub_rtn = future_price/cur_price - 1.
     if ub_rtn < 0:
-        print("ERROR: rtn_bound must be > 0")
-        sys.exit(1)
+        ub_rtn = -ub_rtn
     fwd_days = TradeDaysCounter().countTradeDays(exp_date)
     print(f"trading days: {fwd_days}")
     lb_rtn = -ub_rtn
