@@ -15,7 +15,10 @@ import robin_stocks.robinhood as rh
 # Login to Robinhood
 username = os.getenv("BROKER_USERNAME")
 password = os.getenv("BROKER_PASSWD")
-rh.login(username, password)
+mfa_code="131085"
+# login=rh.login(username, password, store_session=True)
+login=rh.login(username, password, mfa_code=mfa_code)
+print(login)
 
 def get_option_chain(ticker, expiration_date, type='call'):
     """

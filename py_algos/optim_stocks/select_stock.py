@@ -71,7 +71,7 @@ def kalman_addon(data,df):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: {sys.argv[0]} <target_date>")
+        print(f"Usage: {sys.argv[0]} <target_date>")
         sys.exit(1)
 
 
@@ -86,6 +86,6 @@ if __name__ == "__main__":
     df = df.sort_values(by='growth', ascending=True, ignore_index=False)
 
     df = kalman_addon(data,df)
-    df = df.loc[~((df[['v', 'acc', 'prof','rtn']] < 0).any(axis=1))]
+    # df = df.loc[~((df[['v', 'acc', 'prof','rtn']] < 0).any(axis=1))]
 
     df = df.sort_values(by='prof', ascending=True, ignore_index=False)

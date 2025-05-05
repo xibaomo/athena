@@ -22,7 +22,7 @@ def add_days_to_date(date_str, num_days):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: {sys.argv[0]} <date> <lookback_days> [sym.csv] ")
+        print(f"Usage: {sys.argv[0]} <date> <lookback_days> [sym.csv] ")
         sys.exit(1)
 
     target_date = sys.argv[1]

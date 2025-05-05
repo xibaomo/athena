@@ -134,24 +134,29 @@ if __name__ == "__main__":
     exp_date = sys.argv[2]
     cur_price = float(sys.argv[3])
     future_price = float(sys.argv[4])
-    ub_rtn = future_price/cur_price - 1.
-    if ub_rtn < 0:
-        ub_rtn = -ub_rtn
+    ub_rtn = 0.5
+    lb_rtn = -0.5
+
+    if future_price > cur_price:
+        ub_rtn = future_price/cur_price - 1.
+    else:
+        lb_rtn = future_price/cur_price - 1.
+
     fwd_days = TradeDaysCounter().countTradeDays(exp_date)
     print(f"trading days: {fwd_days}")
-    lb_rtn = -ub_rtn
+
     # df = download_from_robinhood(ticker)
     df,bars_per_day = download_from_yfinance(ticker,period='2y')
 
     rtns = df['Open'].pct_change().values
     rtns,bars_per_day = prepare_rtns(df,bars_per_day)
     print(f"length of returns: {len(rtns)}, bars per day: {bars_per_day}")
-    lookback_days,mindiff = plot_varylookback_distdiff(10,22*12,fwd_days,bars_per_day,rtns)
+    lookback_days,mindiff = plot_varylookback_distdiff(fwd_days,22*18,fwd_days,bars_per_day,rtns)
 
 
     print(f"optmized lookback days: {lookback_days}")
 
-    lookback_days = findBestLookbackDays(22, 22 * 18, fwd_days, bars_per_day, rtns)
+    # lookback_days = findBestLookbackDays(22, 22 * 18, fwd_days, bars_per_day, rtns)
 
     ecdf = ECDF(rtns[-fwd_days * bars_per_day:])
     plt.figure()
@@ -163,12 +168,12 @@ if __name__ == "__main__":
 
     steps = fwd_days*bars_per_day
     lookback=lookback_days*bars_per_day
-    pu,pd = compProb1stHidBounds(rtns[-lookback:],steps,ub_rtn=ub_rtn,lb_rtn=-ub_rtn)
+    pu,pd = compProb1stHitBounds(rtns[-lookback:],steps,ub_rtn=ub_rtn,lb_rtn=lb_rtn)
     print(f"{fwd_days}-day probability of hitting {ub_rtn*100:.2f}%: {pu:.4}, hitting {lb_rtn*100:.2f}%: {pd:.4f}")
     print(f"sum: {pu + pd:.4f}")
 
 
-    N = 14*10
+    N = 14*20
     plt.figure()
     df,_ = download_from_yfinance(ticker,interval='30m',period='1mo')
     x = (df['High'].values[-N:] + df['Low'].values[-N:])*.5

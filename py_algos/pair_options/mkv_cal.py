@@ -106,8 +106,8 @@ class MkvAbsorbCal(object):
             for j in range(npts):
                 P[i, j] = idxDiff2Prob[j - i]
         for i in range(npts):
-            P[i,npts] = self.transProbCal.compRangeProb((npts - i) * d - d / 2, .5)
-            P[i,npts+1] = self.transProbCal.compRangeProb(-0.5, (-1-i)*d + d/2)
+            P[i,npts] = self.transProbCal.compRangeProb((npts - i) * d - d / 2, 1.)
+            P[i,npts+1] = self.transProbCal.compRangeProb(-1., (-1-i)*d + d/2)
         P[npts,npts] = 1.
         P[npts+1,npts+1] = 1.
 
@@ -265,15 +265,24 @@ def dp_minimize(candidates,cal_f, max_n_choose=-1, min_n_choose=10, result_rank=
     choice = chosen[n][idx+min_n_choose]
     return minval,choice
 
-def compProb1stHidBounds(rtns, steps,ub_rtn=0.05,lb_rtn=-0.05):
-    ns = 500
+def __compProb1stHidBounds(rtns, steps,ub_rtn=0.05,lb_rtn=-0.05):
+    d=0.001/8
+    ns = int((ub_rtn-lb_rtn)/d)
     mkvcal = MkvAbsorbCal(ns)
     # rtns = df['Close'].pct_change().values[-lookback:]
     # pdb.set_trace()
     # print(f"{len(rtns)}-tradehour volatility: {np.std(rtns):.5f}")
     mkvcal.buildTransMat(rtns,lb_rtn,ub_rtn)
-    d = (ub_rtn-lb_rtn)/ns
+    # d = (ub_rtn-lb_rtn)/ns
     mid = int((0-lb_rtn)/d)
     pbu,pbd = mkvcal.comp1stHitProb(steps,mid,-2,-1)
     return pbu,pbd
 
+def compProb1stHitBounds(rtns,steps, ub_rtn=.5,lb_rtn=-.5):
+    d = 0.001/4
+    ns = int((ub_rtn-lb_rtn)/d)
+    mkvcal = MkvAbsorbCal(ns)
+    mkvcal.buildTransMat(rtns,lb_rtn,ub_rtn)
+    mid = int((0-lb_rtn)/d)
+    pbu, pbd = mkvcal.comp1stHitProb(steps, mid, -2, -1)
+    return pbu, pbd
