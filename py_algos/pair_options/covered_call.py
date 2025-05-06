@@ -1,133 +1,65 @@
-import pdb
-import pickle,sys,os
-import time
-import random
+import os,sys
 from datetime import datetime,timedelta
-from scipy.optimize import minimize
-import numpy as np
-from mkv_cal import MkvRegularCal
-import pandas as pd
-from utils import TradeDaysCounter,download_from_yfinance
-from cal_prob import prepare_rtns,compute_latest_dist_diff,findBestLookbackDays
-import matplotlib.pyplot as plt
 import yfinance as yf
-
-def __get_option_chain(ticker, expiration_date, type='call'):
+from scipy import stats
+from cal_prob import findBestLookbackDays,prepare_rtns
+from utils import *
+from mkv_cal import *
+from scipy.optimize import minimize
+# Login to Robinhood
+username = os.getenv("BROKER_USERNAME")
+password = os.getenv("BROKER_PASSWD")
+rh.login(username, password)
+def bisection_minimize(f, a, b, tol=1e-5, max_iter=100):
     """
-    Fetches the options chain for a given ticker and expiration date.
+    Minimizes a unimodal function f in the interval [a, b]
+    using a bisection-style interval reduction method.
     """
-    # Fetch the options for the given ticker and expiration date
-    options = rh.options.find_options_by_expiration(ticker, expiration_date)
+    iter_count = 0
+    while (b - a) > tol and iter_count < max_iter:
+        m1 = a + (b - a) / 3
+        m2 = b - (b - a) / 3
+        if f(m1) < f(m2):
+            b = m2
+        else:
+            a = m1
+        iter_count += 1
+    x_min = (a + b) / 2
+    return x_min, f(x_min)
+def maximize_expected_revenue(rtns, fwd_steps,cur_price):
+    def obj_func(xs):
+        ub_rtn = xs/cur_price - 1.
+        pu,pd = compProb1stHitBounds(rtns,fwd_steps,ub_rtn=ub_rtn,lb_rtn=-.5)
+        rev = xs - cur_price
+        exp_rev = rev * pu
+        print(f"strike: {xs:.2f}, exp_rev: {exp_rev:.2f}")
+        return -exp_rev
 
-    # Convert the data to a Pandas DataFrame for analysis
-    df = pd.DataFrame(options)
-    if type=='call':
-        df = df.drop(df[df['type'] == 'put'].index)
-    if type == 'put':
-        df = df.drop(df[df['type'] == 'call'].index)
-    df['strike_price'] = df['strike_price'].astype(float)
-    df['bid_price']  = df['bid_price'].astype(float)
-    df['ask_price'] = df['ask_price'].astype(float)
-    df = df.sort_values(by='strike_price')
-    return df
-def get_option_chain(ticker_sym, expiration_date, type='call'):
-    ticker = yf.Ticker(ticker_sym)
-    if not expiration_date in ticker.options:
-        print("expiration date not found: ", expiration_date)
-        print("Available date: ", ticker.options)
-        sys.exit(1)
-    opchain = ticker.option_chain(expiration_date)
-    df = opchain.puts
-    if type == 'call':
-        df = opchain.calls
+    opt_s, opt_rev=bisection_minimize(obj_func,cur_price*1.01,cur_price*1.25,tol=1.)
 
-    return df,ticker
+    print(f"optimal strike: {opt_s}, max expected rev: {-opt_rev:.2f}")
 
-def compExpectedReturn(probs, strike_rtn,bid_rtn, lb_rtn,ub_rtn,nstates=500):
-    d = (ub_rtn-lb_rtn)/(nstates-1)
-    exp_rtn = 0.
-    for i in range(nstates):
-        r = lb_rtn+i*d+ 1
-        if r > strike_rtn:
-            r = strike_rtn
-        exp_rtn += (r+bid_rtn)*probs[i]
-    return exp_rtn
-def calibrateStrikePrice(df_options, steps, rtns, cur_price, nstates=500):
-    strike_key = 'strike'
-    bid_key = 'lastPrice'
-    df = df_options.sort_values(by=strike_key)
-    strikes = df[strike_key].values
-    print(f"max strike: {strikes[-1]}")
-    lb_rtn = strikes[0] / cur_price - 1.
-    ub_rtn = strikes[-1] / cur_price - 1.
-    cal = MkvRegularCal(nstates=nstates)
-    probs = cal.compMultiStepProb(steps=steps, rtns=rtns, lb_rtn=lb_rtn, ub_rtn=ub_rtn)
-    print(f"sum of probs: {np.sum(probs)}")
-    # x = np.linspace(-.25,.25,500)
-    # plt.plot(x,probs,'.')
-    # plt.show()
-    best_rtn = -9999
-    best_strike = -1
-    for i in range(len(df)):
-        # pdb.set_trace()
-        strike = strikes[i]
-        # if strike < cur_price:
-        #     continue
-        strike_rtn = strike/cur_price
-        bid = df[bid_key].values[i]
-        # if bid == 0:
-        #     continue
-        bid_rtn = df[bid_key].values[i]/cur_price
-        exp_rtn = compExpectedReturn(probs,strike_rtn,bid_rtn, lb_rtn, ub_rtn, nstates)
-        # print(f"{strike},  {bid}, {exp_rtn-1}")
-        if exp_rtn > best_rtn:
-            best_rtn = exp_rtn
-            best_strike = strike
-            best_bid = bid
-    print(f"Best strike: {best_strike}, best bid: {best_bid}, highest expected rtn: {best_rtn-1}")
-    return best_rtn-1
 
-# def findBestLookbackDays(lb_days, ub_days, fwd_days,bars_per_day, rtns, intvl=5):
-#     xs = np.arange(lb_days, ub_days, intvl)
-#     ys = []
-#     mindiff = 99999
-#     best_lk = -1
-#     for x in xs:
-#         y = compute_latest_dist_diff(x, fwd_days, bars_per_day, rtns)
-#         ys.append(y)
-#         if y < mindiff:
-#             mindiff = y
-#             best_lk = x
-#     print(f"Best lookback: {best_lk}, min_diff: {mindiff:.3f}")
-#     return best_lk
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print(f"Usage: {sys.argv[0]} <ticker> <target_date> [lb_rtn] [ub_rtn]")
+        print(f"Usage: {sys.argv[0]} <ticker> <expiration_date>  ")
         sys.exit(1)
 
-    ticker_str = sys.argv[1]
+    ticker = sys.argv[1]
     exp_date = sys.argv[2]
-    lb_rtn = -.25
-    ub_rtn = .25
-    if len(sys.argv) > 4:
-        lb_rtn = float(sys.argv[3])
-        ub_rtn = float(sys.argv[4])
-
-    df_option,ticker = get_option_chain(ticker_str,exp_date)
-    # cur_price = float(rh.stocks.get_latest_price(ticker)[0])
-    cur_price = ticker.history(period="1d")["Close"].iloc[-1]
+    cur_price = float(rh.stocks.get_latest_price(ticker)[0])
     print(f"Latest price: {cur_price:.2f}")
 
-    df, bars_per_day = download_from_yfinance(ticker_str, period='2y')
+    fwd_days = TradeDaysCounter().countTradeDays(exp_date)
+    print(f"trading days: {fwd_days}")
+
+    df, bars_per_day = download_from_yfinance(ticker, period='2y')
+
+    # rtns = df['Open'].pct_change().values
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
-    print("bars per day: ", bars_per_day)
-    trade_days = TradeDaysCounter().countTradeDays(exp_date)
-    print(f"trading days: {trade_days}")
-    steps = trade_days*bars_per_day
 
-    lookback_days = findBestLookbackDays(22,22*18,trade_days,bars_per_day,rtns)
-    rtns = rtns[-lookback_days*bars_per_day:]
+    lookback_days,min_diff = findBestLookbackDays(22,22*22,fwd_days,bars_per_day,rtns)
+    print(f"optimal days: {lookback_days}, min_diff: {min_diff}")
 
-    best_rtn = calibrateStrikePrice(df_option,steps,rtns,cur_price)
-    print(f"expected daily rtn: {best_rtn/trade_days}")
-
+    pick_rtns = rtns[-lookback_days*bars_per_day:]
+    maximize_expected_revenue(pick_rtns,fwd_days*bars_per_day,cur_price)

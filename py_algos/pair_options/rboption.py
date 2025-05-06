@@ -4,7 +4,7 @@ import time
 import random
 from datetime import datetime,timedelta
 from scipy.optimize import minimize
-
+import os
 import robin_stocks.robinhood as rh
 from utils import *
 from mkv_cal import *

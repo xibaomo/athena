@@ -41,8 +41,8 @@ def findBestLookbackDays(lb_days, ub_days, fwd_days,bars_per_day, rtns, intvl=5)
         if y < mindiff:
             mindiff = y
             best_lk = x
-    print(f"Best lookback: {best_lk}, min_diff: {mindiff:.3f}")
-    return best_lk
+    # print(f"Best lookback: {best_lk}, min_diff: {mindiff:.3f}")
+    return best_lk,mindiff
 
 def verify_prob(rtns, lookback_days, lookfwd_days,bars_per_day, rtn_bound):
     lookback = lookback_days*bars_per_day
