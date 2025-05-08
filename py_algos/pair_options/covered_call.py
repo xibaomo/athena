@@ -1,4 +1,5 @@
 import os,sys
+import pdb
 from datetime import datetime,timedelta
 import yfinance as yf
 from scipy import stats
@@ -6,10 +7,20 @@ from cal_prob import findBestLookbackDays,prepare_rtns
 from utils import *
 from mkv_cal import *
 from scipy.optimize import minimize
+import pdb
 # Login to Robinhood
 username = os.getenv("BROKER_USERNAME")
 password = os.getenv("BROKER_PASSWD")
-rh.login(username, password)
+rh.login(username, password, store_session=True)
+
+def prepare_calls(sym,exp_date):
+    ticker = yf.Ticker(sym)
+    chain = ticker.option_chain(exp_date)
+    calls = chain.calls
+    calls = calls.sort_values(by='strike')
+    print(f"count of options: {len(calls)}. max strike: {calls['strike'].values[-1]:.2f}")
+
+    return calls
 def bisection_minimize(f, a, b, tol=1e-5, max_iter=100):
     """
     Minimizes a unimodal function f in the interval [a, b]
@@ -26,7 +37,7 @@ def bisection_minimize(f, a, b, tol=1e-5, max_iter=100):
         iter_count += 1
     x_min = (a + b) / 2
     return x_min, f(x_min)
-def maximize_expected_revenue(rtns, fwd_steps,cur_price):
+def __maximize_expected_revenue(rtns, fwd_steps,cur_price, calls):
     def obj_func(xs):
         ub_rtn = xs/cur_price - 1.
         pu,pd = compProb1stHitBounds(rtns,fwd_steps,ub_rtn=ub_rtn,lb_rtn=-.5)
@@ -37,7 +48,28 @@ def maximize_expected_revenue(rtns, fwd_steps,cur_price):
 
     opt_s, opt_rev=bisection_minimize(obj_func,cur_price*1.01,cur_price*1.25,tol=1.)
 
-    print(f"optimal strike: {opt_s}, max expected rev: {-opt_rev:.2f}")
+    print(f"optimal strike: {opt_s:.2f}, max expected rev: {-opt_rev:.2f}")
+    return -opt_rev
+def calibrate_strike(rtns,fwd_steps, cur_price, calls):
+    max_rev = -9999.
+    best_strike = 0.
+    for i in range(len(calls)):
+        call = calls.iloc[i]
+        # pdb.set_trace()
+        s = call['strike']
+        if s < cur_price:
+            continue
+        ub_rtn = s / cur_price - 1.
+        pu, pd = compProb1stHitBounds(rtns, fwd_steps, ub_rtn=ub_rtn, lb_rtn=-.5)
+        if pu < 0.05:
+            break
+        rev = s - cur_price + call['lastPrice']
+        exp_rev = rev*pu + call['lastPrice']*(1-pu)
+        print(f"strike: {s:.2f}, assign prob: {pu:.3f}, exp rev: {exp_rev:.2f}, market value: {call['lastPrice']:.2f}")
+        if exp_rev > max_rev:
+            max_rev = exp_rev
+            best_strike = s
+    return best_strike,max_rev
 
 
 if __name__ == "__main__":
@@ -58,8 +90,13 @@ if __name__ == "__main__":
     # rtns = df['Open'].pct_change().values
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
 
-    lookback_days,min_diff = findBestLookbackDays(22,22*22,fwd_days,bars_per_day,rtns)
+    lookback_days,min_diff = findBestLookbackDays(22*3,22*22,fwd_days,bars_per_day,rtns)
     print(f"optimal days: {lookback_days}, min_diff: {min_diff}")
 
     pick_rtns = rtns[-lookback_days*bars_per_day:]
-    maximize_expected_revenue(pick_rtns,fwd_days*bars_per_day,cur_price)
+
+    calls = prepare_calls(ticker,exp_date)
+
+    best_strike, max_rev = calibrate_strike(pick_rtns,fwd_days*bars_per_day,cur_price, calls)
+    print(f"optimal strike: {best_strike:.2f}, max expected rev: {max_rev:.2f}")
+    print(f"max daily rev: {max_rev/fwd_days:.2f}")
