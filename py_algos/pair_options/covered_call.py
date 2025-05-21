@@ -7,13 +7,15 @@ from cal_prob import findBestLookbackDays,prepare_rtns
 from utils import *
 from mkv_cal import *
 from scipy.optimize import minimize
+import requests
 import pdb
 # Login to Robinhood
+import os
 username = os.getenv("BROKER_USERNAME")
 password = os.getenv("BROKER_PASSWD")
 rh.login(username, password, store_session=True)
 
-def prepare_calls(sym,exp_date):
+def __prepare_calls(sym,exp_date):
     ticker = yf.Ticker(sym)
     chain = ticker.option_chain(exp_date)
     calls = chain.calls
@@ -21,6 +23,21 @@ def prepare_calls(sym,exp_date):
     print(f"count of options: {len(calls)}. max strike: {calls['strike'].values[-1]:.2f}")
 
     return calls
+
+def prepare_calls(sym,exp_date):
+    url = 'https://www.alphavantage.co/query?function=HISTORICAL_OPTIONS&symbol=' + sym.upper() + "&apikey=A4L0CXXLQHSWW8ZS"
+    r = requests.get(url)
+    data = r.json()
+    options = data['data']
+    print(f"{len(options)} options downloaded")
+    calls = []
+    for opt in options:
+        if opt['expiration'] == exp_date and opt['type'] == 'call':
+            calls.append(opt)
+
+    print(f"{len(calls)} calls returned")
+    return calls
+
 def bisection_minimize(f, a, b, tol=1e-5, max_iter=100):
     """
     Minimizes a unimodal function f in the interval [a, b]
@@ -50,22 +67,26 @@ def __maximize_expected_revenue(rtns, fwd_steps,cur_price, calls):
 
     print(f"optimal strike: {opt_s:.2f}, max expected rev: {-opt_rev:.2f}")
     return -opt_rev
-def calibrate_strike(rtns,fwd_steps, cur_price, calls):
+def calibrate_strike(ticker,rtns,fwd_steps, cost, calls):
     max_rev = -9999.
     best_strike = 0.
+    cur_price = float(rh.stocks.get_latest_price(ticker)[0])
     for i in range(len(calls)):
-        call = calls.iloc[i]
+        call = calls[i]
         # pdb.set_trace()
-        s = call['strike']
+        s = float(call['strike'])
         if s < cur_price:
             continue
         ub_rtn = s / cur_price - 1.
+        # pdb.set_trace()
         pu, pd = compProb1stHitBounds(rtns, fwd_steps, ub_rtn=ub_rtn, lb_rtn=-.5)
         if pu < 0.05:
             break
-        rev = s - cur_price + call['lastPrice']
-        exp_rev = rev*pu + call['lastPrice']*(1-pu)
-        print(f"strike: {s:.2f}, assign prob: {pu:.3f}, exp rev: {exp_rev:.2f}, market value: {call['lastPrice']:.2f}")
+
+        bid = float(call['bid'])
+        rev = s - cost + bid
+        exp_rev = rev*pu + bid*(1-pu)
+        print(f"strike: {s:.2f}, assign prob: {pu:.3f}, exp rev: {exp_rev:.2f}, market value: {bid:.2f}")
         if exp_rev > max_rev:
             max_rev = exp_rev
             best_strike = s
@@ -74,13 +95,16 @@ def calibrate_strike(rtns,fwd_steps, cur_price, calls):
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print(f"Usage: {sys.argv[0]} <ticker> <expiration_date>  ")
+        print(f"Usage: {sys.argv[0]} <ticker> <expiration_date> [stock_cost] ")
         sys.exit(1)
 
     ticker = sys.argv[1]
     exp_date = sys.argv[2]
-    cur_price = float(rh.stocks.get_latest_price(ticker)[0])
-    print(f"Latest price: {cur_price:.2f}")
+    cost_price = float(rh.stocks.get_latest_price(ticker)[0])
+    print(f"Latest price: {cost_price:.2f}")
+    if len(sys.argv) == 4:
+        cost_price = float(sys.argv[3])
+
 
     fwd_days = TradeDaysCounter().countTradeDays(exp_date)
     print(f"trading days: {fwd_days}")
@@ -90,13 +114,13 @@ if __name__ == "__main__":
     # rtns = df['Open'].pct_change().values
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
 
-    lookback_days,min_diff = findBestLookbackDays(22*3,22*22,fwd_days,bars_per_day,rtns)
+    lookback_days,min_diff = findBestLookbackDays(22*12,22*22,fwd_days,bars_per_day,rtns)
     print(f"optimal days: {lookback_days}, min_diff: {min_diff}")
 
     pick_rtns = rtns[-lookback_days*bars_per_day:]
 
     calls = prepare_calls(ticker,exp_date)
 
-    best_strike, max_rev = calibrate_strike(pick_rtns,fwd_days*bars_per_day,cur_price, calls)
+    best_strike, max_rev = calibrate_strike(ticker,pick_rtns,fwd_days*bars_per_day,cost_price, calls)
     print(f"optimal strike: {best_strike:.2f}, max expected rev: {max_rev:.2f}")
     print(f"max daily rev: {max_rev/fwd_days:.2f}")
