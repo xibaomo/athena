@@ -86,7 +86,7 @@ def calibrate_strike(ticker,rtns,fwd_steps, cost, calls):
         bid = float(call['bid'])
         rev = s - cost + bid
         exp_rev = rev*pu + bid*(1-pu)
-        print(f"strike: {s:.2f}, assign prob: {pu:.3f}, exp rev: {exp_rev:.2f}, market value: {bid:.2f}")
+        print(f"strike: {s:.2f}, assign prob: {pu:.3f}, exp profit: {exp_rev:.2f}, market value: {bid:.2f}")
         if exp_rev > max_rev:
             max_rev = exp_rev
             best_strike = s
@@ -122,5 +122,5 @@ if __name__ == "__main__":
     calls = prepare_calls(ticker,exp_date)
 
     best_strike, max_rev = calibrate_strike(ticker,pick_rtns,fwd_days*bars_per_day,cost_price, calls)
-    print(f"optimal strike: {best_strike:.2f}, max expected rev: {max_rev:.2f}")
-    print(f"max daily rev: {max_rev/fwd_days:.2f}")
+    print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
+    print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
