@@ -28,6 +28,8 @@ def prepare_calls(sym,exp_date):
     url = 'https://www.alphavantage.co/query?function=HISTORICAL_OPTIONS&symbol=' + sym.upper() + "&apikey=A4L0CXXLQHSWW8ZS"
     r = requests.get(url)
     data = r.json()
+    # if not 'data' in data.keys():
+    #     pdb.set_trace()
     options = data['data']
     print(f"{len(options)} options downloaded")
     calls = []
@@ -92,6 +94,19 @@ def calibrate_strike(ticker,rtns,fwd_steps, cost, calls):
             best_strike = s
     return best_strike,max_rev
 
+def eval_stability(rtns, n_intervals=10):
+    spacing = len(rtns)//n_intervals
+    print(f"stability check. spacing: {spacing}")
+    ds = []
+    for i in range(n_intervals-1):
+        r1 = rtns[i*spacing:(i+1)*spacing]
+        r2 = rtns[(i+1)*spacing:(i+2)*spacing]
+        d,p = stats.ks_2samp(r1,r2)
+        ds.append(d)
+
+    return np.mean(ds)
+
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -113,6 +128,9 @@ if __name__ == "__main__":
 
     # rtns = df['Open'].pct_change().values
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
+
+    ave_d = eval_stability(rtns)
+    print(f"Stability: {ave_d:.5f}")
 
     lookback_days,min_diff = findBestLookbackDays(22*12,22*22,fwd_days,bars_per_day,rtns)
     print(f"optimal days: {lookback_days}, min_diff: {min_diff}")
