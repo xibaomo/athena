@@ -69,6 +69,18 @@ def kalman_addon(data,df):
         df.loc[ticker,'prof'] = prof
     return df
 
+def rtn_per_risk(data,df):
+    df_close = data['Close']
+    dff = df_close.pct_change()
+
+    for ticker in dff.keys():
+        r = dff[ticker].values[-200:]
+        rpr = np.mean(r)/np.std(r)
+        df.loc[ticker,'rpr'] = rpr
+
+    return df
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <target_date>")
@@ -85,7 +97,9 @@ if __name__ == "__main__":
     df['growth'] = g
     df = df.sort_values(by='growth', ascending=True, ignore_index=False)
 
-    df = kalman_addon(data,df)
+    # df = kalman_addon(data,df)
     # df = df.loc[~((df[['v', 'acc', 'prof','rtn']] < 0).any(axis=1))]
+    df = rtn_per_risk(data,df)
 
-    df = df.sort_values(by='prof', ascending=True, ignore_index=False)
+    df = df.sort_values(by='rpr', ascending=True, ignore_index=False)
+    df = df[df['tv']>=10]
