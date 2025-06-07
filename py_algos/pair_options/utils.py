@@ -5,6 +5,8 @@ from datetime import datetime,timedelta
 import pandas_market_calendars as mcal
 import pandas as pd
 import yfinance as yf
+import numpy as np
+from scipy import stats
 DATE_FORMAT ="%Y-%m-%d"
 
 def download_from_yfinance(ticker,interval='1h',period='1y'):
@@ -103,4 +105,17 @@ def natural_days_between_dates(start_date=None, end_date=None, date_format=DATE_
     delta = end - start
     return delta.days
 
+def eval_stability(rtns, n_intervals=10):
+    '''
+    estimate statbility of return series by computing averaging difference of CDFs
+    '''
+    spacing = len(rtns)//n_intervals
+    print(f"stability check. spacing: {spacing}")
+    ds = []
+    for i in range(n_intervals-1):
+        r1 = rtns[i*spacing:(i+1)*spacing]
+        r2 = rtns[(i+1)*spacing:(i+2)*spacing]
+        d,p = stats.ks_2samp(r1,r2)
+        ds.append(d)
 
+    return np.mean(ds)

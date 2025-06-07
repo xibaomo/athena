@@ -286,3 +286,16 @@ def compProb1stHitBounds(rtns,steps, ub_rtn=.5,lb_rtn=-.5):
     mid = int((0-lb_rtn)/d)
     pbu, pbd = mkvcal.comp1stHitProb(steps, mid, -2, -1)
     return pbu, pbd
+
+def compMultiStepProb(rtns,steps, ub_rtn=.5,lb_rtn=-.5):
+    drtn = 0.001/4
+    ns = int((ub_rtn-lb_rtn)/drtn)
+    mkvcal = MkvRegularCal(ns)
+    P = mkvcal.buildTransMat(rtns, lb_rtn, ub_rtn)
+
+    # pdb.set_trace()
+    PWP = np.linalg.matrix_power(P, steps)
+    idx = int((0 - lb_rtn) / drtn)
+    if idx < 0:
+        pdb.set_trace()
+    return PWP[idx, :]
