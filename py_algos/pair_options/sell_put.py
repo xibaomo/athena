@@ -9,6 +9,8 @@ from mkv_cal import *
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 import requests
+from api_keys import *
+from option_chain import *
 
 
 def compExpectedReturn(cur_price, strike, premium, probs, drtn,lb_rtn=-.5):
@@ -26,12 +28,7 @@ def compExpectedReturn(cur_price, strike, premium, probs, drtn,lb_rtn=-.5):
 
 
 def prepare_puts(sym,exp_date):
-    url = 'https://www.alphavantage.co/query?function=HISTORICAL_OPTIONS&symbol=' + sym.upper() + "&apikey=A4L0CXXLQHSWW8ZS"
-    r = requests.get(url)
-    data = r.json()
-    # if not 'data' in data.keys():
-    #     pdb.set_trace()
-    options = data['data']
+    options = get_option_chain_alpha_vantage(sym)
     print(f"{len(options)} options downloaded")
     puts = []
     for opt in options:
@@ -47,7 +44,7 @@ def calibrate_strike_put(cur_price, puts, rtns, steps, lb_rtn = -0.5, ub_rtn = 0
 
     probs = compMultiStepProb(rtns,steps)
     plt.plot(probs,'.')
-    plt.show()
+    # plt.show()
     # pdb.set_trace()
     drtn = (ub_rtn - lb_rtn) / len(probs)
     for put in puts:
@@ -101,3 +98,4 @@ if __name__ == '__main__':
     best_strike,max_rtn = calibrate_strike_put(cur_price,puts,pick_rtns,steps,lb_rtn = -0.75, ub_rtn = 0.75)
     print(f"best strike: {best_strike}, max_rtn: {max_rtn}")
     print(f"max daily return: {max_rtn/fwd_days:.4f}, annual return: {max_rtn/fwd_days*252:.4f}")
+    plt.show()
