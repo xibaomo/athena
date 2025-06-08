@@ -8,8 +8,6 @@ from utils import *
 from mkv_cal import *
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
-import requests
-from api_keys import *
 from option_chain import *
 
 
@@ -81,7 +79,7 @@ if __name__ == '__main__':
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
     cur_price = df['Close'].values[-1][0]
 
-    print(f"Latest price: {cur_price}")
+
 
     ave_d = eval_stability(rtns)
     print(f"Stability: {ave_d:.5f}")
@@ -96,6 +94,7 @@ if __name__ == '__main__':
 
     steps = fwd_days*bars_per_day
     best_strike,max_rtn = calibrate_strike_put(cur_price,puts,pick_rtns,steps,lb_rtn = -0.75, ub_rtn = 0.75)
-    print(f"best strike: {best_strike}, max_rtn: {max_rtn}")
+    print(f"Latest price: {cur_price:.2f}")
+    print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike*max_rtn:.2f}")
     print(f"max daily return: {max_rtn/fwd_days:.4f}, annual return: {max_rtn/fwd_days*252:.4f}")
     plt.show()
