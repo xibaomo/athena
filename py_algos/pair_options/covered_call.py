@@ -8,6 +8,7 @@ from utils import *
 from mkv_cal import *
 from scipy.optimize import minimize
 import requests
+from option_chain import *
 import pdb
 # Login to Robinhood
 import os
@@ -25,12 +26,13 @@ def __prepare_calls(sym,exp_date):
     return calls
 
 def prepare_calls(sym,exp_date):
-    url = 'https://www.alphavantage.co/query?function=HISTORICAL_OPTIONS&symbol=' + sym.upper() + "&apikey=A4L0CXXLQHSWW8ZS"
-    r = requests.get(url)
-    data = r.json()
-    # if not 'data' in data.keys():
-    #     pdb.set_trace()
-    options = data['data']
+    # url = 'https://www.alphavantage.co/query?function=HISTORICAL_OPTIONS&symbol=' + sym.upper() + "&apikey=A4L0CXXLQHSWW8ZS"
+    # r = requests.get(url)
+    # data = r.json()
+    # # if not 'data' in data.keys():
+    # #     pdb.set_trace()
+    # options = data['data']
+    options = get_option_chain_alpha_vantage(sym)
     print(f"{len(options)} options downloaded")
     calls = []
     for opt in options:
