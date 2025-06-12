@@ -287,7 +287,7 @@ def compProb1stHitBounds(rtns,steps, ub_rtn=.5,lb_rtn=-.5):
     pbu, pbd = mkvcal.comp1stHitProb(steps, mid, -2, -1)
     return pbu, pbd
 
-def compMultiStepProb(rtns,steps, ub_rtn=.5,lb_rtn=-.5):
+def compMultiStepProb(rtns,steps,lb_rtn,ub_rtn):
     drtn = 0.001/4
     ns = int((ub_rtn-lb_rtn)/drtn)
     mkvcal = MkvRegularCal(ns)

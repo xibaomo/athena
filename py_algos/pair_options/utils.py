@@ -119,3 +119,26 @@ def eval_stability(rtns, n_intervals=10):
         ds.append(d)
 
     return np.mean(ds)
+def find_stablest_spacing(rtns, init_spacing,increment):
+    spacing = init_spacing
+    min_diff = 0
+    best_spacing = init_spacing
+    while 1:
+        n_spacings = len(rtns) // spacing
+        i0 = len(rtns) - n_spacings * spacing
+        ds = []
+        for i in range(n_spacings-1):
+            d,p = stats.ks_2samp(rtns[i0:i0+spacing],rtns[i0+spacing:i0+2*spacing])
+            i0 += spacing
+            ds.append(p)
+        # print(ds)
+        aved = np.mean(ds)
+        # print(len(ds),aved)
+        if aved > min_diff:
+            min_diff = aved
+            best_spacing = spacing
+
+        spacing += increment
+        if len(rtns) // spacing < 2:
+            break
+    return best_spacing,min_diff

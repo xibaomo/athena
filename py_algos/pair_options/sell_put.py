@@ -1,6 +1,8 @@
 import os,sys
 import pdb
 from datetime import datetime,timedelta
+
+import numpy as np
 import yfinance as yf
 from scipy import stats
 from cal_prob import findBestLookbackDays,prepare_rtns
@@ -11,7 +13,7 @@ import matplotlib.pyplot as plt
 from option_chain import *
 
 
-def compExpectedReturn(cur_price, strike, premium, probs, drtn,lb_rtn=-.5):
+def compExpectedReturn(cur_price, strike, premium, probs, drtn,lb_rtn):
     expected_rtn = 0.
 
     for i in range(len(probs)):
@@ -36,12 +38,14 @@ def prepare_puts(sym,exp_date):
     print(f"{len(puts)} puts returned")
     return puts
 
-def calibrate_strike_put(cur_price, puts, rtns, steps, lb_rtn = -0.5, ub_rtn = 0.5):
+def calibrate_strike_put(cur_price, puts, rtns, steps, lb_rtn , ub_rtn ):
     max_rtn = 0.0
     best_strike = 0.0
 
-    probs = compMultiStepProb(rtns,steps)
-    plt.plot(probs,'.')
+    probs = compMultiStepProb(rtns,steps,lb_rtn,ub_rtn)
+
+    x = np.linspace(lb_rtn,ub_rtn,len(probs))
+    plt.plot(x,probs,'.')
     # plt.show()
     # pdb.set_trace()
     drtn = (ub_rtn - lb_rtn) / len(probs)
@@ -81,19 +85,19 @@ if __name__ == '__main__':
 
 
 
-    ave_d = eval_stability(rtns)
-    print(f"Stability: {ave_d:.5f}")
+    spacing,min_diff = find_stablest_spacing(rtns,22*bars_per_day,2*bars_per_day)
+    print(f"length of rtns: {len(rtns)}, min ave diff: {min_diff}, spacing days: {spacing//bars_per_day}")
 
-    lookback_days, min_diff = findBestLookbackDays(22 * 12, 22 * 22, fwd_days, bars_per_day, rtns)
-    print(f"optimal days: {lookback_days}, min_diff: {min_diff}")
+    # lookback_days, min_diff = findBestLookbackDays(22 * 6, 22 * 12, fwd_days, bars_per_day, rtns)
+    # print(f"optimal days: {lookback_days}, min_diff: {min_diff}")
 
-    pick_rtns = rtns[-lookback_days * bars_per_day:]
+    pick_rtns = rtns[-spacing:]
 
     puts = prepare_puts(ticker,exp_date)
     # pdb.set_trace()
 
     steps = fwd_days*bars_per_day
-    best_strike,max_rtn = calibrate_strike_put(cur_price,puts,pick_rtns,steps,lb_rtn = -0.75, ub_rtn = 1.)
+    best_strike,max_rtn = calibrate_strike_put(cur_price,puts,pick_rtns,steps,lb_rtn = -1., ub_rtn = 1.5)
     print(f"Latest price: {cur_price:.2f}")
     print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike*max_rtn:.2f}")
     print(f"max daily return: {max_rtn/fwd_days:.4f}, annual return: {max_rtn/fwd_days*252:.4f}")
