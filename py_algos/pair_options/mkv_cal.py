@@ -19,6 +19,18 @@ class ECDFCal(object):  # empirical cdf calculator
         uy = self.compCDF(ub)
         ly = self.compCDF(lb)
         return uy - ly
+class WeightedCDFCal(object): # cdf calculator: weighted sum of recent days
+    def __init__(self,rtn0,spacing=22*14):
+        self.ecdf1 = sm.distributions.ECDF(rtn0[-spacing:])
+        self.ecdf2 = sm.distributions.ECDF(rtn0[-spacing*2:-spacing])
+        self.ecdf3 = sm.distributions.ECDF(rtn0[-spacing*3:-spacing*2])
+    def compCDF(self,x):
+        wts = [0.5,0.3,0.2]
+        return self.ecdf1(x)*wts[0] + self.ecdf2(x)*wts[1] + self.ecdf3(x)*wts[2]
+    def compRangeProb(self, lb, ub):
+        uy = self.compCDF(ub)
+        ly = self.compCDF(lb)
+        return uy - ly
 class GaussCDFCal(object):
     def __init__(self,rtn0):
         self.mean = np.mean(rtn0)
@@ -88,6 +100,8 @@ class MkvAbsorbCal(object):
             self.transProbCal = GaussCDFCal(rtns)
         elif self.cdfType == "laplace":
             self.transProbCal = LaplaceCDFCal(rtns)
+        elif self.cdfType == "wts":
+            self.transProbCal = WeightedCDFCal(rtns)
         else:
             print("Wrong cdf type: ", self.cdfType)
             sys.exit(1)
@@ -278,10 +292,10 @@ def __compProb1stHidBounds(rtns, steps,ub_rtn=0.05,lb_rtn=-0.05):
     pbu,pbd = mkvcal.comp1stHitProb(steps,mid,-2,-1)
     return pbu,pbd
 
-def compProb1stHitBounds(rtns,steps, ub_rtn=.5,lb_rtn=-.5):
+def compProb1stHitBounds(rtns,steps, cdf_type, ub_rtn=.5,lb_rtn=-.5):
     d = 0.001/4
     ns = int((ub_rtn-lb_rtn)/d)
-    mkvcal = MkvAbsorbCal(ns)
+    mkvcal = MkvAbsorbCal(ns, cdf_type)
     mkvcal.buildTransMat(rtns,lb_rtn,ub_rtn)
     mid = int((0-lb_rtn)/d)
     pbu, pbd = mkvcal.comp1stHitProb(steps, mid, -2, -1)

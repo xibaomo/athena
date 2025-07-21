@@ -71,7 +71,7 @@ def __maximize_expected_revenue(rtns, fwd_steps,cur_price, calls):
 
     print(f"optimal strike: {opt_s:.2f}, max expected rev: {-opt_rev:.2f}")
     return -opt_rev
-def calibrate_strike(ticker,rtns,fwd_steps, cost, calls):
+def calibrate_strike(ticker,rtns,fwd_steps, cdf_type, cost, calls):
     max_rev = -9999.
     best_strike = 0.
     cur_price = float(rh.stocks.get_latest_price(ticker)[0])
@@ -83,7 +83,7 @@ def calibrate_strike(ticker,rtns,fwd_steps, cost, calls):
             continue
         ub_rtn = s / cur_price - 1.
         # pdb.set_trace()
-        pu, pd = compProb1stHitBounds(rtns, fwd_steps, ub_rtn=ub_rtn, lb_rtn=-.5)
+        pu, pd = compProb1stHitBounds(rtns, fwd_steps, cdf_type = cdf_type, ub_rtn=ub_rtn, lb_rtn=-.5)
         if pu < 0.05:
             break
 
@@ -128,6 +128,12 @@ if __name__ == "__main__":
 
     calls = prepare_calls(ticker,exp_date)
 
-    best_strike, max_rev = calibrate_strike(ticker,pick_rtns,fwd_days*bars_per_day,cost_price, calls)
+    print("Calibrating strike against long-term distribution")
+    best_strike, max_rev = calibrate_strike(ticker,pick_rtns,fwd_days*bars_per_day, 'emp',cost_price, calls)
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
     print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
+
+    print(f"Calibrating strike against recent weighted-sum distribution")
+    best_strike, max_rev = calibrate_strike(ticker, pick_rtns, fwd_days * bars_per_day, 'wts', cost_price, calls)
+    print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
+    print(f"max daily return: {max_rev / fwd_days / cost_price:.4f}, annual return: {max_rev / fwd_days / cost_price * 252:.4f}")
