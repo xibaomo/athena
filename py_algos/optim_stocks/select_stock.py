@@ -4,6 +4,8 @@ import numpy as np
 import pdb
 from kalman_tracker import KalmanTracker
 from download import DATA_FILE
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
 
 def compute_trading_value(df,lookback=25,target_date=-1):
     # pdb.set_trace()
@@ -75,8 +77,10 @@ def rtn_per_risk(data,df):
 
     for ticker in dff.keys():
         r = dff[ticker].values[-200:]
-        rpr = np.mean(r)/np.std(r)
+        risk = np.std(r)
+        rpr = np.mean(r)/risk
         df.loc[ticker,'rpr'] = rpr
+        df.loc[ticker,'risk'] = risk
 
     return df
 
@@ -90,6 +94,7 @@ if __name__ == "__main__":
     target_date = sys.argv[1]  # portconf.getTargetDate()
     data = pd.read_csv(DATA_FILE, comment='#', header=[0, 1], parse_dates=[0], index_col=0)
     data = data.dropna(axis=1)
+    # pdb.set_trace()
     df = compute_trading_value(data)
     sorted_df = df.sort_values(by='tv', ascending=True, ignore_index=False)
     # df = sorted_df.iloc[-100:,:]
@@ -102,4 +107,8 @@ if __name__ == "__main__":
     df = rtn_per_risk(data,df)
 
     df = df.sort_values(by='rpr', ascending=True, ignore_index=False)
-    df = df[df['tv']>=10]
+    df = df[df['tv']>=1]
+
+    base_rtns = data['Close']['SPY'].pct_change().values[-200:]
+    base_risk = np.std(base_rtns)
+    df = df[df['risk']>=base_risk]
