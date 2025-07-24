@@ -6,8 +6,9 @@ from kalman_tracker import KalmanTracker
 from download import DATA_FILE
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
+pd.set_option('display.width', 0)
 
-def compute_trading_value(df,lookback=25,target_date=-1):
+def compute_trading_value(df,lookback,target_date=-1):
     # pdb.set_trace()
     new_df = (df['High']+df['Low']+df['Close'])/3*df['Volume']*1e-9
     new_df = new_df.iloc[-lookback:,:]
@@ -83,7 +84,15 @@ def rtn_per_risk(data,df):
         df.loc[ticker,'risk'] = risk
 
     return df
+def tv_weighted_rtn(df):
 
+    lb = np.log(np.min(df['tv'].values))
+    ub = np.log(np.max(df['tv'].values))
+    for ticker in df.index.tolist():
+        score = (np.log(df.loc[ticker,'tv']) - lb)/(ub-lb)
+        df.loc[ticker,'tv_rtn'] = df.loc[ticker,'rtn']*score
+
+    return df
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -95,7 +104,7 @@ if __name__ == "__main__":
     data = pd.read_csv(DATA_FILE, comment='#', header=[0, 1], parse_dates=[0], index_col=0)
     data = data.dropna(axis=1)
     # pdb.set_trace()
-    df = compute_trading_value(data)
+    df = compute_trading_value(data,lookback=200)
     sorted_df = df.sort_values(by='tv', ascending=True, ignore_index=False)
     # df = sorted_df.iloc[-100:,:]
     g = df['rtn'].values/df['tv'].values
@@ -108,6 +117,8 @@ if __name__ == "__main__":
 
     df = df.sort_values(by='rpr', ascending=True, ignore_index=False)
     df = df[df['tv']>=1]
+
+    df = tv_weighted_rtn(df)
 
     base_rtns = data['Close']['SPY'].pct_change().values[-200:]
     base_risk = np.std(base_rtns)
