@@ -10,6 +10,7 @@ from scipy.optimize import minimize
 import requests
 from option_chain import *
 import pdb
+import matplotlib.pyplot as plt
 # Login to Robinhood
 import os
 username = os.getenv("BROKER_USERNAME")
@@ -40,6 +41,9 @@ def prepare_calls(sym,exp_date):
             calls.append(opt)
 
     print(f"{len(calls)} calls returned")
+    # for call in calls:
+    #     plt.plot(float(call['strike']),float(call['bid']),'.')
+    # plt.show()
     return calls
 
 def bisection_minimize(f, a, b, tol=1e-5, max_iter=100):

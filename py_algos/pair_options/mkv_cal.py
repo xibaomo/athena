@@ -313,3 +313,17 @@ def compMultiStepProb(rtns,steps,lb_rtn,ub_rtn):
     if idx < 0:
         pdb.set_trace()
     return PWP[idx, :]
+
+def compute_steady_dist(rtns,lb_rtn,ub_rtn):
+    drtn = 0.001 / 4
+    ns = int((ub_rtn - lb_rtn) / drtn)
+    mkvcal = MkvRegularCal(ns)
+    P = mkvcal.buildTransMat(rtns, lb_rtn, ub_rtn)
+
+    I = np.eye(ns)
+    ONE = np.ones((ns,ns))
+    pi = np.ones((1,ns))
+    tmp = np.eye(ns) - P + ONE
+    tmp = np.linalg.inv(tmp)
+    pi = pi@tmp
+    return pi.ravel()
