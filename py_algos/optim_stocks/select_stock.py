@@ -90,7 +90,7 @@ def tv_weighted_rtn(df):
     ub = np.log(np.max(df['tv'].values))
     for ticker in df.index.tolist():
         score = (np.log(df.loc[ticker,'tv']) - lb)/(ub-lb)
-        df.loc[ticker,'tv_rtn'] = df.loc[ticker,'rtn']*score
+        df.loc[ticker,'tv_rtn'] = df.loc[ticker,'rpr']*score
 
     return df
 
