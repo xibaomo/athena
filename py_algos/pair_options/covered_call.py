@@ -142,7 +142,7 @@ def calibrate_strike(ticker,rtns,fwd_steps, cdf_type, cost, calls,cdf_wts=[]):
         bid = float(call['bid'])
         rev = s - cost + bid
         exp_rev = rev*pu + bid*(1-pu)
-        print(f"strike: {s:.2f}, assign prob: {pu:.3f}, exp profit: {exp_rev:.2f}, market value: {bid:.2f}")
+        print(f"strike: {s:.2f}, asgn prob: {pu:.3f}, exp profit: {exp_rev:.2f}, bid: {bid:.2f}, bid*prob: {(1-pu)*bid:.2f}")
         if exp_rev > max_rev:
             max_rev = exp_rev
             best_strike = s
@@ -168,6 +168,7 @@ if __name__ == "__main__":
 
     # rtns = df['Open'].pct_change().values
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
+    print(f"rtn range: {np.min(rtns),np.max(rtns)}")
 
     ave_d = eval_stability(rtns)
     print(f"Stability: {ave_d:.5f}")
