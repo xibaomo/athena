@@ -94,6 +94,29 @@ def tv_weighted_rtn(df):
 
     return df
 
+def compute_rsi(data,df):
+    df_close = data['Close']
+    dff = df_close.pct_change()
+
+    for ticker in df.index.tolist():
+        r = dff[ticker].values[-60:]
+        up = r[r>0].sum()
+        dw = abs(r[r<0].sum())
+        rsi = up/(up+dw)
+        df.loc[ticker,'rsi'] = rsi
+    return df
+
+def compute_ls_rtn(data,df):
+    df_close = data['Close']
+    dff = df_close.pct_change()
+    for ticker in df.index.tolist():
+        lr = dff[ticker].values[-70:].mean()
+        sr = dff[ticker].values[-20:].mean()
+        if lr > 0 and sr > 0:
+            df.loc[ticker,'ls_rtn'] = sr/lr
+    return df
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <target_date>")
@@ -107,9 +130,9 @@ if __name__ == "__main__":
     df = compute_trading_value(data,lookback=200)
     sorted_df = df.sort_values(by='tv', ascending=True, ignore_index=False)
     # df = sorted_df.iloc[-100:,:]
-    g = df['rtn'].values/df['tv'].values
-    df['growth'] = g
-    df = df.sort_values(by='growth', ascending=True, ignore_index=False)
+    # g = df['rtn'].values/df['tv'].values
+    # df['growth'] = g
+    # df = df.sort_values(by='growth', ascending=True, ignore_index=False)
 
     # df = kalman_addon(data,df)
     # df = df.loc[~((df[['v', 'acc', 'prof','rtn']] < 0).any(axis=1))]
@@ -117,9 +140,15 @@ if __name__ == "__main__":
 
     df = df.sort_values(by='rpr', ascending=True, ignore_index=False)
     df = df[df['tv']>=1]
+    df = df[df['rpr']>=0]
 
     df = tv_weighted_rtn(df)
 
     base_rtns = data['Close']['SPY'].pct_change().values[-200:]
     base_risk = np.std(base_rtns)
     df = df[df['risk']>=base_risk]
+    df = df[df['rpr']>=base_rtns.mean()/base_risk]
+
+    df = compute_rsi(data,df)
+    df = compute_ls_rtn(data,df)
+    df = df[~np.isnan(df['ls_rtn']) & (df['ls_rtn']>0.85)]
