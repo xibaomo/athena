@@ -132,7 +132,7 @@ if __name__ == "__main__":
     res,exp_prof = calibrate_butterfly(p0,lb_rtn=lb_rtn, ub_rtn=ub_rtn, probs=probs, ask_cal=ask_cal, bid_cal=bid_cal, strike_bounds=strike_bounds)
 
     s,d = res
-    print(f"optimal s,d: {s:.2f}, {d:.2f}")
+    print(f"optimal s: {s:.2f}, s-d: {s-d:.2f}, s+d: {s+d:2f}")
     cost = compute_cost(s,d,ask_cal,bid_cal)
     print(f"position cost: {cost:.2f}")
     print(f"expected return: {exp_prof/cost:.3f}")

@@ -189,7 +189,7 @@ if __name__ == "__main__":
     print(f"n_intervals: {len(rtns)//(22*bars_per_day)}")
     err = sliding_cdf_error(rtns,22*bars_per_day,[0.25,0.25,0.25,.25])
     print(f"sliding cdf error: {err:.4f}")
-    wts = calibrate_weights(rtns,22*bars_per_day)
+    wts = calibrate_weights(rtns,22*bars_per_day, nvar=3)
 
     print(f"Calibrating strike against recent weighted-sum distribution")
     best_strike, max_rev = calibrate_strike(ticker, pick_rtns, fwd_days * bars_per_day, 'wts', cost_price, calls,cdf_wts=wts)

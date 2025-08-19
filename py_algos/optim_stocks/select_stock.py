@@ -136,19 +136,23 @@ if __name__ == "__main__":
 
     # df = kalman_addon(data,df)
     # df = df.loc[~((df[['v', 'acc', 'prof','rtn']] < 0).any(axis=1))]
+    breakpoint()
     df = rtn_per_risk(data,df)
 
+    # breakpoint()
     df = df.sort_values(by='rpr', ascending=True, ignore_index=False)
     df = df[df['tv']>=1]
     df = df[df['rpr']>=0]
 
     df = tv_weighted_rtn(df)
 
+    # breakpoint()
     base_rtns = data['Close']['SPY'].pct_change().values[-200:]
     base_risk = np.std(base_rtns)
     df = df[df['risk']>=base_risk]
     df = df[df['rpr']>=base_rtns.mean()/base_risk]
 
-    df = compute_rsi(data,df)
+    # df = compute_rsi(data,df)
+    # breakpoint()
     df = compute_ls_rtn(data,df)
     df = df[~np.isnan(df['ls_rtn']) & (df['ls_rtn']>0.85)]
