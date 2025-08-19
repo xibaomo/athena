@@ -95,26 +95,26 @@ class MkvRegularCal(object):
         return PWP[idx,:]
 
 class MkvAbsorbCal(object):
-    def __init__(self,nstates,cdf='emp',cdf_wts=[]):
+    def __init__(self,nstates,cdf_cal):
         self.n_states = nstates
-        self.cdfType = cdf
-        self.transProbCal = None
-        self.cdf_wts=cdf_wts
-    def createCDFCal(self,rtns):
-        if self.cdfType == 'emp':
-            self.transProbCal = ECDFCal(rtns)
-        elif self.cdfType == 'gauss':
-            self.transProbCal = GaussCDFCal(rtns)
-        elif self.cdfType == "laplace":
-            self.transProbCal = LaplaceCDFCal(rtns)
-        elif self.cdfType == "wts":
-            self.transProbCal = WeightedCDFCal(rtns,self.cdf_wts)
-        else:
-            print("Wrong cdf type: ", self.cdfType)
-            sys.exit(1)
-    def buildTransMat(self,rtns,lb_rtn,ub_rtn):
-        rtns = rtns[~np.isnan(rtns)]
-        self.createCDFCal(rtns)
+        # self.cdfType = cdf
+        self.transProbCal = cdf_cal
+        # self.cdf_wts=cdf_wts
+    # def createCDFCal(self,rtns):
+    #     if self.cdfType == 'emp':
+    #         self.transProbCal = ECDFCal(rtns)
+    #     elif self.cdfType == 'gauss':
+    #         self.transProbCal = GaussCDFCal(rtns)
+    #     elif self.cdfType == "laplace":
+    #         self.transProbCal = LaplaceCDFCal(rtns)
+    #     elif self.cdfType == "wts":
+    #         self.transProbCal = WeightedCDFCal(rtns,self.cdf_wts)
+    #     else:
+    #         print("Wrong cdf type: ", self.cdfType)
+    #         sys.exit(1)
+    def buildTransMat(self,lb_rtn,ub_rtn):
+        # rtns = rtns[~np.isnan(rtns)]
+        # self.createCDFCal(rtns)
         npts = self.n_states
         d = (ub_rtn - lb_rtn) / npts
         idxDiff2Prob = {}
@@ -299,12 +299,12 @@ def __compProb1stHidBounds(rtns, steps,ub_rtn=0.05,lb_rtn=-0.05):
     pbu,pbd = mkvcal.comp1stHitProb(steps,mid,-2,-1)
     return pbu,pbd
 
-def compProb1stHitBounds(rtns,steps, cdf_type, ub_rtn=.5,lb_rtn=-.5,cdf_wts=[]):
+def compProb1stHitBounds(steps, cdf_cal, ub_rtn=.5,lb_rtn=-.5):
     d = 0.001/4
     ns = int((ub_rtn-lb_rtn)/d)
     # breakpoint()
-    mkvcal = MkvAbsorbCal(ns, cdf_type,cdf_wts)
-    mkvcal.buildTransMat(rtns,lb_rtn,ub_rtn)
+    mkvcal = MkvAbsorbCal(ns,cdf_cal)
+    mkvcal.buildTransMat(lb_rtn,ub_rtn)
     mid = int((0-lb_rtn)/d)
     pbu, pbd = mkvcal.comp1stHitProb(steps, mid, -2, -1)
     return pbu, pbd
