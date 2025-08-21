@@ -20,7 +20,7 @@ class ECDFCal(object):  # empirical cdf calculator
         ly = self.compCDF(lb)
         return uy - ly
 class WeightedCDFCal(object): # cdf calculator: weighted sum of recent days
-    def __init__(self,rtn0,wts,spacing=22*14):
+    def __init__(self,rtn0,wts,spacing):
         self.wts = wts
         self.ecdfs = []
         # breakpoint()

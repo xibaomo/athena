@@ -165,7 +165,7 @@ if __name__ == "__main__":
     fwd_days = TradeDaysCounter().countTradeDays(exp_date)
     print(f"trading days: {fwd_days}")
 
-    df, bars_per_day = download_from_yfinance(ticker, period='2y')
+    df, bars_per_day = download_from_yfinance(ticker)
 
     # rtns = df['Open'].pct_change().values
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
@@ -189,12 +189,12 @@ if __name__ == "__main__":
     print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
 
     print(f"n_intervals: {len(rtns)//(22*bars_per_day)}")
-    err = sliding_cdf_error(rtns,22*bars_per_day,[0.25,0.25,0.25,.25])
+    err = sliding_cdf_error(rtns,22*bars_per_day,[0.3333,0.3333,.3333])
     print(f"sliding cdf error: {err:.4f}")
     wts = calibrate_weights(rtns,22*bars_per_day, nvar=3)
 
     print(f"Calibrating strike against recent weighted-sum distribution")
-    cdfcal = WeightedCDFCal(pick_rtns,wts,22*bars_per_day)
+    cdfcal = WeightedCDFCal(rtns,wts,22*bars_per_day)
     best_strike, max_rev = calibrate_strike(ticker, fwd_days * bars_per_day,cost_price, calls,cdfcal)
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
     print(f"max daily return: {max_rev / fwd_days / cost_price:.4f}, annual return: {max_rev / fwd_days / cost_price * 252:.4f}")

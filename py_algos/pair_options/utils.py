@@ -9,7 +9,7 @@ import numpy as np
 from scipy import stats
 DATE_FORMAT ="%Y-%m-%d"
 
-def download_from_yfinance(ticker,interval='1h',period='1y'):
+def download_from_yfinance(ticker,interval='1h',period='730d'):
     df = yf.download(ticker, period=period, interval=interval)
     bars_per_day=7
     print("History downloaded. Days: ",len(df)/bars_per_day)

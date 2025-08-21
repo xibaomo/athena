@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
     # df = kalman_addon(data,df)
     # df = df.loc[~((df[['v', 'acc', 'prof','rtn']] < 0).any(axis=1))]
-    breakpoint()
+    # breakpoint()
     df = rtn_per_risk(data,df)
 
     # breakpoint()
@@ -155,4 +155,4 @@ if __name__ == "__main__":
     # df = compute_rsi(data,df)
     # breakpoint()
     df = compute_ls_rtn(data,df)
-    df = df[~np.isnan(df['ls_rtn']) & (df['ls_rtn']>0.85)]
+    df = df[~np.isnan(df['ls_rtn']) & (df['ls_rtn']>0.5)]
