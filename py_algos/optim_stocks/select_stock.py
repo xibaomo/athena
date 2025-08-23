@@ -2,6 +2,8 @@ import os,sys
 import pandas as pd
 import numpy as np
 import pdb
+import yfinance as yf
+from scipy.stats import ks_2samp
 from kalman_tracker import KalmanTracker
 from download import DATA_FILE
 pd.set_option('display.max_rows', None)
@@ -115,6 +117,49 @@ def compute_ls_rtn(data,df):
         if lr > 0 and sr > 0:
             df.loc[ticker,'ls_rtn'] = sr/lr
     return df
+def ave_ks(ts,spacing):
+    rem = len(ts) % spacing
+    if rem > 0:
+        ts = ts[rem:]
+    n_intervals = len(ts) // spacing
+
+    diffs = []
+    for i in range(n_intervals - 1):
+        seg1 = ts[i * spacing:(i + 1) * spacing]
+        seg2 = ts[(i + 1) * spacing:(i + 2) * spacing]
+        ks_stat, _ = ks_2samp(seg1, seg2)
+        diffs.append(ks_stat)
+
+    return np.mean(diffs) if diffs else 0.0
+def df2rtns(data,ticker):
+    # breakpoint()
+    df_close = data['Close']
+    df_high = data['High']
+    df_low = data['Low']
+    nrows = min(len(df_close), len(df_high), len(df_low))
+    pcs = np.zeros(nrows*2)
+    k=0
+    for i in range(nrows):
+        pcs[k] = (df_high.iloc[i][ticker] + df_low.iloc[i][ticker])/2.0
+        k+=1
+        pcs[k] = df_close.iloc[i][ticker]
+        k+=1
+
+    rtns = np.diff(np.log(pcs))
+    rtns = rtns[~np.isnan(rtns)]
+    return rtns
+
+def ave_dist_diff(df):
+    data  = yf.download(df.index.tolist(), period='730d',interval='1h')
+    spacing = 22*14
+    for ticker in df.index.tolist():
+        rtns = df2rtns(data,ticker)
+        ks = ave_ks(rtns,spacing)
+        df.loc[ticker,'ks'] = ks
+        print(f"ticker: {ticker}, ks: {ks}")
+    return df
+
+
 
 
 if __name__ == "__main__":
@@ -126,7 +171,7 @@ if __name__ == "__main__":
     target_date = sys.argv[1]  # portconf.getTargetDate()
     data = pd.read_csv(DATA_FILE, comment='#', header=[0, 1], parse_dates=[0], index_col=0)
     data = data.dropna(axis=1)
-    # pdb.set_trace()
+    # breakpoint()
     df = compute_trading_value(data,lookback=200)
     sorted_df = df.sort_values(by='tv', ascending=True, ignore_index=False)
     # df = sorted_df.iloc[-100:,:]
@@ -149,10 +194,12 @@ if __name__ == "__main__":
     # breakpoint()
     base_rtns = data['Close']['SPY'].pct_change().values[-200:]
     base_risk = np.std(base_rtns)
-    df = df[df['risk']>=base_risk]
-    df = df[df['rpr']>=base_rtns.mean()/base_risk]
+    # df = df[df['risk']>=base_risk]
+    # df = df[df['rpr']>=base_rtns.mean()/base_risk]
 
     # df = compute_rsi(data,df)
     # breakpoint()
-    df = compute_ls_rtn(data,df)
-    df = df[~np.isnan(df['ls_rtn']) & (df['ls_rtn']>0.5)]
+    # df = compute_ls_rtn(data,df)
+    # df = df[~np.isnan(df['ls_rtn']) & (df['ls_rtn']>0.5)]
+
+    df = ave_dist_diff(df)
