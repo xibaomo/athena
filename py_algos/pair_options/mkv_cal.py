@@ -58,11 +58,12 @@ class LaplaceCDFCal(object):
         return self.compCDF(ub) - self.compCDF(lb)
 
 class MkvRegularCal(object):
-    def __init__(self,nstates):
+    def __init__(self,nstates,cdf_cal):
         self.n_states = nstates
+        self.transProbCal = cdf_cal
     def buildTransMat(self,rtns,lb_rtn,ub_rtn):
         rtns = rtns[~np.isnan(rtns)]
-        self.transProbCal = ECDFCal(rtns)
+        # self.transProbCal = ECDFCal(rtns)
         npts = self.n_states
         d = (ub_rtn - lb_rtn) / (npts-1)
         idxDiff2Prob = {}
@@ -309,10 +310,10 @@ def compProb1stHitBounds(steps, cdf_cal, ub_rtn=.5,lb_rtn=-.5):
     pbu, pbd = mkvcal.comp1stHitProb(steps, mid, -2, -1)
     return pbu, pbd
 
-def compMultiStepProb(rtns,steps,lb_rtn,ub_rtn):
+def compMultiStepProb(rtns,steps,lb_rtn,ub_rtn, cdf_cal):
     drtn = 0.001/4
     ns = int((ub_rtn-lb_rtn)/drtn)
-    mkvcal = MkvRegularCal(ns)
+    mkvcal = MkvRegularCal(ns,cdf_cal)
     P = mkvcal.buildTransMat(rtns, lb_rtn, ub_rtn)
 
     # pdb.set_trace()

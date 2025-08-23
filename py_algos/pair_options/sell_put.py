@@ -1,16 +1,10 @@
-import os,sys
-import pdb
-from datetime import datetime,timedelta
-
-import numpy as np
-import yfinance as yf
-from scipy import stats
-from cal_prob import findBestLookbackDays,prepare_rtns
-from utils import *
-from mkv_cal import *
-from scipy.optimize import minimize
 import matplotlib.pyplot as plt
+
+from cal_prob import findBestLookbackDays, prepare_rtns
+from covered_call import sliding_cdf_error, calibrate_weights
+from mkv_cal import *
 from option_chain import *
+from utils import *
 
 
 def compExpectedReturn(cur_price, strike, premium, probs, drtn,lb_rtn):
@@ -38,14 +32,14 @@ def prepare_puts(sym,exp_date):
     print(f"{len(puts)} puts returned")
     return puts
 
-def calibrate_strike_put(cur_price, puts, rtns, steps, lb_rtn , ub_rtn ):
+def calibrate_strike_put(cur_price, puts, rtns, steps, lb_rtn , ub_rtn, cdf_cal ):
     max_rtn = 0.0
     best_strike = 0.0
 
     max_profit = -99999
     max_profit_strike = 0.
 
-    probs = compMultiStepProb(rtns,steps,lb_rtn,ub_rtn)
+    probs = compMultiStepProb(rtns,steps,lb_rtn,ub_rtn, cdf_cal)
 
     x = np.linspace(lb_rtn,ub_rtn,len(probs))
     plt.plot(x,probs,'.')
@@ -64,7 +58,7 @@ def calibrate_strike_put(cur_price, puts, rtns, steps, lb_rtn , ub_rtn ):
         # pdb.set_trace()
         idx = int(((strike/cur_price-1.)-lb_rtn)/drtn)
         assign_prob = np.sum(probs[:idx+1])
-        print(f"strike: {strike}, asgn prob: {assign_prob:.3f}, exp_rtn: {exp_rtn:.4f}, premium: {premium}, rtn*prob: {(1-assign_prob)*premium/strike*100:.2f}")
+        print(f"strike: {strike}, asgn prob: {assign_prob:.3f}, exp_rtn: {exp_rtn:.4f}, bid: {premium}, rtn*prob: {(1-assign_prob)*premium/strike*100:.2f}")
         if exp_rtn > max_rtn:
             max_rtn = exp_rtn
             best_strike = strike
@@ -81,7 +75,7 @@ if __name__ == '__main__':
 
     fwd_days = TradeDaysCounter().countTradeDays(exp_date)
     print(f"trading days: {fwd_days}")
-    df, bars_per_day = download_from_yfinance(ticker, period='2y')
+    df, bars_per_day = download_from_yfinance(ticker, period='730d', interval='1h')
 
     # rtns = df['Open'].pct_change().values
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
@@ -92,7 +86,7 @@ if __name__ == '__main__':
     # spacing,min_diff = find_stablest_spacing(rtns,22*bars_per_day,2*bars_per_day)
     # print(f"length of rtns: {len(rtns)}, min ave diff: {min_diff}, spacing days: {spacing//bars_per_day}")
 
-    lookback_days, min_diff = findBestLookbackDays(22 * 6, 22 * 12, fwd_days, bars_per_day, rtns)
+    lookback_days, min_diff = findBestLookbackDays(22 * 6, 730, fwd_days, bars_per_day, rtns)
     print(f"optimal days: {lookback_days}, min_diff: {min_diff}")
     spacing = lookback_days*bars_per_day
 
@@ -102,8 +96,21 @@ if __name__ == '__main__':
     # pdb.set_trace()
 
     steps = fwd_days*bars_per_day
-    best_strike,max_rtn = calibrate_strike_put(cur_price,puts,pick_rtns,steps,lb_rtn = -0.6, ub_rtn = 1.)
+    cdf_cal = ECDFCal(pick_rtns)
+    best_strike,max_rtn = calibrate_strike_put(cur_price,puts,pick_rtns,steps,lb_rtn = -0.6, ub_rtn = 1.,cdf_cal=cdf_cal)
     print(f"Latest price: {cur_price:.2f}")
     print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike*max_rtn:.2f}")
     print(f"max daily return: {max_rtn/fwd_days:.4f}, annual return: {max_rtn/fwd_days*252:.4f}")
+
+    print(f"n_intervals: {len(rtns) // (22 * bars_per_day)}")
+    err = sliding_cdf_error(rtns, 22 * bars_per_day, [0.3333, 0.3333, .3333])
+    print(f"sliding cdf error: {err:.4f}")
+    wts = calibrate_weights(rtns, 22 * bars_per_day, nvar=3)
+
+    cdf_cal = WeightedCDFCal(rtns,wts,22*bars_per_day)
+    best_strike, max_rtn = calibrate_strike_put(cur_price, puts, pick_rtns, steps, lb_rtn=-0.6, ub_rtn=1.,
+                                                cdf_cal=cdf_cal)
+    print(f"Latest price: {cur_price:.2f}")
+    print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike * max_rtn:.2f}")
+    print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
     plt.show()

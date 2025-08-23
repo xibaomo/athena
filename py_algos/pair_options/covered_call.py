@@ -22,7 +22,6 @@ def compute_empirical_cdf(data, grid):
     return cdf
 
 def sliding_cdf_error(data, spacing, weights):
-    # assert len(weights) == 3, "Weights must be of length 3"
     nw = len(weights)
     rem = len(data) % spacing
     if rem > 0:
