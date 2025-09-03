@@ -30,7 +30,8 @@ if __name__ == "__main__":
     # df = pd.read_csv('sp505.csv', comment='#')
     # syms = df['<SYM>'].values
 
-    syms = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]['Symbol'].tolist()
+    # syms = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]['Symbol'].tolist()
+    syms = []
     if len(sys.argv) > 3:
         df = pd.read_csv(sys.argv[3], comment='#')
         private_syms = df['<SYM>'].values

@@ -11,7 +11,7 @@ from mkv_cal import *
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from option_chain import *
-
+from covered_call import sliding_cdf_error, calibrate_weights
 
 def compExpectedReturn(cur_price, s_call,s_put, premium, probs, drtn,lb_rtn,ratio):
     expected_rtn = 0.
@@ -72,28 +72,22 @@ def calibrate_strike_put(cur_price, puts, calls, rtns, steps, lb_rtn , ub_rtn,ra
     drtn = (ub_rtn - lb_rtn) / len(probs)
     for i in range(len(puts)):
         put = puts[i]
-        # if float(put['bid']) < 1.:
-        #     continue
         strike = float(put['strike'])
-        # if strike > cur_price*1.2:
-        #     continue
         match_idx = find_match_sellputs_buycall(i,puts,calls,ratio)
         if match_idx < 0:
             continue
-        strike_rtn = strike/cur_price - 1.
-        # if strike_rtn >= ub_rtn or strike_rtn <= lb_rtn:
-        #     continue
+
         premium = float(put['bid'])*ratio - float(calls[match_idx]['ask'])
         # premium = 0
         s_put = strike
         s_call = float(calls[match_idx]['strike'])
         if s_call > s_put:
             continue
-        exp_rtn = compExpectedReturn(cur_price,s_call=s_call,s_put=s_put,premium=premium,probs=probs,drtn=drtn,lb_rtn=lb_rtn,ratio=ratio)
+        exp_rtn = compExpectedReturn(cur_price,s_call=s_call,s_put=s_put,premium=0,probs=probs,drtn=drtn,lb_rtn=lb_rtn,ratio=ratio)
         # pdb.set_trace()
 
         safe_price = (ratio*s_put + s_call)/(ratio+1)
-        print(f"strike pair: {strike},{s_call}, exp_rtn: {exp_rtn:.4f}, premium: {put['bid']},{calls[match_idx]['ask']}, {premium:.2f},safe: {safe_price:.2f}")
+        print(f"strike pair: {strike},{s_call}, exp_rtn: {exp_rtn:.4f}, prem: {put['bid']},{calls[match_idx]['ask']}, {premium:.2f},safe: {safe_price:.2f}")
         if exp_rtn > max_rtn:
             max_rtn = exp_rtn
             best_strike = [s_put,s_call]
@@ -133,9 +127,23 @@ if __name__ == '__main__':
 
     steps = fwd_days*bars_per_day
     cdf_cal = ECDFCal(pick_rtns)
+    ratio = 2.
     best_strike,max_rtn,safe_price = calibrate_strike_put(cur_price,puts,calls,pick_rtns,steps,
-                                                          lb_rtn = -0.5, ub_rtn = 1., ratio=2,cdf_cal=cdf_cal)
+                                                          lb_rtn = -0.5, ub_rtn = 1., ratio= ratio,cdf_cal=cdf_cal)
     print(f"Latest price: {cur_price:.2f}")
     print(f"best strike: {best_strike}, max_rtn: {max_rtn}, safe_price: {safe_price:.2f}")
     print(f"max daily return: {max_rtn/fwd_days:.4f}, annual return: {max_rtn/fwd_days*252:.4f}")
+
+##calibrate weights
+    print(f"n_intervals: {len(rtns) // (22 * bars_per_day)}")
+    err = sliding_cdf_error(rtns, 22 * bars_per_day, [0.3333, 0.3333, .3333])
+    print(f"sliding cdf error: {err:.4f}")
+    wts = calibrate_weights(rtns, 22 * bars_per_day, nvar=3)
+
+    cdf_cal = WeightedCDFCal(rtns, wts, 22 * bars_per_day)
+    best_strike, max_rtn, safe_price = calibrate_strike_put(cur_price, puts, calls, pick_rtns, steps,
+                                                            lb_rtn=-0.5, ub_rtn=1., ratio= ratio, cdf_cal=cdf_cal)
+    print(f"Latest price: {cur_price:.2f}")
+    print(f"best strike: {best_strike}, max_rtn: {max_rtn}, safe_price: {safe_price:.2f}")
+    print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
     plt.show()
