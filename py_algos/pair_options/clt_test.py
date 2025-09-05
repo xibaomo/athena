@@ -185,7 +185,7 @@ if __name__ == "__main__":
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
     print(f"rtn range: {np.min(rtns),np.max(rtns)}")
 
-    interval_means, interval_stds = interval_means_and_pacf(rtns, 5*bars_per_day, nlags=10)
+    interval_means, interval_stds = interval_means_and_pacf(rtns, 22*bars_per_day, nlags=10)
 
     # Plot interval means
     plt.figure(figsize=(10, 4))
