@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
     steps = fwd_days*bars_per_day
     cdf_cal = ECDFCal(pick_rtns)
-    ratio = 2.
+    ratio = 1.
     best_strike,max_rtn,safe_price = calibrate_strike_put(cur_price,puts,calls,pick_rtns,steps,
                                                           lb_rtn = -0.5, ub_rtn = 1., ratio= ratio,cdf_cal=cdf_cal)
     print(f"Latest price: {cur_price:.2f}")
