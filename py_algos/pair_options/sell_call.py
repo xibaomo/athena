@@ -5,24 +5,25 @@ from covered_call import sliding_cdf_error, calibrate_weights
 from mkv_cal import *
 from option_chain import *
 from utils import *
+from clt import *
 
 
-def compExpectedReturn(cur_price, strike, premium, probs, drtn,lb_rtn):
+def compExpectedReturn(cur_price, strike, premium, probs, drtn, lb_rtn):
     expected_rtn = 0.
 
     for i in range(len(probs)):
-        r = lb_rtn + (i+0.5)*drtn
-        p = cur_price*(1+r)
+        r = lb_rtn + (i + 0.5) * drtn
+        p = cur_price * (1 + r)
         if p >= strike:
             rev = premium + strike - cur_price
-            rtn = rev/cur_price
+            rtn = rev / cur_price
         else:
-            rtn = (premium )/cur_price
-        expected_rtn = expected_rtn + probs[i]*rtn
+            rtn = (premium) / cur_price
+        expected_rtn = expected_rtn + probs[i] * rtn
     return expected_rtn
 
 
-def prepare_calls(sym,exp_date):
+def prepare_calls(sym, exp_date):
     options = get_option_chain_alpha_vantage(sym)
     print(f"{len(options)} options downloaded")
     calls = []
@@ -33,14 +34,22 @@ def prepare_calls(sym,exp_date):
     print(f"{len(calls)} calls returned")
     return calls
 
-def calibrate_strike_call(cur_price, calls, rtns, steps, lb_rtn , ub_rtn, cdf_cal ):
+
+def calibrate_strike_call(cur_price, calls, rtns, steps, lb_rtn, ub_rtn, cdf_cal, prob_method='mkv'):
+    '''
+    prob_method = 'mkv', 'garch'
+    '''
     max_rtn = -999990.0
     best_strike = 0.0
 
-    probs = compMultiStepProb(rtns,steps,lb_rtn,ub_rtn, cdf_cal)
+    drtn = 0.001 / 4
+    if prob_method == 'mkv':
+        probs = compMultiStepProb(rtns, steps, lb_rtn, ub_rtn, cdf_cal, drtn)
+    if prob_method == 'garch':
+        probs = compute_multistep_distribution_garch(rtns, steps, lb_rtn, ub_rtn, drtn)
 
-    x = np.linspace(lb_rtn,ub_rtn,len(probs))
-    plt.plot(x,probs,'.')
+    x = np.linspace(lb_rtn, ub_rtn, len(probs))
+    plt.plot(x, probs, '.')
     # plt.show()
     # pdb.set_trace()
     drtn = (ub_rtn - lb_rtn) / len(probs)
@@ -51,16 +60,18 @@ def calibrate_strike_call(cur_price, calls, rtns, steps, lb_rtn , ub_rtn, cdf_ca
         # if strike_rtn >= ub_rtn or strike_rtn <= lb_rtn:
         #     continue
         premium = float(call['bid'])
-        exp_rtn = compExpectedReturn(cur_price,strike,premium,probs,drtn,lb_rtn)
+        exp_rtn = compExpectedReturn(cur_price, strike, premium, probs, drtn, lb_rtn)
         # pdb.set_trace()
-        idx = int(((strike/cur_price-1.)-lb_rtn)/drtn)
-        assign_prob = np.sum(probs[idx+1:])
-        print(f"strike: {strike}, asgn prob: {assign_prob:.3f}, exp_rtn: {exp_rtn:.4f}, bid: {premium}, rtn*prob: {(1-assign_prob)*premium/strike*100:.2f}")
+        idx = int(((strike / cur_price - 1.) - lb_rtn) / drtn)
+        assign_prob = np.sum(probs[idx + 1:])
+        print(
+            f"strike: {strike}, asgn prob: {assign_prob:.3f}, exp_rtn: {exp_rtn:.4f}, bid: {premium}, rtn*prob: {(1 - assign_prob) * premium / strike * 100:.2f}")
         if exp_rtn > max_rtn:
             max_rtn = exp_rtn
             best_strike = strike
 
     return best_strike, max_rtn
+
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
@@ -80,28 +91,36 @@ if __name__ == '__main__':
 
     lookback_days, min_diff = findBestLookbackDays(22 * 6, 730, fwd_days, bars_per_day, rtns)
     print(f"optimal days: {lookback_days}, min_diff: {min_diff}")
-    spacing = lookback_days*bars_per_day
+    spacing = lookback_days * bars_per_day
 
     pick_rtns = rtns[-spacing:]
 
-    puts = prepare_calls(ticker,exp_date)
+    calls = prepare_calls(ticker, exp_date)
     # pdb.set_trace()
 
-    steps = fwd_days*bars_per_day
-    cdf_cal = ECDFCal(pick_rtns)
-    best_strike,max_rtn = calibrate_strike_call(cur_price,puts,pick_rtns,steps,lb_rtn = -0.6, ub_rtn = 1.,cdf_cal=cdf_cal)
-    print(f"Latest price: {cur_price:.2f}")
-    print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike*max_rtn:.2f}")
-    print(f"max daily return: {max_rtn/fwd_days:.4f}, annual return: {max_rtn/fwd_days*252:.4f}")
+    steps = fwd_days * bars_per_day
 
-    print(f"n_intervals: {len(rtns) // (fwd_days * bars_per_day)}")
-    err = sliding_cdf_error(rtns, fwd_days * bars_per_day, [0.3333, 0.3333, .3333])
-    print(f"sliding cdf error: {err:.4f}")
-    wts = calibrate_weights(rtns, fwd_days * bars_per_day, nvar=3)
+    # cdf_cal = ECDFCal(pick_rtns)
+    # best_strike, max_rtn = calibrate_strike_call(cur_price, calls, pick_rtns, steps, lb_rtn=-0.6, ub_rtn=1.,
+    #                                              cdf_cal=cdf_cal)
+    # print(f"Latest price: {cur_price:.2f}")
+    # print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike * max_rtn:.2f}")
+    # print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
+    #
+    # print(f"n_intervals: {len(rtns) // (fwd_days * bars_per_day)}")
+    # err = sliding_cdf_error(rtns, fwd_days * bars_per_day, [0.3333, 0.3333, .3333])
+    # print(f"sliding cdf error: {err:.4f}")
+    # wts = calibrate_weights(rtns, fwd_days * bars_per_day, nvar=3)
+    #
+    # cdf_cal = WeightedCDFCal(rtns, wts, fwd_days * bars_per_day)
+    # best_strike, max_rtn = calibrate_strike_call(cur_price, calls, pick_rtns, steps, lb_rtn=-0.6, ub_rtn=1.,
+    #                                              cdf_cal=cdf_cal)
+    # print(f"Latest price: {cur_price:.2f}")
+    # print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike * max_rtn:.2f}")
+    # print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
 
-    cdf_cal = WeightedCDFCal(rtns,wts,fwd_days*bars_per_day)
-    best_strike, max_rtn = calibrate_strike_call(cur_price, puts, pick_rtns, steps, lb_rtn=-0.6, ub_rtn=1.,
-                                                cdf_cal=cdf_cal)
+    best_strike, max_rtn = calibrate_strike_call(cur_price, calls, rtns, steps, lb_rtn=-0.5, ub_rtn=1.,
+                                                 cdf_cal=None, prob_method='garch')
     print(f"Latest price: {cur_price:.2f}")
     print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike * max_rtn:.2f}")
     print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
