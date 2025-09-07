@@ -1,14 +1,15 @@
-import os,sys
+import os, sys
 import pdb
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 import yfinance as yf
 from scipy import stats
-from cal_prob import findBestLookbackDays,prepare_rtns
+from cal_prob import findBestLookbackDays, prepare_rtns
 from utils import *
 from mkv_cal import *
 from scipy.optimize import minimize
 import requests
 from option_chain import *
+from arch import arch_model
 import pdb
 import matplotlib.pyplot as plt
 # Login to Robinhood
@@ -17,7 +18,8 @@ import os
 # password = os.getenv("BROKER_PASSWD")
 # rh.login(username, password, store_session=True)
 from statsmodels.tsa.stattools import pacf
-from statsmodels.graphics.tsaplots import plot_pacf,plot_acf
+from statsmodels.graphics.tsaplots import plot_pacf, plot_acf
+
 
 def interval_means_and_pacf(series, spacing, nlags=20):
     series = np.asarray(series)
@@ -30,11 +32,14 @@ def interval_means_and_pacf(series, spacing, nlags=20):
     interval_std = reshaped.std(axis=1)
 
     # pacf_vals = pacf(interval_means, nlags=nlags, method="ywmle")
-    return interval_means,interval_std
+    return interval_means, interval_std
+
+
 def compute_empirical_cdf(data, grid):
     """Compute empirical CDF over a fixed grid."""
     cdf = np.searchsorted(np.sort(data), grid, side='right') / len(data)
     return cdf
+
 
 def sliding_cdf_error(data, spacing, weights):
     nw = len(weights)
@@ -50,7 +55,7 @@ def sliding_cdf_error(data, spacing, weights):
     grid = np.linspace(np.min(data), np.max(data), pn)  # CDF evaluation grid
 
     for i in range(n_intervals):
-        intervals = [data[(i + j) * spacing:(i + j + 1) * spacing] for j in range(nw+1)]
+        intervals = [data[(i + j) * spacing:(i + j + 1) * spacing] for j in range(nw + 1)]
         cdfs = [compute_empirical_cdf(interval, grid) for interval in intervals]
 
         weighted_cdf = sum(w * c for w, c in zip(weights, cdfs[:nw]))
@@ -59,27 +64,30 @@ def sliding_cdf_error(data, spacing, weights):
         error = np.max((weighted_cdf - true_cdf) ** 2)
         total_error += error
 
-    return np.sqrt(total_error/n_intervals)
-def calibrate_weights(rtns,spacing, nvar=4):
-    def obj_func(wts,params):
-        _rtns,_spacing = params
-        cost = sliding_cdf_error(_rtns,_spacing,wts)
+    return np.sqrt(total_error / n_intervals)
+
+
+def calibrate_weights(rtns, spacing, nvar=4):
+    def obj_func(wts, params):
+        _rtns, _spacing = params
+        cost = sliding_cdf_error(_rtns, _spacing, wts)
         return cost
 
     constraints = {
         'type': 'eq',
         'fun': lambda x: np.sum(x) - 1
     }
-    bounds=None
-    bounds=[(0,None) for _ in range(nvar)]
-    x0 = np.array([1./nvar for _ in range(nvar)])
-    res = minimize(obj_func,x0,((rtns,spacing),),bounds=bounds,constraints=constraints)
+    bounds = None
+    bounds = [(0, None) for _ in range(nvar)]
+    x0 = np.array([1. / nvar for _ in range(nvar)])
+    res = minimize(obj_func, x0, ((rtns, spacing),), bounds=bounds, constraints=constraints)
     print(f"optimal weights: {res.x}")
     print(f"minimized cdf err: {res.fun}")
 
     return res.x
 
-def __prepare_calls(sym,exp_date):
+
+def __prepare_calls(sym, exp_date):
     ticker = yf.Ticker(sym)
     chain = ticker.option_chain(exp_date)
     calls = chain.calls
@@ -88,7 +96,8 @@ def __prepare_calls(sym,exp_date):
 
     return calls
 
-def prepare_calls(sym,exp_date):
+
+def prepare_calls(sym, exp_date):
     # url = 'https://www.alphavantage.co/query?function=HISTORICAL_OPTIONS&symbol=' + sym.upper() + "&apikey=A4L0CXXLQHSWW8ZS"
     # r = requests.get(url)
     # data = r.json()
@@ -108,6 +117,7 @@ def prepare_calls(sym,exp_date):
     # plt.show()
     return calls
 
+
 def bisection_minimize(f, a, b, tol=1e-5, max_iter=100):
     """
     Minimizes a unimodal function f in the interval [a, b]
@@ -124,20 +134,24 @@ def bisection_minimize(f, a, b, tol=1e-5, max_iter=100):
         iter_count += 1
     x_min = (a + b) / 2
     return x_min, f(x_min)
-def __maximize_expected_revenue(rtns, fwd_steps,cur_price, calls):
+
+
+def __maximize_expected_revenue(rtns, fwd_steps, cur_price, calls):
     def obj_func(xs):
-        ub_rtn = xs/cur_price - 1.
-        pu,pd = compProb1stHitBounds(rtns,fwd_steps,ub_rtn=ub_rtn,lb_rtn=-.5)
+        ub_rtn = xs / cur_price - 1.
+        pu, pd = compProb1stHitBounds(rtns, fwd_steps, ub_rtn=ub_rtn, lb_rtn=-.5)
         rev = xs - cur_price
         exp_rev = rev * pu
         print(f"strike: {xs:.2f}, exp_rev: {exp_rev:.2f}")
         return -exp_rev
 
-    opt_s, opt_rev=bisection_minimize(obj_func,cur_price*1.01,cur_price*1.25,tol=1.)
+    opt_s, opt_rev = bisection_minimize(obj_func, cur_price * 1.01, cur_price * 1.25, tol=1.)
 
     print(f"optimal strike: {opt_s:.2f}, max expected rev: {-opt_rev:.2f}")
     return -opt_rev
-def calibrate_strike(ticker,fwd_steps, cost, calls, cdf_cal):
+
+
+def calibrate_strike(ticker, fwd_steps, cost, calls, cdf_cal):
     max_rev = -9999.
     best_strike = 0.
     cur_price = float(rh.stocks.get_latest_price(ticker)[0])
@@ -156,12 +170,14 @@ def calibrate_strike(ticker,fwd_steps, cost, calls, cdf_cal):
 
         bid = float(call['bid'])
         rev = s - cost + bid
-        exp_rev = rev*pu + bid*(1-pu)
-        print(f"strike: {s:.2f}, asgn prob: {pu:.3f}, exp profit: {exp_rev:.2f}, bid: {bid:.2f}, bid*prob: {(1-pu)*bid:.2f}")
+        exp_rev = rev * pu + bid * (1 - pu)
+        print(
+            f"strike: {s:.2f}, asgn prob: {pu:.3f}, exp profit: {exp_rev:.2f}, bid: {bid:.2f}, bid*prob: {(1 - pu) * bid:.2f}")
         if exp_rev > max_rev:
             max_rev = exp_rev
             best_strike = s
-    return best_strike,max_rev
+    return best_strike, max_rev
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -175,36 +191,42 @@ if __name__ == "__main__":
     if len(sys.argv) == 4:
         cost_price = float(sys.argv[3])
 
-
     fwd_days = TradeDaysCounter().countTradeDays(exp_date)
     print(f"trading days: {fwd_days}")
 
-    df, bars_per_day = download_from_yfinance(ticker)
+    # df, bars_per_day = download_from_yfinance(ticker)
+    df = yf.download(ticker, period='730d', interval='1d')
+    rtns = df['Close'].pct_change().values[1:]
+    # rtns, bars_per_day = prepare_rtns(df, bars_per_day)
+    print(f"rtn range: {np.min(rtns), np.max(rtns)}")
 
-    # rtns = df['Open'].pct_change().values
-    rtns, bars_per_day = prepare_rtns(df, bars_per_day)
-    print(f"rtn range: {np.min(rtns),np.max(rtns)}")
+    # ----------------------------
+    # Fit GARCH(1,1)
+    # ----------------------------
+    # mean="Zero": assumes zero-mean returns (common in finance)
+    # vol="GARCH": use GARCH model
+    # p=1, q=1 -> GARCH(1,1)
+    model = arch_model(rtns * 100, mean="Constant", vol="GARCH", p=1, q=1, dist='t')
+    fit = model.fit(disp="off")
 
-    interval_means, interval_stds = interval_means_and_pacf(rtns, 22*bars_per_day, nlags=10)
+    print(fit.summary())
 
-    # Plot interval means
-    plt.figure(figsize=(10, 4))
-    plt.plot(interval_means**1, marker='o')
-    plt.title("Interval Means (spacing=5)")
-    plt.xlabel("Interval index")
-    plt.ylabel("Mean value")
+    # Forecast future volatility
+    horizon = 20  # predict 20 steps ahead
+    forecast = fit.forecast(horizon=horizon)
+
+    # Conditional variance forecasts
+    future_var = forecast.variance.values[-1, :]
+    future_vol = np.sqrt(future_var)
+
+    print("Forecasted volatility (next 20 steps):")
+    print(future_vol)
+
+    # Plot forecasted volatility
+    plt.figure(figsize=(10, 5))
+    plt.plot(range(1, horizon + 1), future_vol, marker='o')
+    plt.title("Forecasted Volatility (Student-t GARCH(1,1))")
+    plt.xlabel("Steps ahead")
+    plt.ylabel("Volatility")
     plt.grid(True)
-    # plt.show()
-
-    # Plot PACF
-    plt.figure(figsize=(10, 4))
-    plot_pacf(interval_means, lags=10, method="ywmle")
-    # plot_acf(interval_means, lags=20)
-    plt.title("PACF of Interval Means")
-
-    # Plot PACF
-    plt.figure(figsize=(10, 4))
-    plot_pacf(interval_stds, lags=10, method="ywmle")
-    # plot_acf(interval_stds, lags=20)
-    plt.title("PACF of Interval std")
     plt.show()
