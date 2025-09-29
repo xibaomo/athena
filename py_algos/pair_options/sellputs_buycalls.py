@@ -66,7 +66,7 @@ def calibrate_strike_put(cur_price, puts, calls, rtns, steps, lb_rtn, ub_rtn, ra
     best_strike = []
     best_premium = 0
 
-    probs = compMultiStepProb(rtns, steps, lb_rtn, ub_rtn, cdf_cal)
+    probs = compMultiStepProb(steps, lb_rtn, ub_rtn, cdf_cal)
 
     x = np.linspace(lb_rtn, ub_rtn, len(probs))
     plt.plot(x, probs, '.')

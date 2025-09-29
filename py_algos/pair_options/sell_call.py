@@ -44,7 +44,7 @@ def calibrate_strike_call(cur_price, calls, rtns, steps, lb_rtn, ub_rtn, cdf_cal
 
     drtn = 0.001 / 4
     if prob_method == 'mkv':
-        probs = compMultiStepProb(rtns, steps, lb_rtn, ub_rtn, cdf_cal, drtn)
+        probs = compMultiStepProb(steps, lb_rtn, ub_rtn, cdf_cal, drtn)
     if prob_method == 'garch':
         probs = compute_multistep_distribution_garch(rtns, steps, lb_rtn, ub_rtn, drtn)
 
@@ -100,28 +100,28 @@ if __name__ == '__main__':
 
     steps = fwd_days * bars_per_day
 
-    # cdf_cal = ECDFCal(pick_rtns)
-    # best_strike, max_rtn = calibrate_strike_call(cur_price, calls, pick_rtns, steps, lb_rtn=-0.6, ub_rtn=1.,
-    #                                              cdf_cal=cdf_cal)
-    # print(f"Latest price: {cur_price:.2f}")
-    # print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike * max_rtn:.2f}")
-    # print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
-    #
-    # print(f"n_intervals: {len(rtns) // (fwd_days * bars_per_day)}")
-    # err = sliding_cdf_error(rtns, fwd_days * bars_per_day, [0.3333, 0.3333, .3333])
-    # print(f"sliding cdf error: {err:.4f}")
-    # wts = calibrate_weights(rtns, fwd_days * bars_per_day, nvar=3)
-    #
-    # cdf_cal = WeightedCDFCal(rtns, wts, fwd_days * bars_per_day)
-    # best_strike, max_rtn = calibrate_strike_call(cur_price, calls, pick_rtns, steps, lb_rtn=-0.6, ub_rtn=1.,
-    #                                              cdf_cal=cdf_cal)
-    # print(f"Latest price: {cur_price:.2f}")
-    # print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike * max_rtn:.2f}")
-    # print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
-
-    best_strike, max_rtn = calibrate_strike_call(cur_price, calls, rtns, steps, lb_rtn=-0.5, ub_rtn=1.,
-                                                 cdf_cal=None, prob_method='garch')
+    cdf_cal = ECDFCal(pick_rtns)
+    best_strike, max_rtn = calibrate_strike_call(cur_price, calls, pick_rtns, steps, lb_rtn=-0.6, ub_rtn=1.,
+                                                 cdf_cal=cdf_cal)
     print(f"Latest price: {cur_price:.2f}")
     print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike * max_rtn:.2f}")
     print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
+
+    print(f"n_intervals: {len(rtns) // (fwd_days * bars_per_day)}")
+    err = sliding_cdf_error(rtns, fwd_days * bars_per_day, [0.3333, 0.3333, .3333])
+    print(f"sliding cdf error: {err:.4f}")
+    wts = calibrate_weights(rtns, fwd_days * bars_per_day, nvar=3)
+
+    cdf_cal = WeightedCDFCal(rtns, wts, fwd_days * bars_per_day)
+    best_strike, max_rtn = calibrate_strike_call(cur_price, calls, pick_rtns, steps, lb_rtn=-0.6, ub_rtn=1.,
+                                                 cdf_cal=cdf_cal)
+    print(f"Latest price: {cur_price:.2f}")
+    print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike * max_rtn:.2f}")
+    print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
+
+    # best_strike, max_rtn = calibrate_strike_call(cur_price, calls, rtns, steps, lb_rtn=-0.5, ub_rtn=1.,
+    #                                              cdf_cal=None, prob_method='garch')
+    # print(f"Latest price: {cur_price:.2f}")
+    # print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike * max_rtn:.2f}")
+    # print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
     plt.show()

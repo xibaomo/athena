@@ -39,7 +39,7 @@ def calibrate_strike_put(cur_price, puts, rtns, steps, lb_rtn , ub_rtn, cdf_cal 
     max_profit = -99999
     max_profit_strike = 0.
 
-    probs = compMultiStepProb(rtns,steps,lb_rtn,ub_rtn, cdf_cal)
+    probs = compMultiStepProb(steps,lb_rtn,ub_rtn, cdf_cal)
 
     x = np.linspace(lb_rtn,ub_rtn,len(probs))
     plt.plot(x,probs,'.')
