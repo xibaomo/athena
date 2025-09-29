@@ -130,6 +130,8 @@ if __name__ == '__main__':
     pick_rtns = rtns[-lookback_days * bars_per_day:]
 
     calls, puts = prepare_options(ticker, exp_date)
+    call_put_ratio = call_put_ask_ratio(0.25, calls, puts)
+    print(f"0.25_delta P/C ratio: {1./call_put_ratio:.3f}")
     # pdb.set_trace()
 
     steps = fwd_days * bars_per_day

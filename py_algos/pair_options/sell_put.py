@@ -81,8 +81,6 @@ if __name__ == '__main__':
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
     cur_price = df['Close'].values[-1][0]
 
-
-
     # spacing,min_diff = find_stablest_spacing(rtns,22*bars_per_day,2*bars_per_day)
     # print(f"length of rtns: {len(rtns)}, min ave diff: {min_diff}, spacing days: {spacing//bars_per_day}")
 
@@ -93,6 +91,9 @@ if __name__ == '__main__':
     pick_rtns = rtns[-spacing:]
 
     puts = prepare_puts(ticker,exp_date)
+    calls,puts = prepare_callsputs(ticker,exp_date)
+    call_put_ratio = call_put_ask_ratio(0.25,calls,puts)
+    print(f"0.25_delta call/put ask_ratio: {call_put_ratio:.3f}")
     # pdb.set_trace()
 
     steps = fwd_days*bars_per_day
