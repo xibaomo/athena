@@ -50,9 +50,12 @@ def delta2ask(options, delta=0.25):
         deltas.append(abs(float(options[idx]['delta'])))
         asks.append(float(options[idx]['ask']))
 
-    f = interp1d(deltas, asks)
+    f = interp1d(deltas, asks, kind='linear', fill_value='extrapolate')
     # breakpoint()
-    return f(delta)
+    res = f(delta)
+    if res <= 0:
+        return 0.01
+    return res
 
 def call_put_ask_ratio(delta,calls,puts):
     call_ask = delta2ask(calls, delta)

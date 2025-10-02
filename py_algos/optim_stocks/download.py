@@ -43,9 +43,10 @@ if __name__ == "__main__":
     lookback = int(sys.argv[2])
     start_date = add_days_to_date(target_date, -lookback)
     end_date = target_date
-    # print("history range: ", start_date, end_date)
+    print("history range: ", start_date, end_date)
     # data = yf.download(syms, start=start_date, end=end_date)
-    data = yf.download(syms,period='730d',interval='1d')
+    prd = str(lookback)+"d"
+    data = yf.download(syms,period=prd,interval='1d')
 
     print(data)
     if len(data) == 0:

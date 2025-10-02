@@ -6,6 +6,10 @@ import yfinance as yf
 from scipy.stats import ks_2samp
 from kalman_tracker import KalmanTracker
 from download import DATA_FILE
+newpath=os.environ['ATHENA_HOME'] + '/py_algos/pair_options'
+sys.path.append(newpath)
+from option_chain import *
+
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 0)
@@ -79,7 +83,7 @@ def rtn_per_risk(data,df):
     dff = df_close.pct_change()
 
     for ticker in dff.keys():
-        r = dff[ticker].values[-200:]
+        r = dff[ticker].values[-90:]
         risk = np.std(r)
         rpr = np.mean(r)/risk
         df.loc[ticker,'rpr'] = rpr
@@ -159,6 +163,31 @@ def ave_dist_diff(df):
         print(f"ticker: {ticker}, ks: {ks}")
     return df
 
+def pc_ratio(df,exp_date):
+    pcs = []
+    for ticker in df.index.tolist():
+        calls,puts = prepare_callsputs(ticker,exp_date)
+        if len(calls)==0 or len(puts)==0:
+            pcs.append(10)
+            continue
+        # breakpoint()
+        pc = call_put_ask_ratio(0.25,calls,puts)
+        pcs.append(1./pc)
+    df['pc'] = pcs
+    return df
+
+def vol_slope(data, df,lookback):
+    df_vol = data['Volume']
+    x = np.linspace(0,lookback,lookback)
+    val = []
+    for ticker in df.index.tolist():
+        y = df_vol[ticker].values[-lookback:]
+        coef = np.polyfit(x,np.log(y),1)
+        val.append(coef[0])
+
+    df['vol_ls'] = val
+    return df
+
 
 
 
@@ -167,12 +196,11 @@ if __name__ == "__main__":
         print(f"Usage: {sys.argv[0]} <target_date>")
         sys.exit(1)
 
-
     target_date = sys.argv[1]  # portconf.getTargetDate()
     data = pd.read_csv(DATA_FILE, comment='#', header=[0, 1], parse_dates=[0], index_col=0)
     data = data.dropna(axis=1)
     # breakpoint()
-    df = compute_trading_value(data,lookback=200)
+    df = compute_trading_value(data,lookback=100)
     sorted_df = df.sort_values(by='tv', ascending=True, ignore_index=False)
     # df = sorted_df.iloc[-100:,:]
     # g = df['rtn'].values/df['tv'].values
@@ -189,17 +217,23 @@ if __name__ == "__main__":
     df = df[df['tv']>=1]
     df = df[df['rpr']>=0]
 
-    df = tv_weighted_rtn(df)
+    # df = tv_weighted_rtn(df)
 
     # breakpoint()
-    base_rtns = data['Close']['SPY'].pct_change().values[-200:]
+    base_rtns = data['Close']['SPY'].pct_change().values[-90:]
     base_risk = np.std(base_rtns)
-    # df = df[df['risk']>=base_risk]
+    df = df[df['risk']>=base_risk]
     # df = df[df['rpr']>=base_rtns.mean()/base_risk]
+
+    df = vol_slope(data,df,15)
+    df = df.sort_values(by='vol_ls')
 
     # df = compute_rsi(data,df)
     # breakpoint()
     # df = compute_ls_rtn(data,df)
     # df = df[~np.isnan(df['ls_rtn']) & (df['ls_rtn']>0.5)]
 
-    df = ave_dist_diff(df)
+    # df = pc_ratio(df,target_date)
+
+
+    # df = ave_dist_diff(df)
