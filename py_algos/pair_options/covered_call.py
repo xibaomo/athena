@@ -164,6 +164,13 @@ if __name__ == "__main__":
     fwd_days = TradeDaysCounter().countTradeDays(exp_date)
     print(f"trading days: {fwd_days}")
 
+    lookback=15
+    vls = compute_vol_price_log_slope(ticker,lookback)
+    # breakpoint()
+    # print(f"\033[1;31m{lookback}-day vol log-slope: {vls:.4f}\033[0m")
+    vls_spy = compute_vol_price_log_slope('SPY',lookback)
+    # print(f"{lookback}-day vol log slope of SPY: {vls_spy:.4f}")
+
     df, bars_per_day = download_from_yfinance(ticker)
 
     # rtns = df['Open'].pct_change().values

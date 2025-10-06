@@ -142,3 +142,28 @@ def find_stablest_spacing(rtns, init_spacing,increment):
         if len(rtns) // spacing < 2:
             break
     return best_spacing,min_diff
+
+def compute_vol_price_log_slope(ticker,lookback):
+    prd = str(lookback+1)+"d"
+    data = yf.download(ticker, period=prd, interval='1d')
+    y = data['Volume'].values[-lookback:]
+    x = np.linspace(0,len(y),len(y))
+    p = np.polyfit(x,np.log(y),1)
+    # breakpoint()
+
+    vls =  p.flatten()[0]
+    latest_ratio = (np.mean(y[-5:])/np.mean(y)).flatten()[0]
+    # breakpoint()
+    print(f"\033[1;31m{lookback}-day vol log-slope: {vls:.4f}, last_week/mean(vol): {latest_ratio:.3f}\033[0m")
+
+    y = data['Close'].values[-lookback:]
+    x = np.linspace(0, len(y), len(y))
+    p = np.polyfit(x, np.log(y), 1)
+    # breakpoint()
+
+    vls = p.flatten()[0]
+    latest_ratio = (np.mean(y[-5:]) / np.mean(y)).flatten()[0]
+    # breakpoint()
+    print(f"\033[1;31m{lookback}-day Close log-slope: {vls:.4f}, last_week/mean(Close): {latest_ratio:.3f}\033[0m")
+
+    return vls
