@@ -187,7 +187,22 @@ def vol_slope(data, df,lookback):
 
     df['vol_ls'] = val
     return df
-
+def vol_price_log_slope(data,df,lookback):
+    df_vol = data['Volume']
+    df_close=data['Close']
+    x = np.linspace(0,lookback,lookback)
+    vls = []
+    pls = []
+    for ticker in df.index.tolist():
+        y = df_vol[ticker].values[-lookback:]
+        p = np.polyfit(x,np.log(y),1)
+        vls.append(p[0])
+        y = df_close[ticker].values[-lookback:]
+        p = np.polyfit(x,np.log(y),1)
+        pls.append(p[0])
+    df['vls'] = vls
+    df['pls'] = pls
+    return df
 
 
 
@@ -225,8 +240,9 @@ if __name__ == "__main__":
     df = df[df['risk']>=base_risk]
     # df = df[df['rpr']>=base_rtns.mean()/base_risk]
 
-    df = vol_slope(data,df,15)
-    df = df.sort_values(by='vol_ls')
+    df = vol_price_log_slope(data,df,40)
+    df['vpls'] = np.log(df['vls'])+np.log(df['pls'])
+    df = df.sort_values(by='vpls')
 
     # df = compute_rsi(data,df)
     # breakpoint()
