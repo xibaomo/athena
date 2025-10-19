@@ -5,8 +5,8 @@ from typing import Literal, Tuple
 import os,sys
 
 # --- Configuration ---
-TICKER = "AAPL"
-START_DATE = "2022-01-01"
+# TICKER = "AAPL"
+START_DATE = "2021-01-01"
 END_DATE = "2025-10-01"
 INITIAL_CAPITAL = 10000.0
 LOOKBACK_DAYS = 20 # New configuration: Number of days to look back for slope calculation
@@ -80,13 +80,15 @@ def trade_signal(
 
     # 5. Signal Logic
     # breakpoint()
-    if price_slope > 0 and volume_slope > 0:
+    if price_slope < 0 and volume_slope < 0:
         # Both Price and Volume are trending up on a log scale: Strong uptrend confirmation
         return 1  # BUY
-    else:
+    elif price_slope <= -0.0 and volume_slope >= 0.0:
         # If the condition isn't met, exit the position or wait.
         # Since the prompt asks for -1 otherwise, we use -1.
         return -1 # SELL (Exit position)
+    else:
+        return 0
 
 
 def backtest_strategy(

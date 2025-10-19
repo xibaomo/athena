@@ -240,7 +240,7 @@ if __name__ == "__main__":
     df = df[df['risk']>=base_risk]
     # df = df[df['rpr']>=base_rtns.mean()/base_risk]
 
-    df = vol_price_log_slope(data,df,40)
+    df = vol_price_log_slope(data,df,20)
     df['vpls'] = np.log(df['vls'])+np.log(df['pls'])
     df = df.sort_values(by='vpls')
 
