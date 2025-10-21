@@ -202,6 +202,7 @@ def vol_price_log_slope(data,df,lookback):
         pls.append(p[0])
     df['vls'] = vls
     df['pls'] = pls
+    df['vpls'] = np.log(df['vls']) + np.log(df['pls'])
     return df
 
 
@@ -229,19 +230,19 @@ if __name__ == "__main__":
 
     # breakpoint()
     df = df.sort_values(by='rpr', ascending=True, ignore_index=False)
-    df = df[df['tv']>=1]
-    df = df[df['rpr']>=0]
+    # df = df[df['tv']>=1]
+    # df = df[df['rpr']>=0]
 
     # df = tv_weighted_rtn(df)
 
     # breakpoint()
     base_rtns = data['Close']['SPY'].pct_change().values[-90:]
     base_risk = np.std(base_rtns)
-    df = df[df['risk']>=base_risk]
+    # df = df[df['risk']>=base_risk]
     # df = df[df['rpr']>=base_rtns.mean()/base_risk]
 
-    df = vol_price_log_slope(data,df,20)
-    df['vpls'] = np.log(df['vls'])+np.log(df['pls'])
+    df = vol_price_log_slope(data,df,325)
+
     df = df.sort_values(by='vpls')
 
     # df = compute_rsi(data,df)
