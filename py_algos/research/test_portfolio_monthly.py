@@ -10,6 +10,11 @@ import random
 from download import DATA_FILE
 from dateutil.relativedelta import relativedelta
 
+def normalize(arr):
+    lw = np.min(arr)
+    hi = np.max(arr)
+    return (arr-lw)/(hi-lw)
+
 def simple_stock_selector(available_tickers: list, date: datetime, lookback_data: pd.DataFrame) -> list:
     """
     A placeholder function for your stock selection logic.
@@ -33,6 +38,19 @@ def simple_stock_selector(available_tickers: list, date: datetime, lookback_data
     selected_stocks = ['SPY','QQQ','TSM']
     return selected_stocks
 
+def rtn_per_risk(data,df,lookback):
+    df_close = data['Close']
+    dff = df_close.pct_change()
+
+    for ticker in dff.keys():
+        r = dff[ticker].values[-lookback:]
+        risk = np.std(r)
+        rpr = np.mean(r)/risk
+        df.loc[ticker,'rpr'] = rpr
+        df.loc[ticker,'risk'] = risk
+
+    return df
+
 def selecctor_vp_log_slope(available_tickers: list, date: datetime, data: pd.DataFrame, lookback: int) -> list:
     # lookback = 400
     if len(data) < lookback:
@@ -54,11 +72,21 @@ def selecctor_vp_log_slope(available_tickers: list, date: datetime, data: pd.Dat
         pls.append(p[0])
     df['vls'] = vls
     df['pls'] = pls
-    df['vpls'] = np.log(df['vls']) + np.log(df['pls'])
-    df = df.dropna(axis=0, how='any').sort_values(by='vpls', ascending=False)
+    df = rtn_per_risk(data,df,lookback)
+    base_risk = df.loc['SPY','risk']
+    df = df[df['risk'] >= base_risk]
+
     df = df[(df['vls'] >= 0) & (df['pls'] >= 0)]
+    df['vpls'] = np.log(df['vls']) + np.log(df['pls'])
+    rpr = normalize(df['rpr'].values)
+    vpls = normalize(df['vpls'].values)
+    vls = normalize(df['vls'])
+    df['score'] = rpr + vpls
+
+    df = df.dropna(axis=0, how='any').sort_values(by='score', ascending=False)
 
     selected = df.index[:10].tolist()
+    # selected = ['GLD','IAU']
     # breakpoint()
     print(f"selected stock: {selected}")
 
@@ -227,7 +255,7 @@ if __name__ == '__main__':
             daily_data=daily_stock_data
         )
 
-        final_asset_value, first_date,last_date = backtester.run_backtest("2022-01-01", holding_months=3,lookback=350)
+        final_asset_value, first_date,last_date = backtester.run_backtest("2022-01-01", holding_months=1,lookback=350)
 
         # 4. Results Summary
         return_pct = (final_asset_value - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100
