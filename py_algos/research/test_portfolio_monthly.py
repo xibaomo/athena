@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import random
 from download import DATA_FILE
 from dateutil.relativedelta import relativedelta
+from scipy.optimize import dual_annealing
 
 def normalize(arr):
     lw = np.min(arr)
@@ -234,8 +235,43 @@ class MonthlyBacktester:
         print("\nBacktest Complete.")
         return self.portfolio_value, first_date,last_date
 
+def golden_section_search(f, a, b, tol=1e-6, max_iter=200):
+    gr = (np.sqrt(5) - 1) / 2  # golden ratio ≈ 0.618
+    c = b - gr * (b - a)
+    d = a + gr * (b - a)
+    fc, fd = f(c), f(d)
 
-# --- 4. Example Usage ---
+    for _ in range(max_iter):
+        if abs(b - a) < tol:
+            break
+
+        if fc < fd:
+            b, d, fd = d, c, fc
+            c = b - gr * (b - a)
+            fc = f(c)
+        else:
+            a, c, fc = c, d, fd
+            d = a + gr * (b - a)
+            fd = f(d)
+
+    xmin = (b + a) / 2
+    return xmin, f(xmin)
+
+def max_profit(holding_months, selection_stratergy, daily_data):
+    def obj_func(lookback):
+        print(f"lookback: {lookback}")
+        lookback = int(round(lookback))
+        backtester = MonthlyBacktester(INITIAL_CAPITAL,selection_stratergy, daily_data)
+        pv,_,_ = backtester.run_backtest("2022-01-01",holding_months,lookback)
+        print(f"portfolio value: {pv:,.2f}")
+        return -pv
+
+
+    opt_x, opt_func = golden_section_search(obj_func, 50,500, tol=1.)
+
+    print(f"optimal lookback: {opt_x}, max rtn: {-opt_func/INITIAL_CAPITAL-1}")
+
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 2:
@@ -255,7 +291,9 @@ if __name__ == '__main__':
             daily_data=daily_stock_data
         )
 
-        final_asset_value, first_date,last_date = backtester.run_backtest("2022-01-01", holding_months=1,lookback=350)
+        # max_profit(holding_months=12,selection_stratergy=selecctor_vp_log_slope,daily_data=daily_stock_data)
+
+        final_asset_value, first_date,last_date = backtester.run_backtest("2022-01-01", holding_months=4,lookback=247)
 
         # 4. Results Summary
         return_pct = (final_asset_value - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100
@@ -267,6 +305,7 @@ if __name__ == '__main__':
         print(f"   Total Return: {return_pct:.2f}%")
         print(f"   Duration: {first_date} - {last_date}")
         print("=============================================")
+
 
         # Optional: Display the trade log
         # print("\n--- Trade Log (First 10 entries) ---")
