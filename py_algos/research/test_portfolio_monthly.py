@@ -51,9 +51,16 @@ def rtn_per_risk(data,df,lookback):
         df.loc[ticker,'risk'] = risk
 
     return df
+def compute_trading_value(data, df,lookback):
+    new_df = (data['High']+data['Low']+data['Close'])/3*data['Volume']*1e-9
+    # breakpoint()
+    for ticker in df.index.tolist():
+        val = np.sum(new_df[ticker].values[-lookback:])
+        df.loc[ticker,'tv'] = val
 
+    return df
 def selecctor_vp_log_slope(available_tickers: list, date: datetime, data: pd.DataFrame, lookback: int) -> list:
-    # lookback = 400
+    lookback = int(round(lookback))
     if len(data) < lookback:
         print("history shorter than lookback. skipping.")
         return []
@@ -64,7 +71,10 @@ def selecctor_vp_log_slope(available_tickers: list, date: datetime, data: pd.Dat
     pls = []
     df = pd.DataFrame(index = df_vol.keys())
     # breakpoint()
-    for ticker in df_vol.keys().tolist():
+    df = compute_trading_value(data, df, lookback)
+    base_tv = df.loc['SPY', 'tv'] * 0.0001
+    df = df[df['tv'] >= base_tv]
+    for ticker in df.index.tolist():
         y = df_vol[ticker].values[-lookback:]
         p = np.polyfit(x, np.log(y), 1)
         vls.append(p[0])
@@ -79,6 +89,9 @@ def selecctor_vp_log_slope(available_tickers: list, date: datetime, data: pd.Dat
 
     df = df[(df['vls'] >= 0) & (df['pls'] >= 0)]
     df['vpls'] = np.log(df['vls']) + np.log(df['pls'])
+
+    if (len(df)<=1):
+        return []
     rpr = normalize(df['rpr'].values)
     vpls = normalize(df['vpls'].values)
     vls = normalize(df['vls'])
@@ -267,9 +280,10 @@ def max_profit(holding_months, selection_stratergy, daily_data):
         return -pv
 
 
-    opt_x, opt_func = golden_section_search(obj_func, 50,500, tol=1.)
+    opt_x, opt_func = golden_section_search(obj_func, 10,500, tol=1.)
 
     print(f"optimal lookback: {opt_x}, max rtn: {-opt_func/INITIAL_CAPITAL-1}")
+    return int(round(opt_x))
 
 
 
@@ -291,15 +305,15 @@ if __name__ == '__main__':
             daily_data=daily_stock_data
         )
 
-        # max_profit(holding_months=12,selection_stratergy=selecctor_vp_log_slope,daily_data=daily_stock_data)
+        best_lookback = max_profit(holding_months=1,selection_stratergy=selecctor_vp_log_slope,daily_data=daily_stock_data)
 
-        final_asset_value, first_date,last_date = backtester.run_backtest("2022-01-01", holding_months=4,lookback=247)
+        final_asset_value, first_date,last_date = backtester.run_backtest("2022-01-01", holding_months=1,lookback=best_lookback)
 
         # 4. Results Summary
         return_pct = (final_asset_value - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100
 
         print("\n=============================================")
-        print(f"   Backtest Strategy: Monthly Buy & Sell")
+        print(f"   Backtest Strategy: Monthly Buy & Sell. lookback: {best_lookback}")
         print(f"   Starting Capital: ${INITIAL_CAPITAL:,.2f}")
         print(f"   Final Asset Value: ${final_asset_value:,.2f}")
         print(f"   Total Return: {return_pct:.2f}%")

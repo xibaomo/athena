@@ -164,7 +164,7 @@ if __name__ == "__main__":
     fwd_days = TradeDaysCounter().countTradeDays(exp_date)
     print(f"trading days: {fwd_days}")
 
-    lookback=20
+    lookback=10
     vls = compute_vol_price_log_slope(ticker,lookback)
     # breakpoint()
     # print(f"\033[1;31m{lookback}-day vol log-slope: {vls:.4f}\033[0m")
