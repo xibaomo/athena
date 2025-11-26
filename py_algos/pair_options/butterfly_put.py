@@ -87,7 +87,7 @@ def prepare_puts(sym, exp_date):
     return puts
 
 
-def create_premium_cal(options, p0):
+def create_premium_cal(options, p0, type):
     strikes = []
     asks = []
     bids = []
@@ -103,11 +103,14 @@ def create_premium_cal(options, p0):
     bounds = [np.min(strikes), np.max(strikes)]
     # ask_cal = lambda x: f_ask(x) if x <= bounds[1] else  99990.
     # ask_cal = lambda x: 0 if x <= bounds[0] elif x>=bounds[1] x-p0 else f_ask(x)
-    ask_cal = lambda x: 0 if x <= bounds[0] else (x - p0 if x >= bounds[1] else f_ask(x))
-    bid_cal = lambda x: 0 if x <= bounds[0] else (x - p0 if x >= bounds[1] else f_bid(x))
+    if type == "put":
+        ask_cal = lambda x: 0 if x <= bounds[0] else (x - p0 if x >= bounds[1] else f_ask(x))
+        bid_cal = lambda x: 0 if x <= bounds[0] else (x - p0 if x >= bounds[1] else f_bid(x))
+    if type == "call":
+        ask_cal = lambda x: 0 if x >= bounds[1] else (p0 - x if x <= bounds[0] else f_ask(x))
+        bid_cal = lambda x: 0 if x >= bounds[1] else (p0 - x if x <= bounds[0] else f_bid(x))
 
     return ask_cal, bid_cal, bounds
-
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:

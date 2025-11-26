@@ -7,6 +7,8 @@ import pandas as pd
 import yfinance as yf
 import numpy as np
 from scipy import stats
+from scipy.interpolate import interp1d
+from option_chain import *
 DATE_FORMAT ="%Y-%m-%d"
 
 def download_from_yfinance(ticker,interval='1h',period='730d'):
@@ -167,3 +169,61 @@ def compute_vol_price_log_slope(ticker,lookback):
     print(f"\033[1;31m{lookback}-day Close log-slope: {vls:.4f}, last_week/mean(Close): {latest_ratio:.3f}\033[0m")
 
     return vls
+def prepare_options(sym, exp_date):
+    options = get_option_chain_alpha_vantage(sym)
+    print(f"{len(options)} options downloaded")
+    puts = []
+    calls = []
+    for opt in options:
+        if opt['expiration'] == exp_date and opt['type'] == 'put':
+            puts.append(opt)
+        if opt['expiration'] == exp_date and opt['type'] == 'call':
+            calls.append(opt)
+
+    print(f"{len(puts)} calls/puts returned")
+    puts = sorted(puts, key=lambda x: float(x["strike"]))
+    calls = sorted(calls, key=lambda x: float(x["strike"]))
+    return calls, puts
+
+def create_premium_cal(options, p0, type):
+    strikes = []
+    asks = []
+    bids = []
+    for optn in options:
+        strikes.append(float(optn['strike']))
+        asks.append(float(optn['ask']))
+        bids.append(float(optn['bid']))
+    strikes = np.array(strikes)
+    asks = np.array(asks)
+    bids = np.array(bids)
+    f_ask = interp1d(strikes, asks, kind='cubic', fill_value="extrapolate")
+    f_bid = interp1d(strikes, bids, kind='cubic', fill_value="extrapolate")
+    bounds = [np.min(strikes), np.max(strikes)]
+    # ask_cal = lambda x: f_ask(x) if x <= bounds[1] else  99990.
+    # ask_cal = lambda x: 0 if x <= bounds[0] elif x>=bounds[1] x-p0 else f_ask(x)
+    if type == "put":
+        ask_cal = lambda x: 0 if x <= bounds[0] else (x - p0 if x >= bounds[1] else f_ask(x))
+        bid_cal = lambda x: 0 if x <= bounds[0] else (x - p0 if x >= bounds[1] else f_bid(x))
+    if type == "call":
+        ask_cal = lambda x: 0 if x >= bounds[1] else (p0 - x if x <= bounds[0] else f_ask(x))
+        bid_cal = lambda x: 0 if x >= bounds[1] else (p0 - x if x <= bounds[0] else f_bid(x))
+
+    return ask_cal, bid_cal, bounds
+
+def compute_call_put_parity_strike(p0,calls,puts):
+    call_ask,_,bounds = create_premium_cal(calls,p0,"call")
+    put_ask,_,_ = create_premium_cal(puts,p0,"put")
+
+    a = bounds[0]
+    b = bounds[1]
+    while b-a > 1e-2:
+        mid = (a+b)*.5
+        cost = call_ask(mid) - put_ask(mid)
+        if cost > 0:
+            a = mid
+        else:
+            b = mid
+
+    mid = (a+b)*.5
+    return mid
+

@@ -9,6 +9,7 @@ from mkv_cal import *
 from scipy.optimize import minimize
 import requests
 from option_chain import *
+import utils
 import pdb
 import matplotlib.pyplot as plt
 # Login to Robinhood
@@ -73,7 +74,7 @@ def __prepare_calls(sym,exp_date):
 
     return calls
 
-def prepare_calls(sym,exp_date):
+def ___prepare_calls(sym,exp_date):
     # url = 'https://www.alphavantage.co/query?function=HISTORICAL_OPTIONS&symbol=' + sym.upper() + "&apikey=A4L0CXXLQHSWW8ZS"
     # r = requests.get(url)
     # data = r.json()
@@ -186,9 +187,12 @@ if __name__ == "__main__":
 
     pick_rtns = rtns[-lookback_days*bars_per_day:]
 
-    calls = prepare_calls(ticker,exp_date)
-
+    # calls = prepare_calls(ticker,exp_date)
+    calls,puts = utils.prepare_options(ticker,exp_date)
     print("Calibrating strike against long-term distribution")
+    parity_strike =  utils.compute_call_put_parity_strike(cost_price,calls,puts)
+    print(f"parity strike: {parity_strike:.2f}")
+
     cdfcal = ECDFCal(pick_rtns)
     best_strike, max_rev = calibrate_strike(ticker,fwd_days*bars_per_day,cost_price, calls,cdfcal)
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")

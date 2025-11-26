@@ -2,6 +2,7 @@ import requests
 import numpy as np
 import random
 from scipy.interpolate import interp1d
+# API_KEYS=['135AZC6I9RH9MVFP']
 
 API_KEYS = ['C5QIR42XY4V3ASG5',
             'VQBWJO6WCUJOMUIG',
@@ -25,7 +26,7 @@ API_KEYS = ['C5QIR42XY4V3ASG5',
             'Z5RUBBRKM3DNP2EU']
 
 def random_ip():
-    return ".".join(str(random.randint(0, 255)) for _ in range(4))
+    return ".".join(str(random.randint(1, 255)) for _ in range(4))
 def get_option_chain_alpha_vantage(sym):
     idx = np.random.randint(len(API_KEYS))
     url = 'https://www.alphavantage.co/query?function=HISTORICAL_OPTIONS&symbol=' + sym.upper() + "&apikey=" + API_KEYS[idx]
