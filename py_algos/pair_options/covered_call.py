@@ -188,7 +188,8 @@ if __name__ == "__main__":
     pick_rtns = rtns[-lookback_days*bars_per_day:]
 
     # calls = prepare_calls(ticker,exp_date)
-    calls,puts = utils.prepare_options(ticker,exp_date)
+    # calls,puts = utils.prepare_options(ticker,exp_date)
+    calls,puts = prepare_callsputs(ticker,exp_date)
     print("Calibrating strike against long-term distribution")
     parity_strike =  utils.compute_call_put_parity_strike(cost_price,calls,puts)
     print(f"parity strike: {parity_strike:.2f}")

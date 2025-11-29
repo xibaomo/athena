@@ -1,5 +1,6 @@
 import requests
 import numpy as np
+import pandas as pd
 import random
 from scipy.interpolate import interp1d
 # API_KEYS=['135AZC6I9RH9MVFP']
@@ -64,7 +65,7 @@ def call_put_ask_ratio(delta,calls,puts):
     print(f"delta_.25 call ask: {call_ask:.2f}, put ask: {put_ask:.2f}")
     return call_ask/put_ask
 
-def prepare_callsputs(sym, exp_date):
+def __prepare_callsputs(sym, exp_date):
     options = get_option_chain_alpha_vantage(sym)
     print(f"{len(options)} options downloaded")
     puts = []
@@ -78,3 +79,42 @@ def prepare_callsputs(sym, exp_date):
     print(f"{len(puts)} calls returned")
 
     return calls,puts
+
+def get_option_chain_market_data(sym,exp_date):
+    url = "https://api.marketdata.app/v1/options/chain/"+sym.upper() + "/"
+    params = {}
+    params['expiration'] = exp_date
+    token = 'WnJWbkdsVXpkVEwyUFNVQUhNQUhWN29Xczkxc19HYThPTnZuRHZmZy1rQT0'
+    headers={
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {token}'
+    }
+    response = requests.get(url, params=params,headers=headers)
+    data = response.json()
+    # breakpoint()
+    symbols = data['optionSymbol']
+    # quote_url = "https://api.marketdata.app/v1/options/quotes/"
+    calls=[]
+    puts = []
+    print(f"{len(symbols)} options downloaded")
+    print(f"expiration: {pd.to_datetime(data['expiration'][0],unit='s')}")
+    for i in range(len(symbols)):
+        opt={}
+        opt['strike'] = data['strike'][i]
+        opt['ask'] = data['ask'][i]
+        opt['bid'] = data['bid'][i]
+        if data['side'][i] == 'call':
+            calls.append(opt)
+        if data['side'][i] == 'put':
+            puts.append(opt)
+    return calls,puts
+def prepare_callsputs(sym,exp_date):
+    calls,puts = get_option_chain_market_data(sym, exp_date)
+    return calls,puts
+
+
+
+
+
+
+
