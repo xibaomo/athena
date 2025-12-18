@@ -44,7 +44,7 @@ def find_match_sellputs_buycall(opt_idx, puts, calls, ratio):
     return -2
 
 
-def prepare_options(sym, exp_date):
+def __prepare_options(sym, exp_date):
     options = get_option_chain_alpha_vantage(sym)
     print(f"{len(options)} options downloaded")
     puts = []
@@ -129,7 +129,7 @@ if __name__ == '__main__':
 
     pick_rtns = rtns[-lookback_days * bars_per_day:]
 
-    calls, puts = prepare_options(ticker, exp_date)
+    calls, puts = prepare_callsputs(ticker, exp_date)
     call_put_ratio = call_put_ask_ratio(0.25, calls, puts)
     print(f"0.25_delta P/C ratio: {1./call_put_ratio:.3f}")
     # pdb.set_trace()

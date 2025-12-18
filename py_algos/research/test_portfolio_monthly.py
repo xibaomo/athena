@@ -280,7 +280,7 @@ def max_profit(holding_months, selection_stratergy, daily_data):
         return -pv
 
 
-    opt_x, opt_func = golden_section_search(obj_func, 10,500, tol=1.)
+    opt_x, opt_func = golden_section_search(obj_func, 10,300, tol=1.)
 
     print(f"optimal lookback: {opt_x}, max rtn: {-opt_func/INITIAL_CAPITAL-1}")
     return int(round(opt_x))

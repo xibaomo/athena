@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     pick_rtns = rtns[-spacing:]
 
-    puts = prepare_puts(ticker,exp_date)
+    # puts = prepare_puts(ticker,exp_date)
     calls,puts = prepare_callsputs(ticker,exp_date)
     call_put_ratio = call_put_ask_ratio(0.25,calls,puts)
     print(f"0.25_delta call/put ask_ratio: {call_put_ratio:.3f}")
