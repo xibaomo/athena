@@ -156,7 +156,8 @@ if __name__ == "__main__":
 
     ticker = sys.argv[1]
     exp_date = sys.argv[2]
-    cost_price = float(rh.stocks.get_latest_price(ticker)[0])
+    cur_price = float(rh.stocks.get_latest_price(ticker)[0])
+    cost_price = cur_price
     print(f"Latest price: {cost_price:.2f}")
     if len(sys.argv) == 4:
         cost_price = float(sys.argv[3])
@@ -193,6 +194,11 @@ if __name__ == "__main__":
     print("Calibrating strike against long-term distribution")
     parity_strike =  utils.compute_call_put_parity_strike(cost_price,calls,puts)
     print(f"parity strike: {parity_strike:.2f}")
+
+    max_pain_x,max_pain_y = eval_max_pain(calls,puts)
+    print(f"current price: {cur_price:.2f}, total value of options: {eval_option_total_value(cur_price,calls,puts):.2f}")
+    print(f"max pain strike: {max_pain_x:.2f}, max pain total_value: {max_pain_y:.2f}")
+    # print(f"max pain strike: {max_pain_x-1:.2f}, max pain total_value: {eval_option_total_value(max_pain_x-1,calls,puts):.2f}")
 
     cdfcal = ECDFCal(pick_rtns)
     best_strike, max_rev = calibrate_strike(ticker,fwd_days*bars_per_day,cost_price, calls,cdfcal)

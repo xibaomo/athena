@@ -104,6 +104,7 @@ def get_option_chain_market_data(sym,exp_date):
         opt['ask'] = data['ask'][i]
         opt['bid'] = data['bid'][i]
         opt['delta'] = data['delta'][i]
+        opt['open_interest'] = data['openInterest'][i]
         if data['side'][i] == 'call':
             calls.append(opt)
         if data['side'][i] == 'put':

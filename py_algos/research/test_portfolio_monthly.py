@@ -10,6 +10,7 @@ import random
 from download import DATA_FILE
 from dateutil.relativedelta import relativedelta
 from scipy.optimize import dual_annealing
+from .utils import *
 
 def normalize(arr):
     lw = np.min(arr)
@@ -248,27 +249,7 @@ class MonthlyBacktester:
         print("\nBacktest Complete.")
         return self.portfolio_value, first_date,last_date
 
-def golden_section_search(f, a, b, tol=1e-6, max_iter=200):
-    gr = (np.sqrt(5) - 1) / 2  # golden ratio ≈ 0.618
-    c = b - gr * (b - a)
-    d = a + gr * (b - a)
-    fc, fd = f(c), f(d)
 
-    for _ in range(max_iter):
-        if abs(b - a) < tol:
-            break
-
-        if fc < fd:
-            b, d, fd = d, c, fc
-            c = b - gr * (b - a)
-            fc = f(c)
-        else:
-            a, c, fc = c, d, fd
-            d = a + gr * (b - a)
-            fd = f(d)
-
-    xmin = (b + a) / 2
-    return xmin, f(xmin)
 
 def max_profit(holding_months, selection_stratergy, daily_data):
     def obj_func(lookback):

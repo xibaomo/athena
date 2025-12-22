@@ -227,3 +227,78 @@ def compute_call_put_parity_strike(p0,calls,puts):
     mid = (a+b)*.5
     return mid
 
+def golden_section_search(f, a, b, tol=1e-6, max_iter=200):
+    gr = (np.sqrt(5) - 1) / 2  # golden ratio ≈ 0.618
+    c = b - gr * (b - a)
+    d = a + gr * (b - a)
+    fc, fd = f(c), f(d)
+
+    for _ in range(max_iter):
+        if abs(b - a) < tol:
+            break
+
+        if fc < fd:
+            b, d, fd = d, c, fc
+            c = b - gr * (b - a)
+            fc = f(c)
+        else:
+            a, c, fc = c, d, fd
+            d = a + gr * (b - a)
+            fd = f(d)
+
+    xmin = (b + a) / 2
+    return xmin, f(xmin)
+def eval_calls_value(price,calls):
+    val = 0.
+    for call in calls:
+        if call['strike'] < price:
+            val += (price - call['strike'])*call['open_interest']
+    return val
+def eval_puts_value(price,puts):
+    val = 0.
+    for put in puts:
+        if put['strike'] > price:
+            val += (put['strike'] - price)*put['open_interest']
+    return val
+def eval_option_total_value(price, calls,puts):
+    return eval_calls_value(price, calls) + eval_puts_value(price,puts)
+def eval_max_pain(calls,puts):
+    def find_strike_range(calls,puts):
+        max_strike = 0
+        min_strike = 999999
+        for opt in calls:
+            min_strike = min(min_strike, opt['strike'])
+            max_strike = max(max_strike, opt['strike'])
+        for opt in puts:
+            min_strike = min(min_strike, opt['strike'])
+            max_strike = max(max_strike, opt['strike'])
+        return min_strike, max_strike
+    def cost_func(price):
+        total_val = eval_calls_value(price,calls) + eval_puts_value(price,puts)
+        return total_val
+
+    a,b = find_strike_range(calls,puts)
+    x,y = golden_section_search(cost_func,a,b)
+
+    return x,y
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
