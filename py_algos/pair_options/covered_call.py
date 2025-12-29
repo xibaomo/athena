@@ -196,8 +196,9 @@ if __name__ == "__main__":
     print(f"parity strike: {parity_strike:.2f}")
 
     max_pain_x,max_pain_y = eval_max_pain(calls,puts)
-    print(f"current price: {cur_price:.2f}, total value of options: {eval_option_total_value(cur_price,calls,puts):.2f}")
-    print(f"max pain strike: {max_pain_x:.2f}, max pain total_value: {max_pain_y:.2f}")
+    current_option_value = eval_option_total_value(cur_price,calls,puts)
+    print(f"current price: {cur_price:.2f}, total value of options: {current_option_value:.2f}")
+    print(f"max pain strike: {max_pain_x:.2f}, max pain total_value: {max_pain_y:.2f}, perf: {max_pain_y/current_option_value-1:.4f}")
     # print(f"max pain strike: {max_pain_x-1:.2f}, max pain total_value: {eval_option_total_value(max_pain_x-1,calls,puts):.2f}")
 
     cdfcal = ECDFCal(pick_rtns)

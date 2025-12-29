@@ -274,6 +274,7 @@ def eval_max_pain(calls,puts):
             max_strike = max(max_strike, opt['strike'])
         return min_strike, max_strike
     def cost_func(price):
+        # breakpoint()
         total_val = eval_calls_value(price,calls) + eval_puts_value(price,puts)
         return total_val
 

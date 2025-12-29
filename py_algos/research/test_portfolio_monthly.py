@@ -10,7 +10,7 @@ import random
 from download import DATA_FILE
 from dateutil.relativedelta import relativedelta
 from scipy.optimize import dual_annealing
-from .utils import *
+from utils import *
 
 def normalize(arr):
     lw = np.min(arr)
@@ -70,7 +70,7 @@ def selecctor_vp_log_slope(available_tickers: list, date: datetime, data: pd.Dat
     x = np.linspace(0, lookback, lookback)
     vls = []
     pls = []
-    df = pd.DataFrame(index = df_vol.keys())
+    df = pd.DataFrame(index = available_tickers)
     # breakpoint()
     df = compute_trading_value(data, df, lookback)
     base_tv = df.loc['SPY', 'tv'] * 0.0001
@@ -162,6 +162,10 @@ class MonthlyBacktester:
                     first_date = buy_date
                 buy_prices_df = month_data.loc[buy_date, 'Close'] #.set_index('Ticker')
                 available_tickers = buy_prices_df.index.tolist()
+                if 'IAU' in available_tickers:
+                    available_tickers.remove('IAU')
+                if 'GOOG' in available_tickers:
+                    available_tickers.remove('GOOG')
 
                 # Use the stock selection function to pick which stocks to buy
                 # breakpoint()
