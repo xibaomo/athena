@@ -207,7 +207,9 @@ if __name__ == "__main__":
     print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
 
     n_back = fwd_days*bars_per_day*2
-    idx,min_diff = utils.find_closest_cdf_subseries(rtns,n_back)
+    x = rtns[-n_back:]
+    y = rtns[:-n_back]
+    idx,min_diff = utils.find_closest_cdf_subarray(x,y)
     print(ks_2samp(rtns[-n_back:],rtns[idx:idx+n_back]))
 
     pick_rtns = rtns[idx+n_back:idx+n_back+fwd_days*bars_per_day]

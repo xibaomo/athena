@@ -285,43 +285,43 @@ def eval_max_pain(calls,puts):
 import numpy as np
 from scipy.stats import ks_2samp
 
-def find_closest_cdf_subseries(x, N):
+def find_closest_cdf_subarray(x, y):
     """
-    Find the subseries (length N) whose empirical CDF
-    is closest to the target (last N points) using KS distance.
+    Find the subarray of y whose empirical CDF is closest to x.
 
     Parameters
     ----------
     x : array-like
-        Input time series (1D)
-    N : int
-        Window length
+        Reference array
+    y : array-like
+        Larger array to search
 
     Returns
     -------
     best_start : int
-        Start index of the closest subseries
+        Start index of best-matching subarray in y
     best_distance : float
         KS distance
     """
 
     x = np.asarray(x)
-    T = len(x)
+    y = np.asarray(y)
 
-    if N >= T:
-        raise ValueError("N must be smaller than the length of the time series")
+    n = len(x)
+    m = len(y)
 
-    target = x[-N:]
+    if n > m:
+        raise ValueError("Length of x must be <= length of y")
 
     best_distance = np.inf
     best_start = None
-    y = x[:-N]
-    for i in range(len(y)-N):
-        candidate = y[i:i+N]
-        distance = ks_2samp(candidate, target).statistic
 
-        if distance < best_distance:
-            best_distance = distance
+    for i in range(m - n + 1):
+        y_sub = y[i:i + n]
+        d = ks_2samp(x, y_sub).statistic
+
+        if d < best_distance:
+            best_distance = d
             best_start = i
 
     return best_start, best_distance
