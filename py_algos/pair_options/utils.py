@@ -282,6 +282,49 @@ def eval_max_pain(calls,puts):
     x,y = golden_section_search(cost_func,a,b)
 
     return x,y
+import numpy as np
+from scipy.stats import ks_2samp
+
+def find_closest_cdf_subseries(x, N):
+    """
+    Find the subseries (length N) whose empirical CDF
+    is closest to the target (last N points) using KS distance.
+
+    Parameters
+    ----------
+    x : array-like
+        Input time series (1D)
+    N : int
+        Window length
+
+    Returns
+    -------
+    best_start : int
+        Start index of the closest subseries
+    best_distance : float
+        KS distance
+    """
+
+    x = np.asarray(x)
+    T = len(x)
+
+    if N >= T:
+        raise ValueError("N must be smaller than the length of the time series")
+
+    target = x[-N:]
+
+    best_distance = np.inf
+    best_start = None
+    y = x[:-N]
+    for i in range(len(y)-N):
+        candidate = y[i:i+N]
+        distance = ks_2samp(candidate, target).statistic
+
+        if distance < best_distance:
+            best_distance = distance
+            best_start = i
+
+    return best_start, best_distance
 
 
 

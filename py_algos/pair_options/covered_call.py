@@ -206,13 +206,33 @@ if __name__ == "__main__":
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
     print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
 
-    print(f"n_intervals: {len(rtns)//(fwd_days*bars_per_day)}")
-    err = sliding_cdf_error(rtns,fwd_days*bars_per_day,[0.3333,0.3333,.3333])
-    print(f"sliding cdf error: {err:.4f}")
-    wts = calibrate_weights(rtns,fwd_days*bars_per_day, nvar=3)
+    n_back = fwd_days*bars_per_day*2
+    idx,min_diff = utils.find_closest_cdf_subseries(rtns,n_back)
+    print(ks_2samp(rtns[-n_back:],rtns[idx:idx+n_back]))
 
-    print(f"Calibrating strike against recent weighted-sum distribution")
-    cdfcal = WeightedCDFCal(rtns,wts,fwd_days*bars_per_day)
-    best_strike, max_rev = calibrate_strike(ticker, fwd_days * bars_per_day,cost_price, calls,cdfcal)
+    pick_rtns = rtns[idx+n_back:idx+n_back+fwd_days*bars_per_day]
+    cdfcal = ECDFCal(pick_rtns)
+    best_strike, max_rev = calibrate_strike(ticker, fwd_days * bars_per_day, cost_price, calls, cdfcal)
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
-    print(f"max daily return: {max_rev / fwd_days / cost_price:.4f}, annual return: {max_rev / fwd_days / cost_price * 252:.4f}")
+    print(
+        f"max daily return: {max_rev / fwd_days / cost_price:.4f}, annual return: {max_rev / fwd_days / cost_price * 252:.4f}")
+
+    # print(f"n_intervals: {len(rtns)//(fwd_days*bars_per_day)}")
+    # err = sliding_cdf_error(rtns,fwd_days*bars_per_day,[0.3333,0.3333,.3333])
+    # print(f"sliding cdf error: {err:.4f}")
+    # wts = calibrate_weights(rtns,fwd_days*bars_per_day, nvar=3)
+    #
+    # print(f"Calibrating strike against recent weighted-sum distribution")
+    # cdfcal = WeightedCDFCal(rtns,wts,fwd_days*bars_per_day)
+    # best_strike, max_rev = calibrate_strike(ticker, fwd_days * bars_per_day,cost_price, calls,cdfcal)
+    # print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
+    # print(f"max daily return: {max_rev / fwd_days / cost_price:.4f}, annual return: {max_rev / fwd_days / cost_price * 252:.4f}")
+
+
+
+
+
+
+
+
+
