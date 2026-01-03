@@ -205,12 +205,21 @@ if __name__ == "__main__":
     best_strike, max_rev = calibrate_strike(ticker,fwd_days*bars_per_day,cost_price, calls,cdfcal)
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
     print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
+    #
+    print(f"searching for best lookback days...")
+    m_range = range(fwd_days*bars_per_day,22*5*bars_per_day)
+    res = find_best_m_given_n(rtns,fwd_days*bars_per_day,m_range)
+    print(f"best lookback days: {res['m']/bars_per_day:.2f}, max corr: {res['corr']:.4f}")
+    # breakpoint()
 
-    n_back = fwd_days*bars_per_day*2
+    backdays = round(res['m']/bars_per_day)
+    n_back = max([res['m'], 22 * bars_per_day])
+    print(f"Searching for subarray ({n_back/bars_per_day} days) with the most likely distribution...")
+
     x = rtns[-n_back:]
     y = rtns[:-n_back]
     idx,min_diff = utils.find_closest_cdf_subarray(x,y)
-    print(ks_2samp(rtns[-n_back:],rtns[idx:idx+n_back]))
+    print(f"Most similar subarray start index: {idx}, ks: {ks_2samp(rtns[-n_back:],rtns[idx:idx+n_back])}")
 
     pick_rtns = rtns[idx+n_back:idx+n_back+fwd_days*bars_per_day]
     cdfcal = ECDFCal(pick_rtns)
@@ -219,19 +228,8 @@ if __name__ == "__main__":
     print(
         f"max daily return: {max_rev / fwd_days / cost_price:.4f}, annual return: {max_rev / fwd_days / cost_price * 252:.4f}")
 
-    # print(f"n_intervals: {len(rtns)//(fwd_days*bars_per_day)}")
-    # err = sliding_cdf_error(rtns,fwd_days*bars_per_day,[0.3333,0.3333,.3333])
-    # print(f"sliding cdf error: {err:.4f}")
-    # wts = calibrate_weights(rtns,fwd_days*bars_per_day, nvar=3)
-    #
-    # print(f"Calibrating strike against recent weighted-sum distribution")
-    # cdfcal = WeightedCDFCal(rtns,wts,fwd_days*bars_per_day)
-    # best_strike, max_rev = calibrate_strike(ticker, fwd_days * bars_per_day,cost_price, calls,cdfcal)
-    # print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
-    # print(f"max daily return: {max_rev / fwd_days / cost_price:.4f}, annual return: {max_rev / fwd_days / cost_price * 252:.4f}")
 
-
-
+    # L,min_diff = best_y_length_via_cdf_parallel(rtns,fwd_days*bars_per_day,L_min=fwd_days*bars_per_day)
 
 
 

@@ -326,8 +326,222 @@ def find_closest_cdf_subarray(x, y):
 
     return best_start, best_distance
 
+def best_y_length_via_cdf(x, n, L_min=5, L_max=None):
+    """
+    Find the best length L of y such that the CDF of z
+    is closest to the CDF of zz.
+
+    Parameters
+    ----------
+    x : array-like
+        Time series (1D)
+    n : int
+        Length of z (last segment)
+    L_min : int
+        Minimum length of y to consider
+    L_max : int or None
+        Maximum length of y (defaults to feasible maximum)
+
+    Returns
+    -------
+    best_L : int
+        Optimal length of y
+    best_distance : float
+        KS distance between z and zz
+    """
+
+    x = np.asarray(x)
+    T = len(x)
+
+    if n >= T:
+        raise ValueError("n must be smaller than the length of x")
+
+    z = x[-n:]
+
+    if L_max is None:
+        # yy + zz + y + z must fit
+        L_max = (T - 2*n) // 2
+
+    best_L = None
+    best_distance = np.inf
+
+    for L in range(L_min, L_max + 1):
+        # y: immediately before z
+        y_start = T - n - L
+        y_end = T - n
+        y = x[y_start:y_end]
+
+        # search yy before y
+        yy_search_end = y_start
+        best_yy_start = None
+        best_yy_dist = np.inf
+
+        for i in range(0, yy_search_end - L + 1):
+            yy = x[i:i+L]
+            d = ks_2samp(yy, y).statistic
+
+            if d < best_yy_dist:
+                best_yy_dist = d
+                best_yy_start = i
+
+        if best_yy_start is None:
+            continue
+
+        # zz: immediately after yy
+        zz_start = best_yy_start + L
+        zz_end = zz_start + n
+
+        if zz_end > T:
+            continue
+
+        zz = x[zz_start:zz_end]
+
+        # compare z and zz
+        d_final = ks_2samp(z, zz).statistic
+
+        if d_final < best_distance:
+            best_distance = d_final
+            best_L = L
+
+    return best_L, best_distance
+
+import numpy as np
+from scipy.stats import ks_2samp
+
+def _evaluate_L(args):
+    x, n, L = args
+    T = len(x)
+
+    z = x[-n:]
+
+    # y immediately before z
+    y_start = T - n - L
+    y_end = T - n
+    if y_start < 0:
+        return None
+
+    y = x[y_start:y_end]
+
+    # search yy before y
+    yy_search_end = y_start
+    best_yy_start = None
+    best_yy_dist = np.inf
+
+    for i in range(0, yy_search_end - L + 1):
+        yy = x[i:i + L]
+        d = ks_2samp(yy, y).statistic
+        if d < best_yy_dist:
+            best_yy_dist = d
+            best_yy_start = i
+
+    if best_yy_start is None:
+        return None
+
+    # zz immediately after yy
+    zz_start = best_yy_start + L
+    zz_end = zz_start + n
+    if zz_end > T:
+        return None
+
+    zz = x[zz_start:zz_end]
+
+    d_final = ks_2samp(z, zz).statistic
+    return (L, d_final)
+from joblib import Parallel, delayed
+import multiprocessing as mp
+
+def best_y_length_via_cdf_parallel(
+    x, n, L_min=5, L_max=None, n_jobs=None
+):
+    """
+    Parallel version of best_y_length_via_cdf.
+    """
+
+    x = np.asarray(x)
+    T = len(x)
+
+    if n >= T:
+        raise ValueError("n must be smaller than len(x)")
+
+    if L_max is None:
+        L_max = (T - 2 * n) // 2
+
+    if n_jobs is None:
+        n_jobs = mp.cpu_count()
+
+    tasks = [(x, n, L) for L in range(L_min, L_max + 1)]
+
+    results = Parallel(
+        n_jobs=n_jobs,
+        backend="loky",
+        batch_size=1
+    )(delayed(_evaluate_L)(t) for t in tasks)
+
+    best_L = None
+    best_dist = np.inf
+
+    for r in results:
+        if r is None:
+            continue
+        L, d = r
+        if d < best_dist:
+            best_dist = d
+            best_L = L
+
+    return best_L, best_dist
+
+def corr_for_fixed_n(S, m, n, prefix):
+    """
+    Compute corr(x, y) for fixed n and given m > n.
+    """
+    T = len(S)
+    K = T // (m + n)
+
+    if K < 2:
+        return np.nan
+
+    x = np.empty(K)
+    y = np.empty(K)
+
+    for k in range(K):
+        i = k * (m + n)
+        x[k] = (prefix[i + m] - prefix[i]) / m
+        y[k] = (prefix[i + m + n] - prefix[i + m]) / n
+
+    return np.corrcoef(x, y)[0, 1]
 
 
+def find_best_m_given_n(S, n, m_range, K_min=20):
+    """
+    Optimize m under constraint m > n.
+    """
+    S = np.asarray(S)
+    T = len(S)
+
+    prefix = np.zeros(T + 1)
+    prefix[1:] = np.cumsum(S)
+
+    best = {
+        "corr": -np.inf,
+        "m": None
+    }
+
+    for m in m_range:
+        if m <= n:
+            continue
+
+        K = T // (m + n)
+        if K < K_min:
+            continue
+
+        r = corr_for_fixed_n(S, m, n, prefix)
+        if np.isnan(r):
+            continue
+
+        if r > best["corr"]:
+            best.update(corr=r, m=m)
+
+    return best
 
 
 
