@@ -149,6 +149,20 @@ def calibrate_strike(ticker,fwd_steps, cost, calls, cdf_cal):
             best_strike = s
     return best_strike,max_rev
 
+def evaluate_latest_wasserstein_distance(rtns, n_back, horizon):
+    '''
+    This function aims to find out the best n_back.
+    Use latest series rtns[-horizon:] as reference, evaluate its wasserstain distance from
+    the series predicted by finding analogy
+    '''
+    ###verify with latest series
+    y = rtns[-horizon:]
+    x = rtns[-horizon - n_back:-horizon]
+    res = analog_distribution_forecast(x, rtns[:-horizon - n_back], horizon, K=5)
+    # print(ks_2samp(res['future_samples'],y))
+    d = wasserstein_distance(y, res['future_samples'])
+    return d
+
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print(f"Usage: {sys.argv[0]} <ticker> <expiration_date> [stock_cost] ")
@@ -213,15 +227,26 @@ if __name__ == "__main__":
     # breakpoint()
 
     backdays = round(res['m']/bars_per_day)
-    n_back = max([res['m'], 22 * bars_per_day])
+    n_back = res['m']
+    horizon = fwd_days*bars_per_day
+
+    dmin = 99999.
+    best_n_back = 0
+    for i in [1,2,3]:
+        d = evaluate_latest_wasserstein_distance(rtns,n_back*i, horizon)
+        print(f"lookback: {n_back*i}, wasserstein distance: {d:.5f}")
+        if d < dmin:
+            best_n_back = i*n_back
+
+    n_back = best_n_back
     print(f"Searching for subarray ({n_back/bars_per_day} days) with the most likely distribution...")
 
     x = rtns[-n_back:]
     y = rtns[:-n_back]
-    idx,min_diff = utils.find_closest_cdf_subarray(x,y)
-    print(f"Most similar subarray start index: {idx}, ks: {ks_2samp(rtns[-n_back:],rtns[idx:idx+n_back])}")
 
-    pick_rtns = rtns[idx+n_back:idx+n_back+fwd_days*bars_per_day]
+    res = analog_distribution_forecast(x, y,horizon,K=5)
+    pick_rtns = res['future_samples']
+
     cdfcal = ECDFCal(pick_rtns)
     best_strike, max_rev = calibrate_strike(ticker, fwd_days * bars_per_day, cost_price, calls, cdfcal)
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")

@@ -1,7 +1,7 @@
 import pdb
 
 import robin_stocks.robinhood as rh
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 import pandas_market_calendars as mcal
 import pandas as pd
 import yfinance as yf
@@ -9,15 +9,18 @@ import numpy as np
 from scipy import stats
 from scipy.interpolate import interp1d
 from option_chain import *
-DATE_FORMAT ="%Y-%m-%d"
 
-def download_from_yfinance(ticker,interval='1h',period='730d'):
+DATE_FORMAT = "%Y-%m-%d"
+
+
+def download_from_yfinance(ticker, interval='1h', period='730d'):
     df = yf.download(ticker, period=period, interval=interval)
-    bars_per_day=7
-    print("History downloaded. Days: ",len(df)/bars_per_day)
-    return df,bars_per_day
+    bars_per_day = 7
+    print("History downloaded. Days: ", len(df) / bars_per_day)
+    return df, bars_per_day
 
-def download_from_robinhood(ticker,interval='hour',span='3month'):
+
+def download_from_robinhood(ticker, interval='hour', span='3month'):
     historical_data = rh.stocks.get_stock_historicals(ticker, interval=interval, span=span)
     # Convert the historical data into a DataFrame
     df = pd.DataFrame(historical_data)
@@ -39,7 +42,8 @@ def download_from_robinhood(ticker,interval='hour',span='3month'):
     price_columns = ['Open', 'Close', 'High', 'Low']
     df[price_columns] = df[price_columns].apply(pd.to_numeric)
     # pdb.set_trace()
-    return df,6 #BARS_PER_DAY
+    return df, 6  # BARS_PER_DAY
+
 
 def count_trading_days(start_date=None, end_date=None, exchange='NYSE'):
     """
@@ -69,13 +73,15 @@ def count_trading_days(start_date=None, end_date=None, exchange='NYSE'):
     # Return the number of trading days
     return len(trading_days)
 
+
 class TradeDaysCounter(object):
-    def __init__(self,exchange='NYSE'):
+    def __init__(self, exchange='NYSE'):
         if exchange.upper() == 'NYSE':
             self.cal = mcal.get_calendar('NYSE')
         elif exchange.upper() == 'NASDAQ':
             self.cal = mcal.get_calendar('NASDAQ')
-    def countTradeDays(self,end_date,start_date=None):
+
+    def countTradeDays(self, end_date, start_date=None):
         if start_date is None:
             today = datetime.today()
             start_date = today.strftime("%Y-%m-%d")
@@ -83,6 +89,7 @@ class TradeDaysCounter(object):
 
         # Return the number of trading days
         return len(trading_days)
+
 
 def natural_days_between_dates(start_date=None, end_date=None, date_format=DATE_FORMAT):
     """
@@ -107,21 +114,24 @@ def natural_days_between_dates(start_date=None, end_date=None, date_format=DATE_
     delta = end - start
     return delta.days
 
+
 def eval_stability(rtns, n_intervals=10):
     '''
     estimate statbility of return series by computing averaging difference of CDFs
     '''
-    spacing = len(rtns)//n_intervals
+    spacing = len(rtns) // n_intervals
     print(f"stability check. spacing: {spacing}")
     ds = []
-    for i in range(n_intervals-1):
-        r1 = rtns[i*spacing:(i+1)*spacing]
-        r2 = rtns[(i+1)*spacing:(i+2)*spacing]
-        d,p = stats.ks_2samp(r1,r2)
+    for i in range(n_intervals - 1):
+        r1 = rtns[i * spacing:(i + 1) * spacing]
+        r2 = rtns[(i + 1) * spacing:(i + 2) * spacing]
+        d, p = stats.ks_2samp(r1, r2)
         ds.append(d)
 
     return np.mean(ds)
-def find_stablest_spacing(rtns, init_spacing,increment):
+
+
+def find_stablest_spacing(rtns, init_spacing, increment):
     spacing = init_spacing
     min_diff = 0
     best_spacing = init_spacing
@@ -129,8 +139,8 @@ def find_stablest_spacing(rtns, init_spacing,increment):
         n_spacings = len(rtns) // spacing
         i0 = len(rtns) - n_spacings * spacing
         ds = []
-        for i in range(n_spacings-1):
-            d,p = stats.ks_2samp(rtns[i0:i0+spacing],rtns[i0+spacing:i0+2*spacing])
+        for i in range(n_spacings - 1):
+            d, p = stats.ks_2samp(rtns[i0:i0 + spacing], rtns[i0 + spacing:i0 + 2 * spacing])
             i0 += spacing
             ds.append(p)
         # print(ds)
@@ -143,18 +153,19 @@ def find_stablest_spacing(rtns, init_spacing,increment):
         spacing += increment
         if len(rtns) // spacing < 2:
             break
-    return best_spacing,min_diff
+    return best_spacing, min_diff
 
-def compute_vol_price_log_slope(ticker,lookback):
-    prd = str(lookback+1)+"d"
+
+def compute_vol_price_log_slope(ticker, lookback):
+    prd = str(lookback + 1) + "d"
     data = yf.download(ticker, period=prd, interval='1d')
     y = data['Volume'].values[-lookback:]
-    x = np.linspace(0,len(y),len(y))
-    p = np.polyfit(x,np.log(y),1)
+    x = np.linspace(0, len(y), len(y))
+    p = np.polyfit(x, np.log(y), 1)
     # breakpoint()
 
-    vls =  p.flatten()[0]
-    latest_ratio = (np.mean(y[-5:])/np.mean(y)).flatten()[0]
+    vls = p.flatten()[0]
+    latest_ratio = (np.mean(y[-5:]) / np.mean(y)).flatten()[0]
     # breakpoint()
     print(f"\033[1;31m{lookback}-day vol log-slope: {vls:.4f}, last_week/mean(vol): {latest_ratio:.3f}\033[0m")
 
@@ -169,6 +180,8 @@ def compute_vol_price_log_slope(ticker,lookback):
     print(f"\033[1;31m{lookback}-day Close log-slope: {vls:.4f}, last_week/mean(Close): {latest_ratio:.3f}\033[0m")
 
     return vls
+
+
 def prepare_options(sym, exp_date):
     options = get_option_chain_alpha_vantage(sym)
     print(f"{len(options)} options downloaded")
@@ -184,6 +197,7 @@ def prepare_options(sym, exp_date):
     puts = sorted(puts, key=lambda x: float(x["strike"]))
     calls = sorted(calls, key=lambda x: float(x["strike"]))
     return calls, puts
+
 
 def create_premium_cal(options, p0, type):
     strikes = []
@@ -210,22 +224,24 @@ def create_premium_cal(options, p0, type):
 
     return ask_cal, bid_cal, bounds
 
-def compute_call_put_parity_strike(p0,calls,puts):
-    call_ask,_,bounds = create_premium_cal(calls,p0,"call")
-    put_ask,_,_ = create_premium_cal(puts,p0,"put")
+
+def compute_call_put_parity_strike(p0, calls, puts):
+    call_ask, _, bounds = create_premium_cal(calls, p0, "call")
+    put_ask, _, _ = create_premium_cal(puts, p0, "put")
 
     a = bounds[0]
     b = bounds[1]
-    while b-a > 1e-2:
-        mid = (a+b)*.5
+    while b - a > 1e-2:
+        mid = (a + b) * .5
         cost = call_ask(mid) - put_ask(mid)
         if cost > 0:
             a = mid
         else:
             b = mid
 
-    mid = (a+b)*.5
+    mid = (a + b) * .5
     return mid
+
 
 def golden_section_search(f, a, b, tol=1e-6, max_iter=200):
     gr = (np.sqrt(5) - 1) / 2  # golden ratio ≈ 0.618
@@ -248,22 +264,30 @@ def golden_section_search(f, a, b, tol=1e-6, max_iter=200):
 
     xmin = (b + a) / 2
     return xmin, f(xmin)
-def eval_calls_value(price,calls):
+
+
+def eval_calls_value(price, calls):
     val = 0.
     for call in calls:
         if call['strike'] < price:
-            val += (price - call['strike'])*call['open_interest']
+            val += (price - call['strike']) * call['open_interest']
     return val
-def eval_puts_value(price,puts):
+
+
+def eval_puts_value(price, puts):
     val = 0.
     for put in puts:
         if put['strike'] > price:
-            val += (put['strike'] - price)*put['open_interest']
+            val += (put['strike'] - price) * put['open_interest']
     return val
-def eval_option_total_value(price, calls,puts):
-    return eval_calls_value(price, calls) + eval_puts_value(price,puts)
-def eval_max_pain(calls,puts):
-    def find_strike_range(calls,puts):
+
+
+def eval_option_total_value(price, calls, puts):
+    return eval_calls_value(price, calls) + eval_puts_value(price, puts)
+
+
+def eval_max_pain(calls, puts):
+    def find_strike_range(calls, puts):
         max_strike = 0
         min_strike = 999999
         for opt in calls:
@@ -273,17 +297,21 @@ def eval_max_pain(calls,puts):
             min_strike = min(min_strike, opt['strike'])
             max_strike = max(max_strike, opt['strike'])
         return min_strike, max_strike
+
     def cost_func(price):
         # breakpoint()
-        total_val = eval_calls_value(price,calls) + eval_puts_value(price,puts)
+        total_val = eval_calls_value(price, calls) + eval_puts_value(price, puts)
         return total_val
 
-    a,b = find_strike_range(calls,puts)
-    x,y = golden_section_search(cost_func,a,b)
+    a, b = find_strike_range(calls, puts)
+    x, y = golden_section_search(cost_func, a, b)
 
-    return x,y
+    return x, y
+
+
 import numpy as np
 from scipy.stats import ks_2samp
+
 
 def find_closest_cdf_subarray(x, y):
     """
@@ -326,6 +354,7 @@ def find_closest_cdf_subarray(x, y):
 
     return best_start, best_distance
 
+
 def best_y_length_via_cdf(x, n, L_min=5, L_max=None):
     """
     Find the best length L of y such that the CDF of z
@@ -360,7 +389,7 @@ def best_y_length_via_cdf(x, n, L_min=5, L_max=None):
 
     if L_max is None:
         # yy + zz + y + z must fit
-        L_max = (T - 2*n) // 2
+        L_max = (T - 2 * n) // 2
 
     best_L = None
     best_distance = np.inf
@@ -377,7 +406,7 @@ def best_y_length_via_cdf(x, n, L_min=5, L_max=None):
         best_yy_dist = np.inf
 
         for i in range(0, yy_search_end - L + 1):
-            yy = x[i:i+L]
+            yy = x[i:i + L]
             d = ks_2samp(yy, y).statistic
 
             if d < best_yy_dist:
@@ -405,8 +434,10 @@ def best_y_length_via_cdf(x, n, L_min=5, L_max=None):
 
     return best_L, best_distance
 
+
 import numpy as np
 from scipy.stats import ks_2samp
+
 
 def _evaluate_L(args):
     x, n, L = args
@@ -447,11 +478,14 @@ def _evaluate_L(args):
 
     d_final = ks_2samp(z, zz).statistic
     return (L, d_final)
+
+
 from joblib import Parallel, delayed
 import multiprocessing as mp
 
+
 def best_y_length_via_cdf_parallel(
-    x, n, L_min=5, L_max=None, n_jobs=None
+        x, n, L_min=5, L_max=None, n_jobs=None
 ):
     """
     Parallel version of best_y_length_via_cdf.
@@ -489,6 +523,7 @@ def best_y_length_via_cdf_parallel(
             best_L = L
 
     return best_L, best_dist
+
 
 def corr_for_fixed_n(S, m, n, prefix):
     """
@@ -544,19 +579,122 @@ def find_best_m_given_n(S, n, m_range, K_min=20):
     return best
 
 
+from scipy.stats import wasserstein_distance
 
 
+def find_best_wasserstein_subarray(x, y, window_len):
+    best_d = float("inf")
+    best_i = None
+
+    for i in range(len(y) - window_len + 1):
+        sub = y[i:i + window_len]
+        d = wasserstein_distance(x, sub)
+
+        if d < best_d:
+            best_d = d
+            best_i = i
+
+    return best_i, best_d
 
 
+def extract_features(x):
+    """
+    Time-structure features
+    """
+    x = np.asarray(x)
+
+    mean = x.mean()
+    std = x.std()
+    acf1 = np.corrcoef(x[:-1], x[1:])[0, 1] if len(x) > 1 else 0.0
+
+    return np.array([mean, std, acf1])
 
 
+def find_analogs(x,
+        series,
+        horizon,
+        K=20,
+        alpha=0.5,
+):
+    """
+    Find K analogs of the most recent window.
+
+    Returns:
+        list of (start_idx, score)
+    """
+    series = np.asarray(series)
+
+    x_recent = x
+    lookback = len(x)
+    feat_x = extract_features(x_recent)
+
+    scores = []
+
+    for i in range(0, len(series) - lookback - horizon):
+        y = series[i:i + lookback]
+        z_future = series[i + lookback:i + lookback + horizon]
+
+        # skip NaN or bad windows
+        if np.any(np.isnan(y)) or np.any(np.isnan(z_future)):
+            continue
+
+        # distribution distance
+        d_dist = wasserstein_distance(x_recent, y)
+
+        # structure distance
+        feat_y = extract_features(y)
+        d_struct = np.linalg.norm(feat_x - feat_y)
+
+        # combined score
+        score = alpha * d_dist + (1 - alpha) * d_struct
+
+        scores.append((i, score))
+
+    scores.sort(key=lambda x: x[1])
+
+    return scores[:K]
 
 
+def forecast_distribution(
+        series,
+        analogs,
+        lookback,
+        horizon
+):
+    """
+    Merge empirical distributions from analog futures
+    """
+    future_samples = []
+
+    for idx, _ in analogs:
+        future = series[idx + lookback: idx + lookback + horizon]
+        future_samples.append(future)
+
+    return np.concatenate(future_samples)
 
 
+def analog_distribution_forecast(x,
+        series,
+        horizon,
+        K=20,
+        alpha=0.5
+):
+    analogs = find_analogs(x,
+        series=series,
+        horizon=horizon,
+        K=K,
+        alpha=alpha
+    )
 
+    future_dist = forecast_distribution(
+        series=series,
+        analogs=analogs,
+        lookback=len(x),
+        horizon=horizon
+    )
 
-
-
-
-
+    return {
+        "analogs": analogs,
+        "future_samples": future_dist,
+        "quantiles": np.quantile(future_dist, [0.05, 0.25, 0.5, 0.75, 0.95])
+    }
