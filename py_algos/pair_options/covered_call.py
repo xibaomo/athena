@@ -236,6 +236,7 @@ if __name__ == "__main__":
         d = evaluate_latest_wasserstein_distance(rtns,n_back*i, horizon)
         print(f"lookback: {n_back*i}, wasserstein distance: {d:.5f}")
         if d < dmin:
+            dmin = d
             best_n_back = i*n_back
 
     n_back = best_n_back
