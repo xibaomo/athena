@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import random
 from scipy.interpolate import interp1d
+import sys,os
 # API_KEYS=['135AZC6I9RH9MVFP']
 
 API_KEYS = ['C5QIR42XY4V3ASG5',
@@ -92,8 +93,13 @@ def get_option_chain_market_data(sym,exp_date):
     response = requests.get(url, params=params,headers=headers)
     data = response.json()
     # breakpoint()
-    symbols = data['optionSymbol']
-    # quote_url = "https://api.marketdata.app/v1/options/quotes/"
+    try:
+        symbols = data['optionSymbol']
+    except:
+        print(f"!!!Failed to download options!!!")
+        sys.exit(1)
+        return [],[]
+
     calls=[]
     puts = []
     print(f"{len(symbols)} options downloaded")
