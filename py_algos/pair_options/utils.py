@@ -548,7 +548,8 @@ def corr_for_fixed_n(S, m, n, prefix):
 
 def find_best_m_given_n(S, n, m_range, K_min=20):
     """
-    Optimize m under constraint m > n.
+    Find best lookback for given horizon, lookback > horizon.
+
     """
     S = np.asarray(S)
     T = len(S)
