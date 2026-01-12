@@ -23,6 +23,7 @@ def download_spy_stock_list():
     tables = pd.read_html(StringIO(resp.text))
     df = tables[0]
     syms = df['Symbol'].tolist()
+    df.to_csv('sp500.csv', index=False)
     return syms
 
 if __name__ == "__main__":
@@ -32,6 +33,7 @@ if __name__ == "__main__":
 
     exp_date = sys.argv[1]
     all_syms = download_spy_stock_list()
+    sys.exit(1)
 
     cur_prices = []
     cur_tv = []

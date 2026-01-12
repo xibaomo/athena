@@ -546,7 +546,7 @@ def corr_for_fixed_n(S, m, n, prefix):
     return np.corrcoef(x, y)[0, 1]
 
 
-def find_best_m_given_n(S, n, m_range, K_min=20):
+def find_best_m_given_n(S, n, m_range, K_min=10):
     """
     Find best lookback for given horizon, lookback > horizon.
 
@@ -563,14 +563,15 @@ def find_best_m_given_n(S, n, m_range, K_min=20):
     }
 
     for m in m_range:
-        if m <= n:
-            continue
+        # if m <= n:
+        #     continue
 
         K = T // (m + n)
         if K < K_min:
             continue
 
         r = corr_for_fixed_n(S, m, n, prefix)
+        r = abs(r)
         if np.isnan(r):
             continue
 

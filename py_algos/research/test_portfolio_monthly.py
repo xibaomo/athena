@@ -7,6 +7,9 @@ import yfinance as yf
 import pandas as pd
 from datetime import datetime, timedelta
 import random
+
+from yfinance import tickers
+
 from download import DATA_FILE
 from dateutil.relativedelta import relativedelta
 from scipy.optimize import dual_annealing
@@ -274,13 +277,19 @@ def max_profit(holding_months, selection_stratergy, daily_data):
 
 if __name__ == '__main__':
     if len(sys.argv) > 2:
-        print(f"Usage: {sys.argv[0]}")
+        print(f"Usage: {sys.argv[0]} <sp500.csv>")
         sys.exit(1)
     INITIAL_CAPITAL = 10000.00
 
 
     data = pd.read_csv(DATA_FILE, comment='#', header=[0, 1], parse_dates=[0], index_col=0)
     daily_stock_data = data.dropna(axis=1)
+    if len(sys.argv) == 2:
+        csv_file = sys.argv[1]
+        df = pd.read_csv(csv_file)
+        tickers_keep = df['Symbol'].to_list()
+        tickers_keep += ['SPY','QQQ','TSM','GLD']
+        daily_stock_data = daily_stock_data.loc[:, daily_stock_data.columns.get_level_values(1).isin(tickers_keep)]
 
     if not daily_stock_data.empty:
         # 3. Run Backtest

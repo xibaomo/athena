@@ -104,6 +104,7 @@ if __name__ == '__main__':
     print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike*max_rtn:.2f}")
     print(f"max daily return: {max_rtn/fwd_days:.4f}, annual return: {max_rtn/fwd_days*252:.4f}")
 
+    # breakpoint()
     print(f"searching for best lookback days...")
     m_range = range(fwd_days * bars_per_day, 22 * 5 * bars_per_day)
     res = find_best_m_given_n(rtns, fwd_days * bars_per_day, m_range)
@@ -133,7 +134,7 @@ if __name__ == '__main__':
     pick_rtns = res['future_samples']
 
     cdf_cal = ECDFCal(pick_rtns)
-    best_strike, max_rtn = calibrate_strike_put(cur_price, puts, pick_rtns, steps, lb_rtn=-0.6, ub_rtn=1.,
+    best_strike, max_rtn = calibrate_strike_put(cur_price, puts, pick_rtns, horizon, lb_rtn=-0.6, ub_rtn=1.,
                                                 cdf_cal=cdf_cal)
     print(f"Latest price: {cur_price:.2f}")
     print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike * max_rtn:.2f}")
