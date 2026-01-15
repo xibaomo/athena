@@ -7,8 +7,6 @@ from utils import *
 from mkv_cal import *
 import matplotlib.pyplot as plt
 from option_chain import *
-import random
-from covered_call import sliding_cdf_error, calibrate_weights
 
 
 def compute_revenue(price, sc, sp, s0, s0_ratio):
@@ -75,25 +73,6 @@ def calibrate_call_put_asks(p0, lb_rtn, ub_rtn, probs, f_call_ask, f_put_ask, f_
 
     return opt_x, max_rtn
 
-
-def prepare_options(sym, exp_date):
-    options = get_option_chain_alpha_vantage(sym)
-    print(f"{len(options)} options downloaded")
-    puts = []
-    calls = []
-    for opt in options:
-        if opt['expiration'] == exp_date and opt['type'] == 'put':
-            puts.append(opt)
-        if opt['expiration'] == exp_date and opt['type'] == 'call':
-            calls.append(opt)
-
-    print(f"{len(puts)} calls returned")
-    # for call in calls:
-    #     plt.plot(float(call['strike']),float(call['bid']),'.')
-    # plt.show()
-    return puts, calls
-
-
 def create_premium_cal(calls, puts, p0):
     strikes = []
     asks = []
@@ -153,27 +132,40 @@ if __name__ == "__main__":
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
     p0 = df['Close'].values[-1][0]
     print(f"Latest price: {p0}")
-    puts, calls = prepare_options(ticker, exp_date)
+    puts, calls = prepare_callsputs(ticker, exp_date)
     f_call_ask, f_put_ask, f_put_bid, strike_bounds = create_premium_cal(calls, puts, p0)
 
-    # lookback_days, min_diff = findBestLookbackDays(22 * 12, 22 * 22, fwd_days, bars_per_day, rtns)
-    # print(f"optimal days: {lookback_days}, min_diff: {min_diff}")
-    #
-    # picked_rtns = rtns[-lookback_days * bars_per_day:]
-    #
-    # # probs = compute_steady_dist(picked_rtns,lb_rtn=-0.5,ub_rtn=1.)
-    # cdfcal = ECDFCal(picked_rtns)
-    # probs = compMultiStepProb(fwd_days * bars_per_day, lb_rtn=lb_rtn, ub_rtn=ub_rtn, cdf_cal=cdfcal)
-    # plt.plot(probs, '.')
+    print(f"searching for best lookback days...")
+    m_range = range(fwd_days * bars_per_day, 22 * 5 * bars_per_day)
+    res = find_best_m_given_n(rtns, fwd_days * bars_per_day, m_range)
+    print(f"best lookback days: {res['m'] / bars_per_day:.2f}, max corr: {res['corr']:.4f}")
+    # breakpoint()
 
-    print(f"n_intervals: {len(rtns) // (fwd_days * bars_per_day)}")
-    err = sliding_cdf_error(rtns, fwd_days * bars_per_day, [0.3333, 0.3333, .3333])
-    print(f"sliding cdf error: {err:.4f}")
-    wts = calibrate_weights(rtns, fwd_days * bars_per_day, nvar=3)
+    backdays = round(res['m'] / bars_per_day)
+    n_back = res['m']
+    horizon = fwd_days * bars_per_day
 
-    print(f"Calibrating strike against recent weighted-sum distribution")
-    cdfcal = WeightedCDFCal(rtns, wts, fwd_days * bars_per_day)
-    probs = compMultiStepProb(fwd_days * bars_per_day, lb_rtn=lb_rtn, ub_rtn=ub_rtn, cdf_cal=cdfcal)
+    dmin = 99999.
+    best_n_back = 0
+    for i in [1, 2, 3]:
+        d = evaluate_latest_wasserstein_distance(rtns, n_back * i, horizon)
+        print(f"lookback: {n_back * i}, wasserstein distance: {d:.5f}")
+        if d < dmin:
+            dmin = d
+            best_n_back = i * n_back
+
+    n_back = best_n_back
+    print(f"Searching for subarray ({n_back / bars_per_day} days) with the most likely distribution...")
+
+    x = rtns[-n_back:]
+    y = rtns[:-n_back]
+
+    res = analog_distribution_forecast(x, y, horizon, K=3)
+    pick_rtns = res['future_samples']
+
+    cdf_cal = ECDFCal(pick_rtns)
+
+    probs = compMultiStepProb(fwd_days * bars_per_day, lb_rtn=lb_rtn, ub_rtn=ub_rtn, cdf_cal=cdf_cal)
     drtn = (ub_rtn - lb_rtn) / len(probs)
     plt.plot(probs, '.')
 

@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
-
 from cal_prob import findBestLookbackDays, prepare_rtns
-from covered_call import sliding_cdf_error, calibrate_weights
 from mkv_cal import *
 from option_chain import *
 from utils import *
@@ -130,7 +128,7 @@ if __name__ == '__main__':
     x = rtns[-n_back:]
     y = rtns[:-n_back]
 
-    res = analog_distribution_forecast(x, y, horizon, K=5)
+    res = analog_distribution_forecast(x, y, horizon, K=3)
     pick_rtns = res['future_samples']
 
     cdf_cal = ECDFCal(pick_rtns)

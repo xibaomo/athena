@@ -143,7 +143,7 @@ def calibrate_strike(ticker,fwd_steps, cost, calls, cdf_cal):
         bid = float(call['bid'])
         rev = s - cost + bid
         exp_rev = rev*pu + bid*(1-pu)
-        print(f"strike: {s:.2f}, asgn prob: {pu:.3f}, exp profit: {exp_rev:.2f}, bid: {bid:.2f}, bid*prob: {(1-pu)*bid:.2f}")
+        print(f"strike: {s:.2f}, asgn prob: {pu:.3f}, exp profit: {exp_rev:.2f}, bid: {bid:.2f}, bid*prob: {(1-pu)*bid:.4f}")
         if exp_rev > max_rev:
             max_rev = exp_rev
             best_strike = s

@@ -97,7 +97,7 @@ def get_option_chain_market_data(sym,exp_date):
         symbols = data['optionSymbol']
     except:
         print(f"!!!Failed to download options!!!")
-        sys.exit(1)
+        # sys.exit(1)
         return [],[]
 
     calls=[]

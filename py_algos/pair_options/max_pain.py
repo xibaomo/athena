@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     exp_date = sys.argv[1]
     all_syms = download_spy_stock_list()
-    sys.exit(1)
+    # sys.exit(1)
 
     cur_prices = []
     cur_tv = []
