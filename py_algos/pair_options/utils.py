@@ -1,5 +1,3 @@
-import pdb
-
 import robin_stocks.robinhood as rh
 from datetime import datetime, timedelta
 import pandas_market_calendars as mcal
@@ -9,16 +7,15 @@ import numpy as np
 from scipy import stats
 from scipy.interpolate import interp1d
 from option_chain import *
+from mkv_cal import ECDFCal
 
 DATE_FORMAT = "%Y-%m-%d"
-
 
 def download_from_yfinance(ticker, interval='1h', period='730d'):
     df = yf.download(ticker, period=period, interval=interval)
     bars_per_day = 7
     print("History downloaded. Days: ", len(df) / bars_per_day)
     return df, bars_per_day
-
 
 def download_from_robinhood(ticker, interval='hour', span='3month'):
     historical_data = rh.stocks.get_stock_historicals(ticker, interval=interval, span=span)
@@ -700,3 +697,53 @@ def analog_distribution_forecast(x,
         "future_samples": future_dist,
         "quantiles": np.quantile(future_dist, [0.05, 0.25, 0.5, 0.75, 0.95])
     }
+def evaluate_latest_wasserstein_distance(rtns, n_back, horizon):
+    '''
+    This function aims to find out the best n_back.
+    Use latest series rtns[-horizon:] as reference, evaluate its wasserstain distance from
+    the series predicted by finding analogy
+    '''
+    ###verify with latest series
+    y = rtns[-horizon:]
+    x = rtns[-horizon - n_back:-horizon]
+    res = analog_distribution_forecast(x, rtns[:-horizon - n_back], horizon, K=5)
+    # print(ks_2samp(res['future_samples'],y))
+    d = wasserstein_distance(y, res['future_samples'])
+    return d
+
+def compute_historical_distribution(rtns, fwd_days,bars_per_day=14):
+    print(f"searching for best lookback days...")
+    m_range = range(fwd_days * bars_per_day, 22 * 5 * bars_per_day)
+    res = find_best_m_given_n(rtns, fwd_days * bars_per_day, m_range)
+    print(f"best lookback days: {res['m'] / bars_per_day:.2f}, max corr: {res['corr']:.4f}")
+    # breakpoint()
+
+    # backdays = round(res['m'] / bars_per_day)
+    n_back = res['m']
+    horizon = fwd_days * bars_per_day
+
+    dmin = 99999.
+    best_n_back = 0
+    for i in [1, 2, 3]:
+        d = evaluate_latest_wasserstein_distance(rtns, n_back * i, horizon)
+        print(f"lookback: {n_back * i}, wasserstein distance: {d:.5f}")
+        if d < dmin:
+            dmin = d
+            best_n_back = i * n_back
+
+    n_back = best_n_back
+    print(f"Searching for subarray ({n_back / bars_per_day} days) with the most likely distribution...")
+
+    x = rtns[-n_back:]
+    y = rtns[:-n_back]
+
+    res = analog_distribution_forecast(x, y, horizon, K=3)
+    pick_rtns = res['future_samples']
+
+    cdf_cal = ECDFCal(pick_rtns)
+
+    return cdf_cal
+
+
+
+

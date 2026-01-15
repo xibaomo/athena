@@ -3,8 +3,6 @@ from cal_prob import findBestLookbackDays, prepare_rtns
 from mkv_cal import *
 from option_chain import *
 from utils import *
-from covered_call import evaluate_latest_wasserstein_distance
-
 
 def compExpectedReturn(cur_price, strike, premium, probs, drtn,lb_rtn):
     expected_rtn = 0.
@@ -18,7 +16,6 @@ def compExpectedReturn(cur_price, strike, premium, probs, drtn,lb_rtn):
             rtn = (premium - strike + p)/strike
         expected_rtn = expected_rtn + probs[i]*rtn
     return expected_rtn
-
 
 def prepare_puts(sym,exp_date):
     options = get_option_chain_alpha_vantage(sym)

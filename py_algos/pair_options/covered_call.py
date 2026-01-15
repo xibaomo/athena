@@ -9,7 +9,7 @@ from mkv_cal import *
 from scipy.optimize import minimize
 import requests
 from option_chain import *
-import utils
+
 import pdb
 import matplotlib.pyplot as plt
 # Login to Robinhood
@@ -149,20 +149,6 @@ def calibrate_strike(ticker,fwd_steps, cost, calls, cdf_cal):
             best_strike = s
     return best_strike,max_rev
 
-def evaluate_latest_wasserstein_distance(rtns, n_back, horizon):
-    '''
-    This function aims to find out the best n_back.
-    Use latest series rtns[-horizon:] as reference, evaluate its wasserstain distance from
-    the series predicted by finding analogy
-    '''
-    ###verify with latest series
-    y = rtns[-horizon:]
-    x = rtns[-horizon - n_back:-horizon]
-    res = analog_distribution_forecast(x, rtns[:-horizon - n_back], horizon, K=5)
-    # print(ks_2samp(res['future_samples'],y))
-    d = wasserstein_distance(y, res['future_samples'])
-    return d
-
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print(f"Usage: {sys.argv[0]} <ticker> <expiration_date> [stock_cost] ")
@@ -202,11 +188,9 @@ if __name__ == "__main__":
 
     pick_rtns = rtns[-lookback_days*bars_per_day:]
 
-    # calls = prepare_calls(ticker,exp_date)
-    # calls,puts = utils.prepare_options(ticker,exp_date)
     calls,puts = prepare_callsputs(ticker,exp_date)
     print("Calibrating strike against long-term distribution")
-    parity_strike =  utils.compute_call_put_parity_strike(cost_price,calls,puts)
+    parity_strike = compute_call_put_parity_strike(cost_price,calls,puts)
     print(f"parity strike: {parity_strike:.2f}")
 
     max_pain_x,max_pain_y = eval_max_pain(calls,puts)
@@ -215,40 +199,14 @@ if __name__ == "__main__":
     print(f"max pain strike: {max_pain_x:.2f}, max pain total_value: {max_pain_y:.2f}, perf: {max_pain_y/current_option_value-1:.4f}")
     # print(f"max pain strike: {max_pain_x-1:.2f}, max pain total_value: {eval_option_total_value(max_pain_x-1,calls,puts):.2f}")
 
+    # Use distribution of recent lookback_days
     cdfcal = ECDFCal(pick_rtns)
     best_strike, max_rev = calibrate_strike(ticker,fwd_days*bars_per_day,cost_price, calls,cdfcal)
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
     print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
     #
-    print(f"searching for best lookback days...")
-    m_range = range(fwd_days*bars_per_day,22*5*bars_per_day)
-    res = find_best_m_given_n(rtns,fwd_days*bars_per_day,m_range)
-    print(f"best lookback days: {res['m']/bars_per_day:.2f}, max corr: {res['corr']:.4f}")
-    # breakpoint()
-
-    backdays = round(res['m']/bars_per_day)
-    n_back = res['m']
-    horizon = fwd_days*bars_per_day
-
-    dmin = 99999.
-    best_n_back = 0
-    for i in [1,2,3]:
-        d = evaluate_latest_wasserstein_distance(rtns,n_back*i, horizon)
-        print(f"lookback: {n_back*i}, wasserstein distance: {d:.5f}")
-        if d < dmin:
-            dmin = d
-            best_n_back = i*n_back
-
-    n_back = best_n_back
-    print(f"Searching for subarray ({n_back/bars_per_day} days) with the most likely distribution...")
-
-    x = rtns[-n_back:]
-    y = rtns[:-n_back]
-
-    res = analog_distribution_forecast(x, y,horizon,K=5)
-    pick_rtns = res['future_samples']
-
-    cdfcal = ECDFCal(pick_rtns)
+    # Use historical distribution
+    cdfcal = compute_historical_distribution(rtns,fwd_days, bars_per_day)
     best_strike, max_rev = calibrate_strike(ticker, fwd_days * bars_per_day, cost_price, calls, cdfcal)
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
     print(

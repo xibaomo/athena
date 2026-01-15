@@ -336,3 +336,9 @@ def compute_steady_dist(rtns,lb_rtn,ub_rtn):
     tmp = np.linalg.inv(tmp)
     pi = pi@tmp
     return pi.ravel()
+
+
+
+
+
+
