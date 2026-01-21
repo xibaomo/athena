@@ -149,4 +149,5 @@ if __name__ == '__main__':
     print(f"Latest price: {cur_price:.2f}")
     print(f"best strike: {best_strike}, max_rtn: {max_rtn}, safe_price: {safe_price:.2f}")
     print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
+    print(f"sym: {ticker}, latest price: {cur_price:.2f}")
     plt.show()

@@ -206,12 +206,14 @@ if __name__ == "__main__":
     print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
     #
     # Use historical distribution
+    # breakpoint()
     cdfcal = compute_historical_distribution(rtns,fwd_days, bars_per_day)
     best_strike, max_rev = calibrate_strike(ticker, fwd_days * bars_per_day, cost_price, calls, cdfcal)
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
     print(
         f"max daily return: {max_rev / fwd_days / cost_price:.4f}, annual return: {max_rev / fwd_days / cost_price * 252:.4f}")
 
+    print(f"sym: {ticker}, latest price: {cur_price:.2f}")
 
     # L,min_diff = best_y_length_via_cdf_parallel(rtns,fwd_days*bars_per_day,L_min=fwd_days*bars_per_day)
 

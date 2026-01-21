@@ -99,39 +99,11 @@ if __name__ == '__main__':
     print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike*max_rtn:.2f}")
     print(f"max daily return: {max_rtn/fwd_days:.4f}, annual return: {max_rtn/fwd_days*252:.4f}")
 
-    # breakpoint()
-    print(f"searching for best lookback days...")
-    m_range = range(fwd_days * bars_per_day, 22 * 5 * bars_per_day)
-    res = find_best_m_given_n(rtns, fwd_days * bars_per_day, m_range)
-    print(f"best lookback days: {res['m'] / bars_per_day:.2f}, max corr: {res['corr']:.4f}")
-    # breakpoint()
-
-    backdays = round(res['m'] / bars_per_day)
-    n_back = res['m']
-    horizon = fwd_days * bars_per_day
-
-    dmin = 99999.
-    best_n_back = 0
-    for i in [1, 2, 3]:
-        d = evaluate_latest_wasserstein_distance(rtns, n_back * i, horizon)
-        print(f"lookback: {n_back * i}, wasserstein distance: {d:.5f}")
-        if d < dmin:
-            dmin = d
-            best_n_back = i * n_back
-
-    n_back = best_n_back
-    print(f"Searching for subarray ({n_back / bars_per_day} days) with the most likely distribution...")
-
-    x = rtns[-n_back:]
-    y = rtns[:-n_back]
-
-    res = analog_distribution_forecast(x, y, horizon, K=3)
-    pick_rtns = res['future_samples']
-
-    cdf_cal = ECDFCal(pick_rtns)
-    best_strike, max_rtn = calibrate_strike_put(cur_price, puts, pick_rtns, horizon, lb_rtn=-0.6, ub_rtn=1.,
+    cdf_cal = compute_historical_distribution(rtns,fwd_days,bars_per_day)
+    best_strike, max_rtn = calibrate_strike_put(cur_price, puts, pick_rtns, steps, lb_rtn=-0.6, ub_rtn=1.,
                                                 cdf_cal=cdf_cal)
     print(f"Latest price: {cur_price:.2f}")
     print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike * max_rtn:.2f}")
     print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
+    print(f"sym: {ticker}, latest price: {cur_price:.2f}")
     plt.show()

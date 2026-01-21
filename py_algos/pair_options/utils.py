@@ -522,25 +522,34 @@ def best_y_length_via_cdf_parallel(
     return best_L, best_dist
 
 
-def corr_for_fixed_n(S, m, n, prefix):
+def corr_for_fixed_n(rtn, m, n):
     """
     Compute corr(x, y) for fixed n and given m > n.
     """
-    T = len(S)
-    K = T // (m + n)
+
+    K = len(rtn) // (m + n)
 
     if K < 2:
         return np.nan
 
     x = np.empty(K)
     y = np.empty(K)
+    xd = np.empty(K)
+    yd = np.empty(K)
 
     for k in range(K):
         i = k * (m + n)
-        x[k] = (prefix[i + m] - prefix[i]) / m
-        y[k] = (prefix[i + m + n] - prefix[i + m]) / n
+        a1 = rtn[i:i+m]
+        a2 = rtn[i+m:i+m+n]
+        x[k] = np.mean(a1)
+        y[k] = np.mean(a2)
+        xd[k] = np.std(a1)
+        yd[k] = np.std(a2)
 
-    return np.corrcoef(x, y)[0, 1]
+    c1 = np.corrcoef(x, y)[0, 1]
+    c2 = np.corrcoef(xd, yd)[0, 1]
+
+    return (abs(c1)+abs(c2))/2.
 
 
 def find_best_m_given_n(S, n, m_range, K_min=10):
@@ -560,14 +569,13 @@ def find_best_m_given_n(S, n, m_range, K_min=10):
     }
 
     for m in m_range:
-        # if m <= n:
-        #     continue
-
         K = T // (m + n)
         if K < K_min:
             continue
+        rem = T % (m + n)
+        rtn = S[rem:]
 
-        r = corr_for_fixed_n(S, m, n, prefix)
+        r = corr_for_fixed_n(rtn, m, n)
         r = abs(r)
         if np.isnan(r):
             continue

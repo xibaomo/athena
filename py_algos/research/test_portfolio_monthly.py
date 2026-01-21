@@ -256,8 +256,6 @@ class MonthlyBacktester:
         print("\nBacktest Complete.")
         return self.portfolio_value, first_date,last_date
 
-
-
 def max_profit(holding_months, selection_stratergy, daily_data):
     def obj_func(lookback):
         print(f"lookback: {lookback}")

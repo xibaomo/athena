@@ -124,14 +124,15 @@ if __name__ == "__main__":
 
     fwd_days = TradeDaysCounter().countTradeDays(exp_date)
     print(f"trading days: {fwd_days}")
-    df, bars_per_day = download_from_yfinance(ticker, period='2y')
+    df, bars_per_day = download_from_yfinance(ticker)
 
     # rtns = df['Open'].pct_change().values
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
+    breakpoint()
     p0 = df['Close'].values[-1][0]
     print(f"Latest price: {p0}")
-    puts = prepare_puts(ticker, exp_date)
-    ask_cal, bid_cal, strike_bounds = create_premium_cal(puts, p0)
+    calls,puts = prepare_callsputs(ticker,exp_date)
+    ask_cal, bid_cal, strike_bounds = create_premium_cal(puts, p0,'put')
 
     lookback_days, min_diff = findBestLookbackDays(22 * 12, 22 * 22, fwd_days, bars_per_day, rtns)
     print(f"optimal days: {lookback_days}, min_diff: {min_diff}")
@@ -143,13 +144,8 @@ if __name__ == "__main__":
     probs = compMultiStepProb(fwd_days * bars_per_day, lb_rtn=lb_rtn, ub_rtn=ub_rtn, cdf_cal=cdfcal)
     plt.plot(probs, '.')
 
-    print(f"n_intervals: {len(rtns) // (fwd_days * bars_per_day)}")
-    err = sliding_cdf_error(rtns, fwd_days * bars_per_day, [0.3333, 0.3333, .3333])
-    print(f"sliding cdf error: {err:.4f}")
-    wts = calibrate_weights(rtns, fwd_days * bars_per_day, nvar=3)
-
-    print(f"Calibrating strike against recent weighted-sum distribution")
-    cdfcal = WeightedCDFCal(rtns, wts, fwd_days * bars_per_day)
+    # breakpoint()
+    cdfcal = compute_historical_distribution(rtns,fwd_days, bars_per_day)
     probs = compMultiStepProb(fwd_days * bars_per_day, lb_rtn=lb_rtn, ub_rtn=ub_rtn, cdf_cal=cdfcal)
 
     res, exp_rtn = calibrate_butterfly(p0, lb_rtn=lb_rtn, ub_rtn=ub_rtn, probs=probs, ask_cal=ask_cal, bid_cal=bid_cal,
@@ -162,5 +158,5 @@ if __name__ == "__main__":
     print(f"expected return: {exp_rtn:.4f}")
     print(
         f"max daily return: {exp_rtn / fwd_days:.4f}, annual return: {exp_rtn / fwd_days * 252:.4f}")
-
+    print(f"sym: {ticker}, latest price: {p0:.2f}")
     plt.show()
