@@ -33,6 +33,7 @@ if __name__ == "__main__":
 
     exp_date = sys.argv[1]
     all_syms = download_spy_stock_list()
+    cur_price_only = int(sys.argv[2])
     # sys.exit(1)
 
     cur_prices = []
@@ -43,6 +44,11 @@ if __name__ == "__main__":
     # all_syms=['NVR']
     for ticker in all_syms:
         # breakpoint()
+        if cur_price_only == 1:
+            tickers.append(ticker)
+            cur_price = float(rh.stocks.get_latest_price(ticker)[0])
+            cur_prices.append(cur_price)
+            continue
         calls,puts = prepare_callsputs(ticker,exp_date=exp_date)
         if len(calls) == 0 or len(puts) == 0:
             continue
@@ -57,6 +63,11 @@ if __name__ == "__main__":
         print(f"current price: {cur_price:.2f}, current total_value: {cur_total_value:.2f}")
         print(f"max_pain: {mp:.2f}, max_pain_total_value: {mp_tv:.2f}, perf: {mp_tv/cur_total_value-1:.2f}")
 
+    if cur_price_only == 1:
+        df = pd.DataFrame(tickers, columns=["sym"])
+        df['cur_price'] = cur_prices
+        df.to_csv('max_pain.csv', index=False)
+        sys.exit(0)
     df = pd.DataFrame(tickers, columns=["sym"])
     df['cur_price'] = cur_prices
     df['cur_tv'] = cur_tv
