@@ -137,8 +137,6 @@ def calibrate_strike(ticker,fwd_steps, cost, calls, cdf_cal):
         # pdb.set_trace()
 
         pu, pd = compProb1stHitBounds(fwd_steps, cdf_cal=cdf_cal, ub_rtn=ub_rtn, lb_rtn=-.5)
-        if pu < 0.05:
-            break
 
         bid = float(call['bid'])
         rev = s - cost + bid
@@ -147,6 +145,8 @@ def calibrate_strike(ticker,fwd_steps, cost, calls, cdf_cal):
         if exp_rev > max_rev:
             max_rev = exp_rev
             best_strike = s
+        if pu < 0.05:
+            break
     return best_strike,max_rev
 
 if __name__ == "__main__":
@@ -178,6 +178,7 @@ if __name__ == "__main__":
     # rtns = df['Open'].pct_change().values
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
     print(f"rtn range: {np.min(rtns),np.max(rtns)}")
+    print(f"length of rtns: {len(rtns)}, bars_per_day: {bars_per_day}")
 
     ave_d = eval_stability(rtns)
     print(f"Stability: {ave_d:.5f}")

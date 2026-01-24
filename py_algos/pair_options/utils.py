@@ -732,13 +732,15 @@ def compute_historical_distribution(rtns, fwd_days,bars_per_day=14):
 
     dmin = 99999.
     best_n_back = 0
-    for i in [1, 2, 3]:
-        d = evaluate_latest_wasserstein_distance(rtns, n_back * i, horizon)
-        print(f"lookback: {n_back * i}, wasserstein distance: {d:.5f}")
-        if d < dmin:
-            dmin = d
-            best_n_back = i * n_back
-
+    if n_back//bars_per_day < 22:
+        for i in [1, 2]:
+            d = evaluate_latest_wasserstein_distance(rtns, n_back * i, horizon)
+            print(f"lookback: {n_back * i}, wasserstein distance: {d:.5f}")
+            if d < dmin:
+                dmin = d
+                best_n_back = i * n_back
+    else:
+        best_n_back = n_back
     n_back = best_n_back
     print(f"Searching for subarray ({n_back / bars_per_day} days) with the most likely distribution...")
 

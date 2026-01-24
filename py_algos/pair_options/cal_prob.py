@@ -110,20 +110,23 @@ def prepare_rtns(df,bars_per_day):
     opens = df['Open'].values
     highs = df['High'].values
     lows  = df['Low'].values
-    pcs = np.zeros(len(df)*2)
+    closes = df['Close'].values
+    pcs = np.zeros(len(df)*3)
     k=0
     for i in range(len(opens)):
         pcs[k] = opens[i]
         k+=1
         pcs[k] = (highs[i]+lows[i])*.5
         k+=1
+        pcs[k] = closes[i]
+        k+=1
     # pdb.set_trace()
-    rtns = np.zeros_like(pcs)
-    for i in range(1,len(rtns)):
-        rtns[i] = (pcs[i]-pcs[i-1])/pcs[i-1]
+    rtns = np.zeros(len(df)*3)
+    for i in range(1,len(pcs)):
+        rtns[i-1] = (pcs[i]-pcs[i-1])/pcs[i-1]
 
-    rtns = rtns[bars_per_day*2:]
-    return rtns,bars_per_day*2
+    # rtns = rtns[bars_per_day*3:]
+    return rtns,bars_per_day*3
 
 if __name__ == "__main__":
     if len(sys.argv) < 5:
@@ -146,14 +149,12 @@ if __name__ == "__main__":
     print(f"trading days: {fwd_days}")
 
     # df = download_from_robinhood(ticker)
-    df,bars_per_day = download_from_yfinance(ticker,period='2y')
+    df,bars_per_day = download_from_yfinance(ticker)
+    breakpoint()
 
-    rtns = df['Open'].pct_change().values
     rtns,bars_per_day = prepare_rtns(df,bars_per_day)
     print(f"length of returns: {len(rtns)}, bars per day: {bars_per_day}")
     lookback_days,mindiff = plot_varylookback_distdiff(fwd_days,22*18,fwd_days,bars_per_day,rtns)
-
-
     print(f"optmized lookback days: {lookback_days}")
 
     # lookback_days = findBestLookbackDays(22, 22 * 18, fwd_days, bars_per_day, rtns)
