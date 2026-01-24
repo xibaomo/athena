@@ -75,7 +75,8 @@ if __name__ == '__main__':
 
     # rtns = df['Open'].pct_change().values
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
-    cur_price = df['Close'].values[-1][0]
+    print(f"length of rtns: {len(rtns)}, bars_per_day: {bars_per_day}")
+    cur_price = float(rh.stocks.get_latest_price(ticker)[0])
 
     # spacing,min_diff = find_stablest_spacing(rtns,22*bars_per_day,2*bars_per_day)
     # print(f"length of rtns: {len(rtns)}, min ave diff: {min_diff}, spacing days: {spacing//bars_per_day}")
