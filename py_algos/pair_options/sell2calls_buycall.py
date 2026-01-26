@@ -14,79 +14,57 @@ from option_chain import *
 from covered_call import sliding_cdf_error, calibrate_weights, evaluate_latest_wasserstein_distance
 
 
-def compExpectedReturn(cur_price, sell_strike, buy_strike, premium, probs, drtn, lb_rtn, n_sell):
+def compExpectedReturn(cur_price, sell_strike, buy_strike, ask,bid, probs, drtn, lb_rtn, n_sell):
     expected_rtn = 0.
-    cost = cur_price * n_sell #cost is stock cost for covered call
+    cost = cur_price * n_sell + ask #cost is stock cost for covered call
 
     for i in range(len(probs)):
         r = lb_rtn + (i + 0.5) * drtn
         p = cur_price * (1 + r)
-        rev = 0.
+        prf = 0.
         if p > sell_strike:
-            rev = p - buy_strike - n_sell*(p-sell_strike)
+            prf = (bid -  (p - sell_strike))*n_sell + (p - buy_strike - ask)
         elif p < buy_strike:
-            rev = 0.
+            prf = 0. + bid*n_sell
         else:
-            rev = p - buy_strike
-
+            # prf = (p - buy_strike - ask) + bid*n_sell
+            prf = bid*n_sell
         # if sell_strike == 250 and rev < 0:
         #     breakpoint()
-        rtn = rev/cost
+        rtn = prf/cost
         expected_rtn = expected_rtn + probs[i] * rtn
     return expected_rtn
 
-
-def find_match_sellcalls_buycall(opt_idx, calls, ratio):
-    market_value = float(calls[opt_idx]['bid']) * ratio
-    for i in range(len(calls)):
-        ask = float(calls[i]['ask'])
-        if ask <= market_value:
-            return i
-    # not found
-    return -2
-
-
 def calibrate_call_strike(cdf_cal, cur_price, calls, steps, lb_rtn, ub_rtn, ratio=2 ):
     max_rtn = -999990.0
-    best_strike = []
-    best_premium = 0
-    # breakpoint()
+    best_idx = []
 
     probs = compMultiStepProb(steps, lb_rtn, ub_rtn, cdf_cal)
-
     x = np.linspace(lb_rtn, ub_rtn, len(probs))
     plt.plot(x, probs, '.')
-    # plt.show()
-    # pdb.set_trace()
+
     drtn = (ub_rtn - lb_rtn) / len(probs)
     for i in range(len(calls)-1,-1,-1):
         call = calls[i]
-        strike = float(call['strike'])
+        sell_strike = float(call['strike'])
         bid = float(call['bid'])
-        if bid < 0.5:
-            continue
-        if bid*ratio > float(calls[0]['ask']):
-            break
-        match_idx = find_match_sellcalls_buycall(i,  calls, ratio)
-        if match_idx < 0:
-            continue
 
-        premium = bid * ratio - float(calls[match_idx]['ask'])
-        # premium = 0
-        sell_call = strike
-        buy_call = float(calls[match_idx]['strike'])
+        for j in range(len(calls)):
+            ask =  float(calls[j]['ask'])
+            # premium = 0
+            buy_strike = float(calls[j]['strike'])
 
-        exp_rtn = compExpectedReturn(cur_price, sell_strike=sell_call, buy_strike=buy_call, premium=0, probs=probs, drtn=drtn,
-                                     lb_rtn=lb_rtn, n_sell=ratio)
+            exp_rtn = compExpectedReturn(cur_price, sell_strike=sell_strike, buy_strike=buy_strike,
+                                         ask=ask,bid=bid, probs=probs, drtn=drtn,
+                                         lb_rtn=lb_rtn, n_sell=ratio)
 
-        print(
-            f"strike pair: {strike},{buy_call}, exp_rtn: {exp_rtn:.4f}, prem: {call['bid']},{calls[match_idx]['ask']}, {premium:.2f}")
-        if exp_rtn > max_rtn:
-            max_rtn = exp_rtn
-            best_strike = [sell_call, buy_call]
-            best_premium = premium
+            # print(
+            #     f"strike pair: {sell_strike},{buy_strike}, exp_rtn: {exp_rtn:.4f}, prem: {call['bid']},{calls[j]['ask']}")
+            if exp_rtn > max_rtn:
+                max_rtn = exp_rtn
+                best_idx = [i,j]
 
-    return best_strike, max_rtn
+    return best_idx, max_rtn
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
@@ -121,17 +99,24 @@ if __name__ == '__main__':
     steps = fwd_days * bars_per_day
     cdf_cal = ECDFCal(pick_rtns)
     ratio = 2.
-    best_strike, max_rtn = calibrate_call_strike(cdf_cal, cur_price, calls, steps,
+    best_idx, max_rtn = calibrate_call_strike(cdf_cal, cur_price, calls, steps,
                                                             lb_rtn=-0.5, ub_rtn=1., ratio=ratio )
     print(f"Latest price: {cur_price:.2f}")
-    print(f"best strike: {best_strike}, max_rtn: {max_rtn}")
+    sell_call = calls[best_idx[0]]
+    buy_call = calls[best_idx[1]]
+    print(f"best strike: {sell_call['strike']},{buy_call['strike']} , max_rtn: {max_rtn}")
+    print(f"bid: {sell_call['bid']}, ask: {buy_call['ask']}")
     print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
 
-    cdfcal = compute_historical_distribution(rtns,fwd_days,bars_per_day)
-    best_strike, max_rtn = calibrate_call_strike(cdf_cal, cur_price, calls, steps,
+    cdf_cal = compute_historical_distribution(rtns,fwd_days,bars_per_day)
+    best_idx, max_rtn = calibrate_call_strike(cdf_cal, cur_price, calls, steps,
                                                             lb_rtn=-0.5, ub_rtn=1., ratio=ratio )
     print(f"Latest price: {cur_price:.2f}")
-    print(f"best strike: {best_strike}, max_rtn: {max_rtn}")
+    sell_call = calls[best_idx[0]]
+    buy_call = calls[best_idx[1]]
+    print(f"best strike: {sell_call['strike']},{buy_call['strike']} , max_rtn: {max_rtn}")
+    print(f"bid: {sell_call['bid']}, ask: {buy_call['ask']}")
     print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
+
     print(f"sym: {ticker}, latest price: {cur_price:.2f}")
     plt.show()
