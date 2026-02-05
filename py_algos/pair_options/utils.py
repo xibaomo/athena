@@ -3,11 +3,15 @@ from datetime import datetime, timedelta
 import pandas_market_calendars as mcal
 import pandas as pd
 import yfinance as yf
-import numpy as np
 from scipy import stats
 from scipy.interpolate import interp1d
 from option_chain import *
 from mkv_cal import ECDFCal
+import numpy as np
+from fastdtw import fastdtw
+from scipy.spatial.distance import euclidean
+from scipy.stats import wasserstein_distance
+from dtaidistance import dtw
 
 DATE_FORMAT = "%Y-%m-%d"
 
@@ -719,7 +723,7 @@ def evaluate_latest_wasserstein_distance(rtns, n_back, horizon):
     d = wasserstein_distance(y, res['future_samples'])
     return d
 
-def compute_historical_distribution(rtns, fwd_days,bars_per_day=14):
+def __compute_historical_distribution(rtns, fwd_days,bars_per_day=14):
     print(f"searching for best lookback days...")
     m_range = range(fwd_days * bars_per_day, 22 * 5 * bars_per_day)
     res = find_best_m_given_n(rtns, fwd_days * bars_per_day, m_range)
@@ -753,6 +757,51 @@ def compute_historical_distribution(rtns, fwd_days,bars_per_day=14):
     cdf_cal = ECDFCal(pick_rtns)
 
     return cdf_cal
+
+def compute_historical_distribution(rtns, fwd_days,bars_per_day):
+    print(f"searching for best lookback days...")
+    m_range = range(fwd_days * bars_per_day, 22 * 5 * bars_per_day)
+    res = find_best_m_given_n(rtns, fwd_days * bars_per_day, m_range)
+    print(f"best lookback days: {res['m'] / bars_per_day:.2f}, max corr: {res['corr']:.4f}")
+    # breakpoint()
+
+    # backdays = round(res['m'] / bars_per_day)
+    n_back = res['m']
+    horizon = fwd_days * bars_per_day
+
+    x = rtns[-n_back:]
+    y = rtns[:-n_back]
+    res = sliding_search_dtw(x,y,bars_per_day, top_k=2)
+    future_rtns = np.array([])
+
+    for idx in res:
+        a = rtns[idx+n_back:idx+n_back + horizon]
+        future_rtns = np.hstack((future_rtns, a))
+
+    cdf_cal = ECDFCal(future_rtns)
+
+    return cdf_cal
+
+def zscore(x):
+    return (x - x.mean()) / x.std()
+
+def sliding_search_dtw(query, returns, bars_per_day, top_k=5):
+    L = len(query)
+    results = []
+    query_z = zscore(query)
+
+    for t in range(0,len(returns),bars_per_day):
+        window = zscore(returns[t:t + L])
+        dist,_ = fastdtw(query_z, window,radius=5)
+        results.append((t, dist))
+
+    results.sort(key=lambda x: x[1])
+    lst = results[:top_k]
+
+    res = [x[0] for x in lst]
+    return res
+
+
 
 
 
