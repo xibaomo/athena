@@ -148,6 +148,31 @@ def calibrate_strike(ticker,fwd_steps, cost, calls, cdf_cal):
         if pu < 0.05:
             break
     return best_strike,max_rev
+def calibrate_strike_tot_rtn(calls,tot_rtns):
+    max_rev = -9999.
+    best_strike = 0.
+    cur_price = float(rh.stocks.get_latest_price(ticker)[0])
+    cdf_cal = ECDFCal(tot_rtns)
+    for i in range(len(calls)):
+        call = calls[i]
+        s = float(call['strike'])
+        if s < cur_price:
+            continue
+        p_assgn = 1-cdf_cal.compCDF(s/cur_price-1)
+        bid = float(call['bid'])
+        assgn_rev = s - cur_price + bid
+        exp_rev = assgn_rev*p_assgn + bid*(1-p_assgn)
+        print(
+            f"strike: {s:.2f}, asgn prob: {p_assgn:.3f}, exp profit: {exp_rev:.2f}, bid: {bid:.2f}, bid*prob: {(1 - p_assgn) * bid:.4f}")
+        if exp_rev > max_rev:
+            max_rev = exp_rev
+            best_strike = s
+        if p_assgn < 0.05:
+            break
+
+    return best_strike, max_rev
+
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -201,22 +226,18 @@ if __name__ == "__main__":
     # print(f"max pain strike: {max_pain_x-1:.2f}, max pain total_value: {eval_option_total_value(max_pain_x-1,calls,puts):.2f}")
 
     # Use distribution of recent lookback_days
-    cdfcal = ECDFCal(pick_rtns)
-    best_strike, max_rev = calibrate_strike(ticker,fwd_days*bars_per_day,cost_price, calls,cdfcal)
+    # cdfcal = ECDFCal(pick_rtns)
+    # best_strike, max_rev = calibrate_strike(ticker,fwd_days*bars_per_day,cost_price, calls,cdfcal)
+    # print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
+    # print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
+    #
+
+    tot_rtns = compute_total_return_distribution(rtns,bars_per_day,fwd_days)
+    best_strike, max_rev = calibrate_strike_tot_rtn(calls,tot_rtns)
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
     print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
-    #
-    # Use historical distribution
-    # breakpoint()
-    cdfcal = compute_historical_distribution(rtns,fwd_days, bars_per_day)
-    best_strike, max_rev = calibrate_strike(ticker, fwd_days * bars_per_day, cost_price, calls, cdfcal)
-    print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
-    print(
-        f"max daily return: {max_rev / fwd_days / cost_price:.4f}, annual return: {max_rev / fwd_days / cost_price * 252:.4f}")
 
-    print(f"sym: {ticker}, latest price: {cur_price:.2f}")
 
-    # L,min_diff = best_y_length_via_cdf_parallel(rtns,fwd_days*bars_per_day,L_min=fwd_days*bars_per_day)
 
 
 

@@ -7,7 +7,14 @@ import math
 import sys,os
 import cupy as cp
 import pdb
+from scipy.optimize import minimize
+from scipy import stats
+from scipy.special import gammaln
+import warnings
 
+# This turns all warnings into hard errors
+# warnings.filterwarnings('error')
+np.seterr(over='raise')
 class ECDFCal(object):  # empirical cdf calculator
     def __init__(self, rtn0):
         self.ecdf = sm.distributions.ECDF(rtn0)
@@ -337,6 +344,122 @@ def compute_steady_dist(rtns,lb_rtn,ub_rtn):
     pi = pi@tmp
     return pi.ravel()
 
+def realized_garch_loglik(params, r, x):
+    omega, beta, gamma, xi, phi, tau, sigma_u,nu = params
+
+    T = len(r)
+    logh = np.zeros(T)
+    logh[0] = np.log(np.var(r))
+
+    ll = 0.0
+
+    for t in range(1, T):
+        logh[t] = omega + beta * logh[t - 1] + gamma * np.log(x[t - 1])
+        h_t = np.exp(logh[t])
+
+        if h_t < 1e-30:
+            h_t = 1e-10
+            # breakpoint()
+        z = r[t] / np.sqrt(h_t)
+
+        # return density
+        # breakpoint()
+        # normal distribution
+        # ll += -0.5 * (np.log(2 * np.pi) + np.log(h_t) + z ** 2)
+
+        # t-distribution
+        term1 = gammaln((nu + 1) / 2) - gammaln(nu / 2)
+        term2 = -0.5 * np.log(np.pi * (nu - 2)) - 0.5 * np.log(h_t)
+        term3 = -((nu + 1) / 2) * np.log(1 + (z ** 2) / (nu - 2))
+
+        ll += term1 + term2 + term3
+        # measurement density
+        # try:
+        meas = np.log(x[t]) - (xi + phi * logh[t] + tau * z)
+        ll += -0.5 * (np.log(2 * np.pi * sigma_u ** 2) + meas ** 2 / sigma_u ** 2)
+        # except:
+        #     breakpoint()
+
+    return -ll
+def forecast_realized_garch(logh_T, x_T, params, steps):
+    omega, beta, gamma, xi, phi, tau, sigma_u, nu = params
+
+    forecasts = []
+    logh_next = omega + beta * logh_T + gamma * np.log(x_T)
+
+    for _ in range(steps):
+        # expected log realized variance
+        logx_next = xi + phi * logh_next
+
+        logh_next = omega + beta * logh_next + gamma * logx_next
+        forecasts.append(np.exp(logh_next))
+
+    return np.sqrt(np.array(forecasts))
+def compute_total_return_distribution(rtns, bars_per_day,fwd_days):
+    num_days = len(rtns) // bars_per_day
+    daily_matrix = rtns[:num_days * bars_per_day].reshape(num_days, bars_per_day)
+    daily_returns = np.sum(daily_matrix, axis=1)
+    daily_rv = np.sum(daily_matrix ** 2, axis=1)
+    # breakpoint()
+    daily_vol = np.sqrt(daily_rv)
+    residuals = (daily_returns) / daily_vol
+
+    print(stats.ks_2samp(daily_returns[-100:], daily_returns[:-100]))
+    print(stats.ks_2samp(residuals[-100:], residuals[:-100]))
+
+
+    init = [-0.1, 0.9, 0.05, 0.1, 0.8, 0.0, 0.2, 5]
+
+    bounds = [
+        (-5, 5),  # omega
+        (0.0, 0.999),  # beta
+        (0.0, 1.0),  # gamma
+        (-5, 5),  # xi
+        (0.1, 5),  # phi
+        (-5, 5),  # tau
+        (1e-6, 5),  # sigma_u
+        (2.01,50) #nu
+    ]
+
+    res = minimize(realized_garch_loglik, init,
+                   args=(daily_returns, daily_rv),
+                   method="L-BFGS-B",
+                   bounds=bounds)
+
+    params_hat = res.x
+    print("Estimated parameters:")
+    print(params_hat)
+
+    # ======================================================
+    # 4️⃣ Filter conditional variance
+    # ======================================================
+
+    omega, beta, gamma, xi, phi, tau, sigma_u, nu = params_hat
+
+    T = len(daily_returns)
+    logh_filt = np.zeros(T)
+    logh_filt[0] = np.log(np.var(daily_returns))
+
+    for t in range(1, T):
+        logh_filt[t] = omega + beta * logh_filt[t - 1] + gamma * np.log(daily_rv[t - 1])
+
+    h_filt = np.exp(logh_filt)
+
+    future_vol = forecast_realized_garch(
+        logh_filt[-1],
+        daily_rv[-1],
+        params_hat,
+        steps=fwd_days
+    )
+
+    # Monte-Carlo sim
+    n_sim = 100000
+    tot_rtn = np.zeros(n_sim)
+    for k in range(n_sim):
+        random_res = np.random.choice(residuals, size=fwd_days)
+        tot_rtn[k] = np.sum(random_res*future_vol)
+    # breakpoint()
+    return tot_rtn
 
 
 

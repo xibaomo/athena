@@ -107,12 +107,13 @@ def plot_recent_dist_diff(lookback_days, lookfwd_days, bars_per_day, rtns,recent
     plt.ylabel('dist diff')
 
 def prepare_rtns(df,bars_per_day):
-    opens = df['Open'].values
-    highs = df['High'].values
-    lows  = df['Low'].values
-    closes = df['Close'].values
+    opens = df['Open'].values.ravel()
+    highs = df['High'].values.ravel()
+    lows  = df['Low'].values.ravel()
+    closes = df['Close'].values.ravel()
     pcs = np.zeros(len(df)*3)
     k=0
+    # breakpoint()
     for i in range(len(opens)):
         pcs[k] = opens[i]
         k+=1
