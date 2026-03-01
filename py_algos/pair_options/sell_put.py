@@ -61,6 +61,40 @@ def calibrate_strike_put(cur_price, puts, rtns, steps, lb_rtn , ub_rtn, cdf_cal 
 
     return best_strike, max_rtn
 
+def calibrate_strike_put_total_rtns(cur_price, puts, tot_rtns, steps, lb_rtn , ub_rtn ):
+    max_rtn = 0.0
+    best_strike = 0.0
+
+    max_profit = -99999
+    max_profit_strike = 0.
+    cdf_cal = ECDFCal(tot_rtns)
+    drtn = 0.001/4
+    npb = (ub_rtn - lb_rtn) // drtn
+    probs = np.zeros(int(npb))
+    for i in range(len(probs)):
+        r = lb_rtn + (i+0.5)*drtn
+        probs[i] = cdf_cal.compRangeProb(r-drtn/2,r+drtn/2)
+    x = np.linspace(lb_rtn,ub_rtn,len(probs))
+    plt.plot(x,probs)
+    for put in puts:
+        strike = float(put['strike'])
+        # if strike == 275:
+        #     pdb.set_trace()
+        strike_rtn = strike/cur_price - 1.
+        if strike_rtn >= ub_rtn or strike_rtn <= lb_rtn:
+            continue
+        premium = float(put['bid'])
+        exp_rtn = compExpectedReturn(cur_price,strike,premium,probs,drtn,lb_rtn)
+        # pdb.set_trace()
+        idx = int(((strike/cur_price-1.)-lb_rtn)/drtn)
+        assign_prob = np.sum(probs[:idx+1])
+        print(f"strike: {strike}, asgn prob: {assign_prob:.3f}, exp_rtn: {exp_rtn:.4f}, bid: {premium}, rtn*prob: {(1-assign_prob)*premium/strike*100:.2f}")
+        if exp_rtn > max_rtn:
+            max_rtn = exp_rtn
+            best_strike = strike
+
+    return best_strike, max_rtn
+
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         print(f"Usage: {sys.argv[0]} <ticker> <expiration_date>")
@@ -100,9 +134,8 @@ if __name__ == '__main__':
     print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike*max_rtn:.2f}")
     print(f"max daily return: {max_rtn/fwd_days:.4f}, annual return: {max_rtn/fwd_days*252:.4f}")
 
-    cdf_cal = compute_historical_distribution(rtns,fwd_days,bars_per_day)
-    best_strike, max_rtn = calibrate_strike_put(cur_price, puts, pick_rtns, steps, lb_rtn=-0.6, ub_rtn=1.,
-                                                cdf_cal=cdf_cal)
+    tot_rtns = compute_total_return_distribution(rtns, bars_per_day, fwd_days)
+    best_strike, max_rtn = calibrate_strike_put_total_rtns(cur_price, puts, tot_rtns, steps, lb_rtn=-0.6, ub_rtn=1.)
     print(f"Latest price: {cur_price:.2f}")
     print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike * max_rtn:.2f}")
     print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")

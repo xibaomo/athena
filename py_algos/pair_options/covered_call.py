@@ -205,9 +205,6 @@ if __name__ == "__main__":
     print(f"rtn range: {np.min(rtns),np.max(rtns)}")
     print(f"length of rtns: {len(rtns)}, bars_per_day: {bars_per_day}")
 
-    ave_d = eval_stability(rtns)
-    print(f"Stability: {ave_d:.5f}")
-
     lookback_days,min_diff = findBestLookbackDays(22*12,22*22,fwd_days,bars_per_day,rtns)
     # lookback_days, min_diff = findBestLookbackDays(22 * 1, 22 * 6, fwd_days, bars_per_day, rtns)
     print(f"optimal days: {lookback_days}, min_diff: {min_diff}")

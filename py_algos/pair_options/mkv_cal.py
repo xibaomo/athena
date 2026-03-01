@@ -11,10 +11,40 @@ from scipy.optimize import minimize
 from scipy import stats
 from scipy.special import gammaln
 import warnings
-
 # This turns all warnings into hard errors
 # warnings.filterwarnings('error')
 np.seterr(over='raise')
+
+def eval_stability(rtns, spacing):
+    '''
+    estimate statbility of return series by computing averaging difference of CDFs
+    '''
+    res = len(rtns)%spacing
+    rtns = rtns[res:]
+    n_intervals = len(rtns)//spacing
+    print(f"stability check. spacing: {spacing}")
+    ds = []
+    for i in range(n_intervals - 1):
+        r1 = rtns[i * spacing:(i + 1) * spacing]
+        r2 = rtns[(i + 1) * spacing:(i + 2) * spacing]
+        d, p = stats.ks_2samp(r1, r2)
+        ds.append(d)
+
+    return np.mean(ds)
+def get_cdf_value(data, x_target):
+    """
+    Computes the CDF of 'data' and interpolates to find the 'y' for a given 'x_target'.
+    """
+    # 1. Prepare the Empirical CDF
+    sorted_data = np.sort(data)
+    # y-coordinates: cumulative probabilities from 1/n to 1.0
+    y_coords = np.arange(1, len(sorted_data) + 1) / len(sorted_data)
+
+    # 2. Interpolate
+    # np.interp(x_to_find, x_data, y_data)
+    y_target = np.interp(x_target, sorted_data, y_coords)
+
+    return y_target
 class ECDFCal(object):  # empirical cdf calculator
     def __init__(self, rtn0):
         self.ecdf = sm.distributions.ECDF(rtn0)
@@ -344,13 +374,32 @@ def compute_steady_dist(rtns,lb_rtn,ub_rtn):
     pi = pi@tmp
     return pi.ravel()
 
+def compute_residuals(params,r,x):
+    omega, beta, gamma, xi, phi, tau, sigma_u, nu = params
+    T = len(r)
+    logh = np.zeros(T)
+    # logh[0] = np.log(np.var(r))
+    logh[0] = np.log(x[0])
+    z = np.zeros(T)
+    z[0] = r[0]/x[0]
+
+    for t in range(1, T):
+        logh[t] = omega + beta * logh[t - 1] + gamma * np.log(x[t - 1])
+        h_t = np.exp(logh[t])
+
+        if h_t < 1e-30:
+            h_t = 1e-10
+            # breakpoint()
+        z[t] = r[t] / np.sqrt(h_t)
+
+    return z
 def realized_garch_loglik(params, r, x):
     omega, beta, gamma, xi, phi, tau, sigma_u,nu = params
 
     T = len(r)
     logh = np.zeros(T)
-    logh[0] = np.log(np.var(r))
-
+    # logh[0] = np.log(np.var(r))
+    logh[0] = np.log(x[0])
     ll = 0.0
 
     for t in range(1, T):
@@ -395,6 +444,7 @@ def forecast_realized_garch(logh_T, x_T, params, steps):
         forecasts.append(np.exp(logh_next))
 
     return np.sqrt(np.array(forecasts))
+
 def compute_total_return_distribution(rtns, bars_per_day,fwd_days):
     num_days = len(rtns) // bars_per_day
     daily_matrix = rtns[:num_days * bars_per_day].reshape(num_days, bars_per_day)
@@ -404,8 +454,10 @@ def compute_total_return_distribution(rtns, bars_per_day,fwd_days):
     daily_vol = np.sqrt(daily_rv)
     residuals = (daily_returns) / daily_vol
 
-    print(stats.ks_2samp(daily_returns[-100:], daily_returns[:-100]))
-    print(stats.ks_2samp(residuals[-100:], residuals[:-100]))
+    s1 = eval_stability(daily_returns,100)
+    print(f"ave cdf diff of daily returns: {s1:.4f}")
+    s2 = eval_stability(residuals,100)
+    print(f"ave cdf diff of daily residules: {s2:.4f} ")
 
 
     init = [-0.1, 0.9, 0.05, 0.1, 0.8, 0.0, 0.2, 5]
@@ -429,6 +481,8 @@ def compute_total_return_distribution(rtns, bars_per_day,fwd_days):
     params_hat = res.x
     print("Estimated parameters:")
     print(params_hat)
+    z = compute_residuals(params_hat,daily_returns,daily_rv)
+    print(f"optimized ave cdf diff of daily residules: {eval_stability(z,100):.4f}")
 
     # ======================================================
     # 4️⃣ Filter conditional variance
@@ -453,6 +507,7 @@ def compute_total_return_distribution(rtns, bars_per_day,fwd_days):
     )
 
     # Monte-Carlo sim
+    print(f"future folatility: ", future_vol)
     n_sim = 100000
     tot_rtn = np.zeros(n_sim)
     for k in range(n_sim):
