@@ -103,7 +103,7 @@ def selecctor_vp_log_slope(available_tickers: list, date: datetime, data: pd.Dat
 
     df = df.dropna(axis=0, how='any').sort_values(by='score', ascending=False)
 
-    selected = df.index[:10].tolist()
+    selected = df.index[:15].tolist()
     # selected = ['GLD','IAU']
     # breakpoint()
     print(f"selected stock: {selected}")
@@ -299,7 +299,8 @@ if __name__ == '__main__':
 
         best_lookback = max_profit(holding_months=1,selection_stratergy=selecctor_vp_log_slope,daily_data=daily_stock_data)
 
-        final_asset_value, first_date,last_date = backtester.run_backtest("2022-01-01", holding_months=1,lookback=best_lookback)
+        final_asset_value, first_date,last_date = backtester.run_backtest("2022-01-01", holding_months=1,
+                                                                          lookback=best_lookback)
 
         # 4. Results Summary
         return_pct = (final_asset_value - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100

@@ -1,9 +1,9 @@
-import os,sys
+import os, sys
 import pdb
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 import yfinance as yf
 from scipy import stats
-from cal_prob import findBestLookbackDays,prepare_rtns
+from cal_prob import findBestLookbackDays, prepare_rtns
 from utils import *
 from mkv_cal import *
 from scipy.optimize import minimize
@@ -14,6 +14,8 @@ import pdb
 import matplotlib.pyplot as plt
 # Login to Robinhood
 import os
+
+
 # username = os.getenv("BROKER_USERNAME")
 # password = os.getenv("BROKER_PASSWD")
 # rh.login(username, password, store_session=True)
@@ -21,6 +23,7 @@ def compute_empirical_cdf(data, grid):
     """Compute empirical CDF over a fixed grid."""
     cdf = np.searchsorted(np.sort(data), grid, side='right') / len(data)
     return cdf
+
 
 def sliding_cdf_error(data, spacing, weights):
     nw = len(weights)
@@ -36,7 +39,7 @@ def sliding_cdf_error(data, spacing, weights):
     grid = np.linspace(np.min(data), np.max(data), pn)  # CDF evaluation grid
 
     for i in range(n_intervals):
-        intervals = [data[(i + j) * spacing:(i + j + 1) * spacing] for j in range(nw+1)]
+        intervals = [data[(i + j) * spacing:(i + j + 1) * spacing] for j in range(nw + 1)]
         cdfs = [compute_empirical_cdf(interval, grid) for interval in intervals]
 
         weighted_cdf = sum(w * c for w, c in zip(weights, cdfs[:nw]))
@@ -45,27 +48,30 @@ def sliding_cdf_error(data, spacing, weights):
         error = np.max((weighted_cdf - true_cdf) ** 2)
         total_error += error
 
-    return np.sqrt(total_error/n_intervals)
-def calibrate_weights(rtns,spacing, nvar=4):
-    def obj_func(wts,params):
-        _rtns,_spacing = params
-        cost = sliding_cdf_error(_rtns,_spacing,wts)
+    return np.sqrt(total_error / n_intervals)
+
+
+def calibrate_weights(rtns, spacing, nvar=4):
+    def obj_func(wts, params):
+        _rtns, _spacing = params
+        cost = sliding_cdf_error(_rtns, _spacing, wts)
         return cost
 
     constraints = {
         'type': 'eq',
         'fun': lambda x: np.sum(x) - 1
     }
-    bounds=None
-    bounds=[(0,None) for _ in range(nvar)]
-    x0 = np.array([1./nvar for _ in range(nvar)])
-    res = minimize(obj_func,x0,((rtns,spacing),),bounds=bounds,constraints=constraints)
+    bounds = None
+    bounds = [(0, None) for _ in range(nvar)]
+    x0 = np.array([1. / nvar for _ in range(nvar)])
+    res = minimize(obj_func, x0, ((rtns, spacing),), bounds=bounds, constraints=constraints)
     print(f"optimal weights: {res.x}")
     print(f"minimized cdf err: {res.fun}")
 
     return res.x
 
-def __prepare_calls(sym,exp_date):
+
+def __prepare_calls(sym, exp_date):
     ticker = yf.Ticker(sym)
     chain = ticker.option_chain(exp_date)
     calls = chain.calls
@@ -74,7 +80,8 @@ def __prepare_calls(sym,exp_date):
 
     return calls
 
-def ___prepare_calls(sym,exp_date):
+
+def ___prepare_calls(sym, exp_date):
     # url = 'https://www.alphavantage.co/query?function=HISTORICAL_OPTIONS&symbol=' + sym.upper() + "&apikey=A4L0CXXLQHSWW8ZS"
     # r = requests.get(url)
     # data = r.json()
@@ -94,6 +101,7 @@ def ___prepare_calls(sym,exp_date):
     # plt.show()
     return calls
 
+
 def bisection_minimize(f, a, b, tol=1e-5, max_iter=100):
     """
     Minimizes a unimodal function f in the interval [a, b]
@@ -110,20 +118,24 @@ def bisection_minimize(f, a, b, tol=1e-5, max_iter=100):
         iter_count += 1
     x_min = (a + b) / 2
     return x_min, f(x_min)
-def __maximize_expected_revenue(rtns, fwd_steps,cur_price, calls):
+
+
+def __maximize_expected_revenue(rtns, fwd_steps, cur_price, calls):
     def obj_func(xs):
-        ub_rtn = xs/cur_price - 1.
-        pu,pd = compProb1stHitBounds(rtns,fwd_steps,ub_rtn=ub_rtn,lb_rtn=-.5)
+        ub_rtn = xs / cur_price - 1.
+        pu, pd = compProb1stHitBounds(rtns, fwd_steps, ub_rtn=ub_rtn, lb_rtn=-.5)
         rev = xs - cur_price
         exp_rev = rev * pu
         print(f"strike: {xs:.2f}, exp_rev: {exp_rev:.2f}")
         return -exp_rev
 
-    opt_s, opt_rev=bisection_minimize(obj_func,cur_price*1.01,cur_price*1.25,tol=1.)
+    opt_s, opt_rev = bisection_minimize(obj_func, cur_price * 1.01, cur_price * 1.25, tol=1.)
 
     print(f"optimal strike: {opt_s:.2f}, max expected rev: {-opt_rev:.2f}")
     return -opt_rev
-def calibrate_strike(ticker,fwd_steps, cost, calls, cdf_cal):
+
+
+def calibrate_strike(ticker, fwd_steps, cost, calls, cdf_cal):
     max_rev = -9999.
     best_strike = 0.
     cur_price = float(rh.stocks.get_latest_price(ticker)[0])
@@ -140,15 +152,18 @@ def calibrate_strike(ticker,fwd_steps, cost, calls, cdf_cal):
 
         bid = float(call['bid'])
         rev = s - cost + bid
-        exp_rev = rev*pu + bid*(1-pu)
-        print(f"strike: {s:.2f}, asgn prob: {pu:.3f}, exp profit: {exp_rev:.2f}, bid: {bid:.2f}, bid*prob: {(1-pu)*bid:.4f}")
+        exp_rev = rev * pu + bid * (1 - pu)
+        print(
+            f"strike: {s:.2f}, asgn prob: {pu:.3f}, exp profit: {exp_rev:.2f}, bid: {bid:.2f}, bid*prob: {(1 - pu) * bid:.4f}")
         if exp_rev > max_rev:
             max_rev = exp_rev
             best_strike = s
         if pu < 0.05:
             break
-    return best_strike,max_rev
-def calibrate_strike_tot_rtn(calls,tot_rtns):
+    return best_strike, max_rev
+
+
+def calibrate_strike_tot_rtn(calls, tot_rtns, cost_price):
     max_rev = -9999.
     best_strike = 0.
     cur_price = float(rh.stocks.get_latest_price(ticker)[0])
@@ -158,10 +173,10 @@ def calibrate_strike_tot_rtn(calls,tot_rtns):
         s = float(call['strike'])
         if s < cur_price:
             continue
-        p_assgn = 1-cdf_cal.compCDF(s/cur_price-1)
+        p_assgn = 1 - cdf_cal.compCDF(s / cur_price - 1)
         bid = float(call['bid'])
-        assgn_rev = s - cur_price + bid
-        exp_rev = assgn_rev*p_assgn + bid*(1-p_assgn)
+        assgn_rev = s - cost_price + bid
+        exp_rev = assgn_rev * p_assgn + bid * (1 - p_assgn)
         print(
             f"strike: {s:.2f}, asgn prob: {p_assgn:.3f}, exp profit: {exp_rev:.2f}, bid: {bid:.2f}, bid*prob: {(1 - p_assgn) * bid:.4f}")
         if exp_rev > max_rev:
@@ -171,7 +186,6 @@ def calibrate_strike_tot_rtn(calls,tot_rtns):
             break
 
     return best_strike, max_rev
-
 
 
 if __name__ == "__main__":
@@ -187,39 +201,39 @@ if __name__ == "__main__":
     if len(sys.argv) == 4:
         cost_price = float(sys.argv[3])
 
-
     fwd_days = TradeDaysCounter().countTradeDays(exp_date)
     print(f"trading days: {fwd_days}")
 
-    lookback=10
-    vls = compute_vol_price_log_slope(ticker,lookback)
+    lookback = 10
+    vls = compute_vol_price_log_slope(ticker, lookback)
     # breakpoint()
     # print(f"\033[1;31m{lookback}-day vol log-slope: {vls:.4f}\033[0m")
-    vls_spy = compute_vol_price_log_slope('SPY',lookback)
+    vls_spy = compute_vol_price_log_slope('SPY', lookback)
     # print(f"{lookback}-day vol log slope of SPY: {vls_spy:.4f}")
 
     df, bars_per_day = download_from_yfinance(ticker)
 
     # rtns = df['Open'].pct_change().values
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
-    print(f"rtn range: {np.min(rtns),np.max(rtns)}")
+    print(f"rtn range: {np.min(rtns), np.max(rtns)}")
     print(f"length of rtns: {len(rtns)}, bars_per_day: {bars_per_day}")
 
-    lookback_days,min_diff = findBestLookbackDays(22*12,22*22,fwd_days,bars_per_day,rtns)
+    lookback_days, min_diff = findBestLookbackDays(22 * 12, 22 * 22, fwd_days, bars_per_day, rtns)
     # lookback_days, min_diff = findBestLookbackDays(22 * 1, 22 * 6, fwd_days, bars_per_day, rtns)
     print(f"optimal days: {lookback_days}, min_diff: {min_diff}")
 
-    pick_rtns = rtns[-lookback_days*bars_per_day:]
+    pick_rtns = rtns[-lookback_days * bars_per_day:]
 
-    calls,puts = prepare_callsputs(ticker,exp_date)
+    calls, puts = prepare_callsputs(ticker, exp_date)
     print("Calibrating strike against long-term distribution")
-    parity_strike = compute_call_put_parity_strike(cost_price,calls,puts)
+    parity_strike = compute_call_put_parity_strike(cost_price, calls, puts)
     print(f"parity strike: {parity_strike:.2f}")
 
-    max_pain_x,max_pain_y = eval_max_pain(calls,puts)
-    current_option_value = eval_option_total_value(cur_price,calls,puts)
+    max_pain_x, max_pain_y = eval_max_pain(calls, puts)
+    current_option_value = eval_option_total_value(cur_price, calls, puts)
     print(f"current price: {cur_price:.2f}, total value of options: {current_option_value:.2f}")
-    print(f"max pain strike: {max_pain_x:.2f}, max pain total_value: {max_pain_y:.2f}, perf: {max_pain_y/current_option_value-1:.4f}")
+    print(
+        f"max pain strike: {max_pain_x:.2f}, max pain total_value: {max_pain_y:.2f}, perf: {max_pain_y / current_option_value - 1:.4f}")
     # print(f"max pain strike: {max_pain_x-1:.2f}, max pain total_value: {eval_option_total_value(max_pain_x-1,calls,puts):.2f}")
 
     # Use distribution of recent lookback_days
@@ -229,15 +243,9 @@ if __name__ == "__main__":
     # print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
     #
 
-    tot_rtns = compute_total_return_distribution(rtns,bars_per_day,fwd_days)
-    best_strike, max_rev = calibrate_strike_tot_rtn(calls,tot_rtns)
+    lookback_days = 300
+    tot_rtns = compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_days)
+    best_strike, max_rev = calibrate_strike_tot_rtn(calls, tot_rtns, cost_price)
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
-    print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
-
-
-
-
-
-
-
-
+    print(
+        f"max daily return: {max_rev / fwd_days / cost_price:.4f}, annual return: {max_rev / fwd_days / cost_price * 252:.4f}")

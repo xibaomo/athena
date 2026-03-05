@@ -445,9 +445,8 @@ def forecast_realized_garch(logh_T, x_T, params, steps):
 
     return np.sqrt(np.array(forecasts))
 
-def compute_total_return_distribution(rtns, bars_per_day,fwd_days):
-    num_days = len(rtns) // bars_per_day
-    daily_matrix = rtns[:num_days * bars_per_day].reshape(num_days, bars_per_day)
+def compute_total_return_distribution(rtns, bars_per_day,lookback_days, fwd_days):
+    daily_matrix = rtns[-lookback_days * bars_per_day:].reshape(lookback_days, bars_per_day)
     daily_returns = np.sum(daily_matrix, axis=1)
     daily_rv = np.sum(daily_matrix ** 2, axis=1)
     # breakpoint()
