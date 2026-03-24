@@ -8,6 +8,7 @@ import sys, os
 sys.path.append(os.environ['ATHENA_HOME'] + "/py_algos/pair_options")
 
 from mkv_cal import compute_total_return_distribution, ECDFCal
+from joblib import Parallel, delayed
 
 
 def extend_rtns(df, bars_per_day):
@@ -35,7 +36,8 @@ def extend_rtns(df, bars_per_day):
     return rtns, bars_per_day * 3
 
 
-def model_forecast( past_df, bars_per_day, lookback_days, fwd_days):
+def model_forecast(df, tid, bars_per_day, lookback_days, fwd_days):
+    past_df = df.iloc[tid - bars_per_day * lookback_days:tid]
     rtns, new_bpd = extend_rtns(past_df, bars_per_day)
     tot_rtns = compute_total_return_distribution(rtns, bars_per_day=new_bpd, lookback_days=lookback_days,
                                                  fwd_days=fwd_days)
@@ -43,7 +45,29 @@ def model_forecast( past_df, bars_per_day, lookback_days, fwd_days):
     return tot_rtns
 
 
-def validate_hourly_pit(df, lookback_days, fwd_days=5, bars_per_day=7):
+def process_single_step(i, df, bars_per_day, lookback_days, fwd_days):
+    """
+    Worker function for a single PIT calculation.
+    """
+    # 1. Calculate the target return (actual_y)
+    if not df.index[i].dayofweek == 0:
+        return -1
+    curr_price = df['Close'].iloc[i]
+    target_idx = i + fwd_days * bars_per_day
+    actual_y = df['Close'].iloc[target_idx] / curr_price - 1
+
+    # 2. Call your forecasting model
+    # Note: Ensure model_forecast is thread-safe and doesn't modify the global df
+    forecast_rtns = model_forecast(df, i, bars_per_day, lookback_days, fwd_days)
+
+    # 3. Calculate CDF and PIT
+    cdf_cal = ECDFCal(forecast_rtns)
+    u_val = cdf_cal.compCDF(actual_y)
+
+    # 4. Clip and return
+    return np.clip(u_val, 1e-6, 1 - 1e-6)
+
+def validate_hourly_pit(df, lookback_days, fwd_days=10, bars_per_day=7):
     """
     Validates the probability distribution forecast using the PIT method.
     """
@@ -54,26 +78,34 @@ def validate_hourly_pit(df, lookback_days, fwd_days=5, bars_per_day=7):
     # 3. Walk-forward Validation Loop
     # We start after 24 hours of history to allow for volatility calculation
 
-    lk_bars = lookback_days * bars_per_day
-    pit_values = []
-    for i in range(lookback_days * bars_per_day, sample_size - fwd_days * bars_per_day, bars_per_day):
+    # pit_values = []
+    # for i in range(lookback_days * bars_per_day, sample_size - fwd_days * bars_per_day, bars_per_day):
+    #     curr_price = df['Close'].iloc[i]
+    #     actual_y = df['Close'].iloc[i + fwd_days * bars_per_day] / curr_price - 1
+    #
+    #     # Call your forecasting model
+    #     forecast_rtns = model_forecast(df, i, bars_per_day, lookback_days, fwd_days)
+    #     cdf_cal = ECDFCal(forecast_rtns)
+    #     # Calculate PIT value: u = CDF(actual_return)
+    #     u_val = cdf_cal.compCDF(actual_y)
+    #     # breakpoint()
+    #
+    #     # Clip to avoid numerical issues at boundaries
+    #     u_val = np.clip(u_val, 1e-6, 1 - 1e-6)
+    #     pit_values.append(u_val)
+    start_idx = lookback_days * bars_per_day
+    end_idx = len(df) - fwd_days * bars_per_day
+    step = bars_per_day
 
-        curr_price = df['Close'].iloc[i]
-        past_df = df.iloc[i - lk_bars:i]
-        actual_y = df['Close'].iloc[i+fwd_days*bars_per_day]/curr_price-1
-
-        # Call your forecasting model
-        forecast_rtns = model_forecast(past_df, bars_per_day, lookback_days, fwd_days)
-        cdf_cal = ECDFCal(forecast_rtns)
-        # Calculate PIT value: u = CDF(actual_return)
-        u_val = cdf_cal.compCDF(actual_y)
-        # breakpoint()
-
-        # Clip to avoid numerical issues at boundaries
-        u_val = np.clip(u_val, 1e-6, 1 - 1e-6)
-        pit_values.append(u_val)
+    indices = range(start_idx, end_idx, step)
+    pit_values = Parallel(n_jobs=-1, prefer="processes")(
+        delayed(process_single_step)(i, df, bars_per_day, lookback_days, fwd_days)
+        for i in indices
+    )
+    pit_values = [x for x in pit_values if x >= 0]
 
     pit_values = np.array(pit_values)
+    print(f"sample size: {len(pit_values)}")
 
     # 4. Statistical Tests
     # Kolmogorov-Smirnov test for Uniformity [0, 1]
@@ -121,4 +153,4 @@ if __name__ == "__main__":
         print("Error: No data retrieved.")
         sys.exit(1)
 
-    validate_hourly_pit(df, 150)
+    validate_hourly_pit(df, lookback_days=300, fwd_days=10)

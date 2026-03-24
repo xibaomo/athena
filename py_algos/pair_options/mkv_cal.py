@@ -498,7 +498,7 @@ def compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_day
 
     bounds = [
         (-5, 5),  # omega
-        (0.75, 0.999),  # beta
+        (0.1, 0.999),  # beta
         (0.0, 1.0),  # gamma
         (-5, 5),  # xi
         (0.1, 5),  # phi
@@ -542,6 +542,7 @@ def compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_day
     )
 
     # Monte-Carlo sim
+    future_vol = future_vol*0.8
     print(f"future folatility: ", future_vol)
     n_sim = 100000
     tot_rtn = np.zeros(n_sim)
