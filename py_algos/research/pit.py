@@ -67,32 +67,14 @@ def process_single_step(i, df, bars_per_day, lookback_days, fwd_days):
     # 4. Clip and return
     return np.clip(u_val, 1e-6, 1 - 1e-6)
 
+
 def validate_hourly_pit(df, lookback_days, fwd_days=10, bars_per_day=7):
     """
     Validates the probability distribution forecast using the PIT method.
     """
-    # breakpoint()
     sample_size = len(df)
     print(f"Running PIT calculation on {sample_size} samples...")
 
-    # 3. Walk-forward Validation Loop
-    # We start after 24 hours of history to allow for volatility calculation
-
-    # pit_values = []
-    # for i in range(lookback_days * bars_per_day, sample_size - fwd_days * bars_per_day, bars_per_day):
-    #     curr_price = df['Close'].iloc[i]
-    #     actual_y = df['Close'].iloc[i + fwd_days * bars_per_day] / curr_price - 1
-    #
-    #     # Call your forecasting model
-    #     forecast_rtns = model_forecast(df, i, bars_per_day, lookback_days, fwd_days)
-    #     cdf_cal = ECDFCal(forecast_rtns)
-    #     # Calculate PIT value: u = CDF(actual_return)
-    #     u_val = cdf_cal.compCDF(actual_y)
-    #     # breakpoint()
-    #
-    #     # Clip to avoid numerical issues at boundaries
-    #     u_val = np.clip(u_val, 1e-6, 1 - 1e-6)
-    #     pit_values.append(u_val)
     start_idx = lookback_days * bars_per_day
     end_idx = len(df) - fwd_days * bars_per_day
     step = bars_per_day
@@ -153,4 +135,4 @@ if __name__ == "__main__":
         print("Error: No data retrieved.")
         sys.exit(1)
 
-    validate_hourly_pit(df, lookback_days=300, fwd_days=10)
+    validate_hourly_pit(df, lookback_days=300, fwd_days=5)

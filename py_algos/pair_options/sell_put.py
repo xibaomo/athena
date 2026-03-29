@@ -128,11 +128,11 @@ if __name__ == '__main__':
     # pdb.set_trace()
 
     steps = fwd_days*bars_per_day
-    cdf_cal = ECDFCal(pick_rtns)
-    best_strike,max_rtn = calibrate_strike_put(cur_price,puts,pick_rtns,steps,lb_rtn = -0.6, ub_rtn = 1.,cdf_cal=cdf_cal)
-    print(f"Latest price: {cur_price:.2f}")
-    print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike*max_rtn:.2f}")
-    print(f"max daily return: {max_rtn/fwd_days:.4f}, annual return: {max_rtn/fwd_days*252:.4f}")
+    # cdf_cal = ECDFCal(pick_rtns)
+    # best_strike,max_rtn = calibrate_strike_put(cur_price,puts,pick_rtns,steps,lb_rtn = -0.6, ub_rtn = 1.,cdf_cal=cdf_cal)
+    # print(f"Latest price: {cur_price:.2f}")
+    # print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike*max_rtn:.2f}")
+    # print(f"max daily return: {max_rtn/fwd_days:.4f}, annual return: {max_rtn/fwd_days*252:.4f}")
 
     lookback_days = 300
     tot_rtns = compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_days)

@@ -479,7 +479,7 @@ def forecast_realized_garch(logh_T, x_T, params, steps):
     return np.sqrt(np.array(forecasts))
 
 
-def compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_days):
+def compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_days, vol_scaler=0.8):
     daily_matrix = rtns[-lookback_days * bars_per_day:].reshape(lookback_days, bars_per_day)
     daily_returns = np.sum(daily_matrix, axis=1)
     daily_rv = np.sum(daily_matrix ** 2, axis=1)
@@ -542,7 +542,7 @@ def compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_day
     )
 
     # Monte-Carlo sim
-    future_vol = future_vol*0.8
+    future_vol = future_vol*vol_scaler
     print(f"future folatility: ", future_vol)
     n_sim = 100000
     tot_rtn = np.zeros(n_sim)
