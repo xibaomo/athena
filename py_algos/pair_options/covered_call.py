@@ -189,17 +189,19 @@ def calibrate_strike_tot_rtn(calls, tot_rtns, cost_price):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print(f"Usage: {sys.argv[0]} <ticker> <expiration_date> [stock_cost] ")
+    if len(sys.argv) < 4:
+        print(f"Usage: {sys.argv[0]} <ticker> <expiration_date> <volatility scaler> [stock_cost] ")
         sys.exit(1)
 
     ticker = sys.argv[1]
     exp_date = sys.argv[2]
+    vol_scaler = float(sys.argv[3])
     cur_price = float(rh.stocks.get_latest_price(ticker)[0])
     cost_price = cur_price
     print(f"Latest price: {cost_price:.2f}")
-    if len(sys.argv) == 4:
-        cost_price = float(sys.argv[3])
+
+    if len(sys.argv) == 5:
+        cost_price = float(sys.argv[4])
 
     fwd_days = TradeDaysCounter().countTradeDays(exp_date)
     print(f"trading days: {fwd_days}")
@@ -243,8 +245,8 @@ if __name__ == "__main__":
     # print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
     #
 
-    lookback_days = 300
-    tot_rtns = compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_days)
+    lookback_days = 400
+    tot_rtns = compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_days, vol_scaler=0.9656)
     best_strike, max_rev = calibrate_strike_tot_rtn(calls, tot_rtns, cost_price)
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
     print(

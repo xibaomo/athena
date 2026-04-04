@@ -428,7 +428,9 @@ def realized_garch_loglik(params, r, x):
 
     T = len(r)
     logh = np.zeros(T)
-    # logh[0] = np.log(np.var(r))
+
+    if len(x)==0:
+        breakpoint()
     logh[0] = np.log(x[0])
     ll = 0.0
 
@@ -513,8 +515,8 @@ def compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_day
                    bounds=bounds)
 
     params_hat = res.x
-    print("Estimated parameters:")
-    print(params_hat)
+    # print("Estimated parameters:")
+    # print(params_hat)
     if len(daily_returns) > 2000:
         z = compute_residuals(params_hat, daily_returns, daily_rv)
         print(f"optimized ave cdf diff of daily residules: {eval_stability(z, 100):.4f}")
@@ -543,7 +545,7 @@ def compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_day
 
     # Monte-Carlo sim
     future_vol = future_vol*vol_scaler
-    print(f"future folatility: ", future_vol)
+    # print(f"future volatility: ", future_vol)
     n_sim = 100000
     tot_rtn = np.zeros(n_sim)
     for k in range(n_sim):

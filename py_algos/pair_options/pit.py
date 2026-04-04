@@ -9,6 +9,7 @@ sys.path.append(os.environ['ATHENA_HOME'] + "/py_algos/pair_options")
 
 from mkv_cal import compute_total_return_distribution, ECDFCal
 from joblib import Parallel, delayed
+from scipy.optimize import minimize_scalar
 
 
 def extend_rtns(df, bars_per_day):
@@ -36,16 +37,16 @@ def extend_rtns(df, bars_per_day):
     return rtns, bars_per_day * 3
 
 
-def model_forecast(df, tid, bars_per_day, lookback_days, fwd_days):
+def model_forecast(df, tid, bars_per_day, lookback_days, fwd_days, vol_scaler):
     past_df = df.iloc[tid - bars_per_day * lookback_days:tid]
     rtns, new_bpd = extend_rtns(past_df, bars_per_day)
     tot_rtns = compute_total_return_distribution(rtns, bars_per_day=new_bpd, lookback_days=lookback_days,
-                                                 fwd_days=fwd_days)
+                                                 fwd_days=fwd_days, vol_scaler=vol_scaler)
     # cdf_cal = ECDFCal(tot_rtns)
     return tot_rtns
 
 
-def process_single_step(i, df, bars_per_day, lookback_days, fwd_days):
+def process_single_step(i, df, bars_per_day, lookback_days, fwd_days, vol_scaler):
     """
     Worker function for a single PIT calculation.
     """
@@ -58,7 +59,7 @@ def process_single_step(i, df, bars_per_day, lookback_days, fwd_days):
 
     # 2. Call your forecasting model
     # Note: Ensure model_forecast is thread-safe and doesn't modify the global df
-    forecast_rtns = model_forecast(df, i, bars_per_day, lookback_days, fwd_days)
+    forecast_rtns = model_forecast(df, i, bars_per_day, lookback_days, fwd_days, vol_scaler)
 
     # 3. Calculate CDF and PIT
     cdf_cal = ECDFCal(forecast_rtns)
@@ -68,7 +69,31 @@ def process_single_step(i, df, bars_per_day, lookback_days, fwd_days):
     return np.clip(u_val, 1e-6, 1 - 1e-6)
 
 
-def validate_hourly_pit(df, lookback_days, fwd_days=10, bars_per_day=7):
+def calibrate_garch(df, lookback_days, fwd_days, bars_per_day):
+    def obj_func(x, lookback_days, df, fwd_days, bars_per_day, isplot):
+        vol_scaler = x
+        _, pv = validate_hourly_pit(df, vol_scaler, lookback_days, fwd_days, bars_per_day, isplot)
+        print(f"{lookback_days},{vol_scaler}, p-val: {pv}")
+        return -pv
+
+    # bounds = [(0, 1)]
+    # init = np.array([0.6])
+    # res = minimize(obj_func, init,
+    #                args=(lookback_days, df, fwd_days, bars_per_day, False),
+    #                method="L-BFGS-B",
+    #                bounds=bounds,
+    #                # options={'eps': 0.01}
+    #                )
+    res = minimize_scalar(obj_func,bounds=(0.4,.999),method='bounded',
+                          args=(lookback_days, df, fwd_days, bars_per_day, False), tol=1e-2)
+
+    vol_scaler = res.x
+    # normalized_days = res.x[1]
+    print(f"Best var: vol_scaler: {vol_scaler} lookback_days: {lookback_days}")
+    validate_hourly_pit(df, vol_scaler, lookback_days, fwd_days, bars_per_day)
+
+
+def validate_hourly_pit(df, vol_scaler, lookback_days, fwd_days=10, bars_per_day=7, isplot=True):
     """
     Validates the probability distribution forecast using the PIT method.
     """
@@ -81,7 +106,7 @@ def validate_hourly_pit(df, lookback_days, fwd_days=10, bars_per_day=7):
 
     indices = range(start_idx, end_idx, step)
     pit_values = Parallel(n_jobs=-1, prefer="processes")(
-        delayed(process_single_step)(i, df, bars_per_day, lookback_days, fwd_days)
+        delayed(process_single_step)(i, df, bars_per_day, lookback_days, fwd_days, vol_scaler)
         for i in indices
     )
     pit_values = [x for x in pit_values if x >= 0]
@@ -94,8 +119,9 @@ def validate_hourly_pit(df, lookback_days, fwd_days=10, bars_per_day=7):
     ks_stat, p_value = stats.kstest(pit_values, 'uniform')
 
     # 5. Diagnostic Visualization
-    plot_results(
-        pit_values, ks_stat, p_value, fwd_days)
+    if isplot:
+        plot_results(
+            pit_values, ks_stat, p_value, fwd_days)
 
     return pit_values, p_value
 
@@ -111,7 +137,7 @@ def plot_results(pit_values, ks_stat, p_value, fwd_days):
     plt.axhline(1.0, color='red', linestyle='--', lw=2, label='Ideal Uniform')
 
     plt.title(f"PIT Diagnostic: (Hourly)\n"
-              f"Forecast Horizon: {fwd_days}h | KS p-value: {p_value:.4E}")
+              f"Forecast Horizon: {fwd_days}day | KS p-value: {p_value:.4E}")
     plt.xlabel("Cumulative Probability (u)")
     plt.ylabel("Density")
     plt.legend()
@@ -121,10 +147,13 @@ def plot_results(pit_values, ks_stat, p_value, fwd_days):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python pit.py <ticker>")
+        print("Usage: python pit.py <ticker>, [lookback_days=400]")
         sys.exit(1)
 
     ticker = sys.argv[1]
+    lookback_days = 400
+    if len(sys.argv) > 2:
+        lookback_days = int(sys.argv[2])
     # 1. Download hourly data
     print(f"Downloading hourly data for {ticker}...")
     df = yf.download(ticker, period="730d", interval="1h")
@@ -135,4 +164,5 @@ if __name__ == "__main__":
         print("Error: No data retrieved.")
         sys.exit(1)
 
-    validate_hourly_pit(df, lookback_days=300, fwd_days=5)
+    # validate_hourly_pit(df, vol_scaler=0.7, lookback_days=300, fwd_days=5)
+    calibrate_garch(df, lookback_days=lookback_days, fwd_days=5, bars_per_day=7)
