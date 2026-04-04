@@ -190,11 +190,11 @@ def calibrate_strike_tot_rtn(calls, tot_rtns, cost_price):
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
-        print(f"Usage: {sys.argv[0]} <ticker> <expiration_date> <volatility scaler> [stock_cost] ")
+        print(f"Usage: {sys.argv[0]} <expiration_date> <ticker> <volatility scaler> [stock_cost] ")
         sys.exit(1)
 
-    ticker = sys.argv[1]
-    exp_date = sys.argv[2]
+    exp_date = sys.argv[1]
+    ticker = sys.argv[2]
     vol_scaler = float(sys.argv[3])
     cur_price = float(rh.stocks.get_latest_price(ticker)[0])
     cost_price = cur_price
