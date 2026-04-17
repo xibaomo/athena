@@ -10,6 +10,7 @@ sys.path.append(os.environ['ATHENA_HOME'] + "/py_algos/pair_options")
 from mkv_cal import compute_total_return_distribution, ECDFCal
 from joblib import Parallel, delayed
 from scipy.optimize import minimize_scalar
+import time
 
 
 def extend_rtns(df, bars_per_day):
@@ -90,7 +91,7 @@ def calibrate_garch(df, lookback_days, fwd_days, bars_per_day):
     vol_scaler = res.x
     # normalized_days = res.x[1]
     print(f"\033[1;31mBest var: vol_scaler: {vol_scaler} lookback_days: {lookback_days}, min distance: {res.fun:.4f}\033[0m")
-    validate_hourly_pit(df, vol_scaler, lookback_days, fwd_days, bars_per_day)
+    # validate_hourly_pit(df, vol_scaler, lookback_days, fwd_days, bars_per_day)
 
     return vol_scaler, res.fun
 
@@ -149,25 +150,40 @@ def plot_results(pit_values, ks_stat, p_value, fwd_days):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python pit.py <ticker> [lookback_days=300] [fwd_days=5]")
+        print(f"Usage: python {sys.argv[0]} {list.csv}")
         sys.exit(1)
 
-    ticker = sys.argv[1]
     lookback_days = 300
-    if len(sys.argv) > 2:
-        lookback_days = int(sys.argv[2])
     fwd_days = 5
-    if len(sys.argv) > 3:
-        fwd_days = int(sys.argv[3])
-    # 1. Download hourly data
-    print(f"Downloading hourly data for {ticker}...")
-    df = yf.download(ticker, period="730d", interval="1h")
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.droplevel(level=1)
 
-    if df.empty:
-        print("Error: No data retrieved.")
-        sys.exit(1)
 
-    # validate_hourly_pit(df, vol_scaler=0.7, lookback_days=300, fwd_days=5)
-    calibrate_garch(df, lookback_days=lookback_days, fwd_days=fwd_days, bars_per_day=7)
+    ticker_df = pd.read_csv(sys.argv[1])
+    N = len(ticker_df)
+    kss = np.ones(N)*(-1)
+    vss = np.ones(N)*(-1)
+    # for ticker in ticker_df['<SYM>'].values:
+    for i in range(N):
+        ticker = ticker_df.loc[i,'<SYM>']
+        tic = time.perf_counter()
+        print(f"Downloading hourly data for {ticker}...")
+        df = yf.download(ticker, period="730d", interval="1h")
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.droplevel(level=1)
+
+        if df.empty:
+            print("Error: No data retrieved.")
+            continue
+
+        # validate_hourly_pit(df, vol_scaler=0.7, lookback_days=300, fwd_days=5)
+        try:
+            vs, ks = calibrate_garch(df, lookback_days=lookback_days, fwd_days=fwd_days, bars_per_day=7)
+        except:
+            vs = -1
+            ks = -1
+        vss[i] = vs
+        kss[i] = ks
+        print(f"cyclel takes {time.perf_counter() - tic} seconds")
+        ticker_df['vss'] = vss
+        ticker_df['kss'] = kss
+        ticker_df.to_csv("ticker_best_vol.csv", index=False)
+        # breakpoint()

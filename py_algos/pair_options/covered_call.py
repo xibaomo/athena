@@ -206,11 +206,11 @@ if __name__ == "__main__":
     fwd_days = TradeDaysCounter().countTradeDays(exp_date)
     print(f"trading days: {fwd_days}")
 
-    lookback = 10
-    vls = compute_vol_price_log_slope(ticker, lookback)
+
+    vls = compute_vol_price_log_slope(ticker, lookback=5)
     # breakpoint()
     # print(f"\033[1;31m{lookback}-day vol log-slope: {vls:.4f}\033[0m")
-    vls_spy = compute_vol_price_log_slope('SPY', lookback)
+    vls_spy = compute_vol_price_log_slope('SPY', lookback=5)
     # print(f"{lookback}-day vol log slope of SPY: {vls_spy:.4f}")
 
     df, bars_per_day = download_from_yfinance(ticker)
@@ -245,7 +245,7 @@ if __name__ == "__main__":
     # print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
     #
 
-    lookback_days = 400
+    lookback_days = 300
     tot_rtns = compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_days, vol_scaler=0.9656)
     best_strike, max_rev = calibrate_strike_tot_rtn(calls, tot_rtns, cost_price)
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
