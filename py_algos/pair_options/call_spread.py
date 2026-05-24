@@ -1,88 +1,87 @@
-import os, sys
-import pdb
-from datetime import datetime, timedelta
-
-import numpy as np
-import yfinance as yf
-from scipy import stats
-from cal_prob import findBestLookbackDays, prepare_rtns
-from utils import *
-from mkv_cal import *
-from scipy.optimize import minimize
 import matplotlib.pyplot as plt
+from cal_prob import findBestLookbackDays, prepare_rtns
+from mkv_cal import *
 from option_chain import *
-from covered_call import sliding_cdf_error, calibrate_weights, evaluate_latest_wasserstein_distance
+from utils import *
 
-
-def compExpectedReturn_call_spread(cur_price, s_strike, b_strike, bid,ask, probs, drtn, lb_rtn):
+def compExpectedReturn(cur_price, strike_sell, strike_buy, premium, drtn,cdf_cal):
     expected_rtn = 0.
-    cost = ask
-    # if s_strike==490 and b_strike == 490:
-    #     breakpoint()
+    max_loss = strike_buy-strike_sell - premium
+    if max_loss > 10:
+        return -999
+    # max_loss = 1
+    # breakpoint()
+    ### 3 cases
+    # case 1: p > strike_sell
+    rtn = premium/max_loss
+    pb = cdf_cal.compRangeProb(-1,strike_sell/cur_price-1.)
+    expected_rtn += rtn*pb
 
-    for i in range(len(probs)):
-        r = lb_rtn + (i + 0.5) * drtn
-        p = cur_price * (1 + r)
-        if p > s_strike:
-            income_sell = bid
-            cost+= p-s_strike
-        else:
-            income_sell = bid
-        if p > b_strike:
-            income_buy = p - b_strike
-        else:
-            income_buy = 0
-        income = income_buy + income_sell
-        rtn = income/cost - 1.
-        expected_rtn = expected_rtn + rtn*probs[i]
+    # case 2: p < strike_buy, loss is fixed: strike_buy - strike_sell
+    rtn = -1
+    pb = cdf_cal.compRangeProb(strike_buy/cur_price-1., 1.)
+    expected_rtn += rtn*pb
+
+    # case 3: in the between
+    rtn_ub = strike_buy/cur_price - 1.
+    rtn_lb = strike_sell/cur_price - 1.
+    npb = int((rtn_ub - rtn_lb)/drtn)
+    probs = np.zeros(npb)
+    for i in range(npb):
+        r = (i+.5)*drtn + rtn_lb
+        probs[i] = cdf_cal.compRangeProb(r-drtn/2,r+drtn/2)
+        price = cur_price*(r+1.)
+        loss = -strike_sell + price
+        rtn = (premium - loss) / max_loss
+        expected_rtn += rtn*probs[i]
+
     return expected_rtn
 
-def calibrate_call_strikes(cur_price, options, steps, lb_rtn, ub_rtn, cdf_cal):
-    max_rtn = -999990.0
-    best_strike = []
-    best_askbid = []
+def calibrate_strike_put_total_rtns(cur_price, calls, tot_rtns ):
+    print(f"Calibrating put to sell and put to buy ...")
+    max_rtn = -99999
+    best_strike = None
 
-    probs = compMultiStepProb(steps, lb_rtn, ub_rtn, cdf_cal)
+    cdf_cal = ECDFCal(tot_rtns)
+    drtn = 0.001/4
 
-    x = np.linspace(lb_rtn, ub_rtn, len(probs))
-    plt.plot(x, probs, '.')
-    # plt.show()
-    # pdb.set_trace()
-    drtn = (ub_rtn - lb_rtn) / len(probs)
-    for i in range(len(options)):
-        optn_sell = options[i]
-        sell_strike = optn_sell['strike']
-        bid = optn_sell['bid']
-        if bid < 1.:
+    # x = np.linspace(lb_rtn,ub_rtn,len(probs))
+    # plt.plot(x,probs)
+    # for call_sell in calls:
+    for i in range(len(calls)):
+        call_sell = calls[i]
+        strike_sell = float(call_sell['strike'])
+        bid = float(call_sell['bid'])
+        if bid < 1. :
             continue
-        for j in range(len(options)):
-            optn_buy = options[j]
-            buy_strike = float(optn_buy['strike'])
-            # if buy_strike > cur_price:
-            #     continue
-            if buy_strike > sell_strike:
-                continue
-            ask = float(optn_buy['ask'])
+        for j in range(i+1,len(calls)):
+            call_buy = calls[j]
+        # for call_buy in calls:
+            strike_buy = float(call_buy['strike'])
 
-            exp_rtn = compExpectedReturn_call_spread(cur_price, s_strike=sell_strike, b_strike=buy_strike, bid=bid, ask=ask,
-                                                     probs=probs, drtn=drtn,lb_rtn=lb_rtn)
+            premium = bid - float(call_buy['ask'])
 
-            print(f"buy_call {buy_strike},sell_call {sell_strike}, exp_rtn: {exp_rtn:.4f}")
+            exp_rtn = compExpectedReturn(cur_price,strike_sell,strike_buy,premium,drtn,cdf_cal)
+
+            # print(f"strike: {strike}, asgn prob: {assign_prob:.3f}, exp_rtn: {exp_rtn:.4f}, bid: {premium}, rtn*prob: {(1-assign_prob)*premium/strike*100:.2f}")
+
             if exp_rtn > max_rtn:
                 max_rtn = exp_rtn
-                best_strike = [buy_strike, sell_strike]
-                best_askbid = [ask,bid]
+                best_strike = [strike_sell,strike_buy]
+                print(f"strikes: sell {strike_sell:.2f}, buy {strike_buy:.2f}, exp_rtn: {exp_rtn:.4f}")
+                print(f"bid: {call_sell['bid']}, ask: {call_buy['ask']}, max_rev: {premium:.2f}, "
+                      f"max_loss: {(strike_buy-strike_sell - premium):2f}")
 
-    return best_strike, max_rtn, best_askbid
-
+    return best_strike, max_rtn
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print(f"Usage: {sys.argv[0]} <ticker> <expiration_date>")
-        sys.exit(0)
+    if len(sys.argv) < 4:
+        print(f"Usage: {sys.argv[0]} <expiration_date> <ticker> <volatility scaler>  ")
+        sys.exit(1)
 
-    ticker = sys.argv[1]
-    exp_date = sys.argv[2]
+    exp_date = sys.argv[1]
+    ticker = sys.argv[2]
+    vol_scaler = float(sys.argv[3])
 
     fwd_days = TradeDaysCounter().countTradeDays(exp_date)
     print(f"trading days: {fwd_days}")
@@ -90,47 +89,30 @@ if __name__ == '__main__':
 
     # rtns = df['Open'].pct_change().values
     rtns, bars_per_day = prepare_rtns(df, bars_per_day)
-    cur_price = df['Close'].values[-1][0]
+    print(f"length of rtns: {len(rtns)}, bars_per_day: {bars_per_day}")
+    cur_price = float(rh.stocks.get_latest_price(ticker)[0])
 
-    calls, puts = prepare_callsputs(ticker, exp_date)
-    call_put_ratio = call_put_ask_ratio(0.25, calls, puts)
-    print(f"0.25_delta P/C ratio: {1./call_put_ratio:.3f}")
+    # spacing,min_diff = find_stablest_spacing(rtns,22*bars_per_day,2*bars_per_day)
+    # print(f"length of rtns: {len(rtns)}, min ave diff: {min_diff}, spacing days: {spacing//bars_per_day}")
+
+    lookback_days, min_diff = findBestLookbackDays(22 * 6, 730, fwd_days, bars_per_day, rtns)
+    print(f"optimal days: {lookback_days}, min_diff: {min_diff}")
+    spacing = lookback_days*bars_per_day
+
+    pick_rtns = rtns[-spacing:]
+
+    # calls = prepare_calls(ticker,exp_date)
+    calls,puts = prepare_callsputs(ticker,exp_date)
+    call_put_ratio = call_put_ask_ratio(0.25,calls,puts)
+    print(f"0.25_delta call/put ask_ratio: {call_put_ratio:.3f}")
     # pdb.set_trace()
 
-    steps = fwd_days * bars_per_day
-    print(f"searching for best lookback days...")
-    m_range = range(fwd_days * bars_per_day, 22 * 5 * bars_per_day)
-    res = find_best_m_given_n(rtns, fwd_days * bars_per_day, m_range)
-    print(f"best lookback days: {res['m'] / bars_per_day:.2f}, max corr: {res['corr']:.4f}")
-    # breakpoint()
 
-    backdays = round(res['m'] / bars_per_day)
-    n_back = res['m']
-    horizon = fwd_days * bars_per_day
-
-    dmin = 99999.
-    best_n_back = 0
-    for i in [1, 2, 3]:
-        d = evaluate_latest_wasserstein_distance(rtns, n_back * i, horizon)
-        print(f"lookback: {n_back * i}, wasserstein distance: {d:.5f}")
-        if d < dmin:
-            dmin = d
-            best_n_back = i * n_back
-
-    n_back = best_n_back
-    print(f"Searching for subarray ({n_back / bars_per_day} days) with the most likely distribution...")
-
-    x = rtns[-n_back:]
-    y = rtns[:-n_back]
-
-    res = analog_distribution_forecast(x, y, horizon, K=5)
-    pick_rtns = res['future_samples']
-
-    cdf_cal = ECDFCal(pick_rtns)
-    best_strike, max_rtn, best_askbid = calibrate_call_strikes(cur_price,calls, steps,
-                                                            lb_rtn=-0.5, ub_rtn=1.,cdf_cal=cdf_cal)
+    lookback_days = 300
+    tot_rtns = compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_days, vol_scaler=vol_scaler)
+    best_strike, max_rtn = calibrate_strike_put_total_rtns(cur_price, calls, tot_rtns)
     print(f"Latest price: {cur_price:.2f}")
-    print(f"best strike: {best_strike}, ask&bid: {best_askbid}, max_rtn: {max_rtn}")
+    print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike[0] * max_rtn:.2f}")
     print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
-
+    print(f"sym: {ticker}, latest price: {cur_price:.2f}")
     plt.show()

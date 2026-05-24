@@ -73,7 +73,7 @@ def calibrate_garch(df, lookback_days, fwd_days, bars_per_day):
     def obj_func(x, lookback_days, df, fwd_days, bars_per_day, isplot):
         vol_scaler = x
         _, kst = validate_hourly_pit(df, vol_scaler, lookback_days, fwd_days, bars_per_day, isplot)
-        print(f"{lookback_days},{vol_scaler}, min distance to uniform dist: {kst}")
+        print(f"{lookback_days},{vol_scaler}, statistics of uniform: {kst}")
         return kst
 
     # bounds = [(0, 1)]
@@ -118,21 +118,32 @@ def validate_hourly_pit(df, vol_scaler, lookback_days, fwd_days=10, bars_per_day
 
     # 4. Statistical Tests
     # Kolmogorov-Smirnov test for Uniformity [0, 1]
-    ks_stat, p_value = stats.kstest(pit_values, 'uniform')
+    # ks_stat, p_value = stats.kstest(pit_values, 'uniform')
 
+    #cramer-von Mises statistics, CDF global deviation
+    cvm = stats.cramervonmises(pit_values,'uniform')
+    _stat  = cvm.statistic
+    p_val = cvm.pvalue
+
+    bins=10
+    counts,_=np.histogram(pit_values,bins=bins,range=(0,1))
+    p = counts / np.sum(counts) + 1e-10  # ????0
+    q = np.ones(bins) / bins  # ??????
+    kl_div = np.sum(p * np.log(p / q))
+    # breakpoint()
     # 5. Diagnostic Visualization
     if isplot:
         plot_results(
-            pit_values, ks_stat, p_value, fwd_days)
+            pit_values, _stat, p_val, fwd_days)
 
-    return pit_values, ks_stat
+    return pit_values, _stat
 
 
 def plot_results(pit_values, ks_stat, p_value, fwd_days):
     plt.figure(figsize=(10, 6))
 
     # Histogram should be flat if the model is well-calibrated
-    plt.hist(pit_values, bins=30, density=True, alpha=0.6,
+    plt.hist(pit_values, bins=15, density=True, alpha=0.6,
              color='#2ca02c', edgecolor='white', label='PIT Empirical')
 
     # Reference line for perfect calibration

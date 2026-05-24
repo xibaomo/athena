@@ -6,15 +6,19 @@ from utils import *
 
 def compExpectedReturn(cur_price, strike_sell, strike_buy, premium, drtn,cdf_cal):
     expected_rtn = 0.
+    max_loss = strike_sell-strike_buy - premium
+    if max_loss > 10:
+        return -999
+    # max_loss = 1
     # breakpoint()
     ### 3 cases
     # case 1: p > strike_sell
-    rtn = premium/strike_sell
+    rtn = premium/max_loss
     pb = cdf_cal.compRangeProb(strike_sell/cur_price-1.,1.)
     expected_rtn += rtn*pb
 
     # case 2: p < strike_buy, loss is fixed: strike_buy - strike_sell
-    rtn = (premium - (strike_sell - strike_buy))/strike_sell
+    rtn = -1
     pb = cdf_cal.compRangeProb(-1., strike_buy/cur_price-1.)
     expected_rtn += rtn*pb
 
@@ -28,54 +32,10 @@ def compExpectedReturn(cur_price, strike_sell, strike_buy, premium, drtn,cdf_cal
         probs[i] = cdf_cal.compRangeProb(r-drtn/2,r+drtn/2)
         price = cur_price*(r+1.)
         loss = strike_sell - price
-        rtn = (premium - loss) / strike_sell
+        rtn = (premium - loss) / max_loss
         expected_rtn += rtn*probs[i]
 
     return expected_rtn
-
-def prepare_puts(sym,exp_date):
-    options = get_option_chain_alpha_vantage(sym)
-    print(f"{len(options)} options downloaded")
-    puts = []
-    for opt in options:
-        if opt['expiration'] == exp_date and opt['type'] == 'put':
-            puts.append(opt)
-
-    print(f"{len(puts)} puts returned")
-    return puts
-
-def calibrate_strike_put(cur_price, puts, rtns, steps, lb_rtn , ub_rtn, cdf_cal ):
-    max_rtn = 0.0
-    best_strike = 0.0
-
-    max_profit = -99999
-    max_profit_strike = 0.
-
-    probs = compMultiStepProb(steps,lb_rtn,ub_rtn, cdf_cal)
-
-    x = np.linspace(lb_rtn,ub_rtn,len(probs))
-    plt.plot(x,probs,'.')
-    # plt.show()
-    # pdb.set_trace()
-    drtn = (ub_rtn - lb_rtn) / len(probs)
-    for put in puts:
-        strike = float(put['strike'])
-        # if strike == 275:
-        #     pdb.set_trace()
-        strike_rtn = strike/cur_price - 1.
-        if strike_rtn >= ub_rtn or strike_rtn <= lb_rtn:
-            continue
-        premium = float(put['bid'])
-        exp_rtn = compExpectedReturn(cur_price,strike,premium,probs,drtn,lb_rtn)
-        # pdb.set_trace()
-        idx = int(((strike/cur_price-1.)-lb_rtn)/drtn)
-        assign_prob = np.sum(probs[:idx+1])
-        print(f"strike: {strike}, asgn prob: {assign_prob:.3f}, exp_rtn: {exp_rtn:.4f}, bid: {premium}, rtn*prob: {(1-assign_prob)*premium/strike*100:.2f}")
-        if exp_rtn > max_rtn:
-            max_rtn = exp_rtn
-            best_strike = strike
-
-    return best_strike, max_rtn
 
 def calibrate_strike_put_total_rtns(cur_price, puts, tot_rtns ):
     print(f"Calibrating put to sell and put to buy ...")
@@ -89,22 +49,28 @@ def calibrate_strike_put_total_rtns(cur_price, puts, tot_rtns ):
 
     # x = np.linspace(lb_rtn,ub_rtn,len(probs))
     # plt.plot(x,probs)
-    for put_sell in puts:
+    # for put_sell in puts:
+    for i in range(len(puts)):
+        put_sell = puts[i]
         strike_sell = float(put_sell['strike'])
-        for put_buy in puts:
+        for j in range(i-1):
+            put_buy = puts[j]
+        # for put_buy in puts:
             strike_buy = float(put_buy['strike'])
             if strike_buy >= strike_sell:
                 continue
             premium = float(put_sell['bid']) - float(put_buy['ask'])
-            if premium <= 1.:
-                continue
+
             exp_rtn = compExpectedReturn(cur_price,strike_sell,strike_buy,premium,drtn,cdf_cal)
 
             # print(f"strike: {strike}, asgn prob: {assign_prob:.3f}, exp_rtn: {exp_rtn:.4f}, bid: {premium}, rtn*prob: {(1-assign_prob)*premium/strike*100:.2f}")
-            print(f"strikes: sell {strike_sell:.2f}, buy {strike_buy:.2f}, exp_rtn: {exp_rtn:.4f}")
+
             if exp_rtn > max_rtn:
                 max_rtn = exp_rtn
                 best_strike = [strike_sell,strike_buy]
+                print(f"strikes: sell {strike_sell:.2f}, buy {strike_buy:.2f}, exp_rtn: {exp_rtn:.4f}")
+                print(f"bid: {put_sell['bid']}, ask: {put_buy['ask']}, max_rev: {premium:.2f}, "
+                      f"max_loss: {(strike_sell-strike_buy - premium):2f}")
 
     return best_strike, max_rtn
 

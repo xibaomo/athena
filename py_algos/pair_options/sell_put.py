@@ -95,6 +95,69 @@ def calibrate_strike_put_total_rtns(cur_price, puts, tot_rtns, steps, lb_rtn , u
 
     return best_strike, max_rtn
 
+def find_matched_buy_put(strike_sell, puts):
+    max_err = -99999
+    best_strike_buy = -1
+    best_ask = 0.0
+    lw = []
+    x=[]
+    for i in range(len(puts)-1, -1,-1):
+        put = puts[i]
+        if float(put['strike']) > strike_sell:
+            continue
+        if float(put['strike']) == strike_sell:
+            bid = float(put['bid'])
+            continue
+        if strike_sell - float(put['strike'])  <= 5:
+            continue
+        ask = float(put['ask'])
+        strike_buy = float(put['strike'])
+        # low_rev = bid - ask - (strike_sell-strike_buy)
+        # lw.append(low_rev/(strike_sell-strike_buy))
+        # x.append(strike_buy)
+        # err = low_rev/(strike_sell-strike_buy)
+
+        max_loss = (strike_sell-strike_buy) - (bid-ask)
+        max_rev = bid - ask
+        err = max_rev / max_loss
+        if err > max_err:
+            # breakpoint()
+            max_err = err
+            best_strike_buy = strike_buy
+            best_ask = ask
+
+    # plt.plot(x,lw,'.')
+    # plt.show()
+    low_rev = bid - best_ask - (strike_sell-best_strike_buy)
+    print(f"Best strike to buy: {best_strike_buy:.2f}, lowest proceeds: {low_rev}")
+    return best_strike_buy
+def find_best_put_pair(puts):
+    max_err = -99999
+    i0 = -1
+    j0 = -1
+    for i in range(len(puts)-1, 0,-1):
+        strike_sell = float(puts[i]['strike'])
+        bid = float(puts[i]['bid'])
+        for j in range(i-1, -1,-1):
+            strike_buy = float(puts[j]['strike'])
+            ask = float(puts[j]['ask'])
+            max_rev = bid - ask
+            max_loss = strike_sell - strike_buy
+            err = max_rev/max_loss
+            if err > max_err:
+                max_err = err
+                i0 = i
+                j0 = j
+
+    max_loss = float(puts[i0]['strike']) - float(puts[j0]['strike'])
+    max_rev = float(puts[i0]['bid']) - float(puts[j0]['ask'])
+    low_rev = max_rev - max_loss
+    print(f"Optimal strikes: buy {float(puts[i0]['strike'])}, sell {float(puts[j0]['strike'])}, low_rev: {low_rev:.2f}, max_rev: {max_rev:.2f}")
+
+
+
+
+
 if __name__ == '__main__':
     if len(sys.argv) < 4:
         print(f"Usage: {sys.argv[0]} <expiration_date> <ticker> <volatility scaler>  ")
@@ -103,6 +166,9 @@ if __name__ == '__main__':
     exp_date = sys.argv[1]
     ticker = sys.argv[2]
     vol_scaler = float(sys.argv[3])
+    strike_sell = -1
+    if len(sys.argv) > 4:
+        strike_sell = float(sys.argv[4])
 
     fwd_days = TradeDaysCounter().countTradeDays(exp_date)
     print(f"trading days: {fwd_days}")
@@ -138,8 +204,15 @@ if __name__ == '__main__':
     lookback_days = 300
     tot_rtns = compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_days, vol_scaler=vol_scaler)
     best_strike, max_rtn = calibrate_strike_put_total_rtns(cur_price, puts, tot_rtns, steps, lb_rtn=-0.6, ub_rtn=1.)
+
     print(f"Latest price: {cur_price:.2f}")
     print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike * max_rtn:.2f}")
     print(f"max daily return: {max_rtn / fwd_days:.4f}, annual return: {max_rtn / fwd_days * 252:.4f}")
     print(f"sym: {ticker}, latest price: {cur_price:.2f}")
+
+    if strike_sell < 0:
+        strike_sell = best_strike
+
+    strike_buy = find_matched_buy_put(strike_sell, puts)
+    find_best_put_pair(puts)
     plt.show()
