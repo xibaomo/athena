@@ -488,7 +488,8 @@ def compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_day
     daily_rv = np.sum(daily_matrix ** 2, axis=1)
     # breakpoint()
     daily_vol = np.sqrt(daily_rv)
-    mu = np.mean(daily_returns)
+    # mu = np.mean(daily_returns)
+    mu = 0
     residuals = (daily_returns - mu) / daily_vol
 
     if len(daily_returns) > 2000:
