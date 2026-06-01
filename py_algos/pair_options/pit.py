@@ -155,6 +155,9 @@ def plot_results(pit_values, ks_stat, p_value, fwd_days):
     plt.ylabel("Density")
     plt.legend()
     plt.grid(axis='y', alpha=0.3)
+
+    plt.figure(figsize=(6,6))
+    stats.probplot(pit_values,dist='uniform', plot=plt)
     plt.show()
 
 
