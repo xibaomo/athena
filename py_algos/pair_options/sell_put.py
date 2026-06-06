@@ -13,7 +13,8 @@ def compExpectedReturn(cur_price, strike, premium, probs, drtn,lb_rtn):
         if p >= strike:
             rtn = premium/strike
         else:
-            rtn = (premium - strike + p)/strike
+            # rtn = (premium - strike + p)/strike
+            rtn = p / (strike - premium) - 1.
         expected_rtn = expected_rtn + probs[i]*rtn
     return expected_rtn
 

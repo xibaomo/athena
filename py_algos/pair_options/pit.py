@@ -4,7 +4,7 @@ import yfinance as yf
 from scipy import stats
 import matplotlib.pyplot as plt
 import sys, os
-
+import time
 sys.path.append(os.environ['ATHENA_HOME'] + "/py_algos/pair_options")
 
 from mkv_cal import compute_total_return_distribution, ECDFCal
@@ -50,6 +50,8 @@ def process_single_step(i, df, bars_per_day, lookback_days, fwd_days, vol_scaler
     """
     Worker function for a single PIT calculation.
     """
+    process_seed = os.getpid() + int(time.time() * 1000) % 1000
+    np.random.seed(process_seed)
     # 1. Calculate the target return (actual_y)
     if not df.index[i].dayofweek == 0:
         return -1
@@ -84,7 +86,7 @@ def calibrate_garch(df, lookback_days, fwd_days, bars_per_day):
     #                bounds=bounds,
     #                # options={'eps': 0.01}
     #                )
-    res = minimize_scalar(obj_func,bounds=(0.4,.999),method='bounded',
+    res = minimize_scalar(obj_func,bounds=(0.4,1.5),method='bounded',
                           args=(lookback_days, df, fwd_days, bars_per_day, False), tol=1e-3)
 
     vol_scaler = res.x
