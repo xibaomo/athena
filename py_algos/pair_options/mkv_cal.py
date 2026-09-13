@@ -548,13 +548,16 @@ def compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_day
     # Monte-Carlo sim
     future_vol = future_vol*vol_scaler
     # print(f"future volatility: ", future_vol)
+    df_fitted, loc_fitted, scale_fitted = stats.t.fit(residuals)
+    # df_fit, a_fit, loc_fit, scale_fit = stats.nct.fit(residuals)
     n_sim = 100000
     tot_rtn = np.zeros(n_sim)
     for k in range(n_sim):
-        # idx = np.random.randint(0,len(residuals)-fwd_days)
-        # random_res = residuals[idx:idx + fwd_days]
-        random_res = np.random.choice(residuals, size=fwd_days)
-        
+        # random_res = np.random.choice(residuals, size=fwd_days)
+        # random_res = stats.nct.rvs(df=df_fit,a=a_fit,loc=loc_fit,scale=scale_fit, size=fwd_days)
+        random_res = np.random.standard_t(df_fitted, size=fwd_days)
+        random_res = (random_res*scale_fitted) + loc_fitted
+
         tot_rtn[k] = np.sum(random_res * future_vol) + mu * fwd_days
     # breakpoint()
     return tot_rtn

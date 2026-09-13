@@ -282,6 +282,7 @@ if __name__ == '__main__':
 
     data = pd.read_csv(DATA_FILE, comment='#', header=[0, 1], parse_dates=[0], index_col=0)
     daily_stock_data = data.dropna(axis=1)
+    # breakpoint()
     if len(sys.argv) == 2:
         csv_file = sys.argv[1]
         df = pd.read_csv(csv_file)

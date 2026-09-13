@@ -202,7 +202,7 @@ if __name__ == '__main__':
     # print(f"best strike: {best_strike}, max_rtn: {max_rtn}, exp_profit: {best_strike*max_rtn:.2f}")
     # print(f"max daily return: {max_rtn/fwd_days:.4f}, annual return: {max_rtn/fwd_days*252:.4f}")
 
-    lookback_days = 300
+    lookback_days = 170
     tot_rtns = compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_days, vol_scaler=vol_scaler)
     best_strike, max_rtn = calibrate_strike_put_total_rtns(cur_price, puts, tot_rtns, steps, lb_rtn=-0.6, ub_rtn=1.)
 

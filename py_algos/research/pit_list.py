@@ -85,7 +85,7 @@ def calibrate_garch(df, lookback_days, fwd_days, bars_per_day):
     #                bounds=bounds,
     #                # options={'eps': 0.01}
     #                )
-    res = minimize_scalar(obj_func,bounds=(0.4,.999),method='bounded',
+    res = minimize_scalar(obj_func,bounds=(0.4,1.5),method='bounded',
                           args=(lookback_days, df, fwd_days, bars_per_day, False), tol=1e-3)
 
     vol_scaler = res.x
@@ -153,7 +153,7 @@ if __name__ == "__main__":
         print(f"Usage: python {sys.argv[0]} {list.csv}")
         sys.exit(1)
 
-    lookback_days = 300
+    lookback_days = 170
     fwd_days = 5
 
 

@@ -245,7 +245,7 @@ if __name__ == "__main__":
     # print(f"max daily return: {max_rev/fwd_days/cost_price:.4f}, annual return: {max_rev/fwd_days/cost_price*252:.4f}")
     #
 
-    lookback_days = 300
+    lookback_days = 170
     tot_rtns = compute_total_return_distribution(rtns, bars_per_day, lookback_days, fwd_days, vol_scaler=0.9656)
     best_strike, max_rev = calibrate_strike_tot_rtn(calls, tot_rtns, cost_price)
     print(f"optimal strike: {best_strike:.2f}, max expected profit: {max_rev:.2f}")
